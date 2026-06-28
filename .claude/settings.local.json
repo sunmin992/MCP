@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell($r = Invoke-WebRequest -Uri \"http://localhost:8080/\" -UseBasicParsing; $r.StatusCode)",
+      "PowerShell(cd \"C:\\\\Dev\\\\mcp\\\\waste-sim-spring\"; mvn compile -q 2>&1 | Select-Object -Last 30; Write-Host \"EXIT: $LASTEXITCODE\")"
+    ]
+  }
+}

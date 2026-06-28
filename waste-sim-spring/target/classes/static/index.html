@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>장량동 생활쓰레기 시뮬레이션</title>
+  <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --card: #21263a;
+      --border: #2d3250;
+      --accent: #5c73f2;
+      --accent2: #7c5cf2;
+      --green: #4ade80;
+      --yellow: #facc15;
+      --red: #f87171;
+      --text: #e2e8f0;
+      --muted: #8892aa;
+      --radius: 12px;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      display: flex;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* ── 사이드바 ─────────────────────────────────────────────────────── */
+    .sidebar {
+      width: 300px;
+      flex-shrink: 0;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      padding: 20px 16px;
+      gap: 16px;
+      overflow-y: auto;
+    }
+
+    .sidebar h1 {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--accent);
+      letter-spacing: .04em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar h1 span { font-size: 20px; }
+
+    .param-section h3 {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 10px;
+    }
+
+    .param-row {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .param-row label {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .param-row input, .param-row select {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      font-size: 13px;
+      padding: 6px 10px;
+      width: 100%;
+      outline: none;
+      transition: border-color .2s;
+    }
+
+    .param-row input:focus, .param-row select:focus {
+      border-color: var(--accent);
+    }
+
+    .btn {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+
+    .btn:active { transform: scale(.98); }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+    }
+
+    .btn-secondary {
+      background: var(--card);
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .btn:hover { opacity: .85; }
+
+    .divider {
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* 결과 패널 */
+    .result-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 12px;
+      display: none;
+    }
+
+    .result-panel.show { display: block; }
+
+    .result-panel h3 {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .stat-box {
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 8px;
+      text-align: center;
+    }
+
+    .stat-box .val {
+      font-size: 22px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .stat-box .lbl {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    canvas { max-height: 160px; }
+
+    /* ── 채팅 영역 ────────────────────────────────────────────────────── */
+    .chat-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 16px 20px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+    }
+
+    .chat-header .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--red);
+      flex-shrink: 0;
+    }
+
+    .chat-header .status-dot.connected { background: var(--green); }
+    .chat-header .title { font-size: 15px; font-weight: 700; }
+    .chat-header .subtitle { font-size: 12px; color: var(--muted); margin-left: auto; }
+
+    .messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      scroll-behavior: smooth;
+    }
+
+    .msg {
+      max-width: 80%;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.bot  { align-self: flex-start; }
+    .msg.system, .msg.result { align-self: center; text-align: center; max-width: 100%; }
+
+    .bubble {
+      padding: 10px 14px;
+      border-radius: var(--radius);
+      font-size: 14px;
+      line-height: 1.55;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .msg.user .bubble {
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      border-bottom-right-radius: 4px;
+    }
+
+    .msg.bot .bubble {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 4px;
+    }
+
+    .msg.system .bubble {
+      background: transparent;
+      border: 1px dashed var(--border);
+      color: var(--muted);
+      font-size: 12px;
+      padding: 6px 12px;
+      border-radius: 20px;
+    }
+
+    .msg.result .bubble {
+      background: var(--card);
+      border: 1px solid var(--accent);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      text-align: left;
+      width: 100%;
+      max-width: 700px;
+    }
+
+    .result-header {
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--accent);
+      margin-bottom: 10px;
+    }
+
+    .result-stats {
+      display: flex;
+      gap: 16px;
+      margin-bottom: 12px;
+      flex-wrap: wrap;
+    }
+
+    .result-stat {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: var(--surface);
+      border-radius: 8px;
+      padding: 8px 14px;
+      min-width: 90px;
+    }
+
+    .result-stat .v {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--green);
+    }
+
+    .result-stat .l {
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+
+    .occ-bars { display: flex; flex-direction: column; gap: 6px; }
+
+    .occ-row { display: flex; align-items: center; gap: 8px; font-size: 12px; }
+    .occ-label { width: 80px; color: var(--muted); flex-shrink: 0; }
+    .occ-bar-wrap { flex: 1; background: var(--surface); border-radius: 4px; height: 10px; }
+    .occ-bar { height: 10px; border-radius: 4px; background: var(--accent); transition: width .4s; }
+    .occ-val { width: 40px; text-align: right; color: var(--text); }
+
+    /* 입력창 */
+    .input-area {
+      padding: 16px 20px;
+      border-top: 1px solid var(--border);
+      background: var(--surface);
+      display: flex;
+      gap: 10px;
+    }
+
+    #msgInput {
+      flex: 1;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      color: var(--text);
+      font-size: 14px;
+      padding: 10px 14px;
+      outline: none;
+      resize: none;
+      max-height: 120px;
+      transition: border-color .2s;
+    }
+
+    #msgInput:focus { border-color: var(--accent); }
+
+    #sendBtn {
+      padding: 10px 18px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-size: 18px;
+      cursor: pointer;
+      transition: opacity .2s;
+      align-self: flex-end;
+    }
+
+    #sendBtn:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* 예시 칩 */
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 20px 10px; }
+
+    .chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: 12px;
+      color: var(--muted);
+      cursor: pointer;
+      transition: border-color .2s, color .2s;
+    }
+
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    /* 스크롤바 */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  </style>
+</head>
+<body>
+
+<!-- ── 사이드바 ────────────────────────────────────────────────────── -->
+<aside class="sidebar">
+  <h1><span>🗑️</span> 쓰레기 시뮬레이터</h1>
+  <p style="font-size:11px;color:var(--muted);line-height:1.5">
+    포항 장량동 원룸촌 생활쓰레기 DEVS 시뮬레이션<br>
+    채팅으로 파라미터를 자연어로 입력하거나<br>
+    아래 패널에서 직접 설정하세요.
+  </p>
+
+  <div class="divider"></div>
+
+  <div class="param-section">
+    <h3>빠른 실행</h3>
+    <div class="param-row">
+      <label>수거 시각</label>
+      <select id="pTime">
+        <option value="10:00">10:00</option>
+        <option value="12:00" selected>12:00</option>
+        <option value="14:00">14:00</option>
+        <option value="custom">직접 입력...</option>
+      </select>
+    </div>
+    <div class="param-row" id="customTimeRow" style="display:none">
+      <label>직접 입력 (HH:MM)</label>
+      <input type="text" id="pTimeCustom" placeholder="예: 11:30" value="11:30"/>
+    </div>
+    <div class="param-row">
+      <label>시뮬레이션 기간 (일)</label>
+      <input type="number" id="pDays" value="30" min="1" max="365"/>
+    </div>
+    <div class="param-row">
+      <label>반복 시드 수</label>
+      <input type="number" id="pSeeds" value="30" min="1" max="100"/>
+    </div>
+    <div class="param-row">
+      <label>외출 시각 분산 σ (분)</label>
+      <input type="number" id="pLeaveSigma" value="30" min="0" max="180"/>
+    </div>
+    <button class="btn btn-primary" onclick="quickRun()">▶ 실행</button>
+    <button class="btn btn-secondary" style="margin-top:6px" onclick="compareRun()">
+      ⚖️ 10·12·14시 비교
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- 결과 패널 -->
+  <div class="result-panel" id="resultPanel">
+    <h3>최근 결과</h3>
+    <div class="stat-grid">
+      <div class="stat-box">
+        <div class="val" id="statMean">—</div>
+        <div class="lbl">평균 민원 (월)</div>
+      </div>
+      <div class="stat-box">
+        <div class="val" id="statStd">—</div>
+        <div class="lbl">표준편차</div>
+      </div>
+    </div>
+    <canvas id="sideChart"></canvas>
+  </div>
+</aside>
+
+<!-- ── 채팅 영역 ───────────────────────────────────────────────────── -->
+<main class="chat-wrap">
+  <div class="chat-header">
+    <div class="status-dot" id="statusDot"></div>
+    <div class="title">AI 시뮬레이션 어시스턴트</div>
+    <div class="subtitle" id="connStatus">연결 중...</div>
+    <button class="btn btn-secondary" style="width:auto;padding:5px 12px;font-size:12px"
+            onclick="clearChat()">대화 초기화</button>
+  </div>
+
+  <div class="messages" id="messages">
+    <div class="msg bot">
+      <div class="bubble">안녕하세요! 저는 장량동 생활쓰레기 시뮬레이션 어시스턴트입니다.
+
+수거 시각·거주민 특성이 민원 발생에 어떤 영향을 미치는지 DEVS(이산사건시스템) 모델로 분석합니다.
+
+아래 예시 질문을 눌러보거나, 직접 원하는 조건을 입력해주세요 😊</div>
+    </div>
+  </div>
+
+  <div class="chips" id="chips">
+    <div class="chip" onclick="sendChip('수거 시각을 12시로 설정하고 시뮬레이션 실행해줘')">12시 수거 실행</div>
+    <div class="chip" onclick="sendChip('10시, 12시, 14시 수거 시각을 비교해서 최적 시각을 알려줘')">수거시각 비교</div>
+    <div class="chip" onclick="sendChip('외출 시각 분산이 σ=90분일 때 12시 수거로 실행해줘')">분산 σ=90 실험</div>
+    <div class="chip" onclick="sendChip('이 시뮬레이션 모델에 대해 설명해줘')">모델 설명</div>
+    <div class="chip" onclick="sendChip('직업별로 민원이 왜 다른지 설명해줘')">직업별 차이</div>
+  </div>
+
+  <div class="input-area">
+    <textarea id="msgInput" rows="1"
+              placeholder="시뮬레이션 조건을 자연어로 입력하세요... (Shift+Enter: 줄바꿈, Enter: 전송)"
+              onkeydown="handleKey(event)"></textarea>
+    <button id="sendBtn" onclick="send()" disabled>➤</button>
+  </div>
+</main>
+
+<script>
+  let stompClient = null;
+  let sideChart = null;
+  const chartColors = ['#5c73f2', '#4ade80', '#f87171', '#facc15'];
+
+  // ── WebSocket 연결 ────────────────────────────────────────────────
+  function connect() {
+    const socket = new SockJS('/ws');
+    stompClient = Stomp.over(socket);
+    stompClient.debug = null;
+
+    stompClient.connect({}, () => {
+      document.getElementById('statusDot').classList.add('connected');
+      document.getElementById('connStatus').textContent = '연결됨';
+      document.getElementById('sendBtn').disabled = false;
+
+      stompClient.subscribe('/topic/messages', (frame) => {
+        const msg = JSON.parse(frame.body);
+        appendMessage(msg);
+      });
+    }, (err) => {
+      document.getElementById('connStatus').textContent = '연결 끊김 — 재시도 중...';
+      document.getElementById('statusDot').classList.remove('connected');
+      document.getElementById('sendBtn').disabled = true;
+      setTimeout(connect, 3000);
+    });
+  }
+
+  // ── 메시지 렌더링 ─────────────────────────────────────────────────
+  function appendMessage(msg) {
+    const container = document.getElementById('messages');
+
+    if (msg.type === 'RESULT') {
+      container.appendChild(buildResultBubble(msg));
+      updateSidePanel(msg);
+    } else {
+      const div = document.createElement('div');
+      div.className = 'msg ' + msg.type.toLowerCase();
+      const bubble = document.createElement('div');
+      bubble.className = 'bubble';
+      bubble.textContent = msg.content;
+      div.appendChild(bubble);
+      container.appendChild(div);
+    }
+
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function buildResultBubble(msg) {
+    const r = msg.simulationResult;
+    const cfg = msg.simulationConfig;
+
+    const div = document.createElement('div');
+    div.className = 'msg result';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    const header = document.createElement('div');
+    header.className = 'result-header';
+    header.textContent = `📊 시뮬레이션 결과 — 수거시각 ${r.collectionTimeLabel || cfg?.collectionTimeLabel}`;
+    bubble.appendChild(header);
+
+    // 통계
+    const stats = document.createElement('div');
+    stats.className = 'result-stats';
+    stats.innerHTML = `
+      <div class="result-stat">
+        <div class="v">${r.meanComplaints?.toFixed(1) ?? '—'}</div>
+        <div class="l">월 평균 민원</div>
+      </div>
+      <div class="result-stat">
+        <div class="v" style="color:var(--yellow)">±${r.stdComplaints?.toFixed(1) ?? '—'}</div>
+        <div class="l">표준편차</div>
+      </div>
+      <div class="result-stat">
+        <div class="v" style="color:var(--muted)">${cfg?.days ?? 30}일</div>
+        <div class="l">시뮬레이션 기간</div>
+      </div>
+      <div class="result-stat">
+        <div class="v" style="color:var(--muted)">${cfg?.seeds ?? 30}</div>
+        <div class="l">반복 시드</div>
+      </div>`;
+    bubble.appendChild(stats);
+
+    // 직업별 바
+    const occSummary = r.byOccupationSummary;
+    if (occSummary) {
+      const maxVal = Math.max(...Object.values(occSummary));
+      const labels = { BlueCollar: '생산직', Student: '학생', Housewife: '전업주부' };
+      const colors = { BlueCollar: '#5c73f2', Student: '#4ade80', Housewife: '#f87171' };
+
+      const barsDiv = document.createElement('div');
+      barsDiv.className = 'occ-bars';
+      barsDiv.style.marginTop = '10px';
+
+      for (const [key, val] of Object.entries(occSummary)) {
+        const pct = maxVal > 0 ? (val / maxVal * 100).toFixed(1) : 0;
+        barsDiv.innerHTML += `
+          <div class="occ-row">
+            <div class="occ-label">${labels[key] || key}</div>
+            <div class="occ-bar-wrap">
+              <div class="occ-bar" style="width:${pct}%;background:${colors[key] || '#5c73f2'}"></div>
+            </div>
+            <div class="occ-val">${Number(val).toFixed(1)}</div>
+          </div>`;
+      }
+      bubble.appendChild(barsDiv);
+    }
+
+    // 히스토그램
+    if (r.allTotals && r.allTotals.length > 0) {
+      const cWrap = document.createElement('div');
+      cWrap.style.cssText = 'margin-top:12px;max-height:140px';
+      const c = document.createElement('canvas');
+      cWrap.appendChild(c);
+      bubble.appendChild(cWrap);
+
+      setTimeout(() => {
+        new Chart(c, {
+          type: 'bar',
+          data: {
+            labels: r.allTotals.map((_, i) => 'S' + (i + 1)),
+            datasets: [{
+              label: '민원 수',
+              data: r.allTotals,
+              backgroundColor: '#5c73f290',
+              borderColor: '#5c73f2',
+              borderWidth: 1
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ctx.parsed.y + '건' } }
+            },
+            scales: {
+              x: { ticks: { color: '#8892aa', font: { size: 9 } }, grid: { display: false } },
+              y: { ticks: { color: '#8892aa', font: { size: 10 } }, grid: { color: '#2d3250' } }
+            }
+          }
+        });
+      }, 100);
+    }
+
+    div.appendChild(bubble);
+    return div;
+  }
+
+  function updateSidePanel(msg) {
+    const r = msg.simulationResult;
+    if (!r) return;
+    document.getElementById('statMean').textContent = r.meanComplaints?.toFixed(1) ?? '—';
+    document.getElementById('statStd').textContent = r.stdComplaints?.toFixed(1) ?? '—';
+    document.getElementById('resultPanel').classList.add('show');
+
+    if (r.allTotals) {
+      const ctx = document.getElementById('sideChart').getContext('2d');
+      if (sideChart) sideChart.destroy();
+      sideChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: r.allTotals.map((_, i) => i + 1),
+          datasets: [{
+            data: r.allTotals,
+            borderColor: '#5c73f2',
+            backgroundColor: '#5c73f215',
+            tension: 0.4,
+            pointRadius: 2,
+            fill: true
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            x: { display: false },
+            y: { ticks: { color: '#8892aa', font: { size: 10 } }, grid: { color: '#2d325060' } }
+          }
+        }
+      });
+    }
+  }
+
+  // ── 메시지 전송 ───────────────────────────────────────────────────
+  function send() {
+    const input = document.getElementById('msgInput');
+    const text = input.value.trim();
+    if (!text || !stompClient) return;
+    stompClient.send('/app/chat.send', {}, JSON.stringify({ type: 'USER', content: text }));
+    input.value = '';
+    input.style.height = 'auto';
+  }
+
+  function sendChip(text) {
+    document.getElementById('msgInput').value = text;
+    send();
+  }
+
+  function handleKey(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); }
+    // 자동 높이 조절
+    const ta = document.getElementById('msgInput');
+    setTimeout(() => {
+      ta.style.height = 'auto';
+      ta.style.height = Math.min(ta.scrollHeight, 120) + 'px';
+    }, 0);
+  }
+
+  function clearChat() {
+    if (stompClient) stompClient.send('/app/chat.clear', {}, '{}');
+    document.getElementById('messages').innerHTML = '';
+  }
+
+  // ── 빠른 실행 (사이드바) ─────────────────────────────────────────
+  function getQuickConfig() {
+    const tSel = document.getElementById('pTime').value;
+    const time = tSel === 'custom' ? document.getElementById('pTimeCustom').value : tSel;
+    return {
+      collectionTimeLabel: time,
+      days: parseInt(document.getElementById('pDays').value),
+      seeds: parseInt(document.getElementById('pSeeds').value),
+      leaveSigma: parseFloat(document.getElementById('pLeaveSigma').value),
+      wasteSigma: 0.3,
+      threshold: 0.8,
+      capacity: 30.0,
+      numBuildings: 4,
+      residentsPerBuilding: 25
+    };
+  }
+
+  function quickRun() {
+    const cfg = getQuickConfig();
+    const msg = `수거 시각 ${cfg.collectionTimeLabel}, ${cfg.days}일, ${cfg.seeds}시드로 시뮬레이션을 실행해줘. 외출 분산은 ${cfg.leaveSigma}분이야.`;
+    document.getElementById('msgInput').value = msg;
+    send();
+  }
+
+  function compareRun() {
+    const cfg = getQuickConfig();
+    const msg = `${cfg.days}일 동안 외출 분산 ${cfg.leaveSigma}분 조건으로 수거 시각 10:00, 12:00, 14:00 세 가지를 비교해서 최적 수거 시각을 추천해줘.`;
+    document.getElementById('msgInput').value = msg;
+    send();
+  }
+
+  // ── 커스텀 시각 토글 ─────────────────────────────────────────────
+  document.getElementById('pTime').addEventListener('change', function () {
+    document.getElementById('customTimeRow').style.display =
+      this.value === 'custom' ? 'flex' : 'none';
+  });
+
+  // ── 초기 연결 ────────────────────────────────────────────────────
+  connect();
+</script>
+</body>
+</html>
