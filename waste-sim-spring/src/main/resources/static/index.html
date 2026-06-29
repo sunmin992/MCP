@@ -122,6 +122,38 @@
 
     .btn:hover { opacity: .85; }
 
+    .scenario-btn {
+      text-align: left;
+      margin-bottom: 6px;
+      font-size: 12px;
+      padding: 9px 12px;
+    }
+
+    .scenario-btn:disabled { opacity: .5; cursor: progress; }
+
+    /* 시나리오 결과 */
+    .scn-insights {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin: 10px 0;
+    }
+
+    .scn-insight {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12.5px;
+      display: flex;
+      gap: 8px;
+      align-items: baseline;
+    }
+
+    .scn-insight .k { color: var(--muted); font-weight: 600; flex-shrink: 0; }
+    .scn-insight .v { color: var(--text); }
+    .scn-insight .best { color: var(--green); font-weight: 700; }
+
     .divider {
       height: 1px;
       background: var(--border);
@@ -415,6 +447,46 @@
 
   <div class="divider"></div>
 
+  <!-- 시나리오 실험 -->
+  <div class="param-section">
+    <h3>시나리오 실험</h3>
+    <p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">
+      지역 성격·정책·인프라를 바꿔가며 민원을 비교합니다. (시드 10회 기본)
+    </p>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('occupation-mix')">
+      거주민 구성별 최적 수거시각
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('collection-sweep')">
+      수거시각 sweep (06~18시)
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('behavior-grid')">
+      행동 변동 α×β 민감도
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('infra-grid')">
+      인프라 용량×임계 트레이드오프
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('density')">
+      밀도: 빌라촌 vs 원룸촌
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('collection-schedule')">
+      수거 스케줄(다회·격일·주말)
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('multi-truck')">
+      다중 트럭·구역 분할
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('waste-separation')">
+      분리배출(일반·음식물·재활용)
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('new-occupations')">
+      확장 거주민(야간·1인직장인)
+    </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('coupling-variants')">
+      결합모델 변형(귀가·임대인)
+    </button>
+  </div>
+
+  <div class="divider"></div>
+
   <!-- 결과 패널 -->
   <div class="result-panel" id="resultPanel">
     <h3>최근 결과</h3>
@@ -496,6 +568,18 @@
     });
   }
 
+  // 마크다운 강조 기호(**, *, __, `, # 등)를 제거해 평문으로 표시
+  function stripMarkdown(s) {
+    if (!s) return s;
+    return s
+      .replace(/\*\*(.*?)\*\*/g, '$1')   // **bold**
+      .replace(/__(.*?)__/g, '$1')       // __bold__
+      .replace(/\*(.*?)\*/g, '$1')       // *italic*
+      .replace(/`([^`]+)`/g, '$1')       // `code`
+      .replace(/^#{1,6}\s+/gm, '')       // # 제목
+      .replace(/^\s*>\s?/gm, '');        // > 인용
+  }
+
   // ── 메시지 렌더링 ─────────────────────────────────────────────────
   function appendMessage(msg) {
     const container = document.getElementById('messages');
@@ -508,7 +592,7 @@
       div.className = 'msg ' + msg.type.toLowerCase();
       const bubble = document.createElement('div');
       bubble.className = 'bubble';
-      bubble.textContent = msg.content;
+      bubble.textContent = stripMarkdown(msg.content);
       div.appendChild(bubble);
       container.appendChild(div);
     }
@@ -581,8 +665,9 @@
     // 히스토그램
     if (r.allTotals && r.allTotals.length > 0) {
       const cWrap = document.createElement('div');
-      cWrap.style.cssText = 'margin-top:12px;max-height:140px';
+      cWrap.style.cssText = 'position:relative;height:160px;width:100%;margin-top:12px';
       const c = document.createElement('canvas');
+      c.style.cssText = 'max-height:160px';
       cWrap.appendChild(c);
       bubble.appendChild(cWrap);
 
@@ -721,6 +806,161 @@
     document.getElementById('customTimeRow').style.display =
       this.value === 'custom' ? 'flex' : 'none';
   });
+
+  // ── 시나리오 실험 ─────────────────────────────────────────────────
+  const SCENARIO_META = {
+    'occupation-mix':  { title: '거주민 구성별 최적 수거시각', chart: 'line' },
+    'collection-sweep':{ title: '수거시각 sweep (06~18시)',   chart: 'line' },
+    'behavior-grid':   { title: '행동 변동 α×β 민감도',        chart: 'line' },
+    'infra-grid':      { title: '인프라 용량×임계 트레이드오프', chart: 'line' },
+    'density':         { title: '밀도: 빌라촌 vs 원룸촌',       chart: 'bar'  },
+    'collection-schedule': { title: '수거 스케줄별 민원',        chart: 'bar'  },
+    'multi-truck':     { title: '다중 트럭·구역 분할',          chart: 'bar'  },
+    'waste-separation':{ title: '분리배출 효과',                chart: 'bar'  },
+    'new-occupations': { title: '확장 거주민 유형별 최적 수거시각', chart: 'line' },
+    'coupling-variants':{ title: '결합모델 변형(귀가·임대인)',   chart: 'bar'  }
+  };
+  const SCN_COLORS = ['#5c73f2', '#4ade80', '#f87171', '#facc15', '#7c5cf2', '#38bdf8'];
+
+  async function runScenario(type) {
+    const meta = SCENARIO_META[type];
+    // 공통 base 설정은 사이드바 값에서 가져오기 (days/seeds 등)
+    const days = parseInt(document.getElementById('pDays').value) || 30;
+    const seeds = Math.min(parseInt(document.getElementById('pSeeds').value) || 10, 15);
+    const leaveSigma = parseFloat(document.getElementById('pLeaveSigma').value) || 30;
+
+    // 버튼 로딩 표시
+    const btns = document.querySelectorAll('.scenario-btn');
+    btns.forEach(b => b.disabled = true);
+    appendLocalMessage('system', ` [${meta.title}] 시나리오 실행 중... (시드 ${seeds}회, ${days}일)`);
+
+    try {
+      const res = await fetch('/api/scenario/' + type, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ days, seeds, leaveSigma })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderScenario(data, meta.chart);
+    } catch (e) {
+      appendLocalMessage('system', ' 시나리오 실행 실패: ' + e.message);
+    } finally {
+      btns.forEach(b => b.disabled = false);
+    }
+  }
+
+  function appendLocalMessage(type, content) {
+    const container = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg ' + type;
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+    bubble.textContent = content;
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  function renderScenario(data, chartType) {
+    const container = document.getElementById('messages');
+    const div = document.createElement('div');
+    div.className = 'msg result';
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble';
+
+    // 헤더
+    const header = document.createElement('div');
+    header.className = 'result-header';
+    header.textContent = ' ' + (data.title || '시나리오 결과');
+    bubble.appendChild(header);
+
+    // 차트 (Chart.js maintainAspectRatio:false → 부모에 '명시적' 높이 필요)
+    const cWrap = document.createElement('div');
+    cWrap.style.cssText = 'position:relative;height:260px;width:100%;margin:6px 0 12px';
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'max-height:260px';   // 전역 canvas{max-height:160px} 무력화
+    cWrap.appendChild(canvas);
+    bubble.appendChild(cWrap);
+
+    // 인사이트
+    if (data.insights && data.insights.length) {
+      const ins = document.createElement('div');
+      ins.className = 'scn-insights';
+      data.insights.forEach(it => {
+        const row = document.createElement('div');
+        row.className = 'scn-insight';
+        // occupation-mix 형식: {scenario, desc, ratio, bestTime, bestMean}
+        if (it.scenario) {
+          row.innerHTML =
+            `<span class="k">${it.scenario}</span>` +
+            `<span class="v">${it.desc} · 최적 <span class="best">${it.bestTime}</span> ` +
+            `(${it.bestMean}건)</span>`;
+        } else {
+          row.innerHTML =
+            `<span class="k">${it.key}</span><span class="v">${formatVal(it.value)}</span>`;
+        }
+        ins.appendChild(row);
+      });
+      bubble.appendChild(ins);
+    }
+
+    div.appendChild(bubble);
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+
+    // Chart.js 렌더 (DOM 부착 후)
+    setTimeout(() => drawScenarioChart(canvas, data, chartType), 80);
+  }
+
+  function formatVal(v) {
+    if (v && typeof v === 'object') return JSON.stringify(v);
+    return v;
+  }
+
+  function drawScenarioChart(canvas, data, chartType) {
+    const datasets = (data.series || []).map((s, i) => ({
+      label: s.name,
+      data: s.values,
+      borderColor: SCN_COLORS[i % SCN_COLORS.length],
+      backgroundColor: chartType === 'bar'
+        ? SCN_COLORS[i % SCN_COLORS.length] + 'cc'
+        : SCN_COLORS[i % SCN_COLORS.length] + '20',
+      borderWidth: 2,
+      tension: 0.35,
+      pointRadius: 3,
+      fill: chartType === 'line' && (data.series || []).length === 1
+    }));
+
+    new Chart(canvas, {
+      type: chartType,
+      data: { labels: data.xCategories, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            display: datasets.length > 1,
+            labels: { color: '#e2e8f0', font: { size: 11 }, boxWidth: 14 }
+          },
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}건` } }
+        },
+        scales: {
+          x: {
+            title: { display: true, text: data.xLabel, color: '#8892aa', font: { size: 11 } },
+            ticks: { color: '#8892aa', font: { size: 10 } },
+            grid: { display: false }
+          },
+          y: {
+            title: { display: true, text: data.yLabel, color: '#8892aa', font: { size: 11 } },
+            ticks: { color: '#8892aa', font: { size: 10 } },
+            grid: { color: '#2d325060' },
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }
 
   // ── 초기 연결 ────────────────────────────────────────────────────
   connect();
