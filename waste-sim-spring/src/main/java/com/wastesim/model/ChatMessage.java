@@ -2,7 +2,7 @@ package com.wastesim.model;
 
 public class ChatMessage {
 
-    public enum MessageType { USER, BOT, SYSTEM, RESULT }
+    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM }
 
     private MessageType type;
     private String content;

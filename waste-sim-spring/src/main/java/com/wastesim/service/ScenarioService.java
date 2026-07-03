@@ -314,4 +314,48 @@ public class ScenarioService {
         resp.addInsight("해석", "귀가 2회 배출은 저녁 적재를 늘리고, 임대인(Check 전용 에이전트)은 별도 민원 채널을 추가함");
         return resp;
     }
+
+    // ── 11. 월별(계절) 배출량: 1년 중 배출 최다 달 ─────────────────────────
+    /**
+     * 한국 가정 쓰레기의 계절 패턴을 가정한 월별 가중치(실측 아님, 가정값).
+     * 1~12월: 연초·설(1·2월), 여름·이사철(7·8월), 추석(9월), 연말 소비(12월)에서 증가.
+     */
+    static final double[] KOREA_SEASONAL =
+            {1.05, 1.15, 1.00, 0.95, 1.00, 1.00, 1.05, 1.10, 1.15, 1.00, 0.95, 1.20};
+
+    public ScenarioResponse monthlyWaste(SimulationConfig base, double[] factors) {
+        double[] f = (factors == null || factors.length == 0) ? KOREA_SEASONAL : factors;
+        SimulationConfig cfg = base.copy();
+        cfg.setDays(12 * 30);                 // 12개월 × 30일 = 360일
+        cfg.setMonthlyWasteFactor(f);
+
+        int seeds = Math.max(1, base.getSeeds());
+        double[] sum = new double[12];
+        for (int s = 1; s <= seeds; s++) {
+            SimulationResult r = sim.runSingle(cfg, s);
+            Map<Integer, Double> wm = r.getWasteByMonth();
+            if (wm != null) for (int m = 0; m < 12; m++) sum[m] += wm.getOrDefault(m, 0.0);
+        }
+
+        ScenarioResponse resp = new ScenarioResponse(
+                "MONTHLY_WASTE", "월별 쓰레기 배출량 (계절 변동 가정)", "월");
+        resp.setYLabel("배출량(kg/월)");
+        resp.setYUnit("kg");
+        ScenarioResponse.Series series = resp.newSeries("월 배출량(kg)");
+        List<String> cats = new ArrayList<>();
+        int bestM = 0, minM = 0;
+        double bestV = -1, minV = Double.MAX_VALUE;
+        for (int m = 0; m < 12; m++) {
+            double avg = sum[m] / seeds;
+            series.add(Math.round(avg * 10) / 10.0, 0);
+            cats.add((m + 1) + "월");
+            if (avg > bestV) { bestV = avg; bestM = m; }
+            if (avg < minV) { minV = avg; minM = m; }
+        }
+        resp.setXCategories(cats);
+        resp.addInsight("최다 배출 월", (bestM + 1) + "월 (" + Math.round(bestV) + " kg)");
+        resp.addInsight("최소 배출 월", (minM + 1) + "월 (" + Math.round(minV) + " kg)");
+        resp.addInsight("주의", "계절 가중치는 명절·여름·연말 패턴을 가정한 값으로, 실측 데이터가 아닙니다");
+        return resp;
+    }
 }

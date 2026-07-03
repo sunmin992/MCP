@@ -34,6 +34,8 @@ public class ChatController {
 
     // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록)
     private final Map<String, List<Map<String, String>>> histories = new ConcurrentHashMap<>();
+    // 확신도가 낮아 자동 실행을 보류한 설정 (sessionId → 대기 중인 설정)
+    private final Map<String, SimulationConfig> pendingConfigs = new ConcurrentHashMap<>();
 
     public ChatController(SimpMessagingTemplate messaging,
                           OpenAiService openAiService,
@@ -69,29 +71,26 @@ public class ChatController {
             // 이력이 너무 길어지면 앞 부분 제거 (최근 10쌍만 유지)
             while (history.size() > 20) history.remove(0);
 
-            // 4. LLM 응답에서 시뮬레이션 실행 요청 추출
-            SimulationConfig cfg = openAiService.extractSimulationConfig(llmReply);
+            // 4. LLM 응답에서 시뮬레이션 실행 요청 추출 (+ 자동 실행 확신도)
+            OpenAiService.ExtractionResult extraction = openAiService.extractSimulationConfig(llmReply);
+            SimulationConfig cfg = extraction.config();
 
             // LLM 응답 텍스트에서 JSON 블록을 제거해서 표시
             String displayReply = cleanReply(llmReply);
             ChatMessage botMsg = new ChatMessage(ChatMessage.MessageType.BOT, displayReply);
             messaging.convertAndSend("/topic/messages", botMsg);
 
-            // 5. 시뮬레이션 실행 (파라미터가 추출된 경우)
-            if (cfg != null) {
-                ChatMessage runningMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM,
-                        String.format("시뮬레이션 실행 중... (수거시각: %s, %d일 × %d시드)",
+            // 5. 확신도가 높으면 바로 실행, 낮으면 확인 버블만 띄우고 대기
+            if (cfg != null && extraction.confident()) {
+                pendingConfigs.remove(sessionId);
+                runSimulation(cfg);
+            } else if (cfg != null) {
+                pendingConfigs.put(sessionId, cfg);
+                ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM,
+                        String.format("이 설정으로 실행할까요? (수거시각 %s, %d일 × %d시드)",
                                 cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds()));
-                messaging.convertAndSend("/topic/messages", runningMsg);
-
-                SimulationResult result = simulationService.runExperiment(cfg);
-                result.setSimulationConfig(cfg); // helper — 결과에 cfg 포함
-
-                ChatMessage resultMsg = new ChatMessage(ChatMessage.MessageType.RESULT,
-                        formatResult(result));
-                resultMsg.setSimulationResult(result);
-                resultMsg.setSimulationConfig(cfg);
-                messaging.convertAndSend("/topic/messages", resultMsg);
+                confirmMsg.setSimulationConfig(cfg);
+                messaging.convertAndSend("/topic/messages", confirmMsg);
             }
 
         } catch (Exception e) {
@@ -102,11 +101,46 @@ public class ChatController {
         }
     }
 
+    /** 확신도 낮아 보류된 설정을 사용자가 확인 버튼으로 승인했을 때 실행 */
+    @MessageMapping("/chat.confirmRun")
+    public void confirmRun() {
+        String sessionId = "default";
+        SimulationConfig cfg = pendingConfigs.remove(sessionId);
+        if (cfg == null) {
+            messaging.convertAndSend("/topic/messages",
+                    new ChatMessage(ChatMessage.MessageType.SYSTEM, "실행할 대기 중인 설정이 없습니다."));
+            return;
+        }
+        try {
+            runSimulation(cfg);
+        } catch (Exception e) {
+            log.error("확인 후 시뮬레이션 실행 오류", e);
+            messaging.convertAndSend("/topic/messages",
+                    new ChatMessage(ChatMessage.MessageType.BOT, "실행 중 오류가 발생했습니다: " + e.getMessage()));
+        }
+    }
+
     @MessageMapping("/chat.clear")
     public void clearHistory() {
         histories.clear();
+        pendingConfigs.clear();
         ChatMessage sysMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM, "대화 이력이 초기화되었습니다.");
         messaging.convertAndSend("/topic/messages", sysMsg);
+    }
+
+    private void runSimulation(SimulationConfig cfg) {
+        ChatMessage runningMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM,
+                String.format("시뮬레이션 실행 중... (수거시각: %s, %d일 × %d시드)",
+                        cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds()));
+        messaging.convertAndSend("/topic/messages", runningMsg);
+
+        SimulationResult result = simulationService.runExperiment(cfg);
+        result.setSimulationConfig(cfg); // helper — 결과에 cfg 포함
+
+        ChatMessage resultMsg = new ChatMessage(ChatMessage.MessageType.RESULT, formatResult(result));
+        resultMsg.setSimulationResult(result);
+        resultMsg.setSimulationConfig(cfg);
+        messaging.convertAndSend("/topic/messages", resultMsg);
     }
 
     private String cleanReply(String reply) {

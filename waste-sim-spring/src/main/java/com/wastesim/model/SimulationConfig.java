@@ -57,6 +57,10 @@ public class SimulationConfig {
     private int landlordInspectMinutes = 20 * 60;  // 20:00 점검
     private double landlordThreshold = 0.6;
 
+    // ── 월별(계절) 배출량 변동 ─────────────────────────────────────────────
+    /** 12개월 계절 가중치(1.0=평년). null이면 변동 없음(모든 달 동일). 30일=1달 기준. */
+    private double[] monthlyWasteFactor = null;
+
     // ── Getters & setters ──────────────────────────────────────────────────
 
     public int getCollectionTimeMinutes() { return collectionTimeMinutes; }
@@ -128,6 +132,15 @@ public class SimulationConfig {
     public double getLandlordThreshold() { return landlordThreshold; }
     public void setLandlordThreshold(double v) { this.landlordThreshold = v; }
 
+    public double[] getMonthlyWasteFactor() { return monthlyWasteFactor; }
+    public void setMonthlyWasteFactor(double[] v) { this.monthlyWasteFactor = v; }
+
+    /** 해당 월(0-based)의 계절 가중치. 미지정 시 1.0. */
+    public double resolveMonthlyFactor(int monthIndex) {
+        if (monthlyWasteFactor == null || monthlyWasteFactor.length == 0) return 1.0;
+        return monthlyWasteFactor[monthIndex % monthlyWasteFactor.length];
+    }
+
     // ── 해석(resolve) 헬퍼 ─────────────────────────────────────────────────
 
     /** 직업 구성을 enum 리스트로 해석. 미지정 시 기본 3종(생산직·학생·주부). */
@@ -183,6 +196,7 @@ public class SimulationConfig {
         c.landlordEnabled = landlordEnabled;
         c.landlordInspectMinutes = landlordInspectMinutes;
         c.landlordThreshold = landlordThreshold;
+        c.monthlyWasteFactor = (monthlyWasteFactor == null) ? null : monthlyWasteFactor.clone();
         return c;
     }
 

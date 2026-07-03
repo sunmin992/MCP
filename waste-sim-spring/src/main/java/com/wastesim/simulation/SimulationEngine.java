@@ -109,6 +109,8 @@ public class SimulationEngine {
         }
 
         // ── 거주민 배출 이벤트(전 기간 사전 생성) ─────────────────────────
+        int nMonths = Math.max(1, (days + 29) / 30);   // 30일 = 1달
+        double[] wasteByMonth = new double[nMonths];
         List<OccupationType> mix = cfg.resolveOccupationMix();
         int rPB = cfg.getResidentsPerBuilding();
         boolean retDis = cfg.isReturnDischarge();
@@ -117,7 +119,9 @@ public class SimulationEngine {
             for (int k = 0; k < rPB; k++) {
                 OccupationType occ = mix.get((b * rPB + k) % mix.size());
                 for (int d = 0; d < days; d++) {
-                    double dailyAmount = sampleWaste(rng, cfg.getWasteSigma());
+                    int monthIdx = d / 30;
+                    double dailyAmount = sampleWaste(rng, cfg.getWasteSigma()) * cfg.resolveMonthlyFactor(monthIdx);
+                    wasteByMonth[monthIdx] += dailyAmount;
                     int leaveT = d * DAY + sampleOffset(rng, occ.leaveMeanMinutes, cfg.getLeaveSigma());
                     if (retDis) {
                         int retT = d * DAY + sampleOffset(rng, occ.returnMeanMinutes, cfg.getLeaveSigma());
@@ -180,9 +184,14 @@ public class SimulationEngine {
 
         double maxPeak = 0;
         for (double[] row : peak) for (double v : row) maxPeak = Math.max(maxPeak, v);
-        return new SimulationResult(
+        SimulationResult result = new SimulationResult(
                 cfg.getCollectionTimeLabel(), total, byOcc, byDay,
                 Math.round(maxPeak * 100.0) / 100.0, seed);
+
+        Map<Integer, Double> wasteMap = new TreeMap<>();
+        for (int m = 0; m < nMonths; m++) wasteMap.put(m, Math.round(wasteByMonth[m] * 10.0) / 10.0);
+        result.setWasteByMonth(wasteMap);
+        return result;
     }
 
     // ── 헬퍼 ─────────────────────────────────────────────────────────────────

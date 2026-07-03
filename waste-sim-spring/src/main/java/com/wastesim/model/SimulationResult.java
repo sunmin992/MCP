@@ -13,6 +13,7 @@ public class SimulationResult {
     private Map<Integer, Integer> byDay;
     private double peakFillKg;
     private int seed;
+    private Map<Integer, Double> wasteByMonth;   // 월(0-based) → 총 배출량(kg)
 
     // Multi-seed experiment summary
     private double meanComplaints;
@@ -51,6 +52,9 @@ public class SimulationResult {
 
     public int getSeed() { return seed; }
     public void setSeed(int v) { this.seed = v; }
+
+    public Map<Integer, Double> getWasteByMonth() { return wasteByMonth; }
+    public void setWasteByMonth(Map<Integer, Double> v) { this.wasteByMonth = v; }
 
     public double getMeanComplaints() { return meanComplaints; }
     public void setMeanComplaints(double v) { this.meanComplaints = v; }

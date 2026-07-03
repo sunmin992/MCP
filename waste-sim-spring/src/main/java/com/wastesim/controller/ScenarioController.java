@@ -150,6 +150,15 @@ public class ScenarioController {
         return ResponseEntity.ok(scenario.couplingVariants(base));
     }
 
+    /** 11. 월별(계절) 배출량: 1년 중 배출 최다 달 */
+    @PostMapping("/monthly-waste")
+    public ResponseEntity<ScenarioResponse> monthlyWaste(@RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> b = body == null ? Map.of() : body;
+        SimulationConfig base = baseConfig(b, 8);
+        applyPreset(base, b);
+        return ResponseEntity.ok(scenario.monthlyWaste(base, doubleArr(b, "monthlyFactor")));
+    }
+
     // ── 공통 헬퍼 ─────────────────────────────────────────────────────────
 
     private SimulationConfig baseConfig(Map<String, Object> b, int defaultSeeds) {

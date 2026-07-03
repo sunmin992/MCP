@@ -284,6 +284,27 @@
       border-radius: 20px;
     }
 
+    .msg.confirm { align-self: center; text-align: center; max-width: 100%; }
+
+    .confirm-bubble {
+      background: var(--card);
+      border: 1px solid var(--yellow);
+      border-radius: var(--radius);
+      padding: 14px 18px;
+      font-size: 13px;
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    .confirm-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+      justify-content: center;
+    }
+
+    .confirm-actions .btn { width: auto; padding: 8px 16px; font-size: 12px; }
+
     .msg.result .bubble {
       background: var(--card);
       border: 1px solid var(--accent);
@@ -483,6 +504,9 @@
     <button class="btn btn-secondary scenario-btn" onclick="runScenario('coupling-variants')">
       결합모델 변형(귀가·임대인)
     </button>
+    <button class="btn btn-secondary scenario-btn" onclick="runScenario('monthly-waste')">
+      월별 배출량(1년·최다 달)
+    </button>
   </div>
 
   <div class="divider"></div>
@@ -587,6 +611,8 @@
     if (msg.type === 'RESULT') {
       container.appendChild(buildResultBubble(msg));
       updateSidePanel(msg);
+    } else if (msg.type === 'CONFIRM') {
+      container.appendChild(buildConfirmBubble(msg));
     } else {
       const div = document.createElement('div');
       div.className = 'msg ' + msg.type.toLowerCase();
@@ -598,6 +624,48 @@
     }
 
     container.scrollTop = container.scrollHeight;
+  }
+
+  // AI가 자동 실행을 확신할 수 없을 때(예: 예시성 답변, 다중 JSON 등)
+  // 즉시 실행하지 않고 사용자 확인을 받는 버블
+  function buildConfirmBubble(msg) {
+    const div = document.createElement('div');
+    div.className = 'msg confirm';
+
+    const bubble = document.createElement('div');
+    bubble.className = 'bubble confirm-bubble';
+
+    const text = document.createElement('div');
+    text.textContent = stripMarkdown(msg.content);
+    bubble.appendChild(text);
+
+    const btnRow = document.createElement('div');
+    btnRow.className = 'confirm-actions';
+
+    const runBtn = document.createElement('button');
+    runBtn.className = 'btn btn-primary confirm-run-btn';
+    runBtn.textContent = '예, 이 설정으로 실행';
+    runBtn.onclick = () => {
+      stompClient.send('/app/chat.confirmRun', {}, '{}');
+      runBtn.disabled = true;
+      runBtn.textContent = '실행 중...';
+      cancelBtn.disabled = true;
+    };
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'btn btn-secondary confirm-cancel-btn';
+    cancelBtn.textContent = '아니오';
+    cancelBtn.onclick = () => {
+      runBtn.disabled = true;
+      cancelBtn.disabled = true;
+      text.textContent += ' (취소됨)';
+    };
+
+    btnRow.appendChild(runBtn);
+    btnRow.appendChild(cancelBtn);
+    bubble.appendChild(btnRow);
+    div.appendChild(bubble);
+    return div;
   }
 
   function buildResultBubble(msg) {
@@ -818,7 +886,8 @@
     'multi-truck':     { title: '다중 트럭·구역 분할',          chart: 'bar'  },
     'waste-separation':{ title: '분리배출 효과',                chart: 'bar'  },
     'new-occupations': { title: '확장 거주민 유형별 최적 수거시각', chart: 'line' },
-    'coupling-variants':{ title: '결합모델 변형(귀가·임대인)',   chart: 'bar'  }
+    'coupling-variants':{ title: '결합모델 변형(귀가·임대인)',   chart: 'bar'  },
+    'monthly-waste':   { title: '월별 배출량(1년·최다 달)',      chart: 'bar'  }
   };
   const SCN_COLORS = ['#5c73f2', '#4ade80', '#f87171', '#facc15', '#7c5cf2', '#38bdf8'];
 
@@ -943,7 +1012,7 @@
             display: datasets.length > 1,
             labels: { color: '#e2e8f0', font: { size: 11 }, boxWidth: 14 }
           },
-          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}건` } }
+          tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}${data.yUnit || '건'}` } }
         },
         scales: {
           x: {

@@ -23,6 +23,7 @@ public class ScenarioResponse {
     private String title;
     private String xLabel;
     private String yLabel = "월 평균 민원";
+    private String yUnit = "건";
     private List<String> xCategories = new ArrayList<>();
     private List<Series> series = new ArrayList<>();
     private List<Map<String, Object>> insights = new ArrayList<>();
@@ -80,6 +81,9 @@ public class ScenarioResponse {
     @JsonProperty("yLabel")
     public String getYLabel() { return yLabel; }
     public void setYLabel(String v) { this.yLabel = v; }
+    @JsonProperty("yUnit")
+    public String getYUnit() { return yUnit; }
+    public void setYUnit(String v) { this.yUnit = v; }
     @JsonProperty("xCategories")
     public List<String> getXCategories() { return xCategories; }
     public void setXCategories(List<String> v) { this.xCategories = v; }
