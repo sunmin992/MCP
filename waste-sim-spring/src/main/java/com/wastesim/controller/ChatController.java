@@ -3,10 +3,13 @@ package com.wastesim.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -16,7 +19,9 @@ import com.wastesim.model.ChatMessage;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.service.OpenAiService;
-import com.wastesim.service.SimulationService;
+import com.wastesim.tool.SimulationTool;
+import com.wastesim.tool.ToolResult;
+import com.wastesim.tool.ValidationError;
 
 /**
  * STOMP WebSocket 채팅 컨트롤러.
@@ -30,7 +35,8 @@ public class ChatController {
 
     private final SimpMessagingTemplate messaging;
     private final OpenAiService openAiService;
-    private final SimulationService simulationService;
+    private final SimulationTool tool;
+    private final MeterRegistry metrics;
 
     // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록)
     private final Map<String, List<Map<String, String>>> histories = new ConcurrentHashMap<>();
@@ -39,14 +45,18 @@ public class ChatController {
 
     public ChatController(SimpMessagingTemplate messaging,
                           OpenAiService openAiService,
-                          SimulationService simulationService) {
+                          SimulationTool tool,
+                          MeterRegistry metrics) {
         this.messaging = messaging;
         this.openAiService = openAiService;
-        this.simulationService = simulationService;
+        this.tool = tool;
+        this.metrics = metrics;
     }
 
     @MessageMapping("/chat.send")
     public void handleMessage(@Payload ChatMessage incoming) {
+        MDC.put("requestId", "ws-" + UUID.randomUUID().toString().substring(0, 8));
+        try {
         String sessionId = "default"; // 단일 채팅방
         List<Map<String, String>> history =
                 histories.computeIfAbsent(sessionId, k -> new ArrayList<>());
@@ -58,38 +68,60 @@ public class ChatController {
         messaging.convertAndSend("/topic/messages", userMsg);
 
         try {
-            // 2. OpenAI API 호출
-            ChatMessage thinkingMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM,
-                    "AI가 분석 중입니다...");
-            messaging.convertAndSend("/topic/messages", thinkingMsg);
+            // 2. 1단계 — 의도 분류 (temperature=0, yes/no만). 판단과 생성을 분리해
+            //    작은 모델도 안정적으로 만드는 것이 핵심.
+            messaging.convertAndSend("/topic/messages",
+                    new ChatMessage(ChatMessage.MessageType.SYSTEM, "의도를 분석하는 중..."));
+            boolean isRunRequest = openAiService.classifyIsRunRequest(history, userText);
+            metrics.counter("waste.chat.classify", "result", isRunRequest ? "yes" : "no").increment();
 
-            String llmReply = openAiService.chat(history, userText);
+            String reply;
+            SimulationConfig cfgToRun = null;
+            SimulationConfig cfgToConfirm = null;
 
-            // 3. 대화 이력 업데이트
+            if (isRunRequest) {
+                // 3. 2단계 — 1단계가 yes일 때만 JSON 모드로 파라미터 추출
+                messaging.convertAndSend("/topic/messages",
+                        new ChatMessage(ChatMessage.MessageType.SYSTEM, "파라미터를 추출하는 중..."));
+                SimulationConfig cfg = openAiService.extractParamsStrict(history, userText);
+
+                if (cfg != null && OpenAiService.isValidCollectionTime(cfg.getCollectionTimeLabel())) {
+                    // 두 단계가 모두 성공 + 형식 검증까지 통과 → 바로 실행
+                    reply = String.format(
+                            "수거 시각 %s(으)로 시뮬레이션을 실행하겠습니다. (%d일 × %d시드)",
+                            cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds());
+                    cfgToRun = cfg;
+                } else if (cfg != null) {
+                    // 시각 형식이 이상한 경우에 한해 확인 버블(안전망)
+                    reply = "설정을 추출했지만 값을 확인해 주세요.";
+                    cfgToConfirm = cfg;
+                } else {
+                    // 1단계는 yes였는데 2단계가 시각을 못 뽑은 모순 상황 — 재질문
+                    reply = "수거 시각을 정확히 파악하지 못했습니다. 몇 시로 실행할지 알려주시겠어요?";
+                }
+            } else {
+                // 실행 요청이 아님 — JSON 없이 순수 대화 답변만 생성
+                reply = cleanReply(openAiService.answerPlain(history, userText));
+            }
+
+            // 4. 대화 이력 업데이트 (최근 10쌍만 유지)
             history.add(Map.of("role", "user", "content", userText));
-            history.add(Map.of("role", "assistant", "content", llmReply));
-            // 이력이 너무 길어지면 앞 부분 제거 (최근 10쌍만 유지)
+            history.add(Map.of("role", "assistant", "content", reply));
             while (history.size() > 20) history.remove(0);
 
-            // 4. LLM 응답에서 시뮬레이션 실행 요청 추출 (+ 자동 실행 확신도)
-            OpenAiService.ExtractionResult extraction = openAiService.extractSimulationConfig(llmReply);
-            SimulationConfig cfg = extraction.config();
+            messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, reply));
 
-            // LLM 응답 텍스트에서 JSON 블록을 제거해서 표시
-            String displayReply = cleanReply(llmReply);
-            ChatMessage botMsg = new ChatMessage(ChatMessage.MessageType.BOT, displayReply);
-            messaging.convertAndSend("/topic/messages", botMsg);
-
-            // 5. 확신도가 높으면 바로 실행, 낮으면 확인 버블만 띄우고 대기
-            if (cfg != null && extraction.confident()) {
+            // 5. 실행 또는 확인 버블
+            if (cfgToRun != null) {
                 pendingConfigs.remove(sessionId);
-                runSimulation(cfg);
-            } else if (cfg != null) {
-                pendingConfigs.put(sessionId, cfg);
+                runSimulation(cfgToRun);
+            } else if (cfgToConfirm != null) {
+                metrics.counter("waste.chat.confirm").increment();
+                pendingConfigs.put(sessionId, cfgToConfirm);
                 ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM,
                         String.format("이 설정으로 실행할까요? (수거시각 %s, %d일 × %d시드)",
-                                cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds()));
-                confirmMsg.setSimulationConfig(cfg);
+                                cfgToConfirm.getCollectionTimeLabel(), cfgToConfirm.getDays(), cfgToConfirm.getSeeds()));
+                confirmMsg.setSimulationConfig(cfgToConfirm);
                 messaging.convertAndSend("/topic/messages", confirmMsg);
             }
 
@@ -98,6 +130,9 @@ public class ChatController {
             ChatMessage errMsg = new ChatMessage(ChatMessage.MessageType.BOT,
                     "오류가 발생했습니다: " + e.getMessage());
             messaging.convertAndSend("/topic/messages", errMsg);
+        }
+        } finally {
+            MDC.remove("requestId");
         }
     }
 
@@ -134,9 +169,17 @@ public class ChatController {
                         cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds()));
         messaging.convertAndSend("/topic/messages", runningMsg);
 
-        SimulationResult result = simulationService.runExperiment(cfg);
-        result.setSimulationConfig(cfg); // helper — 결과에 cfg 포함
+        // MCP·REST와 동일한 검증 게이트를 통과(툴 파사드). 검증 실패면 실행하지 않는다.
+        ToolResult tr = tool.runSimulation(cfg);
+        if (!tr.ready()) {
+            StringBuilder sb = new StringBuilder("설정을 실행할 수 없습니다:\n");
+            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+            messaging.convertAndSend("/topic/messages",
+                    new ChatMessage(ChatMessage.MessageType.BOT, sb.toString().trim()));
+            return;
+        }
 
+        SimulationResult result = (SimulationResult) tr.result();
         ChatMessage resultMsg = new ChatMessage(ChatMessage.MessageType.RESULT, formatResult(result));
         resultMsg.setSimulationResult(result);
         resultMsg.setSimulationConfig(cfg);

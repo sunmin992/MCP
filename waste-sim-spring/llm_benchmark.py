@@ -26,6 +26,7 @@ OPENAI_KEY = os.environ.get("OPENAI_API_KEY", "")   # OpenAI 비교하려면 이
 MODELS = [
     {"name": "llama3.2:3b", "url": OLLAMA_URL, "key": "ollama"},
     {"name": "qwen2.5:7b",  "url": OLLAMA_URL, "key": "ollama"},
+    {"name": "gemma:2b", "url": OLLAMA_URL, "key": "ollama"},
     {"name": "gpt-4o-mini", "url": OPENAI_URL, "key": OPENAI_KEY},
 ]
 RUNS = 3                                  # 프롬프트당 반복(성공률 측정용). 느리면 1~2로.

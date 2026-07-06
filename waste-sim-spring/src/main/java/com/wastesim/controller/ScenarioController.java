@@ -1,29 +1,35 @@
 package com.wastesim.controller;
 
 import com.wastesim.model.ScenarioPreset;
-import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.service.ScenarioService;
+import com.wastesim.tool.SimulationTool;
+import com.wastesim.tool.ToolResult;
+import com.wastesim.web.ApiError;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.*;
 
 /**
- * 시나리오 실험 API. 모든 엔드포인트는 공통 base 설정(days/seeds/...)을 받아
- * 해당 축만 sweep/그리드로 변화시킨다. 미지정 인자는 합리적 기본값 사용.
+ * 시나리오 실험 API. 검증·실행은 SimulationTool 파사드(runScenarioCustom)로
+ * 위임해 MCP·채팅과 동일한 검증 게이트를 통과한다(검증 실패 시 400 + ApiError).
+ * 모든 엔드포인트는 공통 base 설정(days/seeds/...)을 받아 해당 축만
+ * sweep/그리드로 변화시킨다. 미지정 인자는 합리적 기본값 사용.
  */
 @RestController
 @RequestMapping("/api/scenario")
 public class ScenarioController {
 
     private final ScenarioService scenario;
+    private final SimulationTool tool;
 
-    public ScenarioController(ScenarioService scenario) {
+    public ScenarioController(ScenarioService scenario, SimulationTool tool) {
         this.scenario = scenario;
+        this.tool = tool;
     }
 
-    /** 사용 가능한 거주민 구성 프리셋 목록 (UI 표시용) */
+    /** 사용 가능한 거주민 구성 프리셋 목록 (UI 표시용, 검증 대상 아님) */
     @GetMapping("/presets")
     public ResponseEntity<List<Map<String, Object>>> presets() {
         List<Map<String, Object>> out = new ArrayList<>();
@@ -41,17 +47,17 @@ public class ScenarioController {
 
     /** 1. 거주민 구성별 × 수거시각 비교 */
     @PostMapping("/occupation-mix")
-    public ResponseEntity<ScenarioResponse> occupationMix(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> occupationMix(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);  // 시나리오 기본 시드 10
         @SuppressWarnings("unchecked")
         List<String> times = (List<String>) b.get("times");
-        return ResponseEntity.ok(scenario.occupationMixComparison(base, times));
+        return respond(tool.runScenarioCustom(base, () -> scenario.occupationMixComparison(base, times)));
     }
 
     /** 2. 수거시각 sweep */
     @PostMapping("/collection-sweep")
-    public ResponseEntity<ScenarioResponse> collectionSweep(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> collectionSweep(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         int start = toMinutes(str(b, "start", "06:00"));
@@ -59,30 +65,34 @@ public class ScenarioController {
         int step  = intVal(b, "stepMinutes", 60);
         // 구성 프리셋을 적용하고 싶으면 mixPreset 지정
         applyPreset(base, b);
-        return ResponseEntity.ok(scenario.collectionSweep(base, start, end, step));
+        return respond(tool.runScenarioCustom(base, () -> scenario.collectionSweep(base, start, end, step)));
     }
 
     /** 3. 행동 변동: α × β */
     @PostMapping("/behavior-grid")
-    public ResponseEntity<ScenarioResponse> behaviorGrid(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> behaviorGrid(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return ResponseEntity.ok(scenario.behaviorGrid(base, doubleArr(b, "alphas"), doubleArr(b, "betas")));
+        double[] alphas = doubleArr(b, "alphas");
+        double[] betas = doubleArr(b, "betas");
+        return respond(tool.runScenarioCustom(base, () -> scenario.behaviorGrid(base, alphas, betas)));
     }
 
     /** 4. 인프라: 용량 C × 임계 θ */
     @PostMapping("/infra-grid")
-    public ResponseEntity<ScenarioResponse> infraGrid(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> infraGrid(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return ResponseEntity.ok(scenario.infraGrid(base, doubleArr(b, "capacities"), doubleArr(b, "thresholds")));
+        double[] capacities = doubleArr(b, "capacities");
+        double[] thresholds = doubleArr(b, "thresholds");
+        return respond(tool.runScenarioCustom(base, () -> scenario.infraGrid(base, capacities, thresholds)));
     }
 
     /** 5. 밀도: 저밀도 빌라촌 vs 고밀도 원룸촌 */
     @PostMapping("/density")
-    public ResponseEntity<ScenarioResponse> density(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> density(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
@@ -98,68 +108,78 @@ public class ScenarioController {
                 }
             }
         }
-        return ResponseEntity.ok(scenario.densityComparison(base, densities));
+        List<int[]> finalDensities = densities;
+        return respond(tool.runScenarioCustom(base, () -> scenario.densityComparison(base, finalDensities)));
     }
 
     /** 6. 수거 스케줄: 다회/격일/주말/공휴일 */
     @PostMapping("/collection-schedule")
-    public ResponseEntity<ScenarioResponse> collectionSchedule(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> collectionSchedule(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return ResponseEntity.ok(scenario.collectionSchedule(base));
+        return respond(tool.runScenarioCustom(base, () -> scenario.collectionSchedule(base)));
     }
 
     /** 7. 다중 트럭 · 구역 분할 */
     @PostMapping("/multi-truck")
-    public ResponseEntity<ScenarioResponse> multiTruck(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> multiTruck(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
         double[] tc = doubleArr(b, "truckCounts");
         int[] counts = null;
         if (tc != null) { counts = new int[tc.length]; for (int i = 0; i < tc.length; i++) counts[i] = (int) tc[i]; }
-        return ResponseEntity.ok(scenario.multiTruck(base, counts));
+        int[] finalCounts = counts;
+        return respond(tool.runScenarioCustom(base, () -> scenario.multiTruck(base, finalCounts)));
     }
 
     /** 8. 분리배출: 통합 vs 종류별 */
     @PostMapping("/waste-separation")
-    public ResponseEntity<ScenarioResponse> wasteSeparation(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> wasteSeparation(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return ResponseEntity.ok(scenario.wasteSeparation(base));
+        return respond(tool.runScenarioCustom(base, () -> scenario.wasteSeparation(base)));
     }
 
     /** 9. 새 거주민 유형: 야간근무·1인직장인 */
     @PostMapping("/new-occupations")
-    public ResponseEntity<ScenarioResponse> newOccupations(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> newOccupations(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         @SuppressWarnings("unchecked")
         List<String> times = (List<String>) b.get("times");
-        return ResponseEntity.ok(scenario.newOccupations(base, times));
+        return respond(tool.runScenarioCustom(base, () -> scenario.newOccupations(base, times)));
     }
 
     /** 10. 결합모델 변형: 외출/귀가 2회 · 임대인 */
     @PostMapping("/coupling-variants")
-    public ResponseEntity<ScenarioResponse> couplingVariants(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> couplingVariants(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return ResponseEntity.ok(scenario.couplingVariants(base));
+        return respond(tool.runScenarioCustom(base, () -> scenario.couplingVariants(base)));
     }
 
     /** 11. 월별(계절) 배출량: 1년 중 배출 최다 달 */
     @PostMapping("/monthly-waste")
-    public ResponseEntity<ScenarioResponse> monthlyWaste(@RequestBody(required = false) Map<String, Object> body) {
+    public ResponseEntity<?> monthlyWaste(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 8);
         applyPreset(base, b);
-        return ResponseEntity.ok(scenario.monthlyWaste(base, doubleArr(b, "monthlyFactor")));
+        double[] monthlyFactor = doubleArr(b, "monthlyFactor");
+        return respond(tool.runScenarioCustom(base, () -> scenario.monthlyWaste(base, monthlyFactor)));
     }
 
     // ── 공통 헬퍼 ─────────────────────────────────────────────────────────
+
+    private ResponseEntity<?> respond(ToolResult tr) {
+        if (!tr.ready()) {
+            return ResponseEntity.badRequest().body(ApiError.of("VALIDATION", "설정 검증 실패", tr.errors()));
+        }
+        return ResponseEntity.ok(tr.result());
+    }
 
     private SimulationConfig baseConfig(Map<String, Object> b, int defaultSeeds) {
         SimulationConfig cfg = new SimulationConfig();
