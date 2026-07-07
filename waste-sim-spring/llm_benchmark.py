@@ -10,6 +10,12 @@ waste-sim-spring 로컬 LLM 벤치마크
   3) 평균 응답 지연(초, CPU)
   4) 마크다운 누출 여부
   5) 오탐 — 시뮬레이션 요청이 아닌데 JSON을 뱉는지
+  6) 접지성(Grounding)/사실성(Factuality) — 시뮬레이션 결과 숫자를 자연어로
+     서술시켰을 때, (a) 정답 데이터에 없는 숫자를 만들어내는지(할루시네이션),
+     (b) "증가/감소" 같은 방향성 서술이 실제 데이터 부호와 맞는지 측정.
+     ※ 현재 실제 앱(ChatController)은 결과를 LLM이 아니라 코드가 템플릿으로
+     채워 넣으므로 이 위험이 없다 — 이 섹션은 "나중에 LLM 해설 기능을 넣는다면
+     어느 모델이 안전한가"를 미리 검증하는 순수 벤치마크 전용 기능이다.
 
 의존성 없음(파이썬 표준 라이브러리만). Ollama가 로컬에서 실행 중이어야 함.
 사용법:  python llm_benchmark.py
@@ -110,6 +116,212 @@ PROMPTS = [
     ("시간대별로 직업별 쓰레기 배출 패턴 알려줘", False),
     ("이 시뮬레이션은 대체 뭘 하는 거야?", False),  # 오탐 체크: JSON 나오면 안 됨
 ]
+
+# ═══════════════════════════════════════════════════════════════
+# 접지성(Grounding)/사실성(Factuality) 벤치마크
+# ═══════════════════════════════════════════════════════════════
+
+FIDELITY_SYSTEM_PROMPT = """당신은 쓰레기 수거 시뮬레이션 결과를 설명하는 어시스턴트입니다.
+사용자가 제공한 JSON 데이터에 있는 숫자만 사용해서 자연어로 설명하세요.
+데이터에 없는 숫자·통계·추정치를 새로 만들어내지 마세요. 모르는 값은 언급하지
+마세요. 2~3문장의 한국어로만 답하고, 마크다운 서식은 쓰지 마세요."""
+
+def _fidelity_prompt(data_desc, question):
+    return f"다음은 쓰레기 수거 시뮬레이션 결과입니다: {json.dumps(data_desc, ensure_ascii=False)}\n{question}"
+
+# 실측 검증된 값 기반(논문 표 8.1 및 이 벤치마크 세션에서 curl로 직접 확인한 수치).
+# 각 케이스: (설명, 정답데이터or비교쌍, 사용자프롬프트, 기대방향 "increase"/"decrease"/None)
+FIDELITY_CASES = [
+    (
+        "단일 결과 서술(12:00)",
+        {"collectionTime": "12:00", "meanComplaints": 26.9, "stdComplaints": 5.6},
+        _fidelity_prompt({"collectionTime": "12:00", "meanComplaints": 26.9, "stdComplaints": 5.6},
+                        "이 결과를 2~3문장으로 설명해줘."),
+        None,
+    ),
+    (
+        "단일 결과 서술(직업별 포함, 08:00)",
+        {"collectionTime": "08:00", "meanComplaints": 38.1, "stdComplaints": 9.8,
+         "byOccupation": {"BlueCollar": 33.3, "Student": 4.9}},
+        _fidelity_prompt({"collectionTime": "08:00", "meanComplaints": 38.1, "stdComplaints": 9.8,
+                          "byOccupation": {"BlueCollar": 33.3, "Student": 4.9}},
+                        "이 결과를 2~3문장으로 설명해줘. 직업별 수치도 언급해도 됩니다."),
+        None,
+    ),
+    (
+        "비교(10:00→12:00, 감소)",
+        {"A": {"collectionTime": "10:00", "meanComplaints": 30.9},
+         "B": {"collectionTime": "12:00", "meanComplaints": 26.9}},
+        "다음 두 수거 시각의 시뮬레이션 결과를 비교해줘: 10:00 평균 민원 30.9건, "
+        "12:00 평균 민원 26.9건. 어느 시각이 더 나은지, 민원이 어떻게 변하는지 "
+        "2~3문장으로 설명해줘.",
+        "decrease",
+    ),
+    (
+        "비교(12:00→14:00, 증가)",
+        {"A": {"collectionTime": "12:00", "meanComplaints": 26.9},
+         "B": {"collectionTime": "14:00", "meanComplaints": 63.7}},
+        "다음 두 수거 시각의 시뮬레이션 결과를 비교해줘: 12:00 평균 민원 26.9건, "
+        "14:00 평균 민원 63.7건. 어느 시각이 더 나은지, 민원이 어떻게 변하는지 "
+        "2~3문장으로 설명해줘.",
+        "increase",
+    ),
+]
+
+NUM_RE = re.compile(r"\d+\.?\d*")
+# 0~3은 "08:00"의 "00"이 별도 토큰으로 뽑히거나 "2~3문장으로" 같은 지시문
+# 반복·목록 번호로 흔히 등장해 오탐이 잦으므로 할루시네이션 판정에서 제외
+# (도메인 특성상 실데이터로 0~3이 의미 있게 나올 일도 적음).
+IGNORE_NUMS = {0.0, 1.0, 2.0, 3.0}
+
+def extract_numbers(text):
+    body = re.sub(r"```[\s\S]*?```", "", text)
+    return [float(x) for x in NUM_RE.findall(body)]
+
+def collect_allowed_numbers(data):
+    """정답 JSON의 숫자 리프값(+파생 합/차) + collectionTime의 시(hour)를 허용
+    숫자 집합으로. "30.9건에서 26.9건으로 4건 감소"처럼 모델이 두 값의 차이를
+    직접 계산해 말하는 건 할루시네이션이 아니라 정당한 파생 서술이므로, 데이터
+    수치(시각 제외)끼리의 합/차도 미리 계산해 허용한다."""
+    allowed = set()
+    data_nums = set()   # 시각(hour) 제외 — 실제 통계 수치만 (파생 합/차 계산 대상)
+    def walk(v):
+        if isinstance(v, dict):
+            for k, vv in v.items():
+                if k == "collectionTime" and isinstance(vv, str) and ":" in vv:
+                    h, m = vv.split(":")
+                    allowed.add(float(int(h)))
+                    if int(m) != 0:
+                        allowed.add(float(int(m)))
+                else:
+                    walk(vv)
+        elif isinstance(v, list):
+            for vv in v: walk(vv)
+        elif isinstance(v, (int, float)):
+            allowed.add(float(v))
+            data_nums.add(float(v))
+    walk(data)
+    for a in data_nums:
+        for b in data_nums:
+            if a != b:
+                allowed.add(round(abs(a - b), 1))
+                allowed.add(round(a + b, 1))
+    return allowed
+
+def is_allowed(n, allowed_numbers):
+    if n in IGNORE_NUMS:
+        return True
+    for a in allowed_numbers:
+        tol = max(0.5, abs(a) * 0.05)   # 절대오차 0.5 또는 상대오차 5% 중 큰 쪽까지 반올림 허용
+        if abs(n - a) <= tol:
+            return True
+    return False
+
+def find_hallucinations(text, allowed_numbers):
+    return [n for n in extract_numbers(text) if not is_allowed(n, allowed_numbers)]
+
+# 정적 형용사("많아"/"높아"/"낮아"/"적어")는 "문제가 많아" 같은 비교와 무관한
+# 문장에서도 흔히 등장해 오탐이 잦으므로 제외하고, 추세(변화) 자체를 가리키는
+# 동사·명사만 남긴다 — 애매한 문장 스코핑보다 이쪽이 더 견고했다(실측으로 확인).
+INCREASE_WORDS = ["증가", "늘어", "늘었", "늘고", "상승", "커졌", "악화"]
+DECREASE_WORDS = ["감소", "줄어", "줄었", "줄고", "떨어", "완화", "개선"]
+
+def check_direction(text, expected, gt_pair=None):
+    """expected: 'increase'|'decrease'. 반환: 'correct'|'wrong'|'none'"""
+    has_inc = any(w in text for w in INCREASE_WORDS)
+    has_dec = any(w in text for w in DECREASE_WORDS)
+    claimed = "increase" if (has_inc and not has_dec) else "decrease" if (has_dec and not has_inc) else None
+    if claimed is None:
+        return "none"
+    return "correct" if claimed == expected else "wrong"
+
+def run_fidelity_benchmark(active):
+    print("\n" + "═" * 60)
+    print(f"접지성/사실성 벤치마크 | 케이스 {len(FIDELITY_CASES)}개 × {RUNS}회")
+    print("═" * 60 + "\n")
+
+    results = {}
+    detail_lines = []
+    for m in active:
+        model, url, key = m["name"], m["url"], m["key"]
+        agg = {"total_nums": 0, "halluc_nums": 0, "dir_correct": 0, "dir_wrong": 0,
+               "dir_none": 0, "dir_total": 0, "lat": [], "errors": 0}
+        print(f"── {model} ──")
+        for desc, gt_data, prompt, expected_dir in FIDELITY_CASES:
+            allowed = collect_allowed_numbers(gt_data)
+            for i in range(RUNS):
+                try:
+                    body = json.dumps({
+                        "model": model, "max_tokens": 400, "temperature": 0.2,
+                        "messages": [
+                            {"role": "system", "content": FIDELITY_SYSTEM_PROMPT},
+                            {"role": "user", "content": prompt},
+                        ],
+                    }).encode("utf-8")
+                    req = urllib.request.Request(url, data=body,
+                        headers={"Content-Type": "application/json",
+                                "Authorization": "Bearer " + (key or "none")})
+                    t0 = time.time()
+                    with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                        data = json.loads(r.read().decode("utf-8"))
+                    dt = time.time() - t0
+                    text = data["choices"][0]["message"]["content"]
+                except Exception as e:
+                    agg["errors"] += 1
+                    print(f"  [ERR] {type(e).__name__}: {str(e)[:60]}")
+                    continue
+
+                agg["lat"].append(dt)
+                nums = extract_numbers(text)
+                halluc = find_hallucinations(text, allowed)
+                agg["total_nums"] += len(nums)
+                agg["halluc_nums"] += len(halluc)
+
+                dir_flag = ""
+                if expected_dir is not None:
+                    dr = check_direction(text, expected_dir, gt_data)
+                    agg["dir_total"] += 1
+                    if dr == "correct": agg["dir_correct"] += 1
+                    elif dr == "wrong": agg["dir_wrong"] += 1
+                    else: agg["dir_none"] += 1
+                    dir_flag = f" 방향={dr}"
+
+                flag = f"숫자{len(nums)}개(할루시네이션{len(halluc)}){dir_flag}"
+                marker = " ⚠️" if halluc or dir_flag.endswith("wrong") else ""
+                print(f"  {flag:40s} {dt:5.1f}s  «{desc}»{marker}")
+
+                if halluc or (expected_dir is not None and dir_flag.endswith("wrong")):
+                    detail_lines.append(
+                        f"=== [FIDELITY] {model} | run{i+1} | {desc} ===\n"
+                        f"정답 데이터: {json.dumps(gt_data, ensure_ascii=False)}\n"
+                        f"허용 숫자 집합: {sorted(allowed)}\n"
+                        f"할루시네이션 숫자: {halluc}\n"
+                        f"{'방향 판정: ' + dr if expected_dir is not None else ''}\n"
+                        f"--- 원문 응답 ---\n{text}\n")
+        results[model] = agg
+        print()
+
+    fidelity_detail = detail_lines
+    if fidelity_detail:
+        with open(DETAIL_LOG, "a", encoding="utf-8") as f:
+            f.write("\n" + "\n".join(fidelity_detail))
+        print(f"할루시네이션/방향성 오류 원문 로그 추가: {DETAIL_LOG} ({len(fidelity_detail)}건)\n")
+
+    lines = ["\n## 접지성/사실성(Fidelity) 벤치마크 결과\n",
+             f"- 케이스 {len(FIDELITY_CASES)}개(단일서술 2 + 방향비교 2) × {RUNS}회\n",
+             "| 모델 | 숫자 정확도(비할루시네이션율) | 방향성 정확도 | 평균 지연 | 오류 |",
+             "|---|---|---|---|---|"]
+    for model, a in results.items():
+        acc = 100 * (a["total_nums"] - a["halluc_nums"]) // max(1, a["total_nums"])
+        num_acc = f"{a['total_nums']-a['halluc_nums']}/{a['total_nums']} ({acc}%)"
+        dir_denom = a["dir_correct"] + a["dir_wrong"]
+        dir_acc = f"{a['dir_correct']}/{dir_denom} ({100*a['dir_correct']//max(1,dir_denom)}%)" \
+                  + (f", 무판단{a['dir_none']}" if a["dir_none"] else "")
+        lat = f"{sum(a['lat'])/max(1,len(a['lat'])):.1f}s"
+        lines.append(f"| {model} | {num_acc} | {dir_acc} | {lat} | {a['errors']} |")
+    fidelity_report = "\n".join(lines)
+    print(fidelity_report)
+    return fidelity_report
 
 # ── 앱과 동일한 관대한 JSON 추출 (주석·후행콤마 허용) ────────────
 CODE_BLOCK = re.compile(r"```json\s*(\{[\s\S]*?\})\s*```")
@@ -257,6 +469,10 @@ def main():
         lines.append(f"| {model} | {rate} | {lat} | {lang} | {md} | {fp} | {a['errors']} |")
     report = "\n".join(lines) + "\n\n" + fp_report
     print("\n" + "\n".join(lines))
+
+    fidelity_report = run_fidelity_benchmark(active)
+    report = report + "\n" + fidelity_report
+
     with open(REPORT, "w", encoding="utf-8") as f:
         f.write(report + "\n")
     print(f"\n리포트 저장: {REPORT}")
