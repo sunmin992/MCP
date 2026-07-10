@@ -550,7 +550,7 @@
 
   <div class="chips" id="chips">
     <div class="chip" onclick="sendChip('수거 시각을 12시로 설정하고 시뮬레이션 실행해줘')">12시 수거 실행</div>
-    <div class="chip" onclick="sendChip('10시, 12시, 14시 수거 시각을 비교해서 최적 시각을 알려줘')">수거시각 비교</div>
+    <div class="chip" onclick="compareRun()">수거시각 비교</div>
     <div class="chip" onclick="sendChip('외출 시각 분산이 σ=90분일 때 12시 수거로 실행해줘')">분산 σ=90 실험</div>
     <div class="chip" onclick="sendChip('이 시뮬레이션 모델에 대해 설명해줘')">모델 설명</div>
     <div class="chip" onclick="sendChip('직업별로 민원이 왜 다른지 설명해줘')">직업별 차이</div>
@@ -862,11 +862,29 @@
     send();
   }
 
-  function compareRun() {
+  // 채팅 파이프라인은 collectionTime을 1개만 추출/실행할 수 있어 자연어로
+  // "여러 시각 비교"를 보내면 실행되지 않는다(의도분류 규칙상 시각 2개 이상은
+  // 순간값 조회로 간주해 거부). 그래서 이 버튼은 채팅이 아니라 이미 검증된
+  // /api/scenario/collection-sweep을 10:00~14:00·2시간 간격으로 직접 호출해
+  // 진짜 3지점 비교를 실행한다(사이드바 "시나리오 실험" 버튼들과 동일 패턴).
+  async function compareRun() {
     const cfg = getQuickConfig();
-    const msg = `${cfg.days}일 동안 외출 분산 ${cfg.leaveSigma}분 조건으로 수거 시각 10:00, 12:00, 14:00 세 가지를 비교해서 최적 수거 시각을 추천해줘.`;
-    document.getElementById('msgInput').value = msg;
-    send();
+    appendLocalMessage('system', ' [수거시각 비교] 10:00·12:00·14:00 비교 실행 중... (시드 ' + cfg.seeds + '회, ' + cfg.days + '일)');
+    try {
+      const res = await fetch('/api/scenario/collection-sweep', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          days: cfg.days, seeds: cfg.seeds, leaveSigma: cfg.leaveSigma,
+          start: '10:00', end: '14:00', stepMinutes: 120
+        })
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      renderScenario(data, 'line');
+    } catch (e) {
+      appendLocalMessage('system', ' 비교 실행 실패: ' + e.message);
+    }
   }
 
   // ── 커스텀 시각 토글 ─────────────────────────────────────────────

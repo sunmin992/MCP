@@ -27,10 +27,6 @@ public class ScenarioService {
         this.sim = sim;
     }
 
-    private static String hhmm(int minutes) {
-        return String.format("%02d:%02d", minutes / 60, minutes % 60);
-    }
-
     /** 설정으로 다중 시드 실험을 돌려 평균/표준편차만 추려 반환 */
     private double[] meanStd(SimulationConfig cfg) {
         SimulationResult r = sim.runExperiment(cfg);
@@ -78,7 +74,7 @@ public class ScenarioService {
         String bestTime = null, worstTime = null;
         List<String> cats = new ArrayList<>();
         for (int m = startMin; m <= endMin; m += stepMin) {
-            String t = hhmm(m);
+            String t = SimulationConfig.minutesToHhmm(m);
             cats.add(t);
             SimulationConfig cfg = base.copy();
             cfg.setCollectionTimeLabel(t);

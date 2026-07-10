@@ -35,9 +35,29 @@ public class McpToolCatalog {
                 "numBuildings": {"type": "integer", "default": 4},
                 "residentsPerBuilding": {"type": "integer", "default": 25},
                 "occupationMix": {"type": "array", "items": {"type": "string"},
-                  "description": "직업 구성: BlueCollar/Student/Housewife/NightShift/OfficeWorker"}
+                  "description": "직업 구성: BlueCollar/Student/Housewife/NightShift/OfficeWorker"},
+                "trafficEnabled": {"type": "boolean", "description": "교통 레이어 사용 여부", "default": false},
+                "trafficProfileId": {"type": "string", "description": "예: jangryang-weekday"},
+                "truckType": {"type": "string", "enum": ["LARGE_5TON","MEDIUM_2P5T","SMALL_1TON"], "default": "LARGE_5TON"},
+                "truckCount": {"type": "integer", "description": "투입 트럭 대수", "default": 1, "minimum": 1},
+                "dispatchIntervalMinutes": {"type": "integer", "description": "트럭 간 시차 배차(분)", "default": 0},
+                "routeSequence": {"type": "array", "items": {"type": "string"},
+                  "description": "수거장 방문 순서(노드 id). 예: [\\"Node_A\\",\\"Node_C\\",\\"Node_B\\"]"}
               },
               "required": ["collectionTime"]
+            }
+            """;
+
+    private static final String UPDATE_ROUTE_SCHEMA = """
+            {
+              "type": "object",
+              "properties": {
+                "routeSequence": {"type": "array", "items": {"type": "string"},
+                  "description": "수거장 방문 순서. 예: [\\"Node_A\\",\\"Node_C\\",\\"Node_B\\"]"},
+                "collectionTime": {"type": "string"},
+                "trafficProfileId": {"type": "string"}
+              },
+              "required": ["routeSequence"]
             }
             """;
 
@@ -80,6 +100,9 @@ public class McpToolCatalog {
         tools.add(descriptor(m, "list_scenarios",
                 "지원하는 시나리오 실험 유형 목록을 반환한다.",
                 EMPTY_SCHEMA));
+        tools.add(descriptor(m, "update_route_sequence",
+                "기존 base 설정에 수거장 방문 순서만 갈아끼워 재실행한다(동적 라우팅 — 정체 구역 우회).",
+                UPDATE_ROUTE_SCHEMA));
         ObjectNode result = m.createObjectNode();
         result.set("tools", tools);
         return result;

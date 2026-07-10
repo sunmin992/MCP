@@ -1,6 +1,7 @@
 package com.wastesim.tool;
 
 import com.wastesim.model.SimulationConfig;
+import com.wastesim.service.TrafficDataService;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -9,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class SimulationConfigValidatorTest {
 
-    private final SimulationConfigValidator v = new SimulationConfigValidator();
+    private final SimulationConfigValidator v = new SimulationConfigValidator(new TrafficDataService());
 
     @Test
     void validConfigPasses() {              // UT-20
@@ -35,5 +36,73 @@ class SimulationConfigValidatorTest {
         ValidationResult r = v.validate(c);
         assertFalse(r.ready());
         assertEquals(ErrorCode.INVALID_ENUM, r.errors().get(0).code());
+    }
+
+    // ── 교통 레이어 교차 검증 (TRAFFIC_EXTENSION_DESIGN.md §9) ────────────────
+
+    @Test
+    void predictOverflowRatioIsHighWhenNoTrucks() {   // UT-T2
+        SimulationConfig c = new SimulationConfig();
+        c.setTruckCount(0);
+        assertTrue(v.predictOverflowRatio(c) >= 1.5);
+    }
+
+    @Test
+    void truckCountZeroFails() {             // UT-T3 (V-T1, 시나리오 4)
+        SimulationConfig c = new SimulationConfig();
+        c.setTruckCount(0);
+        ValidationResult r = v.validate(c);
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e -> e.code() == ErrorCode.TRUCK_COUNT_ZERO));
+    }
+
+    @Test
+    void criticalWasteAccumulationFails() {  // UT-T4 (V-T2) — 트럭은 있지만 수거 주기가 사실상 중단 수준
+        SimulationConfig c = new SimulationConfig();
+        c.setCollectionIntervalDays(999);    // 30일 시뮬 안에 사실상 재수거가 없음
+        ValidationResult r = v.validate(c);
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e -> e.code() == ErrorCode.CRITICAL_WASTE_ACCUMULATION));
+    }
+
+    @Test
+    void trafficInfeasibleForLargeTruckInAlley() {   // UT-T5 (V-T3)
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(true);
+        c.setTrafficProfileId("jangryang-weekday");
+        c.setTruckType("LARGE_5TON");        // alleyAccess=false, 시드 데이터의 Node_C/D는 골목
+        ValidationResult r = v.validate(c);
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e -> e.code() == ErrorCode.TRAFFIC_INFEASIBLE));
+    }
+
+    @Test
+    void smallTruckPassesAlleyCheck() {      // V-T3 대조군 — 소형 차량은 골목 통과
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(true);
+        c.setTrafficProfileId("jangryang-weekday");
+        c.setTruckType("SMALL_1TON");
+        assertTrue(v.validate(c).ready());
+    }
+
+    @Test
+    void invalidRouteSequenceFails() {       // V-T4
+        SimulationConfig c = new SimulationConfig();
+        c.setRouteSequence(List.of("Node_A", "Node_Z"));   // 건물 4개(A~D) 집합과 불일치
+        ValidationResult r = v.validate(c);
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e -> e.code() == ErrorCode.INVALID_ARGUMENTS));
+    }
+
+    @Test
+    void redPeakTimeWarnsButDoesNotBlock() {  // V-T5 — 08:30은 시드 데이터상 RED, 비차단 경고만
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(true);
+        c.setTrafficProfileId("jangryang-weekday");
+        c.setTruckType("MEDIUM_2P5T");        // alleyAccess=true — V-T3와 섞이지 않게 격리
+        c.setCollectionTimeLabel("08:30");
+        ValidationResult r = v.validate(c);
+        assertTrue(r.ready());
+        assertFalse(r.warnings().isEmpty());
     }
 }

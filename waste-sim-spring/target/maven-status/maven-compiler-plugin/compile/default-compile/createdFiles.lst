@@ -19,7 +19,6 @@ com\wastesim\model\ScenarioPreset.class
 com\wastesim\model\SimulationResult.class
 com\wastesim\model\ChatMessage$MessageType.class
 com\wastesim\obs\CorrelationIdFilter.class
-com\wastesim\controller\ChatController.class
 com\wastesim\tool\ConfigArgs.class
 com\wastesim\service\ScenarioService.class
 com\wastesim\tool\ToolResult.class

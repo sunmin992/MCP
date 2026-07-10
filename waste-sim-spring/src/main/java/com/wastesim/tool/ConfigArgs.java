@@ -34,6 +34,20 @@ public final class ConfigArgs {
             for (JsonNode n : p.get("occupationMix")) mix.add(n.asText());
             if (!mix.isEmpty()) c.setOccupationMix(mix);
         }
+
+        // ── 교통 레이어 (TRAFFIC_EXTENSION_DESIGN.md §3, §6.1) ──────────────
+        if (p.has("trafficEnabled"))       c.setTrafficEnabled(p.get("trafficEnabled").asBoolean(false));
+        if (p.hasNonNull("trafficProfileId")) c.setTrafficProfileId(p.get("trafficProfileId").asText());
+        if (p.hasNonNull("truckType"))     c.setTruckType(p.get("truckType").asText());
+        if (p.has("truckCount"))           c.setTruckCount(p.get("truckCount").asInt(1));
+        if (p.has("dispatchIntervalMinutes")) c.setDispatchIntervalMinutes(p.get("dispatchIntervalMinutes").asInt(0));
+        if (p.has("routeTravelMinutes"))   c.setRouteTravelMinutes(p.get("routeTravelMinutes").asInt(0));
+        if (p.has("trafficComplaintWeight"))  c.setTrafficComplaintWeight(p.get("trafficComplaintWeight").asDouble(1.0));
+        if (p.has("routeSequence") && p.get("routeSequence").isArray()) {
+            List<String> seq = new ArrayList<>();
+            for (JsonNode n : p.get("routeSequence")) seq.add(n.asText());
+            if (!seq.isEmpty()) c.setRouteSequence(seq);
+        }
         return c;
     }
 }

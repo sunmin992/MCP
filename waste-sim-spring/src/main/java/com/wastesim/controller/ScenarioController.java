@@ -4,7 +4,6 @@ import com.wastesim.model.ScenarioPreset;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.service.ScenarioService;
 import com.wastesim.tool.SimulationTool;
-import com.wastesim.tool.ToolResult;
 import com.wastesim.web.ApiError;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -52,7 +51,7 @@ public class ScenarioController {
         SimulationConfig base = baseConfig(b, 10);  // 시나리오 기본 시드 10
         @SuppressWarnings("unchecked")
         List<String> times = (List<String>) b.get("times");
-        return respond(tool.runScenarioCustom(base, () -> scenario.occupationMixComparison(base, times)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.occupationMixComparison(base, times)));
     }
 
     /** 2. 수거시각 sweep */
@@ -60,12 +59,12 @@ public class ScenarioController {
     public ResponseEntity<?> collectionSweep(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
-        int start = toMinutes(str(b, "start", "06:00"));
-        int end   = toMinutes(str(b, "end", "18:00"));
+        int start = SimulationConfig.hhmmToMinutes(str(b, "start", "06:00"));
+        int end   = SimulationConfig.hhmmToMinutes(str(b, "end", "18:00"));
         int step  = intVal(b, "stepMinutes", 60);
         // 구성 프리셋을 적용하고 싶으면 mixPreset 지정
         applyPreset(base, b);
-        return respond(tool.runScenarioCustom(base, () -> scenario.collectionSweep(base, start, end, step)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.collectionSweep(base, start, end, step)));
     }
 
     /** 3. 행동 변동: α × β */
@@ -76,7 +75,7 @@ public class ScenarioController {
         applyPreset(base, b);
         double[] alphas = doubleArr(b, "alphas");
         double[] betas = doubleArr(b, "betas");
-        return respond(tool.runScenarioCustom(base, () -> scenario.behaviorGrid(base, alphas, betas)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.behaviorGrid(base, alphas, betas)));
     }
 
     /** 4. 인프라: 용량 C × 임계 θ */
@@ -87,7 +86,7 @@ public class ScenarioController {
         applyPreset(base, b);
         double[] capacities = doubleArr(b, "capacities");
         double[] thresholds = doubleArr(b, "thresholds");
-        return respond(tool.runScenarioCustom(base, () -> scenario.infraGrid(base, capacities, thresholds)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.infraGrid(base, capacities, thresholds)));
     }
 
     /** 5. 밀도: 저밀도 빌라촌 vs 고밀도 원룸촌 */
@@ -109,7 +108,7 @@ public class ScenarioController {
             }
         }
         List<int[]> finalDensities = densities;
-        return respond(tool.runScenarioCustom(base, () -> scenario.densityComparison(base, finalDensities)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.densityComparison(base, finalDensities)));
     }
 
     /** 6. 수거 스케줄: 다회/격일/주말/공휴일 */
@@ -118,7 +117,7 @@ public class ScenarioController {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return respond(tool.runScenarioCustom(base, () -> scenario.collectionSchedule(base)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.collectionSchedule(base)));
     }
 
     /** 7. 다중 트럭 · 구역 분할 */
@@ -131,7 +130,7 @@ public class ScenarioController {
         int[] counts = null;
         if (tc != null) { counts = new int[tc.length]; for (int i = 0; i < tc.length; i++) counts[i] = (int) tc[i]; }
         int[] finalCounts = counts;
-        return respond(tool.runScenarioCustom(base, () -> scenario.multiTruck(base, finalCounts)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.multiTruck(base, finalCounts)));
     }
 
     /** 8. 분리배출: 통합 vs 종류별 */
@@ -140,7 +139,7 @@ public class ScenarioController {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return respond(tool.runScenarioCustom(base, () -> scenario.wasteSeparation(base)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.wasteSeparation(base)));
     }
 
     /** 9. 새 거주민 유형: 야간근무·1인직장인 */
@@ -150,7 +149,7 @@ public class ScenarioController {
         SimulationConfig base = baseConfig(b, 10);
         @SuppressWarnings("unchecked")
         List<String> times = (List<String>) b.get("times");
-        return respond(tool.runScenarioCustom(base, () -> scenario.newOccupations(base, times)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.newOccupations(base, times)));
     }
 
     /** 10. 결합모델 변형: 외출/귀가 2회 · 임대인 */
@@ -159,7 +158,7 @@ public class ScenarioController {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        return respond(tool.runScenarioCustom(base, () -> scenario.couplingVariants(base)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.couplingVariants(base)));
     }
 
     /** 11. 월별(계절) 배출량: 1년 중 배출 최다 달 */
@@ -169,17 +168,10 @@ public class ScenarioController {
         SimulationConfig base = baseConfig(b, 8);
         applyPreset(base, b);
         double[] monthlyFactor = doubleArr(b, "monthlyFactor");
-        return respond(tool.runScenarioCustom(base, () -> scenario.monthlyWaste(base, monthlyFactor)));
+        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.monthlyWaste(base, monthlyFactor)));
     }
 
     // ── 공통 헬퍼 ─────────────────────────────────────────────────────────
-
-    private ResponseEntity<?> respond(ToolResult tr) {
-        if (!tr.ready()) {
-            return ResponseEntity.badRequest().body(ApiError.of("VALIDATION", "설정 검증 실패", tr.errors()));
-        }
-        return ResponseEntity.ok(tr.result());
-    }
 
     private SimulationConfig baseConfig(Map<String, Object> b, int defaultSeeds) {
         SimulationConfig cfg = new SimulationConfig();
@@ -228,10 +220,5 @@ public class ScenarioController {
             return arr;
         }
         return null;
-    }
-
-    private static int toMinutes(String hhmm) {
-        String[] p = hhmm.split(":");
-        return Integer.parseInt(p[0].trim()) * 60 + (p.length > 1 ? Integer.parseInt(p[1].trim()) : 0);
     }
 }

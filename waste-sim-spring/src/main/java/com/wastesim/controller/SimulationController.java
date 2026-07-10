@@ -47,12 +47,7 @@ public class SimulationController {
     /** POST /api/simulation/experiment — 다중 시드 실험 */
     @PostMapping("/experiment")
     public ResponseEntity<?> experiment(@RequestBody SimulationConfig cfg) {
-        ToolResult tr = tool.runSimulation(cfg);
-        if (!tr.ready()) {
-            return ResponseEntity.badRequest().body(
-                    ApiError.of("VALIDATION", "설정 검증 실패", tr.errors()));
-        }
-        return ResponseEntity.ok(tr.result());
+        return ApiError.respond(tool.runSimulation(cfg));
     }
 
     /** POST /api/simulation/compare — 여러 수거 시각 비교 실험 (타입 DTO로 500 위험 제거) */
@@ -67,8 +62,7 @@ public class SimulationController {
             cfg.setLeaveSigma(body.getLeaveSigma());
             ToolResult tr = tool.runSimulation(cfg);
             if (!tr.ready()) {
-                return ResponseEntity.badRequest().body(
-                        ApiError.of("VALIDATION", "수거시각 " + t + " 설정 검증 실패", tr.errors()));
+                return ApiError.respond(tr, "수거시각 " + t + " 설정 검증 실패");
             }
             results.add(tr.result());
         }
