@@ -30,16 +30,12 @@ public class SimulationService {
     public SimulationResult runExperiment(SimulationConfig cfg) {
         List<Integer> totals = new ArrayList<>();
         Map<String, List<Integer>> occTotals = new LinkedHashMap<>();
-        List<Integer> trafficComplaints = new ArrayList<>();
-        List<Double> completionMinutes = new ArrayList<>();
 
         for (int seed = 1; seed <= cfg.getSeeds(); seed++) {
             SimulationResult r = engine.run(cfg, seed);
             totals.add(r.getTotalComplaints());
             r.getByOccupation().forEach((occ, cnt) ->
                     occTotals.computeIfAbsent(occ, k -> new ArrayList<>()).add(cnt));
-            trafficComplaints.add(r.getTrafficComplaints());
-            completionMinutes.add(r.getAvgCompletionMinutes());
         }
 
         double mean = totals.stream().mapToInt(Integer::intValue).average().orElse(0);
@@ -58,12 +54,6 @@ public class SimulationService {
             occSummary.put(occ, Math.round(occMean * 10.0) / 10.0);
         });
         summary.setByOccupationSummary(occSummary);
-
-        // 교통 레이어 요약(§4) — 시드 평균. trafficEnabled=false면 항상 0.
-        double trafficMean = trafficComplaints.stream().mapToInt(Integer::intValue).average().orElse(0);
-        double completionMean = completionMinutes.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-        summary.setTrafficComplaints((int) Math.round(trafficMean));
-        summary.setAvgCompletionMinutes(Math.round(completionMean * 10.0) / 10.0);
 
         return summary;
     }

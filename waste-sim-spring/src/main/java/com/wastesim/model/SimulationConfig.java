@@ -61,20 +61,6 @@ public class SimulationConfig {
     /** 12개월 계절 가중치(1.0=평년). null이면 변동 없음(모든 달 동일). 30일=1달 기준. */
     private double[] monthlyWasteFactor = null;
 
-    // ── 교통 레이어 (TRAFFIC_EXTENSION_DESIGN.md §3) ────────────────────────
-    /** 교통 레이어 사용 여부. false면 기존 동작과 완전히 동일(하위호환). */
-    private boolean trafficEnabled = false;
-    /** 적용할 TrafficProfile id (예: "jangryang-weekday"). null이면 미적용. */
-    private String trafficProfileId = null;
-    /** 차량 종류(TruckType 이름). */
-    private String truckType = "LARGE_5TON";
-    /** 트럭 간 시차 배차(분). >0이면 트럭 k의 출발이 slot+k*interval로 분산. */
-    private int dispatchIntervalMinutes = 0;
-    /** 수거장 방문 순서(노드 id, 예: "Node_A"). null이면 기본(round-robin) 순서. */
-    private List<String> routeSequence = null;
-    /** 교통 유발 민원 가중(RED 구간 통과 시 total에 더해지는 값). */
-    private double trafficComplaintWeight = 1.0;
-
     // ── Getters & setters ──────────────────────────────────────────────────
 
     public int getCollectionTimeMinutes() { return collectionTimeMinutes; }
@@ -123,12 +109,7 @@ public class SimulationConfig {
     public void setHolidays(List<Integer> v) { this.holidays = v; }
 
     public int getNumTrucks() { return numTrucks; }
-    /**
-     * 0 이하 값도 그대로 저장한다(과거엔 Math.max(1,v)로 강제 보정했으나,
-     * 그러면 V-T1 검증기가 truckCount=0을 볼 수 없어 시나리오 4의 "모든 트럭
-     * 운행 중단" 차단이 무력화됨). 엔진은 자체적으로 Math.max(1,..)로 방어한다.
-     */
-    public void setNumTrucks(int v) { this.numTrucks = v; }
+    public void setNumTrucks(int v) { this.numTrucks = Math.max(1, v); }
 
     public int getRouteTravelMinutes() { return routeTravelMinutes; }
     public void setRouteTravelMinutes(int v) { this.routeTravelMinutes = Math.max(0, v); }
@@ -153,28 +134,6 @@ public class SimulationConfig {
 
     public double[] getMonthlyWasteFactor() { return monthlyWasteFactor; }
     public void setMonthlyWasteFactor(double[] v) { this.monthlyWasteFactor = v; }
-
-    public boolean isTrafficEnabled() { return trafficEnabled; }
-    public void setTrafficEnabled(boolean v) { this.trafficEnabled = v; }
-
-    public String getTrafficProfileId() { return trafficProfileId; }
-    public void setTrafficProfileId(String v) { this.trafficProfileId = v; }
-
-    public String getTruckType() { return truckType; }
-    public void setTruckType(String v) { this.truckType = v; }
-
-    /** {@link #getNumTrucks()}의 별칭(설계서 필드명 truckCount). */
-    public int getTruckCount() { return numTrucks; }
-    public void setTruckCount(int v) { setNumTrucks(v); }
-
-    public int getDispatchIntervalMinutes() { return dispatchIntervalMinutes; }
-    public void setDispatchIntervalMinutes(int v) { this.dispatchIntervalMinutes = Math.max(0, v); }
-
-    public List<String> getRouteSequence() { return routeSequence; }
-    public void setRouteSequence(List<String> v) { this.routeSequence = v; }
-
-    public double getTrafficComplaintWeight() { return trafficComplaintWeight; }
-    public void setTrafficComplaintWeight(double v) { this.trafficComplaintWeight = v; }
 
     /** 해당 월(0-based)의 계절 가중치. 미지정 시 1.0. */
     public double resolveMonthlyFactor(int monthIndex) {
@@ -238,12 +197,6 @@ public class SimulationConfig {
         c.landlordInspectMinutes = landlordInspectMinutes;
         c.landlordThreshold = landlordThreshold;
         c.monthlyWasteFactor = (monthlyWasteFactor == null) ? null : monthlyWasteFactor.clone();
-        c.trafficEnabled = trafficEnabled;
-        c.trafficProfileId = trafficProfileId;
-        c.truckType = truckType;
-        c.dispatchIntervalMinutes = dispatchIntervalMinutes;
-        c.routeSequence = (routeSequence == null) ? null : new ArrayList<>(routeSequence);
-        c.trafficComplaintWeight = trafficComplaintWeight;
         return c;
     }
 

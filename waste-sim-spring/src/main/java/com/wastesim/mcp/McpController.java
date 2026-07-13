@@ -14,9 +14,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
  * MCP 서버 — JSON-RPC 2.0 over HTTP(POST /mcp). 외부 SDK 없이 프로토콜 핵심
  * 메서드(initialize·tools/list·tools/call·ping)를 직접 구현한다. 이 시스템의
@@ -90,8 +87,6 @@ public class McpController {
                 return toCallResult(tool.runScenario(args.path("type").asText(""), ConfigArgs.fromJson(args)));
             case "list_scenarios":
                 return textResult(catalog.scenarioListText(), false);
-            case "update_route_sequence":
-                return toCallResult(tool.updateRouteSequence(ConfigArgs.fromJson(args), routeSequenceArg(args)));
             default:
                 return textResult("알 수 없는 도구: " + name, true);
         }
@@ -103,14 +98,6 @@ public class McpController {
             return textResult(mapper.writeValueAsString(tr.result()), false);
         }
         return textResult("검증 실패: " + mapper.writeValueAsString(tr.errors()), true);
-    }
-
-    private List<String> routeSequenceArg(JsonNode args) {
-        List<String> out = new ArrayList<>();
-        if (args.has("routeSequence") && args.get("routeSequence").isArray()) {
-            for (JsonNode n : args.get("routeSequence")) out.add(n.asText());
-        }
-        return out;
     }
 
     private ObjectNode textResult(String text, boolean isError) {
