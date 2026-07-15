@@ -4,6 +4,7 @@ import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.service.ScenarioService;
 import com.wastesim.service.SimulationService;
+import com.wastesim.service.TrafficDataService;
 import com.wastesim.simulation.SimulationEngine;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
@@ -13,10 +14,10 @@ import static org.junit.jupiter.api.Assertions.*;
 class SimulationToolTest {
 
     private SimulationTool tool() {
-        SimulationEngine engine = new SimulationEngine();
+        SimulationEngine engine = new SimulationEngine(new TrafficDataService());
         SimulationService sim = new SimulationService(engine);
         ScenarioService sc = new ScenarioService(sim);
-        return new SimulationTool(new SimulationConfigValidator(), sim, sc, new SimpleMeterRegistry());
+        return new SimulationTool(new SimulationConfigValidator(new TrafficDataService()), sim, sc, new SimpleMeterRegistry());
     }
 
     /** 테스트 속도를 위해 작은 설정 */

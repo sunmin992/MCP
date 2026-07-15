@@ -126,7 +126,7 @@ if __name__ == "__main__":
 | 08:30 RED 여부 | RED | Node_A 1.83 등 — RED 아님 |
 
 **대응(둘 중 택1):**
-- **(A) 실데이터 우선(권장):** 위 스크립트로 seed를 덮어쓴다. 단, 기존 테스트 `redPeakTimeWarnsButDoesNotBlock`이 08:30를 RED로 가정하므로, **테스트의 시각을 실 피크(예: 12:00)로 수정**하거나 대상 노드를 Node_A로 바꾼다. 시나리오 1/2의 서술도 "점심 피크·장성초등 정체"로 재정합한다.
+- **(A) 실데이터 우선(권장) — 채택됨:** 위 스크립트로 seed(`jangryang-weekday.json`)를 실데이터로 덮어쓴다. `congestionThresholdRed`를 실데이터 스케일(1.7)로 낮추고, 테스트 `redPeakTimeWarnsButDoesNotBlock`·`weightAtPeakIsRed`의 기준 시각을 실 피크(13:00)로 수정했다. 시나리오 서술도 "점심 피크·장성초등(Node_A) 정체"로 재정합. `jangryang-weekday-real.json`(대응 B의 병행 프로필)은 삭제, `SEED_IDS`는 `{"jangryang-weekday"}` 단일 항목으로 유지 — 실측 포항 교통량이 유일한 진실 원천이다. (`SWITCH_TO_RESPONSE_A.md` 참고)
 - **(B) 시나리오 충실 우선:** 기존 가정용 seed(현재 `jangryang-weekday.json`)를 유지하고, 실데이터는 `jangryang-weekday-real.json`로 **별도 id**로 저장해 병행한다(`SEED_IDS`에 추가). 데모는 가정 seed, 근거자료로 실데이터.
 
 > 어느 쪽이든 `alleyNodeIds=[Node_C,Node_D]`는 유지해 골목 관련 테스트(UT-T5)를 보존한다.

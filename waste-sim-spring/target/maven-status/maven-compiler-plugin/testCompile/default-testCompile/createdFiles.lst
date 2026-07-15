@@ -1,4 +1,6 @@
 com\wastesim\mcp\McpControllerTest.class
+com\wastesim\simulation\SimulationEngineTrafficTest.class
 com\wastesim\tool\SimulationToolTest.class
 com\wastesim\tool\ConfigArgsTest.class
+com\wastesim\model\TrafficProfileTest.class
 com\wastesim\tool\SimulationConfigValidatorTest.class

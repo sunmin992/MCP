@@ -21,6 +21,12 @@ public class SimulationResult {
     private List<Integer> allTotals;
     private Map<String, Object> byOccupationSummary;
 
+    // ── 교통 레이어 (TRAFFIC_EXTENSION_DESIGN.md §4) ────────────────────────
+    /** 교통 정체(RED 구간) 통과로 발생한 민원 수. trafficEnabled=false면 0. */
+    private int trafficComplaints;
+    /** 하루 수거 완료까지 평균 소요 시간(분, 첫 슬롯 시작 대비). */
+    private double avgCompletionMinutes;
+
     public SimulationResult() {}
 
     public SimulationResult(String collectionTimeLabel, int totalComplaints,
@@ -70,4 +76,10 @@ public class SimulationResult {
 
     public SimulationConfig getSimulationConfig() { return simulationConfig; }
     public void setSimulationConfig(SimulationConfig v) { this.simulationConfig = v; }
+
+    public int getTrafficComplaints() { return trafficComplaints; }
+    public void setTrafficComplaints(int v) { this.trafficComplaints = v; }
+
+    public double getAvgCompletionMinutes() { return avgCompletionMinutes; }
+    public void setAvgCompletionMinutes(double v) { this.avgCompletionMinutes = v; }
 }

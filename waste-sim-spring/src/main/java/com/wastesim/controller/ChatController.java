@@ -21,6 +21,8 @@ import com.wastesim.model.SimulationResult;
 import com.wastesim.service.JailbreakFilter;
 import com.wastesim.service.OpenAiService;
 import com.wastesim.service.TimeExpressionDetector;
+import com.wastesim.service.TrafficDataService;
+import com.wastesim.service.TrafficKeywordDetector;
 import com.wastesim.tool.SimulationTool;
 import com.wastesim.tool.ToolResult;
 import com.wastesim.tool.ValidationError;
@@ -39,6 +41,7 @@ public class ChatController {
     private final OpenAiService openAiService;
     private final SimulationTool tool;
     private final MeterRegistry metrics;
+    private final TrafficDataService trafficData;
 
     // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록)
     private final Map<String, List<Map<String, String>>> histories = new ConcurrentHashMap<>();
@@ -48,11 +51,13 @@ public class ChatController {
     public ChatController(SimpMessagingTemplate messaging,
                           OpenAiService openAiService,
                           SimulationTool tool,
-                          MeterRegistry metrics) {
+                          MeterRegistry metrics,
+                          TrafficDataService trafficData) {
         this.messaging = messaging;
         this.openAiService = openAiService;
         this.tool = tool;
         this.metrics = metrics;
+        this.trafficData = trafficData;
     }
 
     @MessageMapping("/chat.send")
@@ -103,6 +108,24 @@ public class ChatController {
                         new ChatMessage(ChatMessage.MessageType.SYSTEM, "파라미터를 추출하는 중..."));
                 SimulationConfig cfg = openAiService.extractParamsStrict(history, userText);
 
+                // 결정론적 안전망: LLM 추출이 temperature>0라 "교통량 반영해서"처럼
+                // 명시적으로 언급해도 trafficEnabled를 놓칠 수 있다(실측으로 확인).
+                // TimeExpressionDetector와 같은 원칙 — 키워드로 판정 가능한 사실은
+                // LLM 신뢰 여부와 무관하게 정규식으로 보정한다.
+                if (cfg != null && !cfg.isTrafficEnabled() && TrafficKeywordDetector.mentioned(userText)) {
+                    cfg.setTrafficEnabled(true);
+                    if (cfg.getTrafficProfileId() == null) {
+                        cfg.setTrafficProfileId(trafficData.defaultProfileId());
+                    }
+                }
+                // 교통 레이어가 켜졌는데 건물 간 이동시간이 0이면(기본값, LLM이
+                // 잘 안 채워줌) 이동시간 가중·정체 판정이 적용될 여지 자체가 없어
+                // "반영해달라"고 해도 결과가 전혀 안 바뀌는 것처럼 보인다(실측으로
+                // 확인). 결정론적으로 최소 이동시간을 부여해 항상 체감 가능하게 한다.
+                if (cfg != null && cfg.isTrafficEnabled() && cfg.getRouteTravelMinutes() <= 0) {
+                    cfg.setRouteTravelMinutes(15);
+                }
+
                 if (cfg != null && OpenAiService.isValidCollectionTime(cfg.getCollectionTimeLabel())) {
                     // 두 단계가 모두 성공 + 형식 검증까지 통과 → 바로 실행
                     reply = String.format(
@@ -141,7 +164,7 @@ public class ChatController {
             // 5. 실행 또는 확인 버블
             if (cfgToRun != null) {
                 pendingConfigs.remove(sessionId);
-                runSimulation(cfgToRun);
+                runSimulation(cfgToRun, false);   // V-T5 등 비차단 경고가 있으면 확인부터 유도
             } else if (cfgToConfirm != null) {
                 metrics.counter("waste.chat.confirm").increment();
                 pendingConfigs.put(sessionId, cfgToConfirm);
@@ -174,7 +197,7 @@ public class ChatController {
             return;
         }
         try {
-            runSimulation(cfg);
+            runSimulation(cfg, true);   // 사용자가 이미 확인했으므로 경고 재확인 없이 강행
         } catch (Exception e) {
             log.error("확인 후 시뮬레이션 실행 오류", e);
             messaging.convertAndSend("/topic/messages",
@@ -190,19 +213,38 @@ public class ChatController {
         messaging.convertAndSend("/topic/messages", sysMsg);
     }
 
-    private void runSimulation(SimulationConfig cfg) {
+    /**
+     * @param skipWarnings false면 비차단 경고(V-T5 교통 피크 등)가 있을 때
+     *   바로 실행하지 않고 CONFIRM 버블로 사용자 확인을 유도한다
+     *   (TRAFFIC_EXTENSION_DESIGN.md §7.2). true는 확인 후 강행 경로.
+     */
+    private void runSimulation(SimulationConfig cfg, boolean skipWarnings) {
         ChatMessage runningMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM,
                 String.format("시뮬레이션 실행 중... (수거시각: %s, %d일 × %d시드)",
                         cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds()));
         messaging.convertAndSend("/topic/messages", runningMsg);
 
         // MCP·REST와 동일한 검증 게이트를 통과(툴 파사드). 검증 실패면 실행하지 않는다.
-        ToolResult tr = tool.runSimulation(cfg);
+        ToolResult tr = tool.runSimulation(cfg, skipWarnings);
         if (!tr.ready()) {
             StringBuilder sb = new StringBuilder("설정을 실행할 수 없습니다:\n");
             for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
             messaging.convertAndSend("/topic/messages",
                     new ChatMessage(ChatMessage.MessageType.BOT, sb.toString().trim()));
+            return;
+        }
+
+        if (tr.needsConfirm()) {
+            // 실행은 아직 안 함 — 경고 사유를 브리핑하고 확인 버블로 유도.
+            // LLM은 이 브리핑 문구를 만들지 않는다(결정론적 경고 메시지를 그대로
+            // 전달) — C1/C2 준수: 대안 제안은 서버가 계산한 사실이지 LLM 생성물이 아니다.
+            metrics.counter("waste.chat.needs_confirm").increment();
+            pendingConfigs.put("default", cfg);
+            StringBuilder sb = new StringBuilder("바로 실행하지 않고 확인을 요청드립니다:\n");
+            for (ValidationError w : tr.warnings()) sb.append("- ").append(w.message()).append("\n");
+            ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM, sb.toString().trim());
+            confirmMsg.setSimulationConfig(cfg);
+            messaging.convertAndSend("/topic/messages", confirmMsg);
             return;
         }
 
