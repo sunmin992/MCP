@@ -22,22 +22,26 @@ import java.util.regex.Pattern;
  * OpenAI 호환 API(gpt-4o-mini / Ollama qwen2.5 등) 연동 서비스.
  *
  * <p>베이스라인 제약 C2(실행 여부 결정은 결정론적·LLM-free)를 지키기 위해,
- * "실행할지 말지"의 최소 필요조건({@link TimeExpressionDetector}로 이번
- * 메시지에 파싱 가능한 시각이 정확히 1개 있는가)은 {@code ChatController}가
- * 정규식으로 먼저 확정한다. 이 클래스의 LLM 호출은 그 좁은 구간에서만
- * 일어나는 "판단"과 "생성"의 분리다:
+ * "실행할지 말지"는 {@code ChatController}가 {@link TimeExpressionDetector}
+ * (시각이 정확히 1개인가)와 {@link ExecutionIntentDetector}(순간값 조회·명시적
+ * 실행거부가 아닌가)로 LLM 없이 전부 정규식으로 확정한다 — 원래는 후자를
+ * LLM(temperature=0, yes/no)에 맡겼지만, 로컬 모델이 온도 0에서도 완전히
+ * 결정론적이지 않아 조건절이 여러 개 겹친 문장을 실측으로 반복 오분류하는
+ * 문제가 있어 결정론적 판정으로 대체했다. 이 클래스의 LLM 호출은 판단이
+ * 확정된 뒤의 "생성"만 담당한다:
  * <ol>
- *   <li>1단계 — {@link #classifyIsRunRequest}: 시각이 정확히 1개일 때만 호출.
- *       temperature=0으로 "그 시각이 수거 시각 설정 요청인가(순간값 조회가
- *       아닌가)?"만 yes/no로 판단. 창의성이 필요 없는 좁은 분류라 작은 모델도
- *       안정적이다.</li>
- *   <li>2단계 — {@link #extractParamsStrict}: 1단계가 yes일 때만 호출.
+ *   <li>{@link #extractParamsStrict}: 실행 요청으로 확정된 메시지에서만 호출.
  *       response_format=json_object(Ollama의 format:json과 동일 효과)로 프리텍스트
  *       없이 구조화된 파라미터만 뽑는다. 산문·헤징 표현·다중 JSON 블록이 섞일 수
  *       없어, 기존의 정규식 기반 사후 검증(헤징 문구 탐지, 블록 개수 세기 등)이
  *       구조적으로 불필요해진다.</li>
+ *   <li>{@link #answerPlain}: 실행 요청이 아닐 때만 호출. JSON 없이 순수 대화
+ *       답변만 생성한다.</li>
  * </ol>
- * 실행 요청이 아니면 {@link #answerPlain}으로 JSON 없이 순수 대화 답변만 생성한다.
+ *
+ * <p>두 단계는 각각 다른 모델을 쓸 수 있다(llm_benchmark.py 실측 결과 기반 라우팅) —
+ * 일반답변은 Jailbreak 방어가 검증된 모델을, 파라미터추출은 JSON 추출 성공률이
+ * 이미 100%인 모델을 쓰는 식으로 단계별 강점에 맞춰 배치한다.
  */
 @Service
 public class OpenAiService {
@@ -50,8 +54,11 @@ public class OpenAiService {
     @Value("${openai.api.url}")
     private String apiUrl;
 
-    @Value("${openai.model}")
-    private String model;
+    @Value("${openai.model.extract}")
+    private String extractModel;
+
+    @Value("${openai.model.answer}")
+    private String answerModel;
 
     private final OkHttpClient http = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -66,46 +73,12 @@ public class OpenAiService {
 
     private static final Pattern HHMM = Pattern.compile("^([01]\\d|2[0-3]):[0-5]\\d$");
 
-    /** "HH:MM" 24시간 형식인지 검증 — 2단계 추출 결과의 최종 안전망 */
+    /** "HH:MM" 24시간 형식인지 검증 — 파라미터 추출 결과의 최종 안전망 */
     public static boolean isValidCollectionTime(String s) {
         return s != null && HHMM.matcher(s).matches();
     }
 
-    // ── 1단계: 의도 분류 전용 프롬프트 (판단만, 생성 없음) ─────────────────
-    // ChatController가 TimeExpressionDetector로 "이번 메시지에 파싱 가능한
-    // 시각이 정확히 1개"인 경우에만 이 프롬프트를 호출한다. 즉 "시각이
-    // 있는가"는 이미 결정론적으로 확정된 뒤이므로, 여기서는 그 좁은 구간의
-    // 의미 판단(순간값 조회 여부·명시적 실행 거부 신호)만 담당한다.
-    private static final String INTENT_SYSTEM_PROMPT = """
-            당신은 쓰레기 수거 시뮬레이션 챗봇의 의도 분류기입니다. 이
-            메시지에는 이미 결정론적 파서가 확인한 시각이 정확히 1개
-            있습니다. 그 시각을 "수거 시각으로 설정해 시뮬레이션을
-            실행"하려는 요청인지만 판단하세요. 창의적으로 답하지 말고
-            아래 기준으로만 판단하세요.
-
-            yes (수거 시각 설정 요청 — 대부분의 경우가 여기 해당):
-            - "12시에 수거하면 민원이 어떻게 돼?"처럼 그 시각을 수거
-              시각으로 써서 월간 민원 수 등을 계산해 달라는 요청
-
-            no (실행 요청 아님) — 아래 중 하나라도 해당하면 no:
-            - 그 시각의 순간값(배출량 등) 자체를 묻는 경우 — 수거 시각
-              설정이 아니라 특정 순간의 조회이므로 no
-              (예: "12시 시점 배출량 알려줘" → no,
-               "12시에 수거하면 민원이 어떻게 돼?" → yes)
-            - 이번 메시지 자체에 "실행하지 말고", "돌리지 말고", "실행 안
-              하고", "상상해서", "가상의", "감으로", "정확한 계산 필요
-              없어"처럼 실행을 명시적으로 건너뛰라는 표현이 있는 경우 —
-              이전 대화에서 다른 시각이 언급됐었더라도, 이 메시지 자체가
-              실행을 원치 않는다는 신호이므로 no
-            - 시각과 무관하게 명백히 모델 설명·인사·일반 대화인 경우
-
-            "실행해줘/알려줘/돌려줘" 같은 동사는 판단 근거로 쓰지 마세요.
-
-            정확히 yes 또는 no 한 단어만 출력하세요. 설명·구두점·따옴표·다른
-            언어 없이 그 한 단어만 출력합니다.
-            """;
-
-    // ── 2단계: JSON 모드 파라미터 추출 전용 프롬프트 (1단계가 yes일 때만 호출) ──
+    // ── JSON 모드 파라미터 추출 전용 프롬프트 (실행 요청으로 확정된 메시지에만 호출) ──
     private static final String EXTRACTION_SYSTEM_PROMPT = """
             사용자 메시지에서 쓰레기 수거 시뮬레이션 실행 파라미터를 추출하세요.
             이미 "실행 요청"으로 확인된 메시지이므로 판단은 필요 없고 추출만
@@ -125,7 +98,7 @@ public class OpenAiService {
               "truckType": "LARGE_5TON",
               "truckCount": 1,
               "dispatchIntervalMinutes": 0,
-              "routeSequence": ["Node_A", "Node_B", "Node_C"],
+              "routeSequence": null,
               "routeTravelMinutes": 0
             }
 
@@ -139,8 +112,14 @@ public class OpenAiService {
               교통·정체·차량 종류·경로·배차 간격·건물 간 이동시간을 언급할
               때만 포함하세요(예: "소형 트럭 3대로 45분 간격 배차" →
               truckType=SMALL_1TON, truckCount=3, dispatchIntervalMinutes=45,
-              "건물 간 이동시간 20분" → routeTravelMinutes=20). 언급 없으면
-              이 필드들은 아예 생략하세요 — 값을 지어내 채우지 마세요. 실행
+              "건물 간 이동시간 20분" → routeTravelMinutes=20). collectionTime과
+              마찬가지로 이 필드들도 반드시 이번 메시지 안에서 새로 언급된
+              내용만 반영하세요 — 이전 대화(히스토리)에서 트럭 종류나 방문
+              순서를 언급했더라도 이번 메시지에 다시 나오지 않으면 이어받지
+              말고 생략하세요(예: 이전 턴에 "소형 트럭으로"가 있었어도 이번
+              메시지가 그냥 "12시에 수거해줘"뿐이라면 truckType을 절대
+              포함하지 마세요). 언급 없으면 이 필드들은 아예 생략하세요 —
+              값을 지어내 채우지도, 이전 턴에서 끌어오지도 마세요. 실행
               가능 여부(교통 정체·과적 등)는 당신이 판단하지 않습니다.
               서버가 결정론적으로 검증하고 필요하면 사용자에게 직접 확인을
               요청합니다.
@@ -225,29 +204,13 @@ public class OpenAiService {
             """;
 
     /**
-     * 1단계 — 이 메시지가 구체적 조건의 실행 요청인지 판단한다.
-     * temperature=0으로 호출해 "yes"/"no" 한 단어만 받는다. 실패 시 안전하게
-     * false(실행하지 않음)로 처리한다.
-     */
-    public boolean classifyIsRunRequest(List<Map<String, String>> history, String userText) {
-        try {
-            String raw = callChat(INTENT_SYSTEM_PROMPT, history, userText, 0.0, 5, false);
-            String norm = raw == null ? "" : raw.trim().toLowerCase().replaceAll("[^a-z]", "");
-            return norm.startsWith("yes");
-        } catch (Exception e) {
-            log.error("1단계(의도 분류) 호출 실패", e);
-            return false;
-        }
-    }
-
-    /**
-     * 2단계 — 1단계가 yes일 때만 호출. response_format=json_object(JSON 모드)로
-     * 프리텍스트 없는 구조화된 파라미터만 받는다. 실패하거나 collectionTime이
-     * 없으면 null을 반환한다(호출 측에서 재질문 처리).
+     * 실행 요청으로 확정된 메시지에서만 호출. response_format=json_object(JSON
+     * 모드)로 프리텍스트 없는 구조화된 파라미터만 받는다. 실패하거나
+     * collectionTime이 없으면 null을 반환한다(호출 측에서 재질문 처리).
      */
     public SimulationConfig extractParamsStrict(List<Map<String, String>> history, String userText) {
         try {
-            String raw = callChat(EXTRACTION_SYSTEM_PROMPT, history, userText, 0.1, 300, true);
+            String raw = callChat(extractModel, EXTRACTION_SYSTEM_PROMPT, history, userText, 0.1, 300, true);
             if (raw == null) return null;
             JsonNode p = mapper.readTree(stripCodeFence(raw));
             if (!p.has("collectionTime")) return null;
@@ -255,15 +218,15 @@ public class OpenAiService {
             // (MCP 인자 매핑과 여기서 따로 유지되던 중복을 통합).
             return ConfigArgs.fromJson(p);
         } catch (Exception e) {
-            log.debug("2단계(파라미터 추출) 파싱 실패: {}", e.getMessage());
+            log.debug("파라미터 추출 파싱 실패: {}", e.getMessage());
             return null;
         }
     }
 
-    /** 실행 요청이 아닐 때(1단계=no) 순수 대화형 답변을 생성한다. JSON을 내지 않는다. */
+    /** 실행 요청이 아닐 때 순수 대화형 답변을 생성한다. JSON을 내지 않는다. */
     public String answerPlain(List<Map<String, String>> history, String userText) {
         try {
-            String raw = callChat(PLAIN_ANSWER_SYSTEM_PROMPT, history, userText, 0.2, 1024, false);
+            String raw = callChat(answerModel, PLAIN_ANSWER_SYSTEM_PROMPT, history, userText, 0.2, 1024, false);
             return raw != null ? raw : "응답을 처리할 수 없습니다.";
         } catch (Exception e) {
             log.error("답변 생성 실패", e);
@@ -274,12 +237,14 @@ public class OpenAiService {
     /**
      * OpenAI 호환 /chat/completions 공통 호출.
      *
+     * @param model    이 호출에 쓸 모델명(단계별 라우팅 — 호출부가 intentModel/
+     *                 extractModel/answerModel 중 하나를 넘긴다).
      * @param jsonMode true면 response_format={"type":"json_object"} 전달
      *                 (OpenAI JSON 모드 / Ollama format:json과 동일 효과 — 두
      *                 백엔드 모두 동일한 OpenAI 호환 엔드포인트를 쓰므로 이
      *                 필드 하나로 양쪽 다 적용된다).
      */
-    private String callChat(String systemPrompt, List<Map<String, String>> history, String userText,
+    private String callChat(String model, String systemPrompt, List<Map<String, String>> history, String userText,
                             double temperature, int maxTokens, boolean jsonMode) throws java.io.IOException {
         ArrayNode messages = mapper.createArrayNode();
 

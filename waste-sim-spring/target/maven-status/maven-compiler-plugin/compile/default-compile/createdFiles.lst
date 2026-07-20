@@ -3,6 +3,7 @@ com\wastesim\simulation\SimulationEngine.class
 com\wastesim\mcp\McpToolCatalog.class
 com\wastesim\tool\ValidationResult.class
 com\wastesim\service\TrafficDataService.class
+com\wastesim\service\ExecutionIntentDetector.class
 com\wastesim\model\SimulationConfig.class
 com\wastesim\service\SimulationService.class
 com\wastesim\model\OccupationType.class
@@ -15,6 +16,7 @@ com\wastesim\model\ScenarioResponse.class
 com\wastesim\model\TrafficProfile.class
 com\wastesim\model\WasteType.class
 com\wastesim\tool\ValidationError.class
+com\wastesim\service\LanguagePurityFilter.class
 com\wastesim\tool\ErrorCode.class
 com\wastesim\controller\ScenarioController.class
 com\wastesim\config\WebSocketConfig.class
@@ -27,6 +29,7 @@ com\wastesim\controller\ChatController.class
 com\wastesim\service\TimeExpressionDetector.class
 com\wastesim\tool\ConfigArgs.class
 com\wastesim\service\ScenarioService.class
+com\wastesim\service\RouteAwarenessDetector.class
 com\wastesim\tool\ToolResult.class
 com\wastesim\web\GlobalExceptionHandler.class
 com\wastesim\controller\TrafficController.class

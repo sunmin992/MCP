@@ -18,8 +18,11 @@ import org.springframework.stereotype.Controller;
 import com.wastesim.model.ChatMessage;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
+import com.wastesim.service.ExecutionIntentDetector;
 import com.wastesim.service.JailbreakFilter;
+import com.wastesim.service.LanguagePurityFilter;
 import com.wastesim.service.OpenAiService;
+import com.wastesim.service.RouteAwarenessDetector;
 import com.wastesim.service.TimeExpressionDetector;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.service.TrafficKeywordDetector;
@@ -79,24 +82,20 @@ public class ChatController {
             //    ("실행 여부 결정은 결정론적이고 LLM-free여야 한다")를 지키기
             //    위해, "이번 메시지에 파싱 가능한 시각이 정확히 1개 있는가"부터
             //    정규식으로 확정한다. 0개(시각 없음)나 2개 이상(순간값 조회 등)은
-            //    이미 이 시점에 "실행 아님"이 확정되므로 LLM을 아예 호출하지
+            //    이미 이 시점에 "실행 아님"이 확정되므로 이후 단계를 아예 밟지
             //    않는다 — 히스토리에서 시각을 끌어와 실행해버리는 부류의 실패가
             //    구조적으로 불가능해진다.
+            //
+            // 1단계 — 실행 의도 판정도 ExecutionIntentDetector로 결정론적으로
+            // 처리한다. 원래는 여기서 LLM(temperature=0, yes/no)을 호출했지만,
+            // 로컬 모델이 온도 0에서도 완전히 결정론적이지 않아 "교통 정체
+            // 반영해서 방문 순서까지 지정한" 것처럼 조건절이 여러 개 겹친
+            // 문장을 실측으로 반복 재현되는 빈도로 오분류했다(실행 요청인데
+            // 결과가 아예 안 나오는 사용자 체감 버그) — C2 원칙을 이 단계까지
+            // 확장해 LLM 의존을 완전히 제거함으로써 근본적으로 해결한다.
             int timeCount = TimeExpressionDetector.count(userText);
-            boolean isRunRequest;
-            if (timeCount != 1) {
-                isRunRequest = false;
-                metrics.counter("waste.chat.classify", "result", "no", "source", "deterministic").increment();
-            } else {
-                // 1단계 — 의도 분류 (temperature=0, yes/no만). 시각이 정확히
-                // 1개일 때만 호출하며, "그 시각이 순간값 조회인가" 같은 좁은
-                // 의미 판단만 LLM에 맡긴다(판단과 생성을 분리해 작은 모델도
-                // 안정적으로 만드는 것이 핵심).
-                messaging.convertAndSend("/topic/messages",
-                        new ChatMessage(ChatMessage.MessageType.SYSTEM, "의도를 분석하는 중..."));
-                isRunRequest = openAiService.classifyIsRunRequest(history, userText);
-                metrics.counter("waste.chat.classify", "result", isRunRequest ? "yes" : "no", "source", "llm").increment();
-            }
+            boolean isRunRequest = timeCount == 1 && ExecutionIntentDetector.isExecutionRequest(userText);
+            metrics.counter("waste.chat.classify", "result", isRunRequest ? "yes" : "no", "source", "deterministic").increment();
 
             String reply;
             SimulationConfig cfgToRun = null;
@@ -108,21 +107,39 @@ public class ChatController {
                         new ChatMessage(ChatMessage.MessageType.SYSTEM, "파라미터를 추출하는 중..."));
                 SimulationConfig cfg = openAiService.extractParamsStrict(history, userText);
 
-                // 결정론적 안전망: LLM 추출이 temperature>0라 "교통량 반영해서"처럼
-                // 명시적으로 언급해도 trafficEnabled를 놓칠 수 있다(실측으로 확인).
-                // TimeExpressionDetector와 같은 원칙 — 키워드로 판정 가능한 사실은
-                // LLM 신뢰 여부와 무관하게 정규식으로 보정한다.
-                if (cfg != null && !cfg.isTrafficEnabled() && TrafficKeywordDetector.mentioned(userText)) {
-                    cfg.setTrafficEnabled(true);
-                    if (cfg.getTrafficProfileId() == null) {
+                // 결정론적 안전망: EXTRACTION_SYSTEM_PROMPT에 "이번 메시지에서
+                // 새로 언급된 것만 반영하라"는 지시를 넣어도, 로컬 모델이
+                // temperature>0에서 대화 히스토리에 낚여 이전 턴의 trafficEnabled·
+                // truckType·routeSequence를 그대로 이어받는 경우가 실측으로 반복
+                // 확인됐다(예: "소형 트럭으로 8시반 수거해줘"만 다시 보내도
+                // 이전 턴의 trafficEnabled까지 같이 새어나옴). ExecutionIntentDetector와
+                // 같은 이유로, 이 세 필드는 LLM 출력을 신뢰하지 않고 이번 메시지
+                // 자체를 정규식으로 다시 판정해 완전히 덮어쓴다 — "이어받기"가
+                // 구조적으로 불가능해진다.
+                if (cfg != null) {
+                    cfg.setTrafficEnabled(TrafficKeywordDetector.mentioned(userText));
+                    if (!cfg.isTrafficEnabled()) {
+                        cfg.setTrafficProfileId(null);
+                    } else if (cfg.getTrafficProfileId() == null) {
                         cfg.setTrafficProfileId(trafficData.defaultProfileId());
                     }
+                    if (!RouteAwarenessDetector.truckTypeMentioned(userText)) {
+                        cfg.setTruckType("LARGE_5TON");
+                    }
+                    cfg.setRouteSequence(RouteAwarenessDetector.extractRouteSequence(userText));
                 }
-                // 교통 레이어가 켜졌는데 건물 간 이동시간이 0이면(기본값, LLM이
-                // 잘 안 채워줌) 이동시간 가중·정체 판정이 적용될 여지 자체가 없어
-                // "반영해달라"고 해도 결과가 전혀 안 바뀌는 것처럼 보인다(실측으로
-                // 확인). 결정론적으로 최소 이동시간을 부여해 항상 체감 가능하게 한다.
-                if (cfg != null && cfg.isTrafficEnabled() && cfg.getRouteTravelMinutes() <= 0) {
+                // 건물 간 이동시간이 0이면(기본값, LLM이 잘 안 채워줌) 트럭 종류의
+                // 기동성(mobilityFactor)이나 방문 순서(routeSequence)가 결과에
+                // 반영될 물리적 여지 자체가 없다 — 이동에 걸리는 시간이 0이면
+                // 트럭이 빠르든 느리든, 어떤 순서로 방문하든 도착 시각이 똑같기
+                // 때문이다. 그래서 "소형 트럭으로 실행해줘"처럼 교통 정체는
+                // 언급 안 해도 트럭 종류·경로를 명시했으면(=그 파라미터가
+                // 결과에 영향을 주길 기대한 것), 결정론적으로 최소 이동시간을
+                // 부여해 항상 체감 가능하게 한다(실측으로 확인된 동일 결과 버그).
+                boolean routeAware = cfg != null && (cfg.isTrafficEnabled()
+                        || cfg.getRouteSequence() != null
+                        || !"LARGE_5TON".equals(cfg.getTruckType()));
+                if (routeAware && cfg.getRouteTravelMinutes() <= 0) {
                     cfg.setRouteTravelMinutes(15);
                 }
 
@@ -151,6 +168,16 @@ public class ChatController {
                     log.warn("역할탈취 공격 패턴 감지 — 후처리 필터로 응답 교체");
                     metrics.counter("waste.chat.jailbreak_blocked").increment();
                     reply = safeOverride;
+                }
+
+                // 언어 순수성 후처리 필터 — PLAIN_ANSWER_SYSTEM_PROMPT의 "가장
+                // 중요, 최우선" 한국어 규칙도 로컬 모델이 100%는 못 지킨다
+                // (실측: 답변 전체가 중국어로 나온 사례 확인).
+                String langOverride = LanguagePurityFilter.checkAndReplace(reply);
+                if (langOverride != null) {
+                    log.warn("일반 답변 언어 순수성 위반 감지 — 후처리 필터로 응답 교체");
+                    metrics.counter("waste.chat.language_blocked").increment();
+                    reply = langOverride;
                 }
             }
 
