@@ -97,7 +97,16 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
         }
     }
 
-    /** mcp_bridge.py가 기대하는 필드명(McpToolCatalog RUN_SIM_SCHEMA와 동일)으로 직렬화. */
+    /** mcp_bridge.py가 기대하는 필드명(McpToolCatalog RUN_SIM_SCHEMA와 동일)으로 직렬화.
+     *
+     * <p>trafficEnabled/trafficProfileId/routeTravelMinutes도 전달한다 — waste_sim이
+     * 오늘(장량동 실측 교통량 반영) 확장되면서 Java 엔진과 같은 필드명으로 이
+     * 세 값을 받아들이게 됐다({@code build_and_run(traffic_enabled=..., ...)}).
+     * Python 쪽은 프로파일이 "jangryang-weekday" 하나뿐이라 trafficProfileId
+     * 값 자체는 쓰지 않고 trafficEnabled만으로 그 기본 프로파일을 켠다(D-09와
+     * 같은 이유로 다른 id가 와도 거부하지 않고 기본 프로파일로 폴백 — Python
+     * 쪽은 mcp_bridge.py가 경고를 남긴다).
+     */
     private String toBridgeJson(SimulationConfig cfg) throws Exception {
         var node = MAPPER.createObjectNode();
         node.put("collectionTime", cfg.getCollectionTimeLabel());
@@ -113,6 +122,13 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
             var mix = MAPPER.createArrayNode();
             cfg.getOccupationMix().forEach(mix::add);
             node.set("occupationMix", mix);
+        }
+        node.put("trafficEnabled", cfg.isTrafficEnabled());
+        if (cfg.getTrafficProfileId() != null) {
+            node.put("trafficProfileId", cfg.getTrafficProfileId());
+        }
+        if (cfg.getRouteTravelMinutes() > 0) {
+            node.put("routeTravelMinutes", cfg.getRouteTravelMinutes());
         }
         return MAPPER.writeValueAsString(node);
     }

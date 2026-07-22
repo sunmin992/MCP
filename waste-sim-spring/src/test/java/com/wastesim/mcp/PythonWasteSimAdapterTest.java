@@ -55,6 +55,28 @@ class PythonWasteSimAdapterTest {
     }
 
     @Test
+    void forwardsTrafficParamsToPythonEngine() {
+        assumeTrue(new File(DEFAULT_PROJECT_ROOT, "waste_sim").isDirectory(),
+                "waste_sim 프로젝트가 이 머신에 없어 스킵");
+
+        // 정체 피크(13시)에 trafficEnabled=true로 돌리면 avgCompletionMinutes가
+        // 0보다 커야 한다(이동시간이 실제로 소비됐다는 뜻) — mcp_bridge.py가
+        // trafficEnabled/routeTravelMinutes를 무시하고 있었다면 이 값은 항상 0.
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setCollectionTimeLabel("13:00");
+        cfg.setDays(3);
+        cfg.setSeeds(3);
+        cfg.setTrafficEnabled(true);
+        cfg.setTrafficProfileId("jangryang-weekday");
+
+        ToolResult r = adapter().run(cfg);
+        assertTrue(r.ready(), () -> "python-devs 실행 실패: " + r.errors());
+        String json = r.result().toString();
+        assertTrue(json.contains("\"trafficEnabled\":true"), json);
+        assertTrue(json.contains("avgCompletionMinutesMean"), json);
+    }
+
+    @Test
     void reportsExecutionErrorOnBadProjectRoot() {
         PythonWasteSimAdapter a = adapter();
         ReflectionTestUtils.setField(a, "pythonProjectRoot", DEFAULT_PROJECT_ROOT + "\\does-not-exist");

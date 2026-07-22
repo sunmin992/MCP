@@ -44,6 +44,8 @@ public class McpToolCatalog {
                   "description": "직업 구성: BlueCollar/Student/Housewife/NightShift/OfficeWorker"},
                 "trafficEnabled": {"type": "boolean", "description": "교통 레이어 사용 여부", "default": false},
                 "trafficProfileId": {"type": "string", "description": "예: jangryang-weekday"},
+                "routeTravelMinutes": {"type": "integer",
+                  "description": "건물 간 기본 이동시간(분, 혼잡 가중치 적용 전). run_waste_simulation_devs(Python 엔진)도 동일 필드 사용", "default": 8},
                 "truckType": {"type": "string", "enum": ["LARGE_5TON","MEDIUM_2P5T","SMALL_1TON"], "default": "LARGE_5TON"},
                 "truckCount": {"type": "integer", "description": "투입 트럭 대수", "default": 1, "minimum": 1},
                 "dispatchIntervalMinutes": {"type": "integer", "description": "트럭 간 시차 배차(분)", "default": 0},
