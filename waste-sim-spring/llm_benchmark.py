@@ -538,8 +538,13 @@ TIME_EXPR_RE = re.compile(
     r"(?:[01]?\d|2[0-3]|열한|열두|한|두|세|네|다섯|여섯|일곱|여덟|아홉|열)\s*"
     r"(?:시\s*반|시\s*[0-5]?\d\s*분|시(?!간|드)|:[0-5]\d)")
 
+# D-01: 같은 시각이 문자 그대로 중복 언급되면("12시 12시에 수거해줘") 비교
+# 요청이 아니라 강조로 보고 1개로 센다 — 표기가 같은 매칭은 중복 제거.
 def count_time_expressions(text):
-    return len(TIME_EXPR_RE.findall(text)) if text else 0
+    if not text:
+        return 0
+    distinct = {re.sub(r"\s+", "", m) for m in TIME_EXPR_RE.findall(text)}
+    return len(distinct)
 
 # ChatController.ExecutionIntentDetector와 동일 로직. 원래는 이 판단(시각이
 # 정확히 1개일 때 "순간값 조회·명시적 실행거부가 아닌가")을 LLM(temperature=0)에

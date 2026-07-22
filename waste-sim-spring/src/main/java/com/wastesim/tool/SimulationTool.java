@@ -1,10 +1,10 @@
 package com.wastesim.tool;
 
+import com.wastesim.mcp.SimulationModelProvider;
+import com.wastesim.mcp.SimulationModelRegistry;
 import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
-import com.wastesim.model.SimulationResult;
 import com.wastesim.service.ScenarioService;
-import com.wastesim.service.SimulationService;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.stereotype.Component;
 
@@ -16,21 +16,28 @@ import java.util.function.Supplier;
  * "검증(validate) → 실행(execute)"를 캡슐화하며, 세 진입점(MCP tools/call,
  * REST 컨트롤러, 자연어 채팅)이 모두 이 한 곳을 호출한다. 검증 실패 시
  * 실행하지 않고 사유를 반환한다(fail-closed).
+ *
+ * <p>실행(execute) 단계는 {@link SimulationModelRegistry}에 등록된
+ * {@link SimulationModelProvider}에 위임한다(MCP_모델_연결_방법.md §3.4) —
+ * 검증 규칙·메트릭·오류 처리는 어떤 모델(Java/Python 등)을 고르든 이 한 곳을
+ * 공유한다. 모델을 지정하지 않는 기존 호출부는 전부 기본 모델
+ * ({@link SimulationModelRegistry#DEFAULT_MODEL_ID}, 기존 Java 엔진)로
+ * 동작해 하위호환을 유지한다.
  */
 @Component
 public class SimulationTool {
 
     private final SimulationConfigValidator validator;
-    private final SimulationService simulationService;
+    private final SimulationModelRegistry models;
     private final ScenarioService scenarioService;
     private final MeterRegistry metrics;
 
     public SimulationTool(SimulationConfigValidator validator,
-                          SimulationService simulationService,
+                          SimulationModelRegistry models,
                           ScenarioService scenarioService,
                           MeterRegistry metrics) {
         this.validator = validator;
-        this.simulationService = simulationService;
+        this.models = models;
         this.scenarioService = scenarioService;
         this.metrics = metrics;
     }
@@ -55,6 +62,15 @@ public class SimulationTool {
      *   (TRAFFIC_EXTENSION_DESIGN.md §7.2).
      */
     public ToolResult runSimulation(SimulationConfig cfg, boolean skipWarnings) {
+        return runSimulation(cfg, SimulationModelRegistry.DEFAULT_MODEL_ID, skipWarnings);
+    }
+
+    /**
+     * 모델을 지정해 실행한다(MCP_모델_연결_방법.md §3.4) — 검증·경고 처리는
+     * {@code modelId}와 무관하게 항상 동일하고, 실제 계산만
+     * {@link SimulationModelProvider#run}에 위임한다.
+     */
+    public ToolResult runSimulation(SimulationConfig cfg, String modelId, boolean skipWarnings) {
         ValidationResult vr = validator.validate(cfg);
         if (!vr.ready()) {
             metrics.counter("waste.sim.rejected").increment();
@@ -64,14 +80,18 @@ public class SimulationTool {
             metrics.counter("waste.sim.needs_confirm").increment();
             return ToolResult.needsConfirm(cfg, vr.warnings());
         }
+        SimulationModelProvider model = models.byId(modelId);
+        if (model == null) {
+            return ToolResult.rejected(new ValidationError(
+                    ErrorCode.INVALID_ENUM, "modelId", "알 수 없는 시뮬레이션 모델: " + modelId));
+        }
         try {
-            SimulationResult r = metrics.timer("waste.sim.duration")
-                    .record(() -> simulationService.runExperiment(cfg));
-            metrics.counter("waste.sim.run").increment();
-            r.setSimulationConfig(cfg);
-            return ToolResult.ok(r);
+            ToolResult r = metrics.timer("waste.sim.duration").record(() -> model.run(cfg));
+            metrics.counter("waste.sim.run", "model", model.modelId()).increment();
+            if (!r.ready()) metrics.counter("waste.sim.error", "model", model.modelId()).increment();
+            return r;
         } catch (Exception e) {
-            metrics.counter("waste.sim.error").increment();
+            metrics.counter("waste.sim.error", "model", model.modelId()).increment();
             return ToolResult.rejected(new ValidationError(ErrorCode.EXECUTION_ERROR, "engine", e.getMessage()));
         }
     }

@@ -39,9 +39,8 @@ import java.util.regex.Pattern;
  *       답변만 생성한다.</li>
  * </ol>
  *
- * <p>두 단계는 각각 다른 모델을 쓸 수 있다(llm_benchmark.py 실측 결과 기반 라우팅) —
- * 일반답변은 Jailbreak 방어가 검증된 모델을, 파라미터추출은 JSON 추출 성공률이
- * 이미 100%인 모델을 쓰는 식으로 단계별 강점에 맞춰 배치한다.
+ * <p>두 단계 모두 단일 모델을 쓴다(mixed 라우팅 제외, llm_benchmark.py 실측
+ * 결과 기반 선택 — application.properties 참고).
  */
 @Service
 public class OpenAiService {
@@ -54,11 +53,8 @@ public class OpenAiService {
     @Value("${openai.api.url}")
     private String apiUrl;
 
-    @Value("${openai.model.extract}")
-    private String extractModel;
-
-    @Value("${openai.model.answer}")
-    private String answerModel;
+    @Value("${openai.model}")
+    private String model;
 
     private final OkHttpClient http = new OkHttpClient.Builder()
             .connectTimeout(30, TimeUnit.SECONDS)
@@ -210,7 +206,7 @@ public class OpenAiService {
      */
     public SimulationConfig extractParamsStrict(List<Map<String, String>> history, String userText) {
         try {
-            String raw = callChat(extractModel, EXTRACTION_SYSTEM_PROMPT, history, userText, 0.1, 300, true);
+            String raw = callChat(EXTRACTION_SYSTEM_PROMPT, history, userText, 0.1, 300, true);
             if (raw == null) return null;
             JsonNode p = mapper.readTree(stripCodeFence(raw));
             if (!p.has("collectionTime")) return null;
@@ -226,7 +222,7 @@ public class OpenAiService {
     /** 실행 요청이 아닐 때 순수 대화형 답변을 생성한다. JSON을 내지 않는다. */
     public String answerPlain(List<Map<String, String>> history, String userText) {
         try {
-            String raw = callChat(answerModel, PLAIN_ANSWER_SYSTEM_PROMPT, history, userText, 0.2, 1024, false);
+            String raw = callChat(PLAIN_ANSWER_SYSTEM_PROMPT, history, userText, 0.2, 1024, false);
             return raw != null ? raw : "응답을 처리할 수 없습니다.";
         } catch (Exception e) {
             log.error("답변 생성 실패", e);
@@ -237,14 +233,12 @@ public class OpenAiService {
     /**
      * OpenAI 호환 /chat/completions 공통 호출.
      *
-     * @param model    이 호출에 쓸 모델명(단계별 라우팅 — 호출부가 intentModel/
-     *                 extractModel/answerModel 중 하나를 넘긴다).
      * @param jsonMode true면 response_format={"type":"json_object"} 전달
      *                 (OpenAI JSON 모드 / Ollama format:json과 동일 효과 — 두
      *                 백엔드 모두 동일한 OpenAI 호환 엔드포인트를 쓰므로 이
      *                 필드 하나로 양쪽 다 적용된다).
      */
-    private String callChat(String model, String systemPrompt, List<Map<String, String>> history, String userText,
+    private String callChat(String systemPrompt, List<Map<String, String>> history, String userText,
                             double temperature, int maxTokens, boolean jsonMode) throws java.io.IOException {
         ArrayNode messages = mapper.createArrayNode();
 

@@ -190,6 +190,15 @@ public class SimulationEngine {
         // ── 집계 ──────────────────────────────────────────────────────────
         int total = 0;
         Map<String, Integer> byOcc = new LinkedHashMap<>();
+        // 실제 거주 중인 직업군은 이번 시드에서 민원이 0건이어도 반드시 키를
+        // 남긴다 — 아래에서는 merge()가 민원이 실제로 발생했을 때만 값을
+        // 채우므로, 미리 0으로 깔아두지 않으면 그 직업군은 이번 시드에서
+        // 아예 집계에서 빠진다. 그러면 SimulationService.runExperiment()가
+        // 여러 시드를 모을 때도 그 직업군은 민원이 있었던 시드만으로 평균을
+        // 내(0인 시드가 분모에서 빠짐) 실제보다 높게 나오고, UI에도 그
+        // 직업군 행 자체가 사라져 보인다(실측: 라이브 채팅에서 생산직 행이
+        // 통째로 안 보이는 것으로 재현됨).
+        for (OccupationType t : mix) byOcc.putIfAbsent(t.name(), 0);
         Map<Integer, Integer> byDay = new TreeMap<>();
 
         while (!pq.isEmpty()) {

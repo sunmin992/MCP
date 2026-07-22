@@ -8,7 +8,9 @@ import org.springframework.stereotype.Component;
 
 /**
  * MCP 도구 카탈로그 — tools/list 로 노출되는 도구 정의와 JSON Schema.
- *  - run_waste_simulation : 기본 정책 시뮬레이션(다중 시드)
+ *  - {@link SimulationModelRegistry}에 등록된 모델마다 하나씩(예:
+ *    run_waste_simulation=Java 엔진, run_waste_simulation_devs=Python 엔진) —
+ *    새 모델이 추가돼도 이 클래스는 손댈 필요가 없다(MCP_모델_연결_방법.md §2).
  *  - run_scenario         : 복잡한 시나리오 실험(구성·sweep·그리드·트럭·분리배출 등)
  *  - list_scenarios       : 지원 시나리오 유형·프리셋 조회
  */
@@ -16,12 +18,16 @@ import org.springframework.stereotype.Component;
 public class McpToolCatalog {
 
     private final SimulationTool tool;
+    private final SimulationModelRegistry models;
 
-    public McpToolCatalog(SimulationTool tool) {
+    public McpToolCatalog(SimulationTool tool, SimulationModelRegistry models) {
         this.tool = tool;
+        this.models = models;
     }
 
-    private static final String RUN_SIM_SCHEMA = """
+    /** package-private이 아니라 public — {@link SimulationModelProvider} 구현체들이
+     *  모델 고유 스키마가 필요 없을 때(현재 전부) 그대로 재사용한다. */
+    public static final String RUN_SIM_SCHEMA = """
             {
               "type": "object",
               "properties": {
@@ -91,9 +97,9 @@ public class McpToolCatalog {
     /** tools/list 결과 노드 { "tools": [ ... ] } */
     public ObjectNode toolsList(ObjectMapper m) throws Exception {
         ArrayNode tools = m.createArrayNode();
-        tools.add(descriptor(m, "run_waste_simulation",
-                "원룸촌 생활쓰레기 DEVS 시뮬레이션을 지정 수거 시각으로 실행하고 월간 민원 통계를 반환한다.",
-                RUN_SIM_SCHEMA));
+        for (SimulationModelProvider provider : models.all()) {
+            tools.add(descriptor(m, provider.toolName(), provider.description(), provider.inputSchemaJson()));
+        }
         tools.add(descriptor(m, "run_scenario",
                 "다중 트럭·분리배출·거주민 구성 등 복잡한 정책 시나리오 실험을 실행한다.",
                 RUN_SCENARIO_SCHEMA));

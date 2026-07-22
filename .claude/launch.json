@@ -5,7 +5,7 @@
       "name": "waste-sim",
       "runtimeExecutable": "mvn",
       "runtimeArgs": ["-f", "waste-sim-spring/pom.xml", "spring-boot:run"],
-      "port": 8080
+      "port": 8090
     }
   ]
 }

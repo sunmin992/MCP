@@ -32,10 +32,12 @@ public class McpController {
     private final ObjectMapper mapper = new ObjectMapper();
     private final SimulationTool tool;
     private final McpToolCatalog catalog;
+    private final SimulationModelRegistry models;
 
-    public McpController(SimulationTool tool, McpToolCatalog catalog) {
+    public McpController(SimulationTool tool, McpToolCatalog catalog, SimulationModelRegistry models) {
         this.tool = tool;
         this.catalog = catalog;
+        this.models = models;
     }
 
     @PostMapping(value = "/mcp", produces = "application/json")
@@ -83,9 +85,15 @@ public class McpController {
         String name = params.path("name").asText("");
         JsonNode args = params.path("arguments");
 
+        // 모델 어댑터(run_waste_simulation, run_waste_simulation_devs, ...)는
+        // 전부 SimulationModelRegistry로 라우팅한다 — 새 모델이 추가돼도 이
+        // switch는 손댈 필요가 없다(MCP_모델_연결_방법.md §2).
+        SimulationModelProvider model = models.byToolName(name);
+        if (model != null) {
+            return toCallResult(tool.runSimulation(ConfigArgs.fromJson(args), model.modelId(), true));
+        }
+
         switch (name) {
-            case "run_waste_simulation":
-                return toCallResult(tool.runSimulation(ConfigArgs.fromJson(args)));
             case "run_scenario":
                 return toCallResult(tool.runScenario(args.path("type").asText(""), ConfigArgs.fromJson(args)));
             case "list_scenarios":

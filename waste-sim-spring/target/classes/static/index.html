@@ -616,6 +616,12 @@
       updateSidePanel(msg);
     } else if (msg.type === 'CONFIRM') {
       container.appendChild(buildConfirmBubble(msg));
+    } else if (msg.type === 'SCENARIO') {
+      // 사이드바 "시나리오 실험" 버튼과 동일한 렌더러 재사용(ScenarioIntentDetector로
+      // 채팅에서도 자연어로 트리거된 결과).
+      const chartType = (SCENARIO_META[msg.scenarioType] && SCENARIO_META[msg.scenarioType].chart) || 'line';
+      renderScenario(msg.scenarioResponse, chartType);
+      return;
     } else {
       const div = document.createElement('div');
       div.className = 'msg ' + msg.type.toLowerCase();
@@ -736,9 +742,16 @@
     // 히스토그램
     if (r.allTotals && r.allTotals.length > 0) {
       const cWrap = document.createElement('div');
-      cWrap.style.cssText = 'position:relative;height:160px;width:100%;margin-top:12px';
+      // x축에 시드 수만큼(기본 30개) 라벨이 다 들어가야 해서, 가로 라벨일 때보다
+      // 세로 공간이 더 필요하다 — autoSkip:false로 라벨을 전부 표시하면서
+      // 겹치지 않게 하려면 90도 회전이 필요하고, 그 회전된 라벨이 들어갈 자리를
+      // 확보하려고 높이를 160→200px로 늘렸다. 실측(라이브 브라우저 테스트)으로
+      // 기존엔 Chart.js가 홀수 번째(S1,S3,S5...) 라벨만 자동으로 남기고 나머지를
+      // 생략해, 사용자가 "데이터가 잘려서 안 보인다"고 오해하는 걸 확인했다
+      // (실제로는 막대 30개 모두 그려져 있었고 라벨만 절반이 생략된 것이었음).
+      cWrap.style.cssText = 'position:relative;height:200px;width:100%;margin-top:12px';
       const c = document.createElement('canvas');
-      c.style.cssText = 'max-height:160px';
+      c.style.cssText = 'max-height:200px';
       cWrap.appendChild(c);
       bubble.appendChild(cWrap);
 
@@ -763,7 +776,10 @@
               tooltip: { callbacks: { label: ctx => ctx.parsed.y + '건' } }
             },
             scales: {
-              x: { ticks: { color: '#8892aa', font: { size: 9 } }, grid: { display: false } },
+              x: {
+                ticks: { color: '#8892aa', font: { size: 9 }, autoSkip: false, maxRotation: 90, minRotation: 90 },
+                grid: { display: false }
+              },
               y: { ticks: { color: '#8892aa', font: { size: 10 } }, grid: { color: '#2d3250' } }
             }
           }

@@ -16,6 +16,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import com.wastesim.model.ChatMessage;
+import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.service.ExecutionIntentDetector;
@@ -23,6 +24,7 @@ import com.wastesim.service.JailbreakFilter;
 import com.wastesim.service.LanguagePurityFilter;
 import com.wastesim.service.OpenAiService;
 import com.wastesim.service.RouteAwarenessDetector;
+import com.wastesim.service.ScenarioIntentDetector;
 import com.wastesim.service.TimeExpressionDetector;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.service.TrafficKeywordDetector;
@@ -46,10 +48,20 @@ public class ChatController {
     private final MeterRegistry metrics;
     private final TrafficDataService trafficData;
 
-    // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록)
+    // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록).
+    //
+    // DESIGN_DECISIONS.md D-05: 현재는 모든 클라이언트가 sessionId="default"
+    // 하나를 공유한다(WebSocket 페이로드에 세션 구분자가 없음) — 즉 동시
+    // 다중 사용자는 아직 지원하지 않으며, 한 사용자의 이력·대기 설정이 다른
+    // 사용자에게 그대로 보일 수 있다는 게 현재 단계의 알려진 한계다. 향후
+    // STOMP 세션별 sessionId를 페이로드에 실어 histories/pendingConfigs를
+    // 분리하는 것이 로드맵.
     private final Map<String, List<Map<String, String>>> histories = new ConcurrentHashMap<>();
     // 확신도가 낮아 자동 실행을 보류한 설정 (sessionId → 대기 중인 설정)
     private final Map<String, SimulationConfig> pendingConfigs = new ConcurrentHashMap<>();
+    // DESIGN_DECISIONS.md D-06(실행 중 재요청은 순차 처리) — 세션이 하나뿐이므로
+    // (D-05) 전역 락 하나로 충분하다. 세션 분리 시 sessionId별 락으로 승격.
+    private final Object sessionLock = new Object();
 
     public ChatController(SimpMessagingTemplate messaging,
                           OpenAiService openAiService,
@@ -67,6 +79,13 @@ public class ChatController {
     public void handleMessage(@Payload ChatMessage incoming) {
         MDC.put("requestId", "ws-" + UUID.randomUUID().toString().substring(0, 8));
         try {
+        // DESIGN_DECISIONS.md D-06: 실행 중 재요청은 큐잉/거절이 아니라 순차
+        // 처리로 정했다 — 동시에 여러 메시지가 도착해도(예: STOMP 브로커의
+        // 스레드풀이 여러 요청을 동시에 처리) histories/pendingConfigs를
+        // 한 번에 하나의 요청만 읽고-쓰도록 세션 락으로 직렬화한다. 그렇지
+        // 않으면 두 요청이 뒤섞여 "요청 A의 결과에 요청 B의 설정이 실린다"
+        // 류의 경쟁 조건이 생길 수 있다.
+        synchronized (sessionLock) {
         String sessionId = "default"; // 단일 채팅방
         List<Map<String, String>> history =
                 histories.computeIfAbsent(sessionId, k -> new ArrayList<>());
@@ -78,6 +97,17 @@ public class ChatController {
         messaging.convertAndSend("/topic/messages", userMsg);
 
         try {
+            // 1.5. 시나리오 실험 게이트(결정론, LLM 미사용) — 사이드바 "시나리오
+            // 실험" 버튼 11종과 동일한 요청을 자연어로도 받는다
+            // (ScenarioIntentDetector). 단일 실행(0/1단계)보다 먼저 검사한다 —
+            // 시나리오 요청은 특정 시각 하나를 지정하는 게 아니라 여러 축을
+            // sweep/비교하는 요청이라, 시각 개수 게이트와는 독립적인 판단이다.
+            String scenarioType = ScenarioIntentDetector.detect(userText);
+            if (scenarioType != null) {
+                runChatScenario(scenarioType, history, userText);
+                return;
+            }
+
             // 2. 0단계 — 결정론적 시각 게이트(LLM 미사용). 베이스라인 제약 C2
             //    ("실행 여부 결정은 결정론적이고 LLM-free여야 한다")를 지키기
             //    위해, "이번 메시지에 파싱 가능한 시각이 정확히 1개 있는가"부터
@@ -194,7 +224,7 @@ public class ChatController {
                 runSimulation(cfgToRun, false);   // V-T5 등 비차단 경고가 있으면 확인부터 유도
             } else if (cfgToConfirm != null) {
                 metrics.counter("waste.chat.confirm").increment();
-                pendingConfigs.put(sessionId, cfgToConfirm);
+                putPendingConfig(sessionId, cfgToConfirm);
                 ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM,
                         String.format("이 설정으로 실행할까요? (수거시각 %s, %d일 × %d시드)",
                                 cfgToConfirm.getCollectionTimeLabel(), cfgToConfirm.getDays(), cfgToConfirm.getSeeds()));
@@ -208,6 +238,7 @@ public class ChatController {
                     "오류가 발생했습니다: " + e.getMessage());
             messaging.convertAndSend("/topic/messages", errMsg);
         }
+        } // synchronized(sessionLock)
         } finally {
             MDC.remove("requestId");
         }
@@ -216,28 +247,71 @@ public class ChatController {
     /** 확신도 낮아 보류된 설정을 사용자가 확인 버튼으로 승인했을 때 실행 */
     @MessageMapping("/chat.confirmRun")
     public void confirmRun() {
-        String sessionId = "default";
-        SimulationConfig cfg = pendingConfigs.remove(sessionId);
-        if (cfg == null) {
-            messaging.convertAndSend("/topic/messages",
-                    new ChatMessage(ChatMessage.MessageType.SYSTEM, "실행할 대기 중인 설정이 없습니다."));
-            return;
-        }
-        try {
-            runSimulation(cfg, true);   // 사용자가 이미 확인했으므로 경고 재확인 없이 강행
-        } catch (Exception e) {
-            log.error("확인 후 시뮬레이션 실행 오류", e);
-            messaging.convertAndSend("/topic/messages",
-                    new ChatMessage(ChatMessage.MessageType.BOT, "실행 중 오류가 발생했습니다: " + e.getMessage()));
+        synchronized (sessionLock) {   // D-06 — handleMessage와 동일 락으로 직렬화
+            String sessionId = "default";
+            SimulationConfig cfg = pendingConfigs.remove(sessionId);
+            if (cfg == null) {
+                messaging.convertAndSend("/topic/messages",
+                        new ChatMessage(ChatMessage.MessageType.SYSTEM, "실행할 대기 중인 설정이 없습니다."));
+                return;
+            }
+            try {
+                runSimulation(cfg, true);   // 사용자가 이미 확인했으므로 경고 재확인 없이 강행
+            } catch (Exception e) {
+                log.error("확인 후 시뮬레이션 실행 오류", e);
+                messaging.convertAndSend("/topic/messages",
+                        new ChatMessage(ChatMessage.MessageType.BOT, "실행 중 오류가 발생했습니다: " + e.getMessage()));
+            }
         }
     }
 
     @MessageMapping("/chat.clear")
     public void clearHistory() {
-        histories.clear();
-        pendingConfigs.clear();
+        synchronized (sessionLock) {   // D-06
+            histories.clear();
+            pendingConfigs.clear();
+        }
         ChatMessage sysMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM, "대화 이력이 초기화되었습니다.");
         messaging.convertAndSend("/topic/messages", sysMsg);
+    }
+
+    /**
+     * ScenarioIntentDetector가 잡아낸 자연어 요청을 사이드바 "시나리오 실험"
+     * 버튼과 동일한 경로(SimulationTool.runScenario)로 실행한다. 축별 세부
+     * 파라미터(alphas/capacities 등)는 자연어에서 신뢰성 있게 뽑아낼 방법이
+     * 없어(수치 나열을 강제로 파싱하면 LLM 없이는 오류 위험이 크다) MCP의
+     * run_scenario 도구와 동일하게 각 시나리오의 기본 축 값을 그대로 쓴다 —
+     * "어떤 실험을 돌릴지"는 결정론으로 확정하고, "축을 얼마나 세밀하게
+     * 조정할지"는 필요하면 사이드바 버튼(또는 REST)에서 직접 조정하는 역할
+     * 분담이다.
+     */
+    private void runChatScenario(String type, List<Map<String, String>> history, String userText) {
+        messaging.convertAndSend("/topic/messages",
+                new ChatMessage(ChatMessage.MessageType.SYSTEM, "시나리오 실행 중..."));
+
+        SimulationConfig base = new SimulationConfig();
+        base.setDays(30);
+        base.setSeeds("monthly-waste".equals(type) ? 8 : 10);   // ScenarioController 기본값과 동일
+
+        ToolResult tr = tool.runScenario(type, base);
+        String reply;
+        if (!tr.ready()) {
+            StringBuilder sb = new StringBuilder("시나리오를 실행할 수 없습니다:\n");
+            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+            reply = sb.toString().trim();
+            messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, reply));
+        } else {
+            ScenarioResponse resp = (ScenarioResponse) tr.result();
+            reply = "[" + resp.getTitle() + "] 시나리오 결과입니다.";
+            ChatMessage scnMsg = new ChatMessage(ChatMessage.MessageType.SCENARIO, reply);
+            scnMsg.setScenarioResponse(resp);
+            scnMsg.setScenarioType(type);
+            messaging.convertAndSend("/topic/messages", scnMsg);
+        }
+
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", reply));
+        while (history.size() > 20) history.remove(0);
     }
 
     /**
@@ -266,7 +340,7 @@ public class ChatController {
             // LLM은 이 브리핑 문구를 만들지 않는다(결정론적 경고 메시지를 그대로
             // 전달) — C1/C2 준수: 대안 제안은 서버가 계산한 사실이지 LLM 생성물이 아니다.
             metrics.counter("waste.chat.needs_confirm").increment();
-            pendingConfigs.put("default", cfg);
+            putPendingConfig("default", cfg);
             StringBuilder sb = new StringBuilder("바로 실행하지 않고 확인을 요청드립니다:\n");
             for (ValidationError w : tr.warnings()) sb.append("- ").append(w.message()).append("\n");
             ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM, sb.toString().trim());
@@ -280,6 +354,23 @@ public class ChatController {
         resultMsg.setSimulationResult(result);
         resultMsg.setSimulationConfig(cfg);
         messaging.convertAndSend("/topic/messages", resultMsg);
+    }
+
+    /**
+     * DESIGN_DECISIONS.md D-04: 이미 확인 대기 중인 설정이 있는 상태에서 새
+     * 확인-대기 요청이 오면, 최신 요청으로 덮어쓰되(원래도 Map.put이 그렇게
+     * 동작했다) 이전 요청이 조용히 사라지지 않도록 폐기 사실을 먼저 알린다
+     * — 안 그러면 사용자가 "아니오"로 첫 요청을 취소한 줄 알고 있다가,
+     * 나중에 "예"를 누르면 자신이 잊고 있던 두 번째 요청이 실행되는 혼란이
+     * 생길 수 있다.
+     */
+    private void putPendingConfig(String sessionId, SimulationConfig cfg) {
+        SimulationConfig discarded = pendingConfigs.put(sessionId, cfg);
+        if (discarded != null) {
+            messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.SYSTEM,
+                    String.format("이전에 확인을 기다리던 설정(수거시각 %s)은 새 요청으로 대체되어 폐기되었습니다.",
+                            discarded.getCollectionTimeLabel())));
+        }
     }
 
     private String cleanReply(String reply) {

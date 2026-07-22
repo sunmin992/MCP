@@ -12,6 +12,8 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.ResponseEntity;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class McpControllerTest {
@@ -22,8 +24,9 @@ class McpControllerTest {
         SimulationEngine engine = new SimulationEngine(new TrafficDataService());
         SimulationService sim = new SimulationService(engine);
         ScenarioService sc = new ScenarioService(sim);
-        SimulationTool tool = new SimulationTool(new SimulationConfigValidator(new TrafficDataService()), sim, sc, new SimpleMeterRegistry());
-        return new McpController(tool, new McpToolCatalog(tool));
+        SimulationModelRegistry models = new SimulationModelRegistry(List.of(new JavaEngineProvider(sim)));
+        SimulationTool tool = new SimulationTool(new SimulationConfigValidator(new TrafficDataService()), models, sc, new SimpleMeterRegistry());
+        return new McpController(tool, new McpToolCatalog(tool, models), models);
     }
 
     private JsonNode call(String json) throws Exception {

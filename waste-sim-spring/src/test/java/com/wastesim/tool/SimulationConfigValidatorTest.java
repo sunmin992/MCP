@@ -105,4 +105,26 @@ class SimulationConfigValidatorTest {
         assertTrue(r.ready());
         assertFalse(r.warnings().isEmpty());
     }
+
+    @Test
+    void redJudgedByGlobalHourlyWeight() {   // DESIGN_DECISIONS.md D-10
+        // 13:00(전역 hourlyWeight[13]=1.78 ≥ 임계 1.7) → RED 경고 발생
+        SimulationConfig peak = base();
+        peak.setCollectionTimeLabel("13:00");
+        assertFalse(v.validate(peak).warnings().isEmpty());
+        // 08:30(전역 hourlyWeight[8]=1.54 < 임계 1.7) → 경고 없음(정상)
+        // 노드별 기준이었다면 Node_A(08시=1.83)로 여기서도 RED가 뜨므로,
+        // 이 어서션이 "전역 기준" 구현을 자동으로 검증한다.
+        SimulationConfig off = base();
+        off.setCollectionTimeLabel("08:30");
+        assertTrue(v.validate(off).warnings().isEmpty());
+    }
+
+    private SimulationConfig base() {
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(true);
+        c.setTrafficProfileId("jangryang-weekday");
+        c.setTruckType("MEDIUM_2P5T");   // alleyAccess=true (V-T3와 격리)
+        return c;
+    }
 }

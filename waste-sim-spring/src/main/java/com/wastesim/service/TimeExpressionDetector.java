@@ -1,5 +1,7 @@
 package com.wastesim.service;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -35,12 +37,23 @@ public final class TimeExpressionDetector {
             "(?:[01]?\\d|2[0-3]|열한|열두|한|두|세|네|다섯|여섯|일곱|여덟|아홉|열)\\s*" +
             "(?:시\\s*반|시\\s*[0-5]?\\d\\s*분|시(?!간|드)|:[0-5]\\d)");
 
-    /** 텍스트 안의 시각 표현 개수(0, 1, 2 이상)를 센다. */
+    /**
+     * 텍스트 안의 서로 다른 시각 표현 개수(0, 1, 2 이상)를 센다.
+     *
+     * <p>DESIGN_DECISIONS.md D-01: 같은 시각이 문자 그대로 중복 언급되면
+     * ("12시 12시에 수거해줘") 비교 요청이 아니라 강조로 보고 1개로 센다 —
+     * 서로 다른 시각이 여러 개(13시·3시 비교 등)일 때만 "실행 아님(비교
+     * 요청)"으로 판단해야 하므로, 표기가 같은 매칭은 중복 제거한다.
+     */
     public static int count(String text) {
         if (text == null) return 0;
         Matcher m = TIME_EXPR.matcher(text);
-        int c = 0;
-        while (m.find()) c++;
-        return c;
+        Set<String> distinct = new HashSet<>();
+        while (m.find()) distinct.add(normalize(m.group()));
+        return distinct.size();
+    }
+
+    private static String normalize(String raw) {
+        return raw.replaceAll("\\s+", "");
     }
 }

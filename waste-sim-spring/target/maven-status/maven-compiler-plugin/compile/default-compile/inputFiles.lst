@@ -9,6 +9,8 @@ C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\mcp\McpToolCatalog.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\model\SimulationConfig.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\ScenarioService.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\TimeExpressionDetector.java
+C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\mcp\JavaEngineProvider.java
+C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\ScenarioIntentDetector.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\controller\ChatController.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\ExecutionIntentDetector.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\RouteAwarenessDetector.java
@@ -17,6 +19,7 @@ C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\JailbreakFilter.j
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\model\OccupationType.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\model\ScenarioPreset.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\tool\ErrorCode.java
+C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\mcp\PythonWasteSimAdapter.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\tool\ValidationResult.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\TrafficDataService.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\model\SimulationResult.java
@@ -25,6 +28,7 @@ C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\WasteSimApplication.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\obs\CorrelationIdFilter.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\mcp\McpController.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\tool\SimulationConfigValidator.java
+C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\mcp\SimulationModelProvider.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\simulation\SimulationEngine.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\tool\ConfigArgs.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\controller\SimulationController.java
@@ -36,4 +40,5 @@ C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\web\GlobalExceptionHandle
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\SimulationService.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\OpenAiService.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\tool\ValidationError.java
+C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\mcp\SimulationModelRegistry.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\TrafficKeywordDetector.java
