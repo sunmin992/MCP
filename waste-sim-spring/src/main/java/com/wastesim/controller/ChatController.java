@@ -1,11 +1,13 @@
 package com.wastesim.controller;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import io.micrometer.core.instrument.MeterRegistry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +21,7 @@ import com.wastesim.model.ChatMessage;
 import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
+import com.wastesim.service.EngineSelectionDetector;
 import com.wastesim.service.ExecutionIntentDetector;
 import com.wastesim.service.JailbreakFilter;
 import com.wastesim.service.LanguagePurityFilter;
@@ -59,6 +62,11 @@ public class ChatController {
     private final Map<String, List<Map<String, String>>> histories = new ConcurrentHashMap<>();
     // 확신도가 낮아 자동 실행을 보류한 설정 (sessionId → 대기 중인 설정)
     private final Map<String, SimulationConfig> pendingConfigs = new ConcurrentHashMap<>();
+    // 위 pendingConfigs와 짝을 이루는 모델 선택(sessionId → modelId). null이면
+    // 기본 모델(Java 엔진). confirmRun()에서 확인 시 이 값으로 재실행한다
+    // (EngineSelectionDetector — 어떤 엔진으로 실행할지도 D-03처럼 이번 메시지
+    // 기준으로만 판정하고, 확인 대기 동안에는 그 판정을 그대로 들고 있는다).
+    private final Map<String, String> pendingModelIds = new ConcurrentHashMap<>();
     // DESIGN_DECISIONS.md D-06(실행 중 재요청은 순차 처리) — 세션이 하나뿐이므로
     // (D-05) 전역 락 하나로 충분하다. 세션 분리 시 sessionId별 락으로 승격.
     private final Object sessionLock = new Object();
@@ -126,6 +134,13 @@ public class ChatController {
             int timeCount = TimeExpressionDetector.count(userText);
             boolean isRunRequest = timeCount == 1 && ExecutionIntentDetector.isExecutionRequest(userText);
             metrics.counter("waste.chat.classify", "result", isRunRequest ? "yes" : "no", "source", "deterministic").increment();
+
+            // 1.7단계 — 엔진(모델) 선택도 결정론적으로 판정한다(EngineSelectionDetector,
+            // C2 원칙 동일 적용). null이면 기본 모델(Java 엔진, 하위호환).
+            String modelId = EngineSelectionDetector.detect(userText);
+            if (modelId != null) {
+                metrics.counter("waste.chat.engine_selected", "model", modelId).increment();
+            }
 
             String reply;
             SimulationConfig cfgToRun = null;
@@ -221,10 +236,11 @@ public class ChatController {
             // 5. 실행 또는 확인 버블
             if (cfgToRun != null) {
                 pendingConfigs.remove(sessionId);
-                runSimulation(cfgToRun, false);   // V-T5 등 비차단 경고가 있으면 확인부터 유도
+                pendingModelIds.remove(sessionId);
+                runSimulation(cfgToRun, modelId, false);   // V-T5 등 비차단 경고가 있으면 확인부터 유도
             } else if (cfgToConfirm != null) {
                 metrics.counter("waste.chat.confirm").increment();
-                putPendingConfig(sessionId, cfgToConfirm);
+                putPendingConfig(sessionId, cfgToConfirm, modelId);
                 ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM,
                         String.format("이 설정으로 실행할까요? (수거시각 %s, %d일 × %d시드)",
                                 cfgToConfirm.getCollectionTimeLabel(), cfgToConfirm.getDays(), cfgToConfirm.getSeeds()));
@@ -250,13 +266,14 @@ public class ChatController {
         synchronized (sessionLock) {   // D-06 — handleMessage와 동일 락으로 직렬화
             String sessionId = "default";
             SimulationConfig cfg = pendingConfigs.remove(sessionId);
+            String modelId = pendingModelIds.remove(sessionId);
             if (cfg == null) {
                 messaging.convertAndSend("/topic/messages",
                         new ChatMessage(ChatMessage.MessageType.SYSTEM, "실행할 대기 중인 설정이 없습니다."));
                 return;
             }
             try {
-                runSimulation(cfg, true);   // 사용자가 이미 확인했으므로 경고 재확인 없이 강행
+                runSimulation(cfg, modelId, true);   // 사용자가 이미 확인했으므로 경고 재확인 없이 강행
             } catch (Exception e) {
                 log.error("확인 후 시뮬레이션 실행 오류", e);
                 messaging.convertAndSend("/topic/messages",
@@ -270,6 +287,7 @@ public class ChatController {
         synchronized (sessionLock) {   // D-06
             histories.clear();
             pendingConfigs.clear();
+            pendingModelIds.clear();
         }
         ChatMessage sysMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM, "대화 이력이 초기화되었습니다.");
         messaging.convertAndSend("/topic/messages", sysMsg);
@@ -315,18 +333,25 @@ public class ChatController {
     }
 
     /**
+     * @param modelId 실행할 모델(EngineSelectionDetector 판정 결과). {@code null}이면
+     *   기본 모델(Java 엔진) — 하위호환(기존 호출부·테스트 그대로 동작).
      * @param skipWarnings false면 비차단 경고(V-T5 교통 피크 등)가 있을 때
      *   바로 실행하지 않고 CONFIRM 버블로 사용자 확인을 유도한다
      *   (TRAFFIC_EXTENSION_DESIGN.md §7.2). true는 확인 후 강행 경로.
      */
-    private void runSimulation(SimulationConfig cfg, boolean skipWarnings) {
+    private void runSimulation(SimulationConfig cfg, String modelId, boolean skipWarnings) {
+        boolean pythonEngine = EngineSelectionDetector.PYTHON_MODEL_ID.equals(modelId);
         ChatMessage runningMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM,
-                String.format("시뮬레이션 실행 중... (수거시각: %s, %d일 × %d시드)",
-                        cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds()));
+                String.format("시뮬레이션 실행 중... (수거시각: %s, %d일 × %d시드%s)",
+                        cfg.getCollectionTimeLabel(), cfg.getDays(), cfg.getSeeds(),
+                        pythonEngine ? ", Python 엔진" : ""));
         messaging.convertAndSend("/topic/messages", runningMsg);
 
         // MCP·REST와 동일한 검증 게이트를 통과(툴 파사드). 검증 실패면 실행하지 않는다.
-        ToolResult tr = tool.runSimulation(cfg, skipWarnings);
+        // 모델과 무관하게 항상 같은 검증(SimulationConfigValidator)을 거친다
+        // (MCP_모델_연결_방법.md §3.4) — SimulationTool의 3-인자 오버로드가
+        // modelId==null이면 SimulationModelRegistry.DEFAULT_MODEL_ID로 처리한다.
+        ToolResult tr = tool.runSimulation(cfg, modelId, skipWarnings);
         if (!tr.ready()) {
             StringBuilder sb = new StringBuilder("설정을 실행할 수 없습니다:\n");
             for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
@@ -340,7 +365,7 @@ public class ChatController {
             // LLM은 이 브리핑 문구를 만들지 않는다(결정론적 경고 메시지를 그대로
             // 전달) — C1/C2 준수: 대안 제안은 서버가 계산한 사실이지 LLM 생성물이 아니다.
             metrics.counter("waste.chat.needs_confirm").increment();
-            putPendingConfig("default", cfg);
+            putPendingConfig("default", cfg, modelId);
             StringBuilder sb = new StringBuilder("바로 실행하지 않고 확인을 요청드립니다:\n");
             for (ValidationError w : tr.warnings()) sb.append("- ").append(w.message()).append("\n");
             ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM, sb.toString().trim());
@@ -349,11 +374,39 @@ public class ChatController {
             return;
         }
 
-        SimulationResult result = (SimulationResult) tr.result();
-        ChatMessage resultMsg = new ChatMessage(ChatMessage.MessageType.RESULT, formatResult(result));
+        // Java 엔진은 ToolResult.result()가 이미 SimulationResult이고, Python
+        // 엔진(PythonWasteSimAdapter)은 필드명을 억지로 맞추지 않은 원본
+        // JsonNode를 그대로 감싸 돌려준다(MCP 클라이언트가 어느 엔진인지 그대로
+        // 구분하게 하려는 의도적 설계). 채팅 렌더링은 두 엔진을 구분 없이
+        // 보여줘야 하므로, 여기서만 JsonNode -> SimulationResult로 변환한다.
+        Object raw = tr.result();
+        SimulationResult result = (raw instanceof SimulationResult sr)
+                ? sr
+                : toSimulationResult((JsonNode) raw, cfg);
+        ChatMessage resultMsg = new ChatMessage(ChatMessage.MessageType.RESULT,
+                formatResult(result, pythonEngine ? "Python(pyevsim) 참조 엔진" : null));
         resultMsg.setSimulationResult(result);
         resultMsg.setSimulationConfig(cfg);
         messaging.convertAndSend("/topic/messages", resultMsg);
+    }
+
+    /** Python 엔진(mcp_bridge.py)의 집계 결과 JSON을 채팅 렌더링용 SimulationResult로 변환. */
+    private SimulationResult toSimulationResult(JsonNode node, SimulationConfig cfg) {
+        SimulationResult r = new SimulationResult();
+        r.setCollectionTimeLabel(node.path("collectionTime").asText(cfg.getCollectionTimeLabel()));
+        r.setMeanComplaints(node.path("totalComplaintsMean").asDouble());
+        r.setStdComplaints(node.path("totalComplaintsStd").asDouble());
+        r.setPeakFillKg(node.path("peakFillKgMax").asDouble());
+        r.setAvgCompletionMinutes(node.path("avgCompletionMinutesMean").asDouble());
+        List<Integer> totals = new ArrayList<>();
+        for (JsonNode n : node.path("allTotals")) totals.add(n.asInt());
+        r.setAllTotals(totals);
+        Map<String, Object> byOcc = new LinkedHashMap<>();
+        node.path("byOccupationMean").fields()
+                .forEachRemaining(e -> byOcc.put(e.getKey(), e.getValue().asDouble()));
+        r.setByOccupationSummary(byOcc);
+        r.setSimulationConfig(cfg);
+        return r;
     }
 
     /**
@@ -363,9 +416,22 @@ public class ChatController {
      * — 안 그러면 사용자가 "아니오"로 첫 요청을 취소한 줄 알고 있다가,
      * 나중에 "예"를 누르면 자신이 잊고 있던 두 번째 요청이 실행되는 혼란이
      * 생길 수 있다.
+     *
+     * @param modelId 이 확인-대기 설정을 나중에 실행할 모델. pendingConfigs와
+     *   짝을 맞춰 pendingModelIds에도 함께 저장한다.
      */
-    private void putPendingConfig(String sessionId, SimulationConfig cfg) {
+    private void putPendingConfig(String sessionId, SimulationConfig cfg, String modelId) {
         SimulationConfig discarded = pendingConfigs.put(sessionId, cfg);
+        // ConcurrentHashMap은 null 값을 허용하지 않는다 — modelId==null(기본 모델,
+        // 가장 흔한 경우)은 그냥 항목을 지워서 "없음=기본 모델"로 표현한다.
+        // 이전 요청이 특정 엔진(예: python-devs)을 대기 중이었는데 이번 요청이
+        // 엔진을 언급하지 않았다면, 그 낡은 엔진 지정이 새 설정에 잘못
+        // 적용되지 않도록 반드시 지워야 한다.
+        if (modelId != null) {
+            pendingModelIds.put(sessionId, modelId);
+        } else {
+            pendingModelIds.remove(sessionId);
+        }
         if (discarded != null) {
             messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.SYSTEM,
                     String.format("이전에 확인을 기다리던 설정(수거시각 %s)은 새 요청으로 대체되어 폐기되었습니다.",
@@ -378,9 +444,11 @@ public class ChatController {
         return reply.replaceAll("```json[\\s\\S]*?```", "").trim();
     }
 
-    private String formatResult(SimulationResult r) {
+    private String formatResult(SimulationResult r, String engineLabel) {
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format(" 시뮬레이션 결과 (수거시각: %s)\n", r.getCollectionTimeLabel()));
+        sb.append(engineLabel == null
+                ? String.format(" 시뮬레이션 결과 (수거시각: %s)\n", r.getCollectionTimeLabel())
+                : String.format(" 시뮬레이션 결과 (수거시각: %s, %s)\n", r.getCollectionTimeLabel(), engineLabel));
         sb.append(String.format("- 월간 평균 민원: %.1f건 (±%.1f)\n",
                 r.getMeanComplaints(), r.getStdComplaints()));
         if (r.getByOccupationSummary() != null) {

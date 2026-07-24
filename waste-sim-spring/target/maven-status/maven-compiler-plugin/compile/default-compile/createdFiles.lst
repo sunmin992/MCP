@@ -41,6 +41,7 @@ com\wastesim\obs\CorrelationIdFilter.class
 com\wastesim\mcp\PythonWasteSimAdapter.class
 com\wastesim\service\TimeExpressionDetector.class
 com\wastesim\tool\ConfigArgs.class
+com\wastesim\service\EngineSelectionDetector.class
 com\wastesim\web\GlobalExceptionHandler.class
 com\wastesim\tool\SimulationConfigValidator.class
 com\wastesim\tool\SimulationTool.class

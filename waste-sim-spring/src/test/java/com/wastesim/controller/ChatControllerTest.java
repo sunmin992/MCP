@@ -65,12 +65,64 @@ class ChatControllerTest {
         assertTrue(discardNoticeSent, "이전 대기 설정 폐기 안내가 전송되어야 한다(D-04)");
 
         // 확인 시 최신(cfgB)이 실행된다 — D-05: 단일 세션이라 이전 요청(cfgA)은 남지 않는다.
-        when(tool.runSimulation(any(), eq(true))).thenReturn(ToolResult.ok(new SimulationResult()));
+        // ChatController는 이제 항상 3-인자(SimulationTool#runSimulation(cfg, modelId,
+        // skipWarnings))로 호출한다 — 여기서는 두 메시지 모두 엔진을 지정하지
+        // 않았으므로 modelId는 null(기본 모델).
+        when(tool.runSimulation(any(), isNull(), eq(true))).thenReturn(ToolResult.ok(new SimulationResult()));
         controller.confirmRun();
 
         ArgumentCaptor<SimulationConfig> cfgCaptor = ArgumentCaptor.forClass(SimulationConfig.class);
-        verify(tool).runSimulation(cfgCaptor.capture(), eq(true));
+        verify(tool).runSimulation(cfgCaptor.capture(), isNull(), eq(true));
         assertEquals("26:15", cfgCaptor.getValue().getCollectionTimeLabel());
+    }
+
+    /** EngineSelectionDetector가 잡아내는 "파이썬 엔진으로" 같은 요청이 run_waste_simulation_devs
+     *  (modelId="python-devs")로 라우팅되는지 확인한다. */
+    @Test
+    void routesToPythonEngineWhenMentionedInMessage() {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        TrafficDataService trafficData = new TrafficDataService();
+
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setCollectionTimeLabel("12:00");
+        cfg.setDays(30);
+        cfg.setSeeds(30);
+        when(openAiService.extractParamsStrict(anyList(), anyString())).thenReturn(cfg);
+        when(tool.runSimulation(any(), eq("python-devs"), eq(false)))
+                .thenReturn(ToolResult.ok(new SimulationResult()));
+
+        controller.handleMessage(userMsg("파이썬 엔진으로 12시에 실행해줘"));
+
+        verify(tool).runSimulation(any(), eq("python-devs"), eq(false));
+    }
+
+    /** 엔진을 언급하지 않으면 기존과 동일하게 modelId=null(기본 Java 엔진)로 실행돼야 한다. */
+    @Test
+    void defaultsToNullModelIdWhenEngineNotMentioned() {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        TrafficDataService trafficData = new TrafficDataService();
+
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setCollectionTimeLabel("12:00");
+        cfg.setDays(30);
+        cfg.setSeeds(30);
+        when(openAiService.extractParamsStrict(anyList(), anyString())).thenReturn(cfg);
+        when(tool.runSimulation(any(), isNull(), eq(false)))
+                .thenReturn(ToolResult.ok(new SimulationResult()));
+
+        controller.handleMessage(userMsg("12시에 실행해줘"));
+
+        verify(tool).runSimulation(any(), isNull(), eq(false));
     }
 
     private ChatMessage userMsg(String text) {

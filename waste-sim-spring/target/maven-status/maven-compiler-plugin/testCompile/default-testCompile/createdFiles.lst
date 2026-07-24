@@ -6,6 +6,7 @@ com\wastesim\simulation\SimulationEngineTrafficTest.class
 com\wastesim\service\ScenarioServiceTest.class
 com\wastesim\service\TimeExpressionDetectorTest.class
 com\wastesim\simulation\SimulationEngineTest.class
+com\wastesim\service\EngineSelectionDetectorTest.class
 com\wastesim\tool\ConfigArgsTest.class
 com\wastesim\model\TrafficProfileTest.class
 com\wastesim\tool\SimulationConfigValidatorTest.class

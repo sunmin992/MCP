@@ -5,6 +5,7 @@ C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\service\ScenarioIntentDet
 C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\model\SimulationConfigTest.java
 C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\model\TrafficProfileTest.java
 C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\tool\SimulationToolTest.java
+C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\service\EngineSelectionDetectorTest.java
 C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\mcp\McpControllerTest.java
 C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\controller\ChatControllerTest.java
 C:\Dev\MCP\waste-sim-spring\src\test\java\com\wastesim\service\TimeExpressionDetectorTest.java

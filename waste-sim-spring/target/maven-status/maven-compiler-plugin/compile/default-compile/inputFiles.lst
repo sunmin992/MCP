@@ -38,6 +38,7 @@ C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\controller\TrafficControl
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\model\TrafficProfile.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\web\GlobalExceptionHandler.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\SimulationService.java
+C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\EngineSelectionDetector.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\service\OpenAiService.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\tool\ValidationError.java
 C:\Dev\MCP\waste-sim-spring\src\main\java\com\wastesim\mcp\SimulationModelRegistry.java
