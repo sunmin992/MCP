@@ -17,12 +17,21 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.wastesim.edge.EdgeChatFormatter;
+import com.wastesim.edge.EdgeParamGuard;
+import com.wastesim.edge.EdgeThermalProfileStore;
+import com.wastesim.edge.HeatsinkPresets;
+import com.wastesim.mcp.McpToolProvider;
+import com.wastesim.mcp.McpToolRegistry;
 import com.wastesim.model.ChatMessage;
 import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.model.TrafficProfile;
 import com.wastesim.model.TruckType;
+import com.wastesim.service.DomainIntentDetector;
+import com.wastesim.service.EdgeToolSelector;
 import com.wastesim.service.EngineSelectionDetector;
 import com.wastesim.service.ExecutionIntentDetector;
 import com.wastesim.service.JailbreakFilter;
@@ -55,6 +64,11 @@ public class ChatController {
     private final SimulationTool tool;
     private final MeterRegistry metrics;
     private final TrafficDataService trafficData;
+    /** 장량동과 무관한 독립 도구(라즈베리파이 엣지 발열 3종)를 이름으로 찾기 위한 레지스트리. */
+    private final McpToolRegistry independentTools;
+    private final EdgeThermalProfileStore edgeProfiles;
+    private final com.fasterxml.jackson.databind.ObjectMapper edgeMapper =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록).
     //
@@ -80,12 +94,16 @@ public class ChatController {
                           OpenAiService openAiService,
                           SimulationTool tool,
                           MeterRegistry metrics,
-                          TrafficDataService trafficData) {
+                          TrafficDataService trafficData,
+                          McpToolRegistry independentTools,
+                          EdgeThermalProfileStore edgeProfiles) {
         this.messaging = messaging;
         this.openAiService = openAiService;
         this.tool = tool;
         this.metrics = metrics;
         this.trafficData = trafficData;
+        this.independentTools = independentTools;
+        this.edgeProfiles = edgeProfiles;
     }
 
     @MessageMapping("/chat.send")
@@ -110,6 +128,20 @@ public class ChatController {
         messaging.convertAndSend("/topic/messages", userMsg);
 
         try {
+            // 1.4단계 — 도메인 게이트(결정론, LLM 미사용). 이 MCP 서버는 장량동
+            // 쓰레기 모델과 라즈베리파이 엣지 발열 모델을 함께 들고 있고, 사용자
+            // 요청이 둘 중 어디로 가야 하는지를 여기서 확정한다.
+            //
+            // 아래 장량동 게이트들보다 먼저 검사하는 이유: 엣지 요청에도 "배치",
+            // "비교" 같은 단어가 흔히 섞여 시나리오 게이트에 잘못 걸릴 수 있다.
+            // 반대 방향의 오탐(장량동 요청이 엣지로 새는 것)은 DomainIntentDetector가
+            // 양쪽 키워드 수를 비교해 막는다 — 엣지 키워드가 더 많을 때만 전환하므로
+            // 기존 장량동 대화는 이 게이트가 없던 때와 완전히 동일하게 동작한다.
+            if (DomainIntentDetector.detect(userText) == DomainIntentDetector.Domain.EDGE_THERMAL) {
+                runEdgeTool(userText, history);
+                return;
+            }
+
             // 1.5. 시나리오 실험 게이트(결정론, LLM 미사용) — 사이드바 "시나리오
             // 실험" 버튼 11종과 동일한 요청을 자연어로도 받는다
             // (ScenarioIntentDetector). 단일 실행(0/1단계)보다 먼저 검사한다 —
@@ -322,6 +354,92 @@ public class ChatController {
      * 조정할지"는 필요하면 사이드바 버튼(또는 REST)에서 직접 조정하는 역할
      * 분담이다.
      */
+    /**
+     * 라즈베리파이 엣지 발열 도메인 요청을 처리한다 — MCP {@code tools/call}과 <b>같은
+     * 도구 구현체</b>({@link McpToolProvider})를 그대로 호출한다. 채팅용 계산 경로를 따로
+     * 두지 않는 것이 중요하다: 그러면 "채팅으로 물었을 때와 MCP로 불렀을 때 답이 다른"
+     * 상황이 원천적으로 생기지 않는다(SimulationTool 파사드를 세 진입점이 공유하는 것과
+     * 같은 이유).
+     *
+     * <p>인자를 만드는 순서가 이 메서드의 핵심이다.
+     * <ol>
+     *   <li>{@link EdgeToolSelector} — 어느 도구인지 결정론적으로 확정(LLM 아님)</li>
+     *   <li>{@link OpenAiService#extractEdgeParams} — GPT가 숫자·enum을 JSON으로 추출</li>
+     *   <li>{@link EdgeParamGuard} — 실험 조건을 좌우하는 필드는 이번 메시지 기준으로 덮어씀</li>
+     *   <li>도구의 자체 검증({@code EdgeArgs}) — 범위 밖이면 실행 없이 거부(fail-closed)</li>
+     * </ol>
+     */
+    private void runEdgeTool(String userText, List<Map<String, String>> history) {
+        String toolName = EdgeToolSelector.select(userText);
+        metrics.counter("waste.chat.edge_tool", "tool", toolName).increment();
+
+        // 캘리브레이션은 측정 시계열이 있어야 하는데 채팅 메시지로는 실어 나를 수 없다.
+        // 실행하는 척하는 대신 보내는 방법을 알려주고, 저장된 프로파일을 보여준다.
+        if (EdgeToolSelector.TOOL_CALIBRATE.equals(toolName)) {
+            reply(EdgeChatFormatter.calibrationGuide(edgeProfiles.all()), userText, history);
+            return;
+        }
+
+        McpToolProvider provider = independentTools.byToolName(toolName);
+        if (provider == null) {
+            reply("엣지 발열 도구가 이 서버에 등록돼 있지 않습니다.", userText, history);
+            return;
+        }
+
+        messaging.convertAndSend("/topic/messages",
+                new ChatMessage(ChatMessage.MessageType.SYSTEM, "엣지 발열 모델 실행 중..."));
+
+        ObjectNode args = EdgeParamGuard.merge(
+                openAiService.extractEdgeParams(history, userText), EdgeParamGuard.fromText(userText));
+        if (!args.has("board")) {
+            reply("어느 보드인지 알려주세요 — 라즈베리파이 4와 5는 발열 특성이 많이 다릅니다.",
+                    userText, history);
+            return;
+        }
+        // 회복 실험인데 조건이 비어 있으면 스로틀링이 실제로 일어나는 표준 조건을 채운다.
+        // 무엇을 가정했는지는 아래에서 답변 앞에 명시한다(조용히 바꾸지 않는다).
+        boolean assumed = EdgeParamGuard.applyRecoveryExperimentDefaults(args);
+
+        if (EdgeToolSelector.TOOL_HEATSINK.equals(toolName)) {
+            // 후보 치수까지 자연어로 받지 않고 서버가 들고 있는 표준 후보로 비교한다
+            // (HeatsinkPresets — 값이 고정이라 언제 돌려도 같은 표가 나온다).
+            try {
+                args.set("layouts", edgeMapper.readTree(HeatsinkPresets.LAYOUTS_JSON));
+            } catch (Exception e) {
+                log.error("방열판 프리셋 파싱 실패", e);
+                reply("방열판 후보를 준비하지 못했습니다: " + e.getMessage(), userText, history);
+                return;
+            }
+        }
+
+        ToolResult tr = provider.call(args);
+        if (!tr.ready()) {
+            StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
+            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+            reply(sb.toString().trim(), userText, history);
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> out = (Map<String, Object>) tr.result();
+        String text = EdgeToolSelector.TOOL_HEATSINK.equals(toolName)
+                ? EdgeChatFormatter.heatsink(out)
+                : EdgeChatFormatter.throttling(out);
+        if (assumed) {
+            text = "회복 시간을 재려면 스로틀링이 실제로 걸리는 조건이어야 해서, "
+                 + "무냉각·최대 처리량으로 가정하고 실행했습니다.\n\n" + text;
+        }
+        reply(text, userText, history);
+    }
+
+    /** 봇 답변 전송 + 대화 이력 갱신(엣지 경로 공통) — runChatScenario 말미와 같은 처리. */
+    private void reply(String text, String userText, List<Map<String, String>> history) {
+        messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, text));
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", text));
+        while (history.size() > 20) history.remove(0);
+    }
+
     private void runChatScenario(String type, List<Map<String, String>> history, String userText) {
         messaging.convertAndSend("/topic/messages",
                 new ChatMessage(ChatMessage.MessageType.SYSTEM, "시나리오 실행 중..."));

@@ -1,5 +1,7 @@
 package com.wastesim.controller;
 
+import com.wastesim.edge.EdgeThermalProfileStore;
+import com.wastesim.mcp.McpToolRegistry;
 import com.wastesim.model.ChatMessage;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
@@ -11,6 +13,8 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -32,7 +36,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         // SimulationConfig.getCollectionTimeLabel()은 collectionTimeMinutes를
         // 매번 "%02d:%02d"로 재포맷하므로("8:30"→setter가 파싱 후 getter가
@@ -86,7 +91,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -110,7 +116,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -138,7 +145,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         controller.handleMessage(userMsg("Node_A, Node_C, Node_B, Node_D 순서로 방문하면 얼마나 걸려?"));
 
@@ -175,7 +183,8 @@ class ChatControllerTest {
         OpenAiService openAiService = mock(OpenAiService.class);
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         controller.handleMessage(userMsg(userText));
 
