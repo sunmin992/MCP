@@ -139,8 +139,12 @@ EXCLUDE_MODELS="llama3.2:3b,qwen2.5:7b,gemma:2b,gemma2:9b" python3 llm_benchmark
 ### 결과 파일
 
 `benchmark_report.md`와 `benchmark_detail.log`는 실행할 때마다 **덮어써진다**(추가
-아님). 둘 다 커밋 대상이라 여러 머신에서 각자 돌리면 내용 충돌이 나는데, 산출물이니
-최신 실행 결과를 그대로 채택하면 된다.
+아님).
+
+`benchmark_report.md`는 매 실행 때 통째로 새로 쓰여 3대에서 충돌하므로 추적하지
+않는다(`.gitignore`). 각 머신에서 돌린 결과는 그 머신 로컬에만 남으므로, 공유할
+수치는 커밋 메시지나 문서에 적어 남길 것. `benchmark_detail.log`(실패 케이스 원문)만
+진단용으로 커밋한다.
 
 ---
 
@@ -174,6 +178,9 @@ curl -s http://localhost:8090/actuator/env/openai.model
     같이 추적돼 있었음). 실행하면 자동 재생성
   - `app.log` / `app-err.log` — 실행 로그. 머신별 절대경로·PID가 박혀 매번 충돌
   - `.claude/settings.local.json` — 윈도우 경로·PowerShell 명령이 든 머신 전용 설정
+  - `benchmark_report.md` — 벤치마크 실행마다 통째로 덮어써짐. `python llm_benchmark.py`로 재생성
+  - `*.docx` — 문서 변환 결과물. 바이너리라 병합이 불가능하므로 원본 마크다운만
+    커밋하고 변환본은 각자 로컬에서 생성
 - **`.gitignore`는 이미 추적 중인 파일에는 효과가 없다.** 위 파일들도 `.gitignore`에
   패턴은 있었지만 이전에 커밋돼 있어서 계속 충돌했다. 새로 무시하려면 패턴 추가만으로는
   부족하고 `git rm --cached <파일>`로 인덱스에서 빼야 한다.
