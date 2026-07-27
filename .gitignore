@@ -40,12 +40,10 @@ venv/
 *.log
 logs/
 *.tmp
-# 단, 벤치마크 실패 케이스 원문 로그는 의도적으로 커밋한다 — 위 *.log에 걸려
-# "왜 이것만 추적되지?" 하고 헷갈리지 않도록 예외를 명시한다.
-!waste-sim-spring/benchmark_detail.log
 
 # --- 생성 산출물 (실행·변환할 때마다 덮어써져 3대에서 충돌) ---
-# 벤치마크 리포트: llm_benchmark.py가 매 실행 때 통째로 새로 쓴다.
+# 벤치마크 결과물: llm_benchmark.py가 매 실행 때 통째로 새로 쓴다.
+# (benchmark_detail.log는 위 *.log 규칙에 이미 걸린다.)
 waste-sim-spring/benchmark_report.md
 # 문서 변환 결과물(.docx)은 바이너리라 병합이 아예 불가능하다 — 원본 마크다운만
 # 커밋하고, 변환본은 각자 로컬에서 생성해 쓴다.
