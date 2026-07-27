@@ -14,6 +14,16 @@ public class SimulationConfig {
     private int seeds = 30;
     private double leaveSigma = 30.0;
     private double wasteSigma = 0.3;
+    /**
+     * 1인 1일 평균 배출량(kg). 기본값 0.9는 원 논문(Table 1, Gallup Korea 2014
+     * 기반)의 가정치를 그대로 유지한다(Python 참조 엔진과의 결과 비교 가능성을
+     * 지키기 위해 기본값은 바꾸지 않았다). 환경부 전국폐기물통계조사 최신
+     * 결과(전국 평균 약 0.95kg/인·일, 지역 편차 0.8~1.7kg — 실측_보정_가이드.md
+     * 참고)로 교체해 실측 캘리브레이션할 때 이 필드를 사용한다. Python
+     * 참조 엔진(occupations.py)에는 이 값이 전달되지 않고 항상 0.9로 고정된다
+     * — "논문 원본 재현"이라는 그쪽의 목적을 지키기 위해서다.
+     */
+    private double wasteMeanKg = 0.9;
     private double capacity = 30.0;
     private double threshold = 0.8;
     private int numBuildings = 4;
@@ -91,6 +101,9 @@ public class SimulationConfig {
 
     public double getWasteSigma() { return wasteSigma; }
     public void setWasteSigma(double v) { this.wasteSigma = v; }
+
+    public double getWasteMeanKg() { return wasteMeanKg; }
+    public void setWasteMeanKg(double v) { this.wasteMeanKg = v; }
 
     public double getCapacity() { return capacity; }
     public void setCapacity(double v) { this.capacity = v; }
@@ -219,6 +232,7 @@ public class SimulationConfig {
         c.seeds = seeds;
         c.leaveSigma = leaveSigma;
         c.wasteSigma = wasteSigma;
+        c.wasteMeanKg = wasteMeanKg;
         c.capacity = capacity;
         c.threshold = threshold;
         c.numBuildings = numBuildings;

@@ -22,6 +22,11 @@ import java.util.regex.Pattern;
  *       "가상의", "감으로"처럼 이번 메시지 자체가 실행을 원치 않는다는
  *       신호가 있으면 no.</li>
  * </ul>
+ *
+ * <p>경로 소요시간 질의("Node_A, Node_B 순서로 방문하면 얼마나 걸려?")는 이
+ * 클래스가 아니라 {@link RouteDurationQueryDetector}가 별도로 담당한다 —
+ * {@code ChatController}가 이 클래스보다 먼저 그 게이트를 거치므로, 여기서는
+ * 신경 쓸 필요가 없다.
  */
 public final class ExecutionIntentDetector {
 

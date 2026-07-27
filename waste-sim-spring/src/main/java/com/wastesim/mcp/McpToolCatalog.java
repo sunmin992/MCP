@@ -19,10 +19,12 @@ public class McpToolCatalog {
 
     private final SimulationTool tool;
     private final SimulationModelRegistry models;
+    private final McpToolRegistry independentTools;
 
-    public McpToolCatalog(SimulationTool tool, SimulationModelRegistry models) {
+    public McpToolCatalog(SimulationTool tool, SimulationModelRegistry models, McpToolRegistry independentTools) {
         this.tool = tool;
         this.models = models;
+        this.independentTools = independentTools;
     }
 
     /** package-private이 아니라 public — {@link SimulationModelProvider} 구현체들이
@@ -36,6 +38,8 @@ public class McpToolCatalog {
                 "seeds": {"type": "integer", "description": "반복 횟수", "default": 30},
                 "leaveSigma": {"type": "number", "description": "외출 시각 표준편차(분)", "default": 30.0},
                 "wasteSigma": {"type": "number", "description": "일일 배출량 표준편차(kg)", "default": 0.3},
+                "wasteMeanKg": {"type": "number",
+                  "description": "1인 1일 평균 배출량(kg). 기본값 0.9는 논문 가정치. 환경부 전국폐기물통계조사 실측 평균(약 0.95kg, 지역 편차 0.8~1.7kg)으로 캘리브레이션할 때 사용", "default": 0.9},
                 "capacity": {"type": "number", "description": "수거장 용량(kg)", "default": 30.0},
                 "threshold": {"type": "number", "description": "민원 임계 적재율(0~1)", "default": 0.8},
                 "numBuildings": {"type": "integer", "default": 4},
@@ -84,6 +88,8 @@ public class McpToolCatalog {
                 "threshold": {"type": "number", "default": 0.8},
                 "leaveSigma": {"type": "number", "default": 30.0},
                 "wasteSigma": {"type": "number", "default": 0.3},
+                "wasteMeanKg": {"type": "number", "default": 0.9,
+                  "description": "1인 1일 평균 배출량(kg). 실측 캘리브레이션 시 조정"},
                 "numBuildings": {"type": "integer", "default": 4},
                 "residentsPerBuilding": {"type": "integer", "default": 25},
                 "occupationMix": {"type": "array", "items": {"type": "string"}}
@@ -100,6 +106,11 @@ public class McpToolCatalog {
     public ObjectNode toolsList(ObjectMapper m) throws Exception {
         ArrayNode tools = m.createArrayNode();
         for (SimulationModelProvider provider : models.all()) {
+            tools.add(descriptor(m, provider.toolName(), provider.description(), provider.inputSchemaJson()));
+        }
+        // 장량동 도메인과 무관한 독립 도구/모델(McpToolProvider) — 등록된 게 없으면
+        // 이 루프는 그냥 아무 일도 안 한다(엣지_라즈베리파이_MCP_연동_방법.md 참고).
+        for (McpToolProvider provider : independentTools.all()) {
             tools.add(descriptor(m, provider.toolName(), provider.description(), provider.inputSchemaJson()));
         }
         tools.add(descriptor(m, "run_scenario",

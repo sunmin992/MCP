@@ -1,0 +1,57 @@
+# --- Maven 빌드 산출물 ---
+target/
+*.jar
+*.war
+*.original
+
+# --- Java ---
+*.class
+hs_err_pid*
+replay_pid*
+
+# --- Maven Wrapper (래퍼 jar는 재생성 가능) ---
+.mvn/wrapper/maven-wrapper.jar
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+nbproject/
+
+# --- OS (맥·윈도우 혼용 환경) ---
+.DS_Store
+.AppleDouble
+._*
+Thumbs.db
+Desktop.ini
+
+# --- Python (scripts/ 전처리 스크립트) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- 로그·임시 파일 ---
+*.log
+logs/
+*.tmp
+
+# --- 생성 산출물 (실행·변환할 때마다 덮어써져 3대에서 충돌) ---
+# 벤치마크 결과물: llm_benchmark.py가 매 실행 때 통째로 새로 쓴다.
+# (benchmark_detail.log는 위 *.log 규칙에 이미 걸린다.)
+waste-sim-spring/benchmark_report.md
+# 문서 변환 결과물(.docx)은 바이너리라 병합이 아예 불가능하다 — 원본 마크다운만
+# 커밋하고, 변환본은 각자 로컬에서 생성해 쓴다.
+*.docx
+
+# --- 로컬 전용 설정 (머신마다 다른 값은 여기에) ---
+.env
+*.local.properties
+application-local.properties
+# Claude Code 머신별 권한 허용목록(윈도우 경로·PowerShell 명령이 들어가 맥과 다르다)
+.claude/settings.local.json

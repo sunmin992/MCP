@@ -179,6 +179,7 @@ public class ScenarioController {
         cfg.setSeeds(intVal(b, "seeds", defaultSeeds));
         cfg.setLeaveSigma(dblVal(b, "leaveSigma", 30.0));
         cfg.setWasteSigma(dblVal(b, "wasteSigma", 0.3));
+        cfg.setWasteMeanKg(dblVal(b, "wasteMeanKg", 0.9));
         cfg.setCapacity(dblVal(b, "capacity", 30.0));
         cfg.setThreshold(dblVal(b, "threshold", 0.8));
         cfg.setNumBuildings(intVal(b, "numBuildings", 4));

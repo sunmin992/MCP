@@ -1,12 +1,31 @@
-# 추출 CSV 연결 가이드 — response_filtered.csv → 시스템 교통 레이어
+# 교통 데이터 연동 가이드 — response_filtered.csv → 시스템 교통 레이어
 
-> 추출하신 `response_filtered.csv`(장량동 인근 15개 도로 링크)를 현행 시스템의
-> 교통 레이어(`TrafficDataService`가 읽는 `src/main/resources/traffic/jangryang-weekday.json`)로
-> 변환·연결한다. Claude Code가 그대로 실행하도록 작성. 검증 완료된 스크립트 포함.
+> 이 문서는 원래 별개였던 `CONNECT_TRAFFIC_CSV.md`(CSV 스키마·변환 절차)와
+> `SWITCH_TO_RESPONSE_A.md`(실측 데이터를 단일 진실 원천으로 채택하는 전환
+> 작업 지침)를 하나로 합친 것이다 — 전환 작업(TASK 1~4)은 이미 완료돼 현재
+> 코드베이스 상태 그 자체이므로, 여기서는 "지금 상태 요약"과 "새 CSV로
+> 갱신할 때 재사용하는 절차"만 남기고 완료된 작업 지시문은 정리했다.
 
----
+## 1. 현재 상태 (완료된 결정)
 
-## 1. 추출 CSV 실제 스키마 (중요)
+포항시 장량동 인근 실측 교통량(`response_filtered.csv`, 공공데이터포털 원자료)이
+**유일한 교통 프로파일**(`jangryang-weekday`)이다. 시나리오 설계 당시의 가정(출근
+08:30 피크, Node_B(양덕) 최혼잡)과 실측치는 다르며, 실측을 그대로 채택했다.
+
+| 항목 | 값 |
+|---|---|
+| `congestionThresholdRed` | **1.7**(실측 데이터 스케일에 맞춤 — 최대 1.78이라 임계 2.0이면 RED가 하나도 안 뜬다) |
+| 정체 피크 시각 | **점심 12~13시**(전역 `hourlyWeight[13]≈1.78`) |
+| 최혼잡 노드 | **Node_A(장성초등학교)**, 12~13시 2.20 — RED |
+| 비교적 한산 | Node_B(양덕사거리), 최대 1.46 |
+| 08:30 시각 | 전역 1.54로 RED 아님(과거 가정 시나리오의 "출근 피크"와 다름) |
+| `alleyNodeIds` | `["Node_C","Node_D"]` 고정(데이터와 무관한 물리적 속성 — 골목 진입 가능 여부) |
+| 프로파일 id 구성 | `jangryang-weekday` 단일. 과거 가정용 시나리오와 병행하던 `jangryang-weekday-real.json`은 삭제, `SEED_IDS`도 단일 항목 |
+
+관련 테스트(`SimulationConfigValidatorTest.redPeakTimeWarnsButDoesNotBlock` 등)는
+이미 13:00 기준으로 갱신돼 있다.
+
+## 2. 추출 CSV 실제 스키마
 
 `response_filtered.csv` (UTF-8 **BOM 있음** → `utf-8-sig`로 읽을 것), 헤더 15행 데이터.
 
@@ -19,13 +38,11 @@
 | `hour_01` … `hour_23`, `hour_00` | 시간대별 교통량(24개) | 순서 주의: `hour_00`이 맨 끝(자정) |
 | `collection_dt` | 추출 시각 | 사용 안 함 |
 
-**핵심 2가지:**
-1. `link_id`가 비어 있으므로 이전 문서(`TRAFFIC_DATA_PIPELINE.md`)의 link_id 기반 매핑 대신 **지점명(landmark) 키워드 매핑**을 쓴다.
-2. 시간 컬럼은 `hour_01..hour_23, hour_00` 순이지만, 배열 인덱스 h(0~23)는 `hour_%02d` 로 직접 참조하면 정확하다(`hour_00`→0, `hour_23`→23).
+`link_id`가 비어 있어 지점명(landmark) 키워드 매핑을 쓴다. 시간 컬럼은
+`hour_01..hour_23, hour_00` 순이지만, 배열 인덱스 h(0~23)는 `hour_%02d`로 직접
+참조하면 정확하다.
 
----
-
-## 2. 지점명 → 시뮬레이션 노드 매핑 (검증 완료)
+## 3. 지점명 → 시뮬레이션 노드 매핑
 
 15개 링크를 4개 수거장 노드에 랜드마크 키워드로 귀속. **전 15건 매핑 성공(미매핑 0).**
 
@@ -36,11 +53,7 @@
 | `Node_C` (장성초등사거리/창포) | `장성초등사거리`, `창포` | 5 | 1.72 @ 13시 |
 | `Node_D` (두산위브/포항온천) | `두산위브`, `포항온천` | 2 | 1.81 @ 17시 |
 
-> `alleyNodeIds`는 데이터와 무관한 **물리적 속성**(골목 진입 가능 여부)이므로 기존대로 `["Node_C","Node_D"]`로 고정한다(관련 테스트 보존).
-
----
-
-## 3. 변환 스크립트 (검증 완료)
+## 4. 변환 스크립트
 
 **파일:** `scripts/preprocess_response_filtered.py`
 **실행:** `python scripts/preprocess_response_filtered.py [response_filtered.csv]`
@@ -98,7 +111,7 @@ def main():
 
     profile = {
         "id": "jangryang-weekday",
-        "congestionThresholdRed": 2.0,
+        "congestionThresholdRed": 1.7,
         "hourlyWeight": global_hourly,
         "nodeHourlyWeight": node_hourly,
         "alleyNodeIds": ALLEY,
@@ -111,39 +124,29 @@ if __name__ == "__main__":
     main()
 ```
 
-**출력(실데이터 기준):** `매핑: {Node_B:4, Node_A:4, Node_C:5, Node_D:2} | 미매핑: 0`
+## 5. 새 CSV로 갱신하는 절차(재사용)
 
----
+같은 지역의 최신 CSV로 교통 프로파일을 다시 만들고 싶을 때 반복하는 절차.
 
-## 4. ⚠️ 실데이터 vs 시나리오 가정 (반드시 확인)
-
-추출된 실제 교통량은 설계 시나리오의 가정과 **다르다**. 데이터를 왜곡하지 말고 아래처럼 처리한다.
-
-| 항목 | 시나리오 설계 가정 | 실데이터(response_filtered) |
-|---|---|---|
-| 정체 피크 시각 | 출근 08:30 | **점심 12–13시** |
-| 최혼잡 노드 | Node_B(양덕) | **Node_A(장성초등학교)**, 양덕은 한산 |
-| 08:30 RED 여부 | RED | Node_A 1.83 등 — RED 아님 |
-
-**대응(둘 중 택1):**
-- **(A) 실데이터 우선(권장) — 채택됨:** 위 스크립트로 seed(`jangryang-weekday.json`)를 실데이터로 덮어쓴다. `congestionThresholdRed`를 실데이터 스케일(1.7)로 낮추고, 테스트 `redPeakTimeWarnsButDoesNotBlock`·`weightAtPeakIsRed`의 기준 시각을 실 피크(13:00)로 수정했다. 시나리오 서술도 "점심 피크·장성초등(Node_A) 정체"로 재정합. `jangryang-weekday-real.json`(대응 B의 병행 프로필)은 삭제, `SEED_IDS`는 `{"jangryang-weekday"}` 단일 항목으로 유지 — 실측 포항 교통량이 유일한 진실 원천이다. (`SWITCH_TO_RESPONSE_A.md` 참고)
-- **(B) 시나리오 충실 우선:** 기존 가정용 seed(현재 `jangryang-weekday.json`)를 유지하고, 실데이터는 `jangryang-weekday-real.json`로 **별도 id**로 저장해 병행한다(`SEED_IDS`에 추가). 데모는 가정 seed, 근거자료로 실데이터.
-
-> 어느 쪽이든 `alleyNodeIds=[Node_C,Node_D]`는 유지해 골목 관련 테스트(UT-T5)를 보존한다.
-
----
-
-## 5. 연결·검증 절차
-
-1. `response_filtered.csv`를 프로젝트 루트(또는 `scripts/`)에 둔다.
-2. `python scripts/preprocess_response_filtered.py response_filtered.csv` 실행 → `src/main/resources/traffic/jangryang-weekday.json` 갱신(대응 A) 또는 `-real.json` 별도 저장(대응 B).
-3. 스키마 검증: `python scripts/validate_profile.py` → `PROFILE OK`.
-4. `mvn test` 실행. 대응 A에서 `redPeakTimeWarnsButDoesNotBlock`이 깨지면 §4대로 시각을 실 피크로 수정.
-5. 서버 기동 후 MCP로 교통 반영 확인:
+1. 새 CSV를 프로젝트 루트(또는 `scripts/`)에 둔다.
+2. `python scripts/preprocess_response_filtered.py <csv경로>` 실행 →
+   `src/main/resources/traffic/jangryang-weekday.json` 갱신.
+3. 스키마 검증: `python scripts/validate_profile.py` → `PROFILE OK` 확인.
+4. `mvn test` 실행 — RED 판정 관련 테스트가 새 데이터의 피크 시각과 어긋나면
+   (`SimulationConfigValidatorTest`의 13:00 기준 등) 테스트의 기준 시각을 새
+   피크로 맞춰 수정한다.
+5. 서버 기동 후 MCP로 반영 확인:
    ```
    curl -s localhost:8080/mcp -H "Content-Type: application/json" \
      -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"run_waste_simulation","arguments":{"collectionTime":"12:00","trafficEnabled":true,"trafficProfileId":"jangryang-weekday","days":3,"seeds":3}}}'
    ```
-   → 점심 피크(Node_A RED) 반영으로 수거 완료시간·민원이 평시 대비 상승하는지 확인.
+   → 피크 시각(RED 노드) 반영으로 수거 완료시간·민원이 평시 대비 상승하는지 확인.
 
-Java 엔진·검증·MCP 코드는 **수정 없이** 데이터 교체만으로 동작한다(인터페이스 안정). 유일한 예외는 §4의 테스트 시각 조정이다.
+Java 엔진·검증·MCP 코드는 데이터 교체만으로 그대로 동작한다(인터페이스 안정) —
+코드 변경이 필요한 유일한 경우는 RED 판정 테스트의 기준 시각이 데이터에 따라
+달라질 때뿐이다.
+
+다른 지역/새 CSV로 완전히 다른 프로파일을 병행하고 싶다면(가정용 시나리오와
+실측을 동시에 유지하는 경우), `-real.json` 같은 별도 id로 저장하고
+`TrafficDataService.SEED_IDS`에 추가하면 된다 — 다만 현재는 "실측 데이터가
+유일한 진실 원천"이라는 원칙(§1)에 따라 이 방식을 쓰지 않는다.

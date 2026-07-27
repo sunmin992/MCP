@@ -30,6 +30,15 @@ class SimulationConfigValidatorTest {
     }
 
     @Test
+    void nonPositiveWasteMeanKgFails() {     // 실측 캘리브레이션 필드 검증
+        SimulationConfig c = new SimulationConfig();
+        c.setWasteMeanKg(0);
+        ValidationResult r = v.validate(c);
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e -> e.field().equals("wasteMeanKg")));
+    }
+
+    @Test
     void unknownOccupationFails() {          // UT-22
         SimulationConfig c = new SimulationConfig();
         c.setOccupationMix(List.of("Ghost"));

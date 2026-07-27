@@ -33,11 +33,14 @@ public class McpController {
     private final SimulationTool tool;
     private final McpToolCatalog catalog;
     private final SimulationModelRegistry models;
+    private final McpToolRegistry independentTools;
 
-    public McpController(SimulationTool tool, McpToolCatalog catalog, SimulationModelRegistry models) {
+    public McpController(SimulationTool tool, McpToolCatalog catalog, SimulationModelRegistry models,
+                         McpToolRegistry independentTools) {
         this.tool = tool;
         this.catalog = catalog;
         this.models = models;
+        this.independentTools = independentTools;
     }
 
     @PostMapping(value = "/mcp", produces = "application/json")
@@ -91,6 +94,14 @@ public class McpController {
         SimulationModelProvider model = models.byToolName(name);
         if (model != null) {
             return toCallResult(tool.runSimulation(ConfigArgs.fromJson(args), model.modelId(), true));
+        }
+
+        // 장량동 도메인과 무관한 독립 도구/모델 — SimulationConfig 변환도,
+        // SimulationConfigValidator 검증도 거치지 않고 원본 JSON을 그대로
+        // 넘긴다(McpToolProvider 참고). 등록된 게 없으면 이 분기는 항상 null.
+        McpToolProvider indep = independentTools.byToolName(name);
+        if (indep != null) {
+            return toCallResult(indep.call(args));
         }
 
         switch (name) {

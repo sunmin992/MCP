@@ -133,16 +133,18 @@ public class SimulationEngine {
                     for (int pos = 0; pos < route.size(); pos++) {
                         int b = route.get(pos);
                         if (pos > 0) {
-                            double effTravel = travel / truckType.mobilityFactor;
+                            double congestionWeight = 1.0;
                             if (trafficProfile != null) {
                                 String node = nodeId(b);
                                 int minuteOfDay = arrival % DAY;
-                                effTravel *= trafficProfile.weightAt(minuteOfDay, node);
+                                congestionWeight = trafficProfile.weightAt(minuteOfDay, node);
                                 if (trafficProfile.isRed(minuteOfDay, node)) {
                                     trafficComplaintAccum += cfg.getTrafficComplaintWeight();
                                 }
                             }
-                            arrival += (int) Math.round(effTravel);
+                            // 공식은 TravelTimeCalculator에 고정 — RouteDurationEstimator(경로
+                            // 소요시간 단독 질의)와 동일 공식을 공유해 드리프트를 막는다.
+                            arrival += TravelTimeCalculator.hopMinutes(travel, truckType.mobilityFactor, congestionWeight);
                         }
                         if (arrival <= totalMinutes) pq.offer(new CollectEvt(arrival, b, d));
                     }
@@ -173,7 +175,7 @@ public class SimulationEngine {
                 OccupationType occ = mix.get((b * rPB + k) % mix.size());
                 for (int d = 0; d < days; d++) {
                     int monthIdx = d / 30;
-                    double dailyAmount = sampleWaste(rng, cfg.getWasteSigma()) * cfg.resolveMonthlyFactor(monthIdx);
+                    double dailyAmount = sampleWaste(rng, cfg.getWasteSigma(), cfg.getWasteMeanKg()) * cfg.resolveMonthlyFactor(monthIdx);
                     wasteByMonth[monthIdx] += dailyAmount;
                     int leaveT = d * DAY + sampleOffset(rng, occ.leaveMeanMinutes, cfg.getLeaveSigma());
                     if (retDis) {
@@ -322,8 +324,8 @@ public class SimulationEngine {
         return Math.max(0, Math.min(1439, t));
     }
 
-    private double sampleWaste(Random rng, double wasteSigma) {
-        return Math.max(0.0, rng.nextGaussian() * wasteSigma + 0.9);
+    private double sampleWaste(Random rng, double wasteSigma, double wasteMeanKg) {
+        return Math.max(0.0, rng.nextGaussian() * wasteSigma + wasteMeanKg);
     }
 
     private static double clamp01(double v) { return Math.max(0.0, Math.min(1.0, v)); }
