@@ -1,0 +1,47 @@
+# --- Maven 빌드 산출물 ---
+target/
+*.jar
+*.war
+*.original
+
+# --- Java ---
+*.class
+hs_err_pid*
+replay_pid*
+
+# --- Maven Wrapper (래퍼 jar는 재생성 가능) ---
+.mvn/wrapper/maven-wrapper.jar
+
+# --- IDE ---
+.idea/
+*.iml
+*.ipr
+*.iws
+.vscode/
+.settings/
+.classpath
+.project
+nbproject/
+
+# --- OS (맥·윈도우 혼용 환경) ---
+.DS_Store
+.AppleDouble
+._*
+Thumbs.db
+Desktop.ini
+
+# --- Python (scripts/ 전처리 스크립트) ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- 로그·임시 파일 ---
+*.log
+logs/
+*.tmp
+
+# --- 로컬 전용 설정 (머신마다 다른 값은 여기에) ---
+.env
+*.local.properties
+application-local.properties
