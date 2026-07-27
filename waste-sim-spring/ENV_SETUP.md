@@ -81,7 +81,7 @@ http://localhost:8090
 mvn spring-boot:run -Dspring-boot.run.profiles=ollama
 ```
 
-### 모델만 바꿔 벤치마크 (파일 수정 불필요)
+### 모델만 바꿔 실행 (파일 수정 불필요)
 
 ```bash
 OPENAI_MODEL=gemma2:9b mvn spring-boot:run
@@ -95,6 +95,52 @@ $env:OPENAI_MODEL="gemma2:9b"; mvn spring-boot:run
 
 우선순위는 **환경변수 > 프로파일 파일 > 기본값** 이라, 환경변수를 주면 프로파일
 파일 값을 항상 이긴다.
+
+---
+
+## 3-1. 벤치마크 스크립트 (`llm_benchmark.py`)
+
+> **주의: 이 스크립트는 Spring 프로파일을 읽지 않는다.** 앱과 완전히 별개로
+> 자기 환경변수만 보고, 비교 대상 모델 목록도 스크립트 안의 `MODELS`에 하드코딩돼
+> 있다. 즉 `SPRING_PROFILES_ACTIVE`를 바꿔도 벤치마크 동작은 달라지지 않는다.
+
+| 환경변수 | 용도 | 기본값 |
+|---|---|---|
+| `OLLAMA_URL` | 로컬 모델 엔드포인트 | `http://localhost:11434/v1/chat/completions` |
+| `OPENAI_API_URL` | `gpt-4o-mini` 항목이 쓸 엔드포인트 | `https://api.openai.com/v1/chat/completions` |
+| `OPENAI_API_KEY` | 없으면 OpenAI 모델은 자동 건너뜀 | (없음) |
+| `EXCLUDE_MODELS` | 쉼표로 구분해 특정 모델 제외 | (없음) |
+
+### 윈도우 A (Ollama 설치된 머신)
+
+로컬 4개 모델만 돌리고 GPT는 비용·시간 때문에 건너뛸 때:
+
+```powershell
+$env:EXCLUDE_MODELS="gpt-4o-mini"; python llm_benchmark.py
+```
+
+### 맥북 / Ollama 없는 머신
+
+로컬 모델이 설치돼 있지 않으면 그 4개는 전부 연결 실패로 잡히므로 미리 제외한다.
+맥에는 `python` 명령이 없으니 `python3`으로 실행할 것:
+
+```bash
+EXCLUDE_MODELS="llama3.2:3b,qwen2.5:7b,gemma:2b,gemma2:9b" python3 llm_benchmark.py
+```
+
+### ⚠️ `OPENAI_API_URL`은 되도록 설정하지 말 것
+
+앱과 벤치마크가 **같은 변수를 공유하면서 의미가 다르다.** ollama 프로파일은 이
+변수가 없어도 기본값으로 localhost를 가리키므로 굳이 설정할 필요가 없는데, 만약
+앱을 Ollama로 돌리려고 이 변수를 localhost로 걸어두면 **벤치마크의 `gpt-4o-mini`
+요청까지 Ollama로 가버린다**(존재하지 않는 모델이라 실패). 백엔드 전환은 이 변수가
+아니라 프로파일(`SPRING_PROFILES_ACTIVE`)로 하는 것이 원칙이다.
+
+### 결과 파일
+
+`benchmark_report.md`와 `benchmark_detail.log`는 실행할 때마다 **덮어써진다**(추가
+아님). 둘 다 커밋 대상이라 여러 머신에서 각자 돌리면 내용 충돌이 나는데, 산출물이니
+최신 실행 결과를 그대로 채택하면 된다.
 
 ---
 
@@ -120,7 +166,16 @@ curl -s http://localhost:8090/actuator/env/openai.model
 
 ## 5. 주의
 
-- `.gitignore`로 `target/`은 추적에서 뺐다. 다른 머신에서 이 커밋을 pull하면
-  그쪽 `target/`이 삭제되는데, 빌드 산출물이라 `mvn package` 한 번이면 복구된다.
+- `.gitignore`로 아래 머신별 산출물을 추적에서 뺐다. 다른 머신에서 이 커밋을
+  pull하면 그쪽 파일이 git에서만 삭제되는데(디스크는 보존), 전부 재생성되는
+  것들이라 문제없다.
+  - `target/` — `mvn package` 한 번이면 복구
+  - `__pycache__/*.pyc` — 파이썬 버전마다 달라 3대가 서로 충돌했다(310·314가
+    같이 추적돼 있었음). 실행하면 자동 재생성
+  - `app.log` / `app-err.log` — 실행 로그. 머신별 절대경로·PID가 박혀 매번 충돌
+  - `.claude/settings.local.json` — 윈도우 경로·PowerShell 명령이 든 머신 전용 설정
+- **`.gitignore`는 이미 추적 중인 파일에는 효과가 없다.** 위 파일들도 `.gitignore`에
+  패턴은 있었지만 이전에 커밋돼 있어서 계속 충돌했다. 새로 무시하려면 패턴 추가만으로는
+  부족하고 `git rm --cached <파일>`로 인덱스에서 빼야 한다.
 - 키를 실수로 커밋했다면 커밋을 되돌리는 것만으로는 부족하다. 해당 키를
   즉시 폐기(revoke)하고 새로 발급받을 것.

@@ -40,8 +40,15 @@ venv/
 *.log
 logs/
 *.tmp
+# 단, 벤치마크 근거 로그는 리포트(benchmark_report.md)가 참조하는 산출물이라
+# 의도적으로 커밋한다 — 위 *.log에 걸려 "왜 이것만 추적되지?" 하고 헷갈리지
+# 않도록 예외를 명시한다. 실행할 때마다 덮어써지므로 3대에서 같이 돌리면
+# 내용 충돌이 날 수 있고, 그때는 최신 실행 결과를 그대로 채택하면 된다.
+!waste-sim-spring/benchmark_detail.log
 
 # --- 로컬 전용 설정 (머신마다 다른 값은 여기에) ---
 .env
 *.local.properties
 application-local.properties
+# Claude Code 머신별 권한 허용목록(윈도우 경로·PowerShell 명령이 들어가 맥과 다르다)
+.claude/settings.local.json
