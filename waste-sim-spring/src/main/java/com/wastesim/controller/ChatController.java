@@ -21,12 +21,17 @@ import com.wastesim.model.ChatMessage;
 import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
+import com.wastesim.model.TrafficProfile;
+import com.wastesim.model.TruckType;
 import com.wastesim.service.EngineSelectionDetector;
 import com.wastesim.service.ExecutionIntentDetector;
 import com.wastesim.service.JailbreakFilter;
+import com.wastesim.service.KoreanTimeParser;
 import com.wastesim.service.LanguagePurityFilter;
 import com.wastesim.service.OpenAiService;
 import com.wastesim.service.RouteAwarenessDetector;
+import com.wastesim.service.RouteDurationEstimator;
+import com.wastesim.service.RouteDurationQueryDetector;
 import com.wastesim.service.ScenarioIntentDetector;
 import com.wastesim.service.TimeExpressionDetector;
 import com.wastesim.service.TrafficDataService;
@@ -113,6 +118,20 @@ public class ChatController {
             String scenarioType = ScenarioIntentDetector.detect(userText);
             if (scenarioType != null) {
                 runChatScenario(scenarioType, history, userText);
+                return;
+            }
+
+            // 1.6단계 — 경로 소요시간 질의 게이트(결정론, LLM 미사용). "Node_A,
+            // Node_C, Node_B, Node_D 순서로 방문하면 얼마나 걸려?"류의 질문은
+            // 민원 집계까지 도는 전체 시뮬레이션이 아니라, 방문 순서(+선택
+            // 수거시각)만으로 이동시간 근사값을 계산해 답한다
+            // (RouteDurationEstimator). 시나리오 게이트와 마찬가지로 아래의
+            // 시각-개수 게이트(0/1단계)보다 먼저 검사한다 — 이 질의는 수거
+            // 시각이 아예 없어도(그러면 혼잡 가중치만 미반영) 답할 수 있어서,
+            // "시각 정확히 1개"라는 실행 게이트 기준과는 독립적인 판단이다.
+            List<String> routeSeqForDuration = RouteAwarenessDetector.extractRouteSequence(userText);
+            if (RouteDurationQueryDetector.isRouteDurationQuery(userText, routeSeqForDuration)) {
+                answerRouteDuration(routeSeqForDuration, userText, history);
                 return;
             }
 
@@ -330,6 +349,76 @@ public class ChatController {
         history.add(Map.of("role", "user", "content", userText));
         history.add(Map.of("role", "assistant", "content", reply));
         while (history.size() > 20) history.remove(0);
+    }
+
+    /**
+     * 경로 소요시간 질의에 답한다 — 전체 시뮬레이션(SimulationTool.runSimulation)을
+     * 거치지 않고 RouteDurationEstimator로 이동시간만 계산한다. 방문 순서가
+     * 바뀌거나(routeSequence) 수거 시각이 달라지면(KoreanTimeParser로 파싱)
+     * 그에 맞춰 결과도 달라진다 — 순서가 바뀌면 각 구간의 도착 노드가 바뀌어
+     * 그 노드의 시간대별 혼잡 가중치가 달라지고, 시각이 바뀌면 구간마다
+     * 적용되는 혼잡 가중치 자체가 달라진다.
+     */
+    private void answerRouteDuration(List<String> routeSequence, String userText,
+                                      List<Map<String, String>> history) {
+        Integer startMinute = KoreanTimeParser.parseFirst(userText);
+        boolean trafficMentioned = TrafficKeywordDetector.mentioned(userText);
+        // 혼잡 가중치는 "교통/정체"를 명시했거나 수거 시각을 알 때만 적용한다.
+        // 시각이 없으면 몇 시 기준 가중치인지 정의할 수 없어 기준 이동시간만 쓴다.
+        TrafficProfile profile = (trafficMentioned || startMinute != null)
+                ? trafficData.find(trafficData.defaultProfileId()) : null;
+        TruckType truckType = RouteAwarenessDetector.truckTypeMentioned(userText)
+                ? guessTruckType(userText) : TruckType.LARGE_5TON;
+
+        String reply;
+        try {
+            RouteDurationEstimator.Estimate est = RouteDurationEstimator.estimate(
+                    routeSequence, startMinute, RouteDurationEstimator.DEFAULT_ROUTE_TRAVEL_MINUTES,
+                    truckType, profile);
+            reply = formatRouteDuration(routeSequence, startMinute, truckType, est);
+        } catch (IllegalArgumentException e) {
+            reply = "방문 순서를 인식하지 못했습니다: " + e.getMessage();
+        }
+
+        messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, reply));
+
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", reply));
+        while (history.size() > 20) history.remove(0);
+    }
+
+    /** 메시지에 언급된 차종 키워드로 TruckType을 결정론적으로 판정. 언급 없으면 기본 대형(5톤). */
+    private TruckType guessTruckType(String text) {
+        if (text.contains("소형") || text.contains("1톤")) return TruckType.SMALL_1TON;
+        if (text.contains("중형") || text.contains("2.5톤") || text.contains("2톤")) return TruckType.MEDIUM_2P5T;
+        return TruckType.LARGE_5TON;
+    }
+
+    private String formatRouteDuration(List<String> route, Integer startMinute, TruckType truckType,
+                                        RouteDurationEstimator.Estimate est) {
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("경로 소요시간(근사) — %s\n", String.join(" → ", route)));
+        if (startMinute != null) {
+            sb.append(String.format("출발(수거) 시각: %s, 차종: %s\n",
+                    KoreanTimeParser.toHHMM(startMinute), truckType.labelKo));
+        } else {
+            sb.append(String.format("차종: %s (수거 시각 미지정 — 혼잡 가중치 미반영, 구간당 기준 이동시간만 적용)\n",
+                    truckType.labelKo));
+        }
+        for (RouteDurationEstimator.Hop h : est.hops) {
+            String weightNote = est.trafficApplied
+                    ? String.format(" (혼잡 가중치 ×%.2f%s)", h.congestionWeight, h.red ? ", 정체 심함" : "")
+                    : "";
+            sb.append(String.format("- %s → %s: %d분%s\n", h.from, h.to, h.minutes, weightNote));
+        }
+        sb.append(String.format("총 이동시간: 약 %d분", est.totalMinutes));
+        if (est.endMinuteOfDay != null) {
+            sb.append(String.format(" (도착 예상 %s)", KoreanTimeParser.toHHMM(est.endMinuteOfDay)));
+        }
+        sb.append("\n\n※ 근사값입니다 — 구간별 실제 거리·도로 데이터가 아니라, 기본 이동시간(")
+                .append(RouteDurationEstimator.DEFAULT_ROUTE_TRAVEL_MINUTES)
+                .append("분/구간)에 차종 기동성과 시간대별 혼잡 가중치만 곱한 시뮬레이션 추정치입니다.");
+        return sb.toString();
     }
 
     /**

@@ -53,6 +53,9 @@ public class SimulationConfigValidator {
         if (c.getWasteSigma() < 0)
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "wasteSigma", "배출 변동(wasteSigma)은 0 이상이어야 합니다."));
 
+        if (c.getWasteMeanKg() <= 0)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "wasteMeanKg", "1인당 평균 배출량(wasteMeanKg)은 0보다 커야 합니다."));
+
         if (c.getCapacity() <= 0)
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "capacity", "수거장 용량(capacity)은 0보다 커야 합니다."));
 
@@ -168,7 +171,7 @@ public class SimulationConfigValidator {
      * 없음)은 수거장 용량과 무관하게 항상 과적으로 본다.
      */
     public double predictOverflowRatio(SimulationConfig c) {
-        double dailyWasteKg = c.getNumBuildings() * c.getResidentsPerBuilding() * 0.9;   // 거주민 평균 배출량 0.9kg/일
+        double dailyWasteKg = c.getNumBuildings() * c.getResidentsPerBuilding() * c.getWasteMeanKg();   // 거주민 평균 배출량(kg/일, 기본 0.9 — 캘리브레이션 시 wasteMeanKg로 조정)
         if (c.getTruckCount() <= 0) return 999.0;   // 트럭이 없으면 수거장 용량과 무관하게 과적
 
         int slotsPerDay = (c.getCollectionTimesMinutes() != null && !c.getCollectionTimesMinutes().isEmpty())

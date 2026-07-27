@@ -1,7 +1,9 @@
+com\wastesim\mcp\McpToolRegistry.class
 com\wastesim\model\TruckType.class
 com\wastesim\simulation\SimulationEngine.class
 com\wastesim\mcp\McpToolCatalog.class
 com\wastesim\service\TrafficDataService.class
+com\wastesim\mcp\McpToolProvider.class
 com\wastesim\simulation\SimulationEngine$DischargeEvt.class
 com\wastesim\WasteSimApplication.class
 com\wastesim\mcp\McpController.class

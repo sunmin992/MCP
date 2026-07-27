@@ -125,6 +125,68 @@ class ChatControllerTest {
         verify(tool).runSimulation(any(), isNull(), eq(false));
     }
 
+    /**
+     * "Node_A, Node_C, Node_B, Node_D 순서로 방문하면 얼마나 걸려?"류의 경로
+     * 소요시간 질의는 전체 시뮬레이션(LLM 파라미터 추출 + SimulationTool.runSimulation)을
+     * 거치지 않고 바로 근사값으로 답해야 한다.
+     */
+    @Test
+    void routeDurationQueryAnswersWithoutRunningFullSimulation() {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        TrafficDataService trafficData = new TrafficDataService();
+
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+
+        controller.handleMessage(userMsg("Node_A, Node_C, Node_B, Node_D 순서로 방문하면 얼마나 걸려?"));
+
+        verify(openAiService, never()).extractParamsStrict(anyList(), anyString());
+        verify(tool, never()).runSimulation(any(), any(), anyBoolean());
+
+        ArgumentCaptor<ChatMessage> captor = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(messaging, atLeastOnce()).convertAndSend(eq("/topic/messages"), captor.capture());
+        String botReply = captor.getAllValues().stream()
+                .filter(m -> m.getType() == ChatMessage.MessageType.BOT)
+                .map(ChatMessage::getContent)
+                .findFirst().orElse(null);
+
+        assertNotNull(botReply);
+        assertTrue(botReply.contains("Node_A → Node_C → Node_B → Node_D"));
+        assertTrue(botReply.contains("근사값"));
+    }
+
+    /** 방문 순서나 수거 시각이 달라지면 답변(소요시간)도 그에 맞춰 달라져야 한다. */
+    @Test
+    void routeDurationReplyChangesWithOrderAndTime() {
+        TrafficDataService trafficData = new TrafficDataService();
+
+        String replyAbcd = routeDurationReply(trafficData, "Node_A, Node_C, Node_B, Node_D 순서로 13시에 방문하면 얼마나 걸려?");
+        String replyAbdc = routeDurationReply(trafficData, "Node_A, Node_C, Node_D, Node_B 순서로 13시에 방문하면 얼마나 걸려?");
+        assertNotEquals(replyAbcd, replyAbdc, "방문 순서가 다르면 응답도 달라져야 한다");
+
+        String replyAt3am = routeDurationReply(trafficData, "Node_A, Node_C, Node_B, Node_D 순서로 3시에 방문하면 얼마나 걸려?");
+        assertNotEquals(replyAbcd, replyAt3am, "수거 시각이 다르면 응답도 달라져야 한다");
+    }
+
+    private String routeDurationReply(TrafficDataService trafficData, String userText) {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+
+        controller.handleMessage(userMsg(userText));
+
+        ArgumentCaptor<ChatMessage> captor = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(messaging, atLeastOnce()).convertAndSend(eq("/topic/messages"), captor.capture());
+        return captor.getAllValues().stream()
+                .filter(m -> m.getType() == ChatMessage.MessageType.BOT)
+                .map(ChatMessage::getContent)
+                .findFirst().orElse(null);
+    }
+
     private ChatMessage userMsg(String text) {
         return new ChatMessage(ChatMessage.MessageType.USER, text);
     }

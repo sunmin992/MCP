@@ -1,5 +1,6 @@
 com\wastesim\tool\SimulationToolTest.class
 com\wastesim\service\ScenarioIntentDetectorTest.class
+com\wastesim\mcp\McpControllerTest$FakeIndependentTool.class
 com\wastesim\controller\ChatControllerTest.class
 com\wastesim\mcp\McpControllerTest.class
 com\wastesim\simulation\SimulationEngineTrafficTest.class

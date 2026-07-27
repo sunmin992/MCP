@@ -24,6 +24,7 @@ public final class ConfigArgs {
         if (p.has("seeds"))                c.setSeeds(p.get("seeds").asInt(30));
         if (p.has("leaveSigma"))           c.setLeaveSigma(p.get("leaveSigma").asDouble(30.0));
         if (p.has("wasteSigma"))           c.setWasteSigma(p.get("wasteSigma").asDouble(0.3));
+        if (p.has("wasteMeanKg"))          c.setWasteMeanKg(p.get("wasteMeanKg").asDouble(0.9));
         if (p.has("capacity"))             c.setCapacity(p.get("capacity").asDouble(30.0));
         if (p.has("threshold"))            c.setThreshold(p.get("threshold").asDouble(0.8));
         if (p.has("numBuildings"))         c.setNumBuildings(p.get("numBuildings").asInt(4));

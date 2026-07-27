@@ -1,277 +1,265 @@
-# waste_sim(Python) 모델을 MCP 도구로 연결하고, 향후 새 모델을 계속 추가할 수 있게 하는 방법
+# MCP 모델 연결 아키텍처 — 엔진 어댑터 · 독립 도구 확장점 · 엣지 연동 계획
 
-대상 시스템: `waste-sim-spring` (기존 MCP 서버 보유)
-목표: (1) 원본 Python DEVS 모델(`waste_sim`, pyevsim 기반)을 지금의 MCP 서버에
-도구로 연결해 시뮬레이션을 생성할 수 있게 하고, (2) 앞으로 어떤 새 모델이
-와도 같은 방식으로 쉽게 추가할 수 있는 구조를 만든다.
+> 원래 별개 문서였던 `MCP_모델_연결_방법.md`(장량동 Java/Python 엔진을 MCP 도구로 연결한
+> 방법)와 `엣지_라즈베리파이_MCP_연동_방법.md`(장량동과 무관한 독립 도구 확장점 + 라즈베리파이
+> 엣지 모델 연동 계획)를 하나로 합쳤다 — 둘 다 "이 MCP 서버에 모델을 어떻게 연결하는가"를
+> 다루는 같은 주제라 따로 두면 내용이 어긋나기 쉬웠다(실제로 예전 문서의 "새 모델 추가 표준
+> 절차"가 이후 추가된 독립 확장점을 반영 못 해 낡아 있었다).
 
----
+## 1. 현재 구조
 
-## 1. 현재 구조 진단
+`waste-sim-spring`은 하나의 MCP 서버(`POST /mcp`, JSON-RPC 2.0)를 갖고 있다.
 
-`waste-sim-spring`은 이미 완전한 MCP 서버를 갖고 있다.
-
-- `McpController` — `POST /mcp`, JSON-RPC 2.0 (`initialize`/`tools/list`/`tools/call`)
-- `McpToolCatalog` — 도구 목록·JSON Schema 정의 (`run_waste_simulation`, `run_scenario`, `list_scenarios`, `update_route_sequence`)
+- `McpController` — `initialize`/`tools/list`/`tools/call`/`ping` 처리.
+- `McpToolCatalog` — 도구 목록·JSON Schema 정의.
 - `SimulationTool` — 검증(`SimulationConfigValidator`) → 실행을 캡슐화하는 파사드. MCP·REST·채팅 세 진입점이 전부 이 한 곳만 호출한다.
-- `SimulationEngine` — 실제 계산을 수행하는 **Java로 재구현한 이벤트 큐 엔진**.
+- `SimulationEngine` — 장량동 쓰레기 시뮬레이션을 실제로 계산하는 Java 이벤트 큐 엔진.
 
-즉 지금 `run_waste_simulation` 도구를 호출하면 **Java 엔진**이 도는 것이고,
-원본 `waste_sim`(Python, pyevsim DEVS 원자모델)은 이 MCP 서버와 전혀 연결돼
-있지 않다. 두 모델은 같은 논문에 뿌리를 두고 있지만 엔진도, 코드베이스도,
-실행 환경(JVM vs Python)도 다르다.
+이 서버에 새 모델/도구를 연결하는 확장점은 **두 가지**다 — 어느 쪽을 쓸지는 그 모델이
+장량동 `SimulationConfig`(수거시각·트럭·교통 등)를 그대로 쓰는 엔진 변형인지, 아니면 전혀
+다른 입력을 가진 독립 도구인지에 따라 갈린다.
 
----
-
-## 2. 설계 원칙 — "모델 어댑터" 패턴
-
-새 모델을 추가할 때마다 `McpController`의 분기(switch)를 계속 늘리는 방식은
-금방 지저분해진다. 대신 **공통 인터페이스 하나를 정의하고, 모델마다 그
-인터페이스의 구현체(어댑터)만 추가**하는 구조로 간다. `McpToolCatalog`는
-등록된 어댑터 목록을 순회하며 자동으로 도구를 노출한다.
+## 2. 확장점 A — `SimulationModelProvider` (장량동 엔진 변형용, 구현 완료)
 
 ```java
 // com.wastesim.mcp.SimulationModelProvider
 public interface SimulationModelProvider {
     String modelId();          // 예: "java-devs", "python-devs"
     String toolName();         // 예: "run_waste_simulation", "run_waste_simulation_devs"
-    String description();      // MCP tools/list에 노출될 설명
-    String inputSchemaJson();  // JSON Schema 문자열
-    ToolResult run(JsonNode args) throws Exception;
+    String description();
+    String inputSchemaJson();
+    ToolResult run(SimulationConfig cfg);   // 이미 SimulationConfigValidator 검증을 통과한 설정
 }
 ```
 
-- 기존 Java 엔진도 이 인터페이스의 구현체(`JavaEngineProvider`)로 감싼다 — 즉
-  리팩터링 후에는 지금의 `run_waste_simulation`도 "여러 모델 중 하나"가 된다.
-- `McpToolCatalog`는 `List<SimulationModelProvider>`를 스프링이 자동
-  주입하도록 받아, `tools/list` 응답과 `tools/call` 라우팅을 모두 이 목록
-  기반으로 만든다. **새 모델을 추가해도 `McpController`/`McpToolCatalog`
-  자체는 코드 변경이 필요 없다** (Open/Closed 원칙).
+`SimulationModelRegistry`가 스프링이 자동 주입하는 `List<SimulationModelProvider>`를 모아
+`tools/list`·`tools/call` 라우팅에 자동 반영한다 — 새 모델을 추가해도 `McpController`/
+`McpToolCatalog` 자체는 손댈 필요가 없다(Open/Closed 원칙).
 
----
+**중요한 제약**: `McpController.callTool()`은 이 인터페이스로 등록된 도구를 전부 무조건
+`ConfigArgs.fromJson()`으로 `SimulationConfig`로 변환하고 `SimulationTool`이 `SimulationConfigValidator`
+(수거시각 범위, days/seeds 범위, 트럭 대수 등 장량동 도메인 규칙)를 통과시킨다. 즉 이 확장점은
+"아무 모델이나 꽂는 슬롯"이 아니라 **"장량동 SimulationConfig를 쓰는 엔진 변형 전용 슬롯"**이다.
 
-## 3. Part A — waste_sim(Python) 연결 구체 절차
+### 2.1 등록된 구현체
 
-### 3.1 Python 쪽: 프로그래밍적 호출용 진입점 추가
+| 구현체 | modelId | toolName | 설명 |
+|---|---|---|---|
+| `JavaEngineProvider` | `java-devs`(기본) | `run_waste_simulation` | 기존 Java 재구현 엔진(`SimulationEngine`) |
+| `PythonWasteSimAdapter` | `python-devs` | `run_waste_simulation_devs` | 원본 논문 재현 Python/pyevsim 엔진, 서브프로세스(`ProcessBuilder`)로 `waste_sim.mcp_bridge` 호출 |
 
-지금 `run.py`는 CSV·PNG 파일을 저장하는 실험 스크립트라서, MCP 도구 호출처럼
-"입력 JSON → 출력 JSON" 한 번으로 끝나는 용도에는 맞지 않는다. 사이드이펙트
-없는 얇은 진입점을 하나 추가한다.
+### 2.2 Python 엔진 연결 방식(구현 완료 요약)
 
-`waste_sim/mcp_bridge.py` (신규):
-```python
-# stdin으로 JSON 설정을 받아 build_and_run()을 그대로 재사용하고
-# stdout에 JSON 결과 한 줄만 출력한다 (CSV/PNG 저장 없음).
-import sys, json
-from .run import build_and_run
-from .occupations import hms_to_minutes
+- `waste_sim/mcp_bridge.py`(Python 쪽) — stdin으로 JSON 설정을 받아 `build_and_run()`을
+  `seeds`만큼 반복 실행하고, 평균·표준편차·직업별 평균(0건인 직업군도 항목 유지 —
+  `DESIGN_DECISIONS.md` D-11과 동일 원칙)을 집계해 stdout에 JSON 한 줄로 낸다.
+  이후 트래픽 파라미터(`trafficEnabled`/`trafficProfileId`/`routeTravelMinutes`)도
+  추가로 받도록 확장됐다.
+- `PythonWasteSimAdapter`(Java 쪽) — `python -m waste_sim.mcp_bridge`를 서브프로세스로
+  실행해 JSON을 주고받는다. 실행 파일 경로·프로젝트 루트·타임아웃은
+  `application.properties`(`waste-sim.python.executable`, `waste-sim.python.project-root`,
+  `waste-sim.python.timeout-seconds`)로 뺐다. Python 쪽 결과 필드명은 Java
+  `SimulationResult`와 억지로 맞추지 않고 원본 JSON 그대로 노출한다 — MCP 클라이언트가
+  어느 엔진 결과인지 구분할 수 있게 하려는 의도적 설계.
+- 검증: 같은 설정(12:00, 10일×10시드)을 두 엔진에 나란히 호출해 확인 — Java 6.9±4.3건,
+  Python 7.4±3.0건으로 완전히 같지는 않지만(난수 알고리즘이 다름) 같은 경향(학생 직업군이
+  지배적, 생산직·주부는 0건)을 보였다. 공통 검증 게이트(`days=0` 등 범위 밖 값)가 두 도구
+  모두 동일하게 차단하는 것도 확인했다.
+- 정확한 코드는 `src/main/java/com/wastesim/mcp/PythonWasteSimAdapter.java`,
+  `waste_sim/mcp_bridge.py` 참고.
 
-def main():
-    cfg = json.load(sys.stdin)
-    h, m = map(int, cfg["collectionTime"].split(":"))
-    result = build_and_run(
-        collection_time=hms_to_minutes(h, m),
-        seed=cfg.get("seed", 1),
-        days=cfg.get("days", 30),
-        n_buildings=cfg.get("numBuildings", 4),
-        residents_per_building=cfg.get("residentsPerBuilding", 25),
-        occupation_mix=cfg.get("occupationMix"),
-        leave_sigma=cfg.get("leaveSigma", 30.0),
-        waste_sigma=cfg.get("wasteSigma", 0.3),
-        capacity=cfg.get("capacity", 30.0),
-        cleanliness_threshold=cfg.get("threshold", 0.8),
-    )
-    print(json.dumps(result))
-
-if __name__ == "__main__":
-    main()
-```
-여러 시드가 필요하면(현재 `run_waste_simulation`처럼) 이 진입점을 시드 수만큼
-반복 호출하거나, `mcp_bridge.py` 안에서 `seeds` 배열을 받아 루프를 돌리고
-평균/표준편차까지 계산해 반환하도록 확장한다(권장 — Java 쪽 호출을 한 번으로
-줄일 수 있다).
-
-### 3.2 Java 쪽: PythonWasteSimAdapter 작성
-
-`ProcessBuilder`로 `python3 -m waste_sim.mcp_bridge`를 서브프로세스로 실행하고,
-JSON을 stdin에 써준 뒤 stdout을 읽어 파싱한다.
+## 3. 확장점 B — `McpToolProvider` (독립 도구/모델용, 구현 완료·미사용)
 
 ```java
-@Component
-public class PythonWasteSimAdapter implements SimulationModelProvider {
-
-    @Override public String modelId() { return "python-devs"; }
-    @Override public String toolName() { return "run_waste_simulation_devs"; }
-    @Override public String description() {
-        return "원본 논문 재현 Python/pyevsim DEVS 엔진으로 시뮬레이션을 실행한다 "
-             + "(Java 엔진과 결과 비교용 참조 구현).";
-    }
-    @Override public String inputSchemaJson() { return RUN_SIM_SCHEMA; } // McpToolCatalog와 동일 스키마 재사용 가능
-
-    @Override
-    public ToolResult run(JsonNode args) throws Exception {
-        ProcessBuilder pb = new ProcessBuilder(
-                "python3", "-m", "waste_sim.mcp_bridge")
-                .directory(new File(pythonProjectRoot))   // adev-master 상위 폴더
-                .redirectErrorStream(false);
-        Process p = pb.start();
-        try (var out = p.getOutputStream()) {
-            out.write(args.toString().getBytes(StandardCharsets.UTF_8));
-        }
-        String stdout = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-        String stderr = new String(p.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
-        if (!p.waitFor(30, TimeUnit.SECONDS) || p.exitValue() != 0) {
-            return ToolResult.rejected(new ValidationError(
-                    ErrorCode.EXECUTION_ERROR, "python-devs", "실행 실패: " + stderr));
-        }
-        JsonNode result = new ObjectMapper().readTree(stdout);
-        return ToolResult.ok(result);   // 필요하면 SimulationResult로 재매핑
-    }
+// com.wastesim.mcp.McpToolProvider
+public interface McpToolProvider {
+    String toolName();          // 예: "predict_edge_throttling"
+    String description();
+    String inputSchemaJson();   // 이 도구 전용 스키마 — RUN_SIM_SCHEMA와 무관하게 자유롭게 정의
+    ToolResult call(JsonNode args);   // 원본 JSON 그대로 — SimulationConfig 변환·검증 없음
 }
 ```
 
-핵심 설계 포인트:
-- **기존 `SimulationConfigValidator`를 그대로 재사용**한다 (범위 밖 값 등은
-  Python을 부르기 전에 Java 쪽에서 먼저 걸러낸다) — `SimulationTool`이 아니라
-  이 어댑터가 직접 검증을 부르거나, `SimulationTool`에 "모델 선택" 매개변수를
-  추가해 기존 파사드 경로를 그대로 태운다(권장, 아래 3.4).
-- Python 프로세스 실행 파일 경로(`python3`)와 작업 디렉터리는
-  `application.properties`에 설정값으로 뺀다 (`waste-sim.python.executable`,
-  `waste-sim.python.project-root`).
-- 타임아웃(위 예시 30초)을 반드시 둔다 — 프로세스가 멈추면 MCP 응답 자체가
-  막히므로.
+`SimulationModelProvider`의 제약(장량동 `SimulationConfig` 고정) 때문에, 라즈베리파이
+발열/스로틀링 예측 모델처럼 전혀 다른 입력(온도·클럭·FPS 등)을 가진 도구를 위해 별도
+확장점을 새로 만들었다. `McpToolRegistry`가 같은 패턴(스프링이 `List<McpToolProvider>`
+자동 수집)으로 등록된 구현체를 모으고, `McpToolCatalog.toolsList()`·`McpController.callTool()`이
+이 레지스트리도 함께 조회하도록 이미 배선돼 있다.
 
-### 3.3 새 MCP 도구로 등록
+**현재 상태**: 등록된 구현체가 하나도 없어(빈 리스트) 기존 도구 목록에 영향이 없다 —
+확장점만 준비된 상태. `McpControllerTest`에 가짜 독립 도구(`FakeIndependentTool`)로
+등록·라우팅·검증 미적용을 확인하는 테스트 3개가 있다.
 
-`McpToolCatalog`가 `List<SimulationModelProvider>`를 순회하도록 리팩터링하면,
-`PythonWasteSimAdapter`를 스프링 `@Component`로 등록하는 것만으로 `tools/list`
-응답에 `run_waste_simulation_devs`가 자동으로 나타난다. 채팅 UI에서도
-"파이썬 엔진으로 돌려줘" 같은 요청을 이 도구로 라우팅하도록
-`ExecutionIntentDetector`/`OpenAiService` 쪽에 도구 이름 매핑만 추가하면 된다.
+**나중에 실제 모델을 붙일 때 할 일은 이것뿐이다**: `McpToolProvider`를 구현하는 클래스
+하나(예: `EdgeThrottlingModelAdapter`)를 만들어 `@Component`로 등록하고, 그 안에서 학습된
+모델을 호출(Java로 포팅하거나 `PythonWasteSimAdapter`처럼 서브프로세스로 Python 호출)해
+`ToolResult`로 감싸 반환하면 끝난다. `McpController`·`McpToolCatalog`는 다시 손댈 필요가 없다.
 
-### 3.4 검증 파이프라인 공유 (권장 설계)
+## 4. 새 모델/도구를 추가하는 표준 절차
 
-`SimulationTool`에 모델 선택을 얹는 방식이 가장 깔끔하다.
+1. **어느 확장점인지 먼저 판단** — 새 모델이 수거시각·트럭·교통 등 장량동 `SimulationConfig`
+   파라미터를 그대로 쓴다 → §2(`SimulationModelProvider`). 전혀 다른 도메인/입력이다(라즈베리파이
+   발열 예측 등) → §3(`McpToolProvider`).
+2. **모델을 호출 가능한 형태로 준비** — 언어 무관, "입력 JSON → 출력 JSON" 진입점만 있으면
+   된다(같은 프로세스 라이브러리든, 서브프로세스든, 별도 HTTP 서비스든 무방).
+3. **인터페이스 구현체 작성** — 어느 쪽이든 메서드 4~5개만 채우면 끝.
+4. **`@Component`로 등록** — 스프링이 자동으로 카탈로그·라우팅에 포함시킨다. 컨트롤러·카탈로그
+   자체는 손댈 필요 없음.
+5. **검증 규칙** — `SimulationModelProvider`는 공통 `SimulationConfigValidator`를 자동으로
+   거친다. `McpToolProvider`는 구현체가 직접 검증하고 실패 시 `ToolResult.rejected`로 반환한다.
+6. **테스트 추가** — 어댑터 단위 테스트(정상/오류/타임아웃) + 필요하면 기존 모델과의 비교
+   회귀 테스트.
+7. **채팅 라우팅(선택)** — 사용자가 자연어로 "이 모델로 실행해줘"라고 했을 때 어떤 도구로
+   갈지 결정론적 감지기(`EngineSelectionDetector`와 같은 패턴, 정규식 기반)를 하나 추가한다.
+   LLM이 실행 여부/모델 선택을 직접 판단하게 하지 않는다(C2 원칙 — 아래 §6 참고).
 
-```java
-public ToolResult runSimulation(SimulationConfig cfg, String modelId, boolean skipWarnings) {
-    ValidationResult vr = validator.validate(cfg);   // 모델과 무관하게 항상 먼저 검증
-    if (!vr.ready()) return ToolResult.rejected(vr.errors());
-    SimulationModelProvider model = registry.get(modelId);   // 없으면 기본값 "java-devs"
-    return model.run(cfg);
-}
-```
-이렇게 하면 Java 엔진이든 Python 엔진이든 **같은 검증 규칙, 같은 오류 코드,
-같은 채팅/REST/MCP 진입점**을 공유하게 되어 "엔진만 다르고 나머지는 동일한
-경험"이 보장된다.
-
-### 3.5 검증(비교 테스트)
-
-같은 조건(수거 시각·seed·직업 구성 등)으로 `run_waste_simulation`(Java)과
-`run_waste_simulation_devs`(Python) 결과를 나란히 호출해, 두 엔진이 같은 논문
-모델을 정확히 재현하고 있는지 회귀 테스트로 고정한다. 완전히 같은 난수
-알고리즘이 아니므로 값이 100% 일치하진 않겠지만, 평균 민원 수의 경향(예:
-12시 수거가 최소)은 같아야 한다.
-
----
-
-## 4. Part B — 앞으로 새 모델을 추가하는 표준 절차
-
-이 구조가 갖춰지면, 새로운 시뮬레이션 모델(예: 다른 지역 모델, 다른 언어로
-구현된 엔진, 강화학습 기반 정책 모델 등)을 추가하는 절차는 항상 다음
-체크리스트로 고정된다.
-
-1. **모델을 호출 가능한 형태로 준비** — 이미 어떤 언어로든 상관없다.
-   프로그램으로 "설정 JSON을 주면 결과 JSON을 돌려주는" 진입점만 있으면 된다
-   (동일 프로세스 라이브러리든, 서브프로세스든, 별도 HTTP 서비스든 무방).
-2. **`SimulationModelProvider` 구현체 작성** — `modelId`/`toolName`/
-   `description`/`inputSchemaJson`/`run()` 다섯 개만 채우면 끝.
-3. **`@Component`로 등록** — 스프링이 자동으로 `McpToolCatalog`의 목록에
-   포함시킨다. `McpController`/`McpToolCatalog` 자체는 손댈 필요 없음.
-4. **입력 스키마 정의** — 기존 `run_waste_simulation` 스키마를 재사용하거나
-   모델 고유 파라미터가 있으면 그 부분만 확장.
-5. **검증 규칙 재사용 또는 확장** — 공통 범위(예: threshold 0~1)는
-   `SimulationConfigValidator`를 그대로 타고, 모델 전용 규칙이 있으면 어댑터
-   내부에서 추가 검증 후 `ValidationError`로 반환.
-6. **테스트 추가** — 어댑터 단위 테스트(정상/오류/타임아웃) + 필요하면 기존
-   모델과의 비교 회귀 테스트.
-7. **채팅 라우팅(선택)** — 사용자가 자연어로 "이 모델로 실행해줘"라고 했을
-   때 어떤 도구로 갈지 `ExecutionIntentDetector` 쪽에 한 줄 추가.
-
-이 절차를 따르면 모델이 몇 개로 늘어나도 MCP 서버의 핵심 코드(`McpController`)
-는 전혀 변경되지 않고, 새 모델마다 어댑터 클래스 하나 + 등록 한 줄만
-늘어난다.
-
----
-
-## 5. 아키텍처 요약도 (텍스트)
+## 5. 아키텍처 요약도
 
 ```
                          POST /mcp (JSON-RPC)
                                 │
                         McpController
                                 │
-                    McpToolCatalog (tools/list, 라우팅)
+                        McpToolCatalog (tools/list, 라우팅)
                                 │
-              ┌─────────────────┼─────────────────┐
-              │                 │                 │
-     JavaEngineProvider   PythonWasteSimAdapter   (미래 모델 Provider...)
-     (SimulationEngine)   (ProcessBuilder → python3 -m waste_sim.mcp_bridge)
+              ┌─────────────────┼─────────────────────────┐
+              │                 │                          │
+   SimulationModelRegistry      │                McpToolRegistry
+   (SimulationConfig 기반)      │           (독립 JSON 기반, 등록 0개)
+              │                 │                          │
+     JavaEngineProvider   PythonWasteSimAdapter    (미래: EdgeThrottlingModelAdapter 등)
+     (SimulationEngine)   (ProcessBuilder → python)
               │                 │
-     공통: SimulationConfigValidator (모델과 무관하게 항상 먼저 검증)
+     공통: SimulationConfigValidator        각 구현체가 자체 검증
+     (모델과 무관하게 항상 먼저 검증)
 ```
 
----
+## 6. 라즈베리파이 엣지 모델 연동 계획 (§3 McpToolProvider의 구체 적용 사례)
 
-## 6. 우선순위 제안
+R&E 프로젝트(라즈베리파이 4/5 엣지 AI 발열·소비전력·추론성능 분석)에서 나올 모델·데이터를
+이 시스템에 연결하는 방법을 제안받아 검토한 내용이다. 아래 3가지 방법 모두 아직 실제 모델이
+없어 미착수 상태이며, §3의 `McpToolProvider` 확장점으로 구현하는 것을 전제로 정리했다.
 
-| 순서 | 작업 | 비고 | 상태 |
-|---|---|---|---|
-| 1 | `SimulationModelProvider` 인터페이스 도입 + 기존 Java 엔진을 `JavaEngineProvider`로 감싸기 | 리팩터링만, 동작 변화 없음 | **완료** |
-| 2 | `waste_sim/mcp_bridge.py` 작성 | Python 쪽 최소 변경(§3.1 권장대로 seeds 배열 반복+집계까지 포함) | **완료** |
-| 3 | `PythonWasteSimAdapter` 작성 + 등록 | 새 도구 `run_waste_simulation_devs` 노출 | **완료** |
-| 4 | 비교 검증 테스트 작성 | 두 엔진이 같은 모델을 재현하는지 확인 | **완료**(아래 참고) |
-| 5 | 채팅 라우팅 연결(선택) | "파이썬 엔진으로" 같은 자연어 요청 지원 | 미착수(선택 사항) |
+### 6.1 엣지 카메라 비전 AI → DEVS 시뮬레이션 실측 보정
 
-1~3번까지 하면 원본 요청("waste_sim을 MCP 도구로 연결")이 충족되고, 이 구조
-자체가 곧 "새 모델을 계속 추가할 수 있는 방법"(Part B)이 된다.
+**필요한 데이터**
 
-### 구현 결과 요약
+| 항목 | 설명 |
+|---|---|
+| 수거장 식별자 | 관측한 수거장이 시뮬레이션의 어느 `building index`(0..nB-1) 또는 `Node_A~D`에 대응하는지 매핑 정보. 카메라-건물 1:1 고정 배치를 전제로 최초 설치 시 한 번 등록 |
+| 적재율/부피 추정치 | 0~1(또는 %) 범위의 fill ratio — `SimulationConfig.capacity`/`WasteType.threshold`와 같은 단위로 맞춰야 바로 결합 가능 |
+| 관측 시각(timestamp) | 오래된 관측치를 신뢰하지 않기 위한 유효기간 판단에 필요 |
+| 신뢰도(confidence) | YOLO 탐지 신뢰도 — 낮은 신뢰도 관측치를 걸러내는 임계값 판단용 |
+| 디바이스 식별자·인증키 | 어떤 디바이스가 보냈는지, 위조 관측치로부터 시뮬레이션을 보호하는 최소 인증 수단 |
 
-- `com.wastesim.mcp.SimulationModelProvider`(인터페이스) · `SimulationModelRegistry`
-  (스프링이 `List<SimulationModelProvider>`를 자동 주입) · `JavaEngineProvider`
-  (기존 엔진, modelId=`java-devs`) · `PythonWasteSimAdapter`(신규, modelId=
-  `python-devs`)를 추가했다.
-- `SimulationTool.runSimulation(cfg, modelId, skipWarnings)`를 새로 추가해
-  §3.4 권장 설계(검증은 항상 공통, 실행만 모델별로 위임)를 그대로 반영했다.
-  기존 2-인자/1-인자 오버로드는 `java-devs`를 기본값으로 그대로 호출해
-  하위호환을 유지한다(동작 변화 없음).
-- `McpToolCatalog.toolsList()`/`McpController.callTool()`을 레지스트리 순회
-  방식으로 바꿔, 새 모델을 등록만 하면 `tools/list`·`tools/call` 라우팅에
-  자동으로 나타난다(코드 변경 불필요 — Open/Closed 원칙 실증).
-- `waste_sim/mcp_bridge.py`(adev-master)는 §3.1의 권장대로 `seeds`를 반복
-  실행해 평균·표준편차·직업별 평균(0건인 직업군도 항목 유지 — 
-  waste-sim-spring DESIGN_DECISIONS.md D-11과 동일 원칙)까지 집계해 반환한다.
-- 검증(§3.5): `PythonWasteSimAdapterTest`(단위) + 라이브 MCP 호출로 같은
-  설정(12:00, 10일×10시드)을 두 엔진에 나란히 호출해 확인 — Java 6.9±4.3건,
-  Python 7.4±3.0건으로 완전히 같지는 않지만(난수 알고리즘이 다름) 같은
-  경향(학생 직업군이 지배적, 생산직·주부는 0건)을 보였다. 공통 검증 게이트
-  (`days=0` 등 범위 밖 값)가 두 도구 모두 동일하게 차단하는 것도 확인했다.
-- 환경별 설정: `application.properties`의 `waste-sim.python.executable`
-  (기본 `python`, 필요시 `WASTE_SIM_PYTHON_EXECUTABLE`로 `python3` 등으로
-  재정의)과 `waste-sim.python.project-root`(기본값은 이 개발 머신의
-  `adev-master` 절대경로 — **다른 환경에서는 `WASTE_SIM_PYTHON_PROJECT_ROOT`로
-  반드시 재설정**)로 뺐다.
+**구현해야 할 것**
 
----
+- **라즈베리파이 쪽(이 저장소 밖)**: YOLO는 객체 "탐지"용이라 부피/적재율을 직접 재지는
+  못한다 — 탐지 박스 수를 세거나 세그멘테이션 면적 비율로 근사하는 별도 후처리가 필요하다.
+  카메라 각도·거리 고정(원근 왜곡 보정)도 필요. HTTP/WebSocket 클라이언트는 네트워크 단절 시
+  로컬 버퍼링·재전송을 갖춰야 한다.
+- **`waste-sim-spring` 쪽**: `McpToolProvider` 구현체(예: `report_bin_fill_level` 도구) +
+  `EdgeObservationService`(신규, `TrafficDataService`와 같은 패턴으로 건물별 최신 관측치를
+  메모리에 보관) + 자체 검증(fill ratio 범위, 신뢰도 임계값, 오래된 관측치 거부).
+- **엔진 쪽 변경이 가장 큰 부분**: 지금 `SimulationEngine.run()`은 매번 `fill[][]`를 0에서
+  시작한다. "실측으로 보정"하려면 (a) 관측된 현재 적재율을 초기 상태로 주입하는 옵션을
+  추가하거나, (b) 고정 시각 수거 스케줄을 "적재율이 임계 이상이면 수거"하는 이벤트 기반
+  동적 디스패치로 바꿔야 한다 — 후자는 `resolveVisitOrder`/`daySlots` 로직을 근본적으로
+  다시 설계하는 큰 작업이라, "수거 차량 동선 재계산"까지 가려면 후자가 필요하다.
 
-## 7. 참고 — 왜 "Python을 자바 프로세스로 감싸는" 방식을 택했나
+### 6.2 Thermal Throttling 상태 → 시뮬레이션 제어 신호
 
-대안으로 "waste_sim을 완전히 독립된 별도 MCP 서버로 띄우고, Claude 같은 MCP
-클라이언트가 두 서버(Java/Python)에 각각 접속"하는 방식도 가능하다. 이
-방식은 두 시스템을 더 느슨하게 분리할 수 있지만, 지금 채팅 UI가 이미 하나의
-MCP 엔드포인트(`/mcp`)만 바라보도록 만들어져 있어 서버를 두 개로 나누면
-채팅 UI·검증 파이프라인·메트릭이 전부 이중화된다. 지금 규모에서는 위에서
-설명한 "같은 서버 안에서 모델만 갈아끼우는" 어댑터 방식이 더 적은 변경으로
-목표를 달성한다. 향후 모델 수가 많아지고 각각 독립 배포·스케일링이
-필요해지면 그때 별도 MCP 서버 분리를 재검토할 수 있다.
+**필요한 데이터**: RTT(스로틀링까지 남은 시간), TTT(회복 예상 시간), 현재 FPS/클럭,
+throttled 여부, 디바이스 식별자·timestamp.
+
+**구현해야 할 것**
+
+- `McpToolProvider` 구현체(예: `report_edge_thermal_status`) + `EdgeThermalStateService`(§6.1과
+  같은 저장 패턴).
+- `SimulationConfig`에 대응 필드가 전혀 없다 — "샘플링 주기를 낮춘다"를 표현하려면 신규
+  필드(예: `edgeSamplingIntervalMinutes`)가 있어야 하고, 이건 §6.1이 먼저 구현돼 있어야
+  의미가 생긴다(§6.1이 선행 조건).
+- **정책 결정 로직은 반드시 결정론적이어야 한다.** 이 프로젝트의 핵심 원칙(C2: "실행/제어에
+  영향을 주는 결정은 LLM-free·결정론적이어야 한다" — `ExecutionIntentDetector`,
+  `TrafficKeywordDetector` 등 기존 코드 전체가 이 원칙을 지키려고 정규식 기반 판정으로
+  LLM을 배제해 왔다)에 따라, "RTT < 5분이면 샘플링 주기를 2배로 늘린다" 같은 규칙은 LLM
+  판단이 아니라 고정된 if-then 규칙(신규 `EdgeThermalPolicy` 클래스)으로 구현해야 한다.
+- "연산 부하를 자바 백엔드로 Offloading"은 사실상 별개의 큰 작업이다 — 서버가 영상 스트림을
+  받아 YOLO 추론을 대신 수행할 GPU/추론 인프라를 갖춰야 한다는 뜻이라, 이 DEVS 시뮬레이션
+  서버의 역할 범위를 크게 벗어난다. 별개 프로젝트로 분리해 다루는 걸 권한다.
+
+### 6.3 자연어 기반 라즈베리파이 제어 MCP 서버
+
+**필요한 데이터**: 제어 가능 파라미터와 안전 범위(FPS 5~30, CPU 클럭 상한, 냉각팬 PWM
+0~100% 등), 라즈베리파이 실제 제어 인터페이스(`cpufreq` sysfs, 팬 GPIO/PWM, 카메라 FPS API),
+명령 실행 전후 상태 조회 결과.
+
+**구현해야 할 것**
+
+- **완전히 새로운 MCP 서버**(`raspberry-pi-mcp-server`, 신규 저장소) — 라즈베리파이 위에서
+  직접 구동하며 `set_fps_limit`, `set_cooling_fan`, `set_cpu_clock_limit` 등을 노출한다.
+  `McpToolCatalog`/`SimulationModelRegistry` 패턴(도구 하나 추가해도 나머지 코드는 안
+  건드리는 구조)을 참고할 수 있다.
+- 채팅 파이프라인 재사용: 기존 2단계 가드레일(시각 게이트 → 실행의도 → 파라미터 추출)을
+  복제해 `EdgeControlIntentDetector`(신규, 결정론적 정규식 판정) → LLM은 "FPS=15, 팬=100%"
+  같은 숫자 추출만 담당 → 검증기 통과 → 실행 순서로 설계하면 기존 원칙과 일관된다.
+- 검증기(신규, fail-closed): "팬 0%인데 고온 지속" 같은 물리적으로 위험한 명령 조합 차단.
+- **두 MCP 서버의 관계 결정 필요**: 시뮬레이션용(`waste-sim-spring`)과 엣지 제어용
+  (`raspberry-pi-mcp-server`)을 한 채팅 세션에서 같이 쓰려면 클라이언트가 두 서버 모두에
+  연결해 도구를 합쳐 봐야 한다(MCP 표준이 지원하는 멀티 서버 연결 — 프로토콜 차원엔 문제
+  없음). 다만 지금 `ChatController`는 단일 `SimulationTool`만 알고 있어, "엣지 제어 명령"과
+  "시뮬레이션 실행 명령"을 구분해 라우팅하는 로직이 추가로 필요하다.
+
+### 6.4 통합 연구 주제화 (논문 프레이밍)
+
+데이터·코드가 아니라 문서 작업이다 — 위 세 방법 중 적어도 하나가 실제로 동작해 결과 데이터
+(발열-샘플링주기 상관관계, 실측 보정 전후 오차 감소량 등)를 내야 "하드웨어 계층 → 미들웨어
+→ 시뮬레이션 계층" 3단 구조를 실증적으로 뒷받침할 수 있다. 프레이밍만 먼저 확정하고 결과가
+없는 채로 투고하면 "구현 예정"에 머무는 제안서 수준이 되므로, §6.1(가장 구현 부담이 작고
+독립적으로 결과를 낼 수 있음)을 먼저 완성해 실측 데이터를 확보하는 순서를 권한다.
+
+### 6.5 프로젝트 진행 중 반드시 해야 할 것 (지금 안 하면 나중에 못 되돌리는 것들)
+
+`waste-sim-spring` 쪽 코드(§6.1~6.3의 신규 도구·서비스·검증기)는 하드웨어 실험과 별개로
+나중에 언제든 만들 수 있다. 반대로 아래 항목들은 R&E 실험을 실제로 돌리는 지금 시점에
+정해두지 않으면, 실험이 다 끝난 뒤에는 데이터를 다시 모으는 것 말고는 되돌릴 방법이 없다.
+
+- **데이터 스키마·단위를 지금 확정한다**: 적재율은 원시값(박스 수·면적)과 정규화값(0~1)을
+  둘 다 로그에 남긴다. 건물/수거장 식별자는 처음부터 `Node_A`~`Node_D` 라벨을 붙인다. 모든
+  로그의 시각은 NTP 동기화된 하나의 절대시각(ISO 8601)으로 통일한다. 디바이스/실험(run) ID를
+  보드·냉각조건·모델버전(FP32/INT8)별로 매겨 메타데이터로 남긴다.
+- **"동시 관측 세트"를 최소 한 번은 확보한다**: 같은 시간대에 (a) 카메라로 찍은 실제 적재
+  상태와 (b) 수동으로 돌려본 시뮬레이션 예측값을 나란히 기록해두면, 나중에 "보정 전후 오차가
+  얼마나 줄었는지"를 계산할 근거가 생긴다.
+- **정책 규칙의 근거 데이터를 의도적으로 모은다**: 스로틀링 발생 시점과 그 직전 온도·클럭
+  변화, 냉각 조건별 안전/불안전 경계 사례(이게 그대로 §6.3 검증기의 허용 범위가 된다),
+  스로틀링 시 FPS가 실제로 몇 % 떨어졌는지(수치로).
+- **통신 프로토타입을 실험 초반에 아주 가볍게라도 검증한다**: 라즈베리파이에서 서버(또는
+  로컬 mock)로 HTTP POST 한 번 왕복시켜본다 — 프로젝트 막바지에 처음 시도하면 네트워크
+  지연·페이로드·인증 문제가 나와도 재실험할 시간이 없다.
+- **인증 체계는 처음부터 최소한이라도 넣는다**: 디바이스마다 고정 API 키 하나씩 요청
+  헤더에 싣는 습관을 들이면, 나중에 검증기를 붙일 때 별도 재작업이 필요 없다.
+
+### 6.6 권장 착수 순서
+
+1. §6.1의 관측 수신 파이프라인만 먼저 구현 — `report_bin_fill_level` 도구 + `EdgeObservationService`
+   + 검증기. 엔진의 초기상태 주입까지는 가지 않고, 우선 "실측 적재율을 받아서 저장·조회할
+   수 있다"는 최소 기능부터 검증한다.
+2. 라즈베리파이 R&E 실험(발열·FPS 측정)이 어느 정도 진행되면 §6.2의
+   `report_edge_thermal_status`를 같은 패턴으로 추가한다 — §6.1과 데이터 흐름이 거의 동일해
+   재사용이 크다.
+3. §6.3(자율 제어)은 안전 검증기 설계가 까다롭고 별도 서버 구축이 필요해 가장 나중으로
+   미루는 걸 권한다 — 물리적 장치(팬, 클럭)를 잘못 제어하면 실제 하드웨어 손상 위험이 있어
+   훨씬 보수적인 검증이 필요하다.
+
+## 7. 참고 — 왜 별도 MCP 서버로 완전히 쪼개지 않았나
+
+대안으로 "waste_sim(Python 엔진)을 완전히 독립된 별도 MCP 서버로 띄우고, MCP 클라이언트가
+Java/Python 두 서버에 각각 접속"하는 방식도 가능했다. 이 방식은 두 시스템을 더 느슨하게
+분리하지만, 지금 채팅 UI가 이미 하나의 MCP 엔드포인트(`/mcp`)만 바라보도록 만들어져 있어
+서버를 두 개로 나누면 채팅 UI·검증 파이프라인·메트릭이 전부 이중화된다. 지금 규모에서는
+"같은 서버 안에서 모델만 갈아끼우는" 어댑터 방식(§2)이 더 적은 변경으로 목표를 달성했다.
+독립 도구(§3)도 같은 이유로 별도 서버 대신 같은 MCP 서버 안의 다른 확장점으로 만들었다 —
+다만 §6.3(라즈베리파이 물리 제어)처럼 아예 다른 하드웨어 위에서 도는 도구는 별도 프로세스
+(별도 MCP 서버)가 자연스러운 예외다. 향후 모델 수가 많아지고 각각 독립 배포·스케일링이
+필요해지면 그때 서버 분리를 재검토할 수 있다.
