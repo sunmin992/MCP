@@ -11,7 +11,7 @@ import java.util.Map;
 
 /**
  * MCP 도구 {@code simulate_edge_throttling} — 보드·냉각·부하·회복 정책을 주면
- * 온도 시계열과 TTT·TED·TRT를 계산해 돌려준다(R&E 실험 설계 §2 측정 지표 전부).
+ * 온도 시계열과 TTT·TED·TRT를 계산해 돌려준다(R&E 실험 설계 §4.5 측정 지표 전부).
  *
  * <p>장량동 쓰레기 도메인과 입력이 전혀 겹치지 않으므로 {@code SimulationModelProvider}가
  * 아니라 {@link McpToolProvider} 확장점을 쓴다(MCP_모델_연결_방법.md §3). 공용
@@ -121,7 +121,7 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         return ToolResult.ok(out);
     }
 
-    /** 실험 설계 §2 지표를 한 덩어리로 모아 학생이 결과지에 바로 옮겨 적을 수 있게 한다. */
+    /** 실험 설계 §4.5 지표를 한 덩어리로 모아 학생이 결과지에 바로 옮겨 적을 수 있게 한다. */
     static Map<String, Object> metrics(ThermalRun run) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("softLimitEntrySec", run.softLimitEntrySec());

@@ -49,7 +49,7 @@ public class ThermalSimulator {
      * 이 시간만큼 <b>연속으로</b> 해제 상태가 유지돼야 회복으로 인정한다.
      */
     public static final double RECOVERY_CONFIRM_SEC = 30.0;
-    /** TRT_service 판정 기준 — 기준 FPS의 90% 복원(실험 설계 §2). */
+    /** TRT_service 판정 기준 — 기준 FPS의 90% 복원(실험 설계 §4.5). */
     public static final double SERVICE_RECOVERY_RATIO = 0.90;
     /** TRT_full 판정 기준 — 유휴 정상상태 온도 + 이 값(℃) 이내. */
     public static final double FULL_RECOVERY_MARGIN_C = 2.0;
