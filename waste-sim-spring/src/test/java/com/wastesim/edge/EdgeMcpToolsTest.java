@@ -24,8 +24,8 @@ class EdgeMcpToolsTest {
 
     private final ObjectMapper om = new ObjectMapper();
     private final EdgeThermalProfileStore store = new EdgeThermalProfileStore();
-    private final SimulateEdgeThrottlingTool throttling = new SimulateEdgeThrottlingTool(store);
-    private final SimulateHeatsinkLayoutTool layout = new SimulateHeatsinkLayoutTool(store);
+    private final SimulateEdgeThrottlingTool throttling = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService());
+    private final SimulateHeatsinkLayoutTool layout = new SimulateHeatsinkLayoutTool(store, new AiLoadProfileService());
     private final CalibrateEdgeThermalModelTool calibrate = new CalibrateEdgeThermalModelTool(store);
 
     private JsonNode json(String s) throws Exception { return om.readTree(s); }

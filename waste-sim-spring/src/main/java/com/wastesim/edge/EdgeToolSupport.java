@@ -79,6 +79,36 @@ final class EdgeToolSupport {
      */
     static ThermalSimulator.Spec spec(EdgeArgs a, BoardType board, ThermalParams p,
                                       double defaultLoadSec, WorkloadMode defaultMode) {
+        return spec(a, board, p, defaultLoadSec, defaultMode, null);
+    }
+
+    /**
+     * {@code aiLoadProfileId}를 읽어 부하 패턴을 찾는다. 지정하지 않았으면 null(상수 부하).
+     *
+     * <p>오타난 id를 조용히 무시하면 "패턴을 넣었다고 믿었는데 실제로는 상수 부하로
+     * 돌아간" 결과를 비교하게 된다 — 방열판 순위 비교에서는 그 차이가 곧 결론을
+     * 뒤집으므로 fail-closed로 거부한다.
+     */
+    static AiLoadProfile aiLoadProfile(EdgeArgs a, AiLoadProfileService service) {
+        String id = a.str("aiLoadProfileId", null);
+        if (id == null || id.isBlank()) return null;
+        AiLoadProfile found = service.find(id);
+        if (found == null) {
+            a.reject(ErrorCode.INVALID_ENUM, "aiLoadProfileId",
+                    "허용되지 않은 값 '" + id + "'. 허용 값: "
+                    + String.join(", ", service.all().stream().map(AiLoadProfile::getId).toList()));
+        }
+        return found;
+    }
+
+    /**
+     * @param aiLoad AI 부하 패턴(선택). 호출측 도구가 {@code aiLoadProfileId}를 읽어
+     *   {@link AiLoadProfileService}로 조회한 결과를 넘긴다 — 프로파일 저장소는 스프링
+     *   빈이라 이 static 헬퍼가 직접 들고 있을 수 없다
+     */
+    static ThermalSimulator.Spec spec(EdgeArgs a, BoardType board, ThermalParams p,
+                                      double defaultLoadSec, WorkloadMode defaultMode,
+                                      AiLoadProfile aiLoad) {
         WorkloadMode mode = a.enumVal("workloadMode", defaultMode, WorkloadMode::parse, MODE_ENUM, false);
         double targetFps = a.dbl("targetFps", Math.min(10.0, p.maxFps()), 0.1, 1000.0);
         double loadSec = a.dbl("loadSeconds", defaultLoadSec, 10.0, 21600.0);
@@ -97,7 +127,7 @@ final class EdgeToolSupport {
         // dt는 시정수보다 훨씬 작아야 적분 오차가 무시된다 — τ/50과 0.5초 중 작은 값, 하한 0.05초.
         double dt = Math.max(0.05, Math.min(0.5, p.tauSeconds() / 50.0));
         return new ThermalSimulator.Spec(p, mode, targetFps, loadSec, policy, recoverySec,
-                recoveryRJa, dt, sampleSec, onThrottle);
+                recoveryRJa, dt, sampleSec, onThrottle, aiLoad);
     }
 
     /** 방열판 후보 하나를 읽는다. 형상·배치·기류·TIM 전부 범위 검증한다. */

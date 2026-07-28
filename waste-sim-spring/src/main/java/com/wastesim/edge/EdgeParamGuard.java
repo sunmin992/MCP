@@ -81,6 +81,33 @@ public final class EdgeParamGuard {
     private static final Pattern R2 = Pattern.compile("(\\br2\\b|저부하|부하.{0,4}(낮|줄)|25\\s*%)", Pattern.CASE_INSENSITIVE);
     private static final Pattern R3 = Pattern.compile("(\\br3\\b|능동\\s*냉각|팬.{0,6}(100|최대|full|켜)|강제\\s*냉각)", Pattern.CASE_INSENSITIVE);
 
+    // ── AI 부하 패턴 ────────────────────────────────────────────────────
+    // 어느 패턴으로 돌렸는지는 "어떤 실험을 돌렸는지"를 바꾸는 값이라(같은 방열판도
+    // 패턴에 따라 순위가 뒤집힌다) 다른 실험 조건과 똑같이 정규식으로 확정한다.
+    //
+    // 셋 다 "부하가 시간에 따라 어떻게 변하는가"를 명시적으로 가리키는 어휘만 넣었다.
+    // "최대 부하"·"고부하"처럼 세기만 말하는 표현은 넣지 않는다 — 그건 workloadMode의
+    // 몫이고, 여기에 넣으면 "최대 처리량으로 돌려줘"가 대조군 패턴을 강제로 켜서
+    // 사용자가 지정하지도 않은 조건이 결과에 붙는다.
+
+    /** 몰렸다 빠지는 짧은 변동. */
+    private static final Pattern LOAD_BURST = Pattern.compile(
+            "(버스트|burst|몰리|몰렸|몰림|간헐|출렁|들쭉|튀는\\s*부하"
+            + "|부하\\s*(변동|진동|스파이크)|스파이크|요청.{0,4}(몰|폭주)|피크\\s*부하)",
+            Pattern.CASE_INSENSITIVE);
+
+    /** 느린 흐름 위에 버스트가 얹힌 실사용형. */
+    private static final Pattern LOAD_MIXED = Pattern.compile(
+            "(혼합\\s*부하|mixed|실사용|실제\\s*(서비스|사용|운영)|하루\\s*(흐름|패턴|주기)"
+            + "|시간대별\\s*부하|데이터\\s*센터\\s*(부하|패턴)|한가.{0,6}피크|피크.{0,6}한가)",
+            Pattern.CASE_INSENSITIVE);
+
+    /** 변동 없는 대조군. "최대로 돌려줘"만으로는 켜지 않는다(그건 이미 기본 동작이다). */
+    private static final Pattern LOAD_STEADY = Pattern.compile(
+            "(일정한?\\s*부하|상수\\s*부하|steady|변동\\s*없|일정하게\\s*(유지|계속)"
+            + "|대조군|부하\\s*패턴\\s*없)",
+            Pattern.CASE_INSENSITIVE);
+
     private static final Pattern AMBIENT = Pattern.compile(
             "(?:실내|주변|상온|기온|외부|환경|ambient)\\s*(?:온도\\s*)?(?:가|는|이)?\\s*(\\d{1,2}(?:\\.\\d)?)\\s*(?:도|℃|°c|c\\b)",
             Pattern.CASE_INSENSITIVE);
@@ -115,6 +142,14 @@ public final class EdgeParamGuard {
 
         if (MAX_MODE.matcher(text).find()) n.put("workloadMode", "max_throughput");
         else if (TARGET_MODE.matcher(text).find()) n.put("workloadMode", "target_fps");
+
+        // AI 부하 패턴 — 구체적인 쪽(혼합 > 버스트 > 일정) 우선. "혼합"은 정의상 버스트를
+        // 품고 있어서 두 어휘가 한 문장에 같이 나오는 일이 잦은데, 그때 원하는 것은
+        // 언제나 더 구체적인 혼합 쪽이다. 부하 패턴은 workloadMode와 독립된 축이라
+        // 둘 다 지정될 수 있고, 그게 정상이다(예: 최대 처리량 + 버스트).
+        if (LOAD_MIXED.matcher(text).find()) n.put("aiLoadProfileId", "mixed");
+        else if (LOAD_BURST.matcher(text).find()) n.put("aiLoadProfileId", "burst");
+        else if (LOAD_STEADY.matcher(text).find()) n.put("aiLoadProfileId", "steady");
 
 
         Matcher amb = AMBIENT.matcher(text);

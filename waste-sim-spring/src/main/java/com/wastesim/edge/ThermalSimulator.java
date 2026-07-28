@@ -75,10 +75,28 @@ public class ThermalSimulator {
      *                      (loadSec은 최대 대기 시간이 된다). 정책끼리 TRT를 비교하려면 모두
      *                      같은 상태(스로틀링 중, ~85℃)에서 출발해야 공정하므로 이 쪽이 기본이다.
      *                      false면 정확히 loadSec 시점에 적용한다
+     * @param aiLoad        AI 데이터센터식 시변 부하 패턴. null이면 부하가 일정하다(기존 동작).
+     *                      {@code mode}와는 <b>독립된 축</b>이다 — 패턴은 "목표를 시각에 따라 몇 %로
+     *                      낼 것인가"라는 배율이라, 목표 FPS 모드에도 최대 처리량 모드에도 똑같이 곱해진다
      */
     public record Spec(ThermalParams params, WorkloadMode mode, double targetFps,
                        double loadSec, RecoveryPolicy policy, double recoverySec,
-                       double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle) {}
+                       double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
+                       AiLoadProfile aiLoad) {
+
+        /** 부하 패턴 없이(상수 부하) 실행하는 기존 형태 — 호출부·테스트 하위호환. */
+        public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
+                    double loadSec, RecoveryPolicy policy, double recoverySec,
+                    double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle) {
+            this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
+                    dtSec, sampleSec, triggerOnThrottle, null);
+        }
+
+        /** 이 시각의 부하 배율(0~1). 패턴이 없으면 항상 1.0이라 기존 동작과 완전히 같다. */
+        double loadLevelAt(double tSec) {
+            return aiLoad == null ? 1.0 : aiLoad.levelAt(tSec);
+        }
+    }
 
     public ThermalRun run(BoardType board, Spec spec) {
         ThermalParams p = spec.params();
@@ -155,15 +173,20 @@ public class ThermalSimulator {
             clockRatio = Math.max(minRatio, Math.min(1.0, clockRatio));
 
             // ── 부하·전력 ─────────────────────────────────────────────────
+            // AI 부하 패턴은 "요구하는 일의 양"에 곱해진다 — 회복 정책(R1 중지 / R2 25%)과는
+            // 곱셈으로 합성되므로, 패턴을 켜도 정책의 의미가 그대로 유지된다.
+            double level = spec.loadLevelAt(t);
             double achievableFps = p.maxFps() * clockRatio;
             double fps, util;
             if (!workloadOn) {
                 fps = 0.0; util = 0.0;
             } else if (spec.mode() == WorkloadMode.TARGET_FPS) {
-                fps = Math.min(effTarget, achievableFps);
-                util = Math.min(1.0, effTarget / Math.max(achievableFps, 1e-9));
+                double demand = effTarget * level;
+                fps = Math.min(demand, achievableFps);
+                util = Math.min(1.0, demand / Math.max(achievableFps, 1e-9));
             } else {
-                fps = achievableFps; util = 1.0;
+                // 최대 처리량 모드에서 배율은 "낼 수 있는 최대의 몇 %를 실제로 내는가"다.
+                fps = achievableFps * level; util = level;
             }
             double powerW = p.idlePowerW() + p.dynamicPowerW() * util * clockRatio;
 
@@ -247,9 +270,31 @@ public class ThermalSimulator {
         // CPU가 목표치를 채우고 남는 시간을 쉬므로 사용률이 100%가 아니고(예: 목표 10FPS,
         // 최대 28FPS면 36%), 최대 처리량 기준으로 계산하면 실제로는 72℃에서 안정될 조건을
         // "110℃까지 오른다"고 보고하게 된다 — 시계열과 요약이 서로 모순되는 결과다.
-        double steady = steadyTempAt(p, spec, 1.0);
-        boolean expected = steady > p.hardLimitC();
-        double softSteady = steadyTempAt(p, spec, p.softFloorRatio());
+        // 부하 패턴이 있으면 정상상태가 하나가 아니다. 보고하는 값은 진동의 중심(평균
+        // 배율)으로 하고, "스로틀링이 일어날 수 있는가"는 상한(최대 배율)으로 판정한다 —
+        // 평균으로 판정하면 피크에서 걸리는 스로틀링을 "안 걸린다"고 잘못 말하게 된다.
+        double meanLevel = spec.aiLoad() == null ? 1.0 : spec.aiLoad().meanLevel();
+        double peakLevel = spec.aiLoad() == null ? 1.0 : spec.aiLoad().peakLevel();
+        double steady = steadyTempAt(p, spec, 1.0, meanLevel);
+        double steadyAtPeak = steadyTempAt(p, spec, 1.0, peakLevel);
+        boolean expected = steadyAtPeak > p.hardLimitC();
+        double softSteady = steadyTempAt(p, spec, p.softFloorRatio(), meanLevel);
+
+        // 부하 패턴을 쓴 경우, 결과를 읽기 전에 "이 패턴이 애초에 차이를 드러낼 수 있는
+        // 시간 규모인가"부터 알려준다. 이게 없으면 느린 패턴을 넣고 "패턴을 넣었는데 왜
+        // 순위가 그대로지?"라고 오해하게 된다(이 실험 설계에서 가장 빠지기 쉬운 함정).
+        if (spec.aiLoad() != null) {
+            AiLoadProfile lp = spec.aiLoad();
+            notes.add(String.format("AI 부하 패턴 '%s' 적용 — 주기 %.0f초, 평균 배율 %.2f, 최대 배율 %.2f.",
+                    lp.getLabel() != null ? lp.getLabel() : lp.getId(),
+                    lp.cycleSeconds(), lp.meanLevel(), lp.peakLevel()));
+            notes.add(lp.timescaleNote(p.tauSeconds()));
+            if (!lp.isConstant()) {
+                notes.add(String.format(
+                        "부하가 오르내리므로 정상상태 온도가 하나로 정해지지 않는다 — 온도는 평균 배율 기준 %.1f℃를 중심으로 진동하며, 최대 배율을 계속 유지했다면 도달했을 상한은 %.1f℃다. 방열판 비교에는 이 진동의 꼭대기(peakTempC)를 쓸 것.",
+                        steady, steadyAtPeak));
+            }
+        }
         if (!expected) {
             notes.add(String.format(
                     "이론 정상상태 온도 %.1f℃ < 하드 제한 %.1f℃ — 이 조건에서는 무한히 돌려도 스로틀링이 발생하지 않는다(TTT 없음).",
@@ -310,16 +355,27 @@ public class ThermalSimulator {
                 series, notes);
     }
 
+    /** 부하 배율 1.0(상수 최대 부하) 기준 — 기존 호출부 하위호환. */
+    static double steadyTempAt(ThermalParams p, Spec spec, double clockRatio) {
+        return steadyTempAt(p, spec, clockRatio, 1.0);
+    }
+
     /**
-     * 주어진 클럭비에서의 이론 정상상태 온도(℃). 목표 FPS 모드는 클럭이 낮아지면
+     * 주어진 클럭비·부하 배율에서의 이론 정상상태 온도(℃). 목표 FPS 모드는 클럭이 낮아지면
      * 오히려 사용률이 올라가(같은 FPS를 내려고 더 오래 돌린다) 소비전력이 단순 비례하지
      * 않으므로, 사용률까지 함께 계산한다.
+     *
+     * <p>부하 패턴을 쓰면 정상상태가 하나로 정해지지 않는다 — 온도가 계속 오르내리므로
+     * "평균 배율에서의 정상상태"(진동의 중심)와 "최대 배율에서의 정상상태"(도달 가능한
+     * 상한) 두 값이 각각 다른 질문에 답한다.
+     *
+     * @param loadLevel 부하 배율 0~1. 1.0이면 패턴 없음과 같다
      */
-    static double steadyTempAt(ThermalParams p, Spec spec, double clockRatio) {
+    static double steadyTempAt(ThermalParams p, Spec spec, double clockRatio, double loadLevel) {
         double achievableFps = p.maxFps() * clockRatio;
         double util = spec.mode() == WorkloadMode.TARGET_FPS
-                ? Math.min(1.0, spec.targetFps() / Math.max(achievableFps, 1e-9))
-                : 1.0;
+                ? Math.min(1.0, spec.targetFps() * loadLevel / Math.max(achievableFps, 1e-9))
+                : loadLevel;
         return p.ambientC() + (p.idlePowerW() + p.dynamicPowerW() * util * clockRatio) * p.rJaKPerW();
     }
 
