@@ -32,8 +32,43 @@ public final class EdgeParamGuard {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
-    private static final Pattern PI4 = Pattern.compile("(pi\\s*4|파이\\s*4|4\\s*b\\b|라즈베리\\s*파이\\s*4)", Pattern.CASE_INSENSITIVE);
-    private static final Pattern PI5 = Pattern.compile("(pi\\s*5|파이\\s*5|라즈베리\\s*파이\\s*5)", Pattern.CASE_INSENSITIVE);
+    /** 두 보드를 나란히 놓는 접속 표현 — "4<b>와</b> 5", "pi4 <b>vs</b> pi5". */
+    private static final String BOARD_JOINER = "(와|과|랑|이랑|vs|대)";
+
+    /**
+     * 보드 언급 패턴. 앞의 네 대안은 이름이 온전히 적힌 경우고, 뒤의 두 대안(lookbehind·
+     * lookahead)이 <b>병렬 표현에서 한쪽이 숫자만 남는 경우</b>를 잡는다.
+     *
+     * <p>왜 필요한가: "라즈베리파이 4와 5"에서 뒤쪽 5는 "파이" 바로 뒤에 있지 않아 기존
+     * {@code 파이\s*5}로는 안 걸린다. 그러면 {@code p4 ^ p5}가 참이 되어 <b>비교 요청이
+     * 단일 Pi4 실행으로 조용히 바뀐다</b> — 실제로 재현된 버그다(두 보드 비교를 물었는데
+     * Pi4 결과 하나만 돌아왔다). 앞쪽만 숫자인 "4와 5 중에 뭐가 더 뜨거워?"도 있어서
+     * lookbehind와 lookahead가 모두 필요하다.
+     *
+     * <p>그냥 {@code \b[45]\b}로 열지 않고 접속 표현으로 좁힌 이유는 "20분", "목표 4 FPS",
+     * "10분과 20분 중" 같은 무관한 숫자를 보드로 오인하지 않기 위해서다.
+     */
+    private static final Pattern PI4 = Pattern.compile(
+            "(pi\\s*4|파이\\s*4|4\\s*b\\b|라즈베리\\s*파이\\s*4"
+            + "|(?<=\\d\\s{0,3}" + BOARD_JOINER + "\\s{0,3})4"
+            + "|4(?=\\s{0,3}" + BOARD_JOINER + "\\s{0,3}\\d))", Pattern.CASE_INSENSITIVE);
+    private static final Pattern PI5 = Pattern.compile(
+            "(pi\\s*5|파이\\s*5|라즈베리\\s*파이\\s*5"
+            + "|(?<=\\d\\s{0,3}" + BOARD_JOINER + "\\s{0,3})5"
+            + "|5(?=\\s{0,3}" + BOARD_JOINER + "\\s{0,3}\\d))", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * 이번 메시지가 <b>두 보드를 비교</b>해 달라는 요청인가.
+     *
+     * <p>{@link #fromText}가 {@code board}를 확정하지 않는 경우는 두 가지다 — 보드를 아예 안
+     * 적었거나, 둘 다 적었거나. 앞의 것은 되물어야 하고 뒤의 것은 <b>두 번 실행</b>해야 하므로
+     * 호출측이 구분할 수 있어야 한다. 판정은 이 프로젝트의 C2 원칙대로 LLM 없이 정규식으로만
+     * 한다 — 같은 문장이 실행할 때마다 다른 실험으로 가면 결과 재현이 불가능해진다.
+     */
+    public static boolean isBoardComparison(String text) {
+        if (text == null || text.isBlank()) return false;
+        return PI4.matcher(text).find() && PI5.matcher(text).find();
+    }
 
     private static final Pattern BARE = Pattern.compile("(무냉각|냉각\\s*없|방열판\\s*없|맨\\s*보드|기본\\s*상태|아무것도\\s*안|bare)", Pattern.CASE_INSENSITIVE);
     private static final Pattern ACTIVE = Pattern.compile("(팬|쿨러|능동\\s*냉각|액티브|active\\s*cool)", Pattern.CASE_INSENSITIVE);

@@ -57,6 +57,55 @@ class DomainRoutingTest {
         assertTrue(isEdge("라즈베리파이 스로틀링 때문에 수거 영상 추론이 밀리는데 방열판 어떻게 붙여?"));
     }
 
+    // ── 루트 시작화면용 3분기 판정(classify) ──────────────────────────────
+    //
+    // detect()는 "엣지가 아니면 장량동"이라는 폴백을 갖고 있는데, 도메인이 아직
+    // 정해지지 않은 시작화면에서는 그 폴백이 틀린다 — 사용자가 고르지도 않은
+    // 도메인으로 조용히 끌려가기 때문이다. classify()는 그 경우를 UNKNOWN으로
+    // 분리해 되물을 수 있게 한다.
+
+    @Test
+    @DisplayName("단서가 없는 첫 메시지는 UNKNOWN — 장량동으로 새지 않는다")
+    void clueslessMessagesAreUnknown() {
+        assertEquals(DomainIntentDetector.Domain.UNKNOWN, DomainIntentDetector.classify("안녕하세요"));
+        assertEquals(DomainIntentDetector.Domain.UNKNOWN, DomainIntentDetector.classify("뭘 할 수 있어?"));
+        assertEquals(DomainIntentDetector.Domain.UNKNOWN, DomainIntentDetector.classify("도와줘"));
+        assertEquals(DomainIntentDetector.Domain.UNKNOWN, DomainIntentDetector.classify(""));
+        assertEquals(DomainIntentDetector.Domain.UNKNOWN, DomainIntentDetector.classify(null));
+    }
+
+    @Test
+    @DisplayName("단서가 있으면 classify도 detect와 같은 쪽으로 간다")
+    void classifyAgreesWithDetectWhenThereIsEvidence() {
+        assertEquals(DomainIntentDetector.Domain.EDGE_THERMAL,
+                DomainIntentDetector.classify("라즈베리파이 5 무냉각으로 20분 돌리면 언제 스로틀링 걸려?"));
+        assertEquals(DomainIntentDetector.Domain.WASTE_SIM,
+                DomainIntentDetector.classify("12시에 수거하면 민원이 몇 건이나 생겨?"));
+        // 동점은 detect()와 같은 기준으로 장량동
+        assertEquals(DomainIntentDetector.Domain.WASTE_SIM,
+                DomainIntentDetector.classify("수거 트럭 경로랑 수거시각 정하는데 바깥 온도도 영향 있어?"));
+    }
+
+    @Test
+    @DisplayName("classify는 절대 null을 반환하지 않는다")
+    void classifyNeverReturnsNull() {
+        String[] samples = {"안녕", "", "발열", "수거", "라즈베리파이 수거 트럭", null};
+        for (String s : samples) {
+            assertNotNull(DomainIntentDetector.classify(s), "입력: " + s);
+        }
+    }
+
+    @Test
+    @DisplayName("기존 detect()의 반환 규약은 그대로다(회귀 방지)")
+    void detectContractUnchanged() {
+        // classify를 추가하면서 detect가 UNKNOWN을 흘리기 시작하면, 이 값을
+        // EDGE_THERMAL과만 비교하는 기존 채팅 파이프라인이 조용히 오동작한다.
+        assertNull(DomainIntentDetector.detect("안녕하세요"));
+        assertNull(DomainIntentDetector.detect("12시에 수거하면 민원이 몇 건이나 생겨?"));
+        assertEquals(DomainIntentDetector.Domain.EDGE_THERMAL,
+                DomainIntentDetector.detect("pi5 스로틀링 언제 걸려?"));
+    }
+
     @Test
     @DisplayName("엣지 요청 안에서 도구 선택도 결정론적으로 갈린다")
     void toolSelectionWithinEdgeDomain() {

@@ -1,6 +1,7 @@
 package com.wastesim.edge;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.wastesim.mcp.McpDomain;
 import com.wastesim.mcp.McpToolProvider;
 import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
@@ -31,6 +32,10 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
     public SimulateEdgeThrottlingTool(EdgeThermalProfileStore profiles) {
         this.profiles = profiles;
     }
+
+
+    /** 장량동 쓰레기 도메인과 무관한 라즈베리파이 엣지 발열 도구 — POST /mcp/edge 에 노출된다. */
+    @Override public McpDomain domain() { return McpDomain.EDGE; }
 
     @Override public String toolName() { return "simulate_edge_throttling"; }
 

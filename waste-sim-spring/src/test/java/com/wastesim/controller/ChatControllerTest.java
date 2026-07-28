@@ -196,7 +196,18 @@ class ChatControllerTest {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * 장량동 화면(/waste)에 있는 사용자가 보낸 메시지를 흉내낸다.
+     *
+     * <p>{@code domain}을 실어 보내는 것이 <b>실제 클라이언트 동작</b>이다 — 브라우저
+     * UI는 도메인이 확정된 뒤 모든 메시지에 현재 화면의 도메인을 붙여 보내고
+     * (js/chat.js#send), 서버는 그 값을 키워드 추측보다 우선한다. 이 필드가 없으면
+     * "12시에 실행해줘"처럼 도메인 어휘가 하나도 없는 문장은 도메인 미정으로
+     * 판정되어 되묻기로 빠지는데, 그건 시작화면에서만 일어나야 하는 동작이다.
+     */
     private ChatMessage userMsg(String text) {
-        return new ChatMessage(ChatMessage.MessageType.USER, text);
+        ChatMessage m = new ChatMessage(ChatMessage.MessageType.USER, text);
+        m.setDomain("waste");
+        return m;
     }
 }

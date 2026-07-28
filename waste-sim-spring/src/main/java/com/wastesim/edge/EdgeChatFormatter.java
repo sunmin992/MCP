@@ -57,6 +57,86 @@ public final class EdgeChatFormatter {
         return sb.toString().trim();
     }
 
+    /**
+     * 보드 비교 — 같은 조건에서 돌린 두 실행 결과를 지표별로 나란히 놓는다.
+     *
+     * <p>공통 조건을 맨 위에 <b>한 번만</b> 적는 것이 이 포맷의 핵심이다. 각 보드 블록마다
+     * 조건을 반복하면 읽는 사람이 "무엇이 통제됐고 무엇이 바뀌었는지"를 매번 대조해야 하는데,
+     * 비교 실험에서 알고 싶은 건 정확히 그 하나(보드)만 달랐다는 사실이기 때문이다.
+     *
+     * <p>맨 아래 해석 한 줄도 서버가 계산한다 — 두 숫자를 나란히 보여주고 "어느 쪽이 더
+     * 뜨거운지"는 사용자가 읽어내라고 두면, 정작 이 도구가 답해야 할 질문("어떻게 다른가")이
+     * 답해지지 않은 채 끝난다.
+     */
+    @SuppressWarnings("unchecked")
+    public static String boardComparison(List<Map<String, Object>> runs) {
+        if (runs == null || runs.size() < 2) return "비교할 결과가 부족합니다.";
+        Map<String, Object> a = runs.get(0), b = runs.get(1);
+        Map<String, Object> ma = (Map<String, Object>) a.get("metrics");
+        Map<String, Object> mb = (Map<String, Object>) b.get("metrics");
+
+        StringBuilder sb = new StringBuilder();
+        sb.append(String.format("보드 비교 — %s vs %s%n", a.get("board"), b.get("board")));
+        sb.append(String.format("공통 조건: %s · %s · 부하 %s초%n%n",
+                coolingKo(str(a, "cooling")), modeKo(str(a, "workloadMode")),
+                fmt(num(a, "loadSeconds"))));
+
+        row(sb, "스로틀링 진입(TTT)", secOrNone(num(ma, "tttSec")), secOrNone(num(mb, "tttSec")));
+        row(sb, "소프트 제한(80℃) 진입", secOrNone(num(ma, "softLimitEntrySec")), secOrNone(num(mb, "softLimitEntrySec")));
+        row(sb, "정상상태 예상 온도", fmt(num(ma, "steadyStateTempC")) + "℃", fmt(num(mb, "steadyStateTempC")) + "℃");
+        row(sb, "최고 관측 온도", fmt(num(ma, "peakTempC")) + "℃", fmt(num(mb, "peakTempC")) + "℃");
+        row(sb, "부하 중 평균 FPS", fmt(num(ma, "meanFpsDuringLoad")), fmt(num(mb, "meanFpsDuringLoad")));
+        row(sb, "FPS 하락", fmt(num(ma, "fpsDropPercent")) + "%", fmt(num(mb, "fpsDropPercent")) + "%");
+        row(sb, "가열 시정수 τ", fmt(num(ma, "tauHeatingSec")) + "초", fmt(num(mb, "tauHeatingSec")) + "초");
+
+        sb.append('\n').append(comparisonVerdict(a, b, ma, mb)).append('\n');
+
+        // 두 실행의 notes를 합치되 중복은 제거한다 — 같은 조건에서 돌렸으므로
+        // "이 조건에서는 스로틀링이 안 걸린다" 같은 문장이 양쪽에 똑같이 붙는 일이 흔하다.
+        java.util.LinkedHashSet<String> merged = new java.util.LinkedHashSet<>();
+        for (Map<String, Object> run : runs) {
+            List<String> notes = (List<String>) run.get("notes");
+            if (notes != null) merged.addAll(notes);
+        }
+        appendNotes(sb, new java.util.ArrayList<>(merged));
+        return sb.toString().trim();
+    }
+
+    /** 두 보드가 실제로 어떻게 갈렸는지 한 줄로 결론 내린다. */
+    private static String comparisonVerdict(Map<String, Object> a, Map<String, Object> b,
+                                            Map<String, Object> ma, Map<String, Object> mb) {
+        Double tA = num(ma, "tttSec"), tB = num(mb, "tttSec");
+        Double sA = num(ma, "steadyStateTempC"), sB = num(mb, "steadyStateTempC");
+        String nameA = String.valueOf(a.get("board")), nameB = String.valueOf(b.get("board"));
+
+        // 정상상태 온도는 항상 계산되지만, 없을 때 산술로 NPE를 내느니 비교를 포기한다 —
+        // 표는 이미 위에 찍혔으므로 해석 한 줄이 빠지는 게 예외보다 낫다.
+        if (sA == null || sB == null) return "→ 두 실행의 정상상태 온도를 비교할 수 없습니다.";
+
+        if (tA != null && tB != null) {
+            String faster = tA < tB ? nameA : nameB;
+            return String.format("→ %s가 %s초 먼저 스로틀링에 걸린다(%s초 vs %s초). 정상상태 온도는 %s℃ 차이.",
+                    faster, fmt(Math.abs(tA - tB)), fmt(tA), fmt(tB), fmt(Math.abs(sA - sB)));
+        }
+        if (tA == null && tB == null) {
+            String hotter = sA > sB ? nameA : nameB;
+            return String.format("→ 이 조건에서는 양쪽 다 스로틀링에 걸리지 않는다. 다만 %s가 %s℃ 더 뜨겁게 안정된다(%s℃ vs %s℃) — "
+                    + "차이를 드러내려면 무냉각·최대 처리량으로 바꾸거나 주변 온도를 올려야 한다.",
+                    hotter, fmt(Math.abs(sA - sB)), fmt(sA), fmt(sB));
+        }
+        String throttled = tA != null ? nameA : nameB;
+        String safe = tA != null ? nameB : nameA;
+        return String.format("→ 같은 조건인데 %s만 스로틀링에 걸리고 %s는 걸리지 않는다 — 이 조건이 두 보드의 경계선이다.",
+                throttled, safe);
+    }
+
+    /** 지표 한 줄: 라벨과 두 값. */
+    private static void row(StringBuilder sb, String label, String left, String right) {
+        sb.append(String.format("· %s: %s / %s%n", label, left, right));
+    }
+
+    private static String secOrNone(Double v) { return v == null ? "발생 안 함" : fmt(v) + "초"; }
+
     /** {@code simulate_heatsink_layout} 결과 요약 — 순위표. */
     @SuppressWarnings("unchecked")
     public static String heatsink(Map<String, Object> out) {

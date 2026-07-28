@@ -173,6 +173,85 @@ class EdgeChatRoutingTest {
         assertTrue(withProfile.contains("pi5-passive-26C"));
     }
 
+    // ── 보드 비교 ──────────────────────────────────────────────────────────
+    //
+    // 실제로 재현된 버그: "라즈베리파이 4와 5의 발열 특성이 어떻게 다른지 설명해줘"를
+    // 보냈더니 Pi4 결과 하나만 돌아왔다. 원인은 PI5 정규식이 "파이" 바로 뒤의 5만
+    // 찾아서 뒤쪽 보드를 놓쳤고, 그 결과 p4^p5가 참이 되어 board=pi4로 확정된 것이다.
+    // 비교 요청이 "틀린 답"이 아니라 "다른 실험"으로 조용히 바뀌는 게 가장 위험하다.
+
+    @Test
+    @DisplayName("두 보드를 나란히 적으면 한쪽으로 확정하지 않는다(비교 요청)")
+    void parallelBoardMentionIsNotResolvedToOne() {
+        String[] comparisons = {
+                "라즈베리파이 4와 5의 발열 특성이 어떻게 다른지 설명해줘",
+                "라즈베리파이4와 5 비교해줘",
+                "Pi4 vs Pi5",
+                "pi4랑 pi5 차이가 뭐야",
+                "4와 5 중에 뭐가 더 뜨거워?",
+                "5랑 4 비교",
+                "4 대 5 비교해줘"
+        };
+        for (String text : comparisons) {
+            assertTrue(EdgeParamGuard.isBoardComparison(text), "비교로 판정돼야 한다: " + text);
+            assertFalse(EdgeParamGuard.fromText(text).hasNonNull("board"),
+                    "한쪽 보드로 확정하면 안 된다: " + text);
+        }
+    }
+
+    @Test
+    @DisplayName("보드가 하나만 나오면 비교가 아니라 그 보드로 확정한다(회귀 방지)")
+    void singleBoardStillResolves() {
+        assertFalse(EdgeParamGuard.isBoardComparison("라즈베리파이 5 무냉각으로 20분 돌리면 언제 스로틀링 걸려?"));
+        assertEquals("pi5", EdgeParamGuard.fromText("라즈베리파이 5 무냉각으로 20분").path("board").asText());
+        assertEquals("pi4", EdgeParamGuard.fromText("pi4에 방열판 달면 온도 얼마나 내려가?").path("board").asText());
+    }
+
+    @Test
+    @DisplayName("보드와 무관한 숫자를 보드로 오인하지 않는다")
+    void unrelatedNumbersAreNotBoards() {
+        String[] notBoards = {
+                "주변 온도 25도에서 20분 측정",
+                "목표 4 FPS로 돌려줘",
+                "10분과 20분 중 뭐가 나아?",
+                "SoC 온도가 85도 넘으면 FPS가 얼마나 떨어져?"
+        };
+        for (String text : notBoards) {
+            assertFalse(EdgeParamGuard.isBoardComparison(text), "비교가 아니어야 한다: " + text);
+            assertFalse(EdgeParamGuard.fromText(text).hasNonNull("board"), "보드가 없어야 한다: " + text);
+        }
+    }
+
+    @Test
+    @DisplayName("보드 비교 결과에 두 보드가 모두 나오고, 공통 조건은 한 번만 나온다")
+    void boardComparisonShowsBothBoards() throws Exception {
+        // ChatController#runEdgeComparison이 하는 일을 그대로 재현 — board만 바꿔 두 번 실행
+        String base = "{\"cooling\":\"bare\",\"workloadMode\":\"max_throughput\",\"loadSeconds\":1200,\"includeSeries\":false,\"board\":\"%s\"}";
+        List<Map<String, Object>> runs = List.of(
+                run(String.format(base, "pi4")), run(String.format(base, "pi5")));
+
+        String text = EdgeChatFormatter.boardComparison(runs);
+        assertTrue(text.contains("Raspberry Pi 4B"), "Pi4가 나와야 한다:\n" + text);
+        assertTrue(text.contains("Raspberry Pi 5"), "Pi5가 나와야 한다:\n" + text);
+        assertTrue(text.contains("정상상태 예상 온도"), "지표가 나란히 나와야 한다");
+        assertTrue(text.contains("→"), "어떻게 다른지 결론 한 줄이 있어야 한다");
+        // 공통 조건은 헤더에 한 번만 — 보드마다 반복되면 무엇이 통제됐는지 흐려진다
+        assertEquals(1, text.split("공통 조건", -1).length - 1);
+    }
+
+    @Test
+    @DisplayName("비교 실행은 보드 외 조건이 완전히 같아야 성립한다")
+    void comparisonControlsEverythingButBoard() throws Exception {
+        String base = "{\"cooling\":\"bare\",\"workloadMode\":\"max_throughput\",\"ambientTempC\":30,\"loadSeconds\":900,\"includeSeries\":false,\"board\":\"%s\"}";
+        Map<String, Object> pi4 = run(String.format(base, "pi4"));
+        Map<String, Object> pi5 = run(String.format(base, "pi5"));
+
+        assertEquals(pi4.get("cooling"), pi5.get("cooling"));
+        assertEquals(pi4.get("workloadMode"), pi5.get("workloadMode"));
+        assertEquals(pi4.get("loadSeconds"), pi5.get("loadSeconds"));
+        assertNotEquals(pi4.get("board"), pi5.get("board"), "보드만 달라야 한다");
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> run(String argsJson) throws Exception {
         ToolResult tr = new SimulateEdgeThrottlingTool(store).call(om.readTree(argsJson));

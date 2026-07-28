@@ -8,10 +8,26 @@
 
 ## 1. 현재 구조
 
-`waste-sim-spring`은 하나의 MCP 서버(`POST /mcp`, JSON-RPC 2.0)를 갖고 있다.
+`waste-sim-spring`은 하나의 MCP 서버(JSON-RPC 2.0)를 갖고 있고, **도메인별로 진입점을 나눠**
+노출한다(전부 같은 프로세스·포트 8090).
 
-- `McpController` — `initialize`/`tools/list`/`tools/call`/`ping` 처리.
-- `McpToolCatalog` — 도구 목록·JSON Schema 정의.
+| 엔드포인트 | 노출 범위 |
+|---|---|
+| `POST /mcp` | 허브 — 모든 도메인의 도구. 도메인 분리 이전부터 쓰던 주소라 그대로 유지(하위호환) |
+| `POST /mcp/waste` | 장량동 수거 시뮬레이션 도구만 |
+| `POST /mcp/edge` | 라즈베리파이 엣지 발열 도구만 |
+
+도메인 목록은 `McpDomain` enum 하나가 갖고 있고, 어떤 도구가 어느 도메인인지는 **도구 자신이**
+`domain()`으로 선언한다. `McpToolCatalog`가 그 값으로 `tools/list`를 필터링하고, `tools/call`도
+같은 기준으로 막는다 — 목록만 가리고 실행을 열어두면 이름만 아는 클라이언트가 아무
+엔드포인트에서나 남의 도메인 도구를 부를 수 있어, 분리가 표시상의 구분에 그치기 때문이다.
+
+같은 `McpDomain.slug()` 값이 웹 UI 경로(`localhost:8090/waste`, `/edge`)와 WebSocket 채팅
+메시지의 `domain` 필드에도 그대로 쓰인다. 셋이 한 곳에서 나오므로 서로 어긋날 수 없다.
+
+- `McpController` — `initialize`/`tools/list`/`tools/call`/`ping` 처리. 허브·도메인 엔드포인트가 같은 `dispatch()`를 공유한다.
+- `McpDomain` — 도메인 목록(slug·label·설명). 도메인 추가 시 여기에 한 줄 넣으면 MCP 엔드포인트와 웹 경로가 동시에 생긴다.
+- `McpToolCatalog` — 도구 목록·JSON Schema 정의 + 도메인 필터링(`toolsList(mapper, domain)`, `belongsTo`).
 - `SimulationTool` — 검증(`SimulationConfigValidator`) → 실행을 캡슐화하는 파사드. MCP·REST·채팅 세 진입점이 전부 이 한 곳만 호출한다.
 - `SimulationEngine` — 장량동 쓰레기 시뮬레이션을 실제로 계산하는 Java 이벤트 큐 엔진.
 

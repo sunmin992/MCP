@@ -30,7 +30,16 @@ public final class DomainIntentDetector {
 
     private DomainIntentDetector() {}
 
-    public enum Domain { WASTE_SIM, EDGE_THERMAL }
+    public enum Domain {
+        WASTE_SIM,
+        EDGE_THERMAL,
+        /**
+         * 어느 도메인인지 판단할 근거가 없음 — 양쪽 키워드가 모두 0개.
+         * 예: "안녕하세요", "뭘 할 수 있어?". {@link #classify}만 반환하며,
+         * 하위호환용 {@link #detect}는 이 값을 절대 내지 않는다.
+         */
+        UNKNOWN
+    }
 
     /** 라즈베리파이 엣지 발열 도메인 어휘. */
     private static final Pattern EDGE = Pattern.compile(
@@ -50,6 +59,9 @@ public final class DomainIntentDetector {
             Pattern.CASE_INSENSITIVE);
 
     /**
+     * <b>기존 2분기 판정</b>(하위호환) — 엣지가 아니면 전부 장량동으로 흘려보낸다.
+     * 이미 도메인이 확정된 화면(/waste, /edge) 안에서의 라우팅은 이 동작이 맞다.
+     *
      * @return 이번 메시지가 명백히 엣지 도메인이면 {@link Domain#EDGE_THERMAL},
      *         그 외에는 {@code null}(= 기존 장량동 파이프라인이 그대로 처리).
      */
@@ -58,6 +70,35 @@ public final class DomainIntentDetector {
         int edge = count(EDGE, text);
         if (edge == 0) return null;
         return edge > count(WASTE, text) ? Domain.EDGE_THERMAL : null;
+    }
+
+    /**
+     * <b>3분기 판정</b> — 도메인이 아직 정해지지 않은 <b>루트 시작화면</b>에서 쓴다.
+     * {@link #detect}와 달리 {@code null}을 반환하지 않고 세 값 중 하나를 낸다.
+     *
+     * <p><b>왜 별도 메서드인가</b>: {@link #detect}는 "엣지가 아니면 장량동"이라는
+     * 폴백이 내장돼 있는데, 이건 장량동 화면 안에서는 옳지만 도메인 중립 시작화면에서는
+     * 틀린다 — "안녕하세요"처럼 아무 단서 없는 첫 메시지가 조용히 장량동 시뮬레이터로
+     * 빨려 들어가 사용자가 고르지도 않은 도메인에 갇히기 때문이다. 그렇다고
+     * {@link #detect}의 반환 규약을 바꾸면 이미 그 폴백에 의존하는 채팅 파이프라인
+     * 전체가 영향을 받으므로(회귀 위험), 기존 메서드는 그대로 두고 시작화면 전용
+     * 판정을 따로 둔다.
+     *
+     * <p>판정 규칙:
+     * <ul>
+     *   <li>양쪽 키워드 0개 → {@link Domain#UNKNOWN} (되물어야 함)</li>
+     *   <li>엣지가 더 많음 → {@link Domain#EDGE_THERMAL}</li>
+     *   <li>그 외(장량동이 더 많거나 동점) → {@link Domain#WASTE_SIM}</li>
+     * </ul>
+     * 동점을 장량동으로 보내는 것은 {@link #detect}와 같은 기준이다 — 두 도메인
+     * 어휘가 같은 수로 섞인 문장은 기존 동작과 어긋나지 않게 유지한다.
+     */
+    public static Domain classify(String text) {
+        if (text == null || text.isBlank()) return Domain.UNKNOWN;
+        int edge = count(EDGE, text);
+        int waste = count(WASTE, text);
+        if (edge == 0 && waste == 0) return Domain.UNKNOWN;
+        return edge > waste ? Domain.EDGE_THERMAL : Domain.WASTE_SIM;
     }
 
     /** 진단·테스트용 — 어떤 근거로 그렇게 판정했는지 볼 수 있게 점수를 그대로 노출한다. */

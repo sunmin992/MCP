@@ -31,4 +31,17 @@ public interface SimulationModelProvider {
 
     /** 검증을 통과한 설정으로 실제 시뮬레이션을 실행한다. */
     ToolResult run(SimulationConfig cfg);
+
+    /**
+     * 이 모델이 속한 도메인 — {@code POST /mcp/{slug}} 엔드포인트와 tools/list
+     * 필터링에 쓰인다({@link McpDomain}).
+     *
+     * <p>기본값이 {@link McpDomain#WASTE}인 것은 편의가 아니라 <b>구조적 사실</b>이다.
+     * 이 인터페이스는 입력이 {@link SimulationConfig}(수거 시각·트럭·민원 임계 등
+     * 장량동 전용 스키마)로 고정돼 있어, 여기 꽂히는 모델은 정의상 장량동 계열이다.
+     * 다른 도메인의 모델은 이 슬롯이 아니라 {@link McpToolProvider}로 붙는다.
+     */
+    default McpDomain domain() {
+        return McpDomain.WASTE;
+    }
 }

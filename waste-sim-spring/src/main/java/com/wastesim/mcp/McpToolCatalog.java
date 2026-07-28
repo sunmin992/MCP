@@ -103,28 +103,75 @@ public class McpToolCatalog {
             """;
 
     /** tools/list 결과 노드 { "tools": [ ... ] } */
+    /**
+     * 등록된 <b>모든</b> 도메인의 도구를 노출한다 — 허브 엔드포인트({@code POST /mcp})용.
+     * 도메인 분리 이전부터 있던 시그니처를 그대로 두어 기존 MCP 클라이언트·스크립트가
+     * 손대지 않아도 계속 동작하게 한다.
+     */
     public ObjectNode toolsList(ObjectMapper m) throws Exception {
+        return toolsList(m, null);
+    }
+
+    /**
+     * 한 도메인의 도구만 노출한다 — {@code POST /mcp/{slug}} 엔드포인트용.
+     *
+     * @param domain 노출할 도메인. {@code null}이면 필터 없이 전부(허브와 동일).
+     */
+    public ObjectNode toolsList(ObjectMapper m, McpDomain domain) throws Exception {
         ArrayNode tools = m.createArrayNode();
         for (SimulationModelProvider provider : models.all()) {
-            tools.add(descriptor(m, provider.toolName(), provider.description(), provider.inputSchemaJson()));
+            if (matches(domain, provider.domain())) {
+                tools.add(descriptor(m, provider.toolName(), provider.description(), provider.inputSchemaJson()));
+            }
         }
         // 장량동 도메인과 무관한 독립 도구/모델(McpToolProvider) — 등록된 게 없으면
         // 이 루프는 그냥 아무 일도 안 한다(엣지_라즈베리파이_MCP_연동_방법.md 참고).
         for (McpToolProvider provider : independentTools.all()) {
-            tools.add(descriptor(m, provider.toolName(), provider.description(), provider.inputSchemaJson()));
+            if (matches(domain, provider.domain())) {
+                tools.add(descriptor(m, provider.toolName(), provider.description(), provider.inputSchemaJson()));
+            }
         }
-        tools.add(descriptor(m, "run_scenario",
-                "다중 트럭·분리배출·거주민 구성 등 복잡한 정책 시나리오 실험을 실행한다.",
-                RUN_SCENARIO_SCHEMA));
-        tools.add(descriptor(m, "list_scenarios",
-                "지원하는 시나리오 실험 유형 목록을 반환한다.",
-                EMPTY_SCHEMA));
-        tools.add(descriptor(m, "update_route_sequence",
-                "기존 base 설정에 수거장 방문 순서만 갈아끼워 재실행한다(동적 라우팅 — 정체 구역 우회).",
-                UPDATE_ROUTE_SCHEMA));
+        // 아래 셋은 프로바이더 인터페이스를 거치지 않고 SimulationTool이 직접 처리하는
+        // 장량동 고정 도구다 — 레지스트리에 없으므로 도메인도 여기서 직접 못 박는다.
+        if (matches(domain, McpDomain.WASTE)) {
+            tools.add(descriptor(m, "run_scenario",
+                    "다중 트럭·분리배출·거주민 구성 등 복잡한 정책 시나리오 실험을 실행한다.",
+                    RUN_SCENARIO_SCHEMA));
+            tools.add(descriptor(m, "list_scenarios",
+                    "지원하는 시나리오 실험 유형 목록을 반환한다.",
+                    EMPTY_SCHEMA));
+            tools.add(descriptor(m, "update_route_sequence",
+                    "기존 base 설정에 수거장 방문 순서만 갈아끼워 재실행한다(동적 라우팅 — 정체 구역 우회).",
+                    UPDATE_ROUTE_SCHEMA));
+        }
         ObjectNode result = m.createObjectNode();
         result.set("tools", tools);
         return result;
+    }
+
+    /** 필터가 없거나(허브) 도메인이 일치하면 노출 대상. */
+    private static boolean matches(McpDomain filter, McpDomain toolDomain) {
+        return filter == null || filter == toolDomain;
+    }
+
+    /**
+     * 어떤 도구 이름이 주어진 도메인에 속하는지 — {@code POST /mcp/{slug}}의
+     * tools/call이 <b>남의 도메인 도구를 실행하지 못하게</b> 막는 데 쓴다.
+     *
+     * <p>tools/list만 필터링하고 call은 열어두면, 목록에 안 보일 뿐 이름만 알면
+     * 아무 엔드포인트에서나 실행할 수 있다 — 도메인 분리가 표시상의 구분에
+     * 그치고 실제 경계가 되지 못한다. 이 프로젝트가 파라미터 검증에서 취한 태도
+     * (잘못된 호출은 연산에 도달하기 전에 구조적으로 차단)를 그대로 적용한다.
+     */
+    public boolean belongsTo(String toolName, McpDomain domain) {
+        if (domain == null) return true; // 허브는 전부 허용
+        SimulationModelProvider model = models.byToolName(toolName);
+        if (model != null) return model.domain() == domain;
+        McpToolProvider indep = independentTools.byToolName(toolName);
+        if (indep != null) return indep.domain() == domain;
+        // 레지스트리에 없는 이름 = 위 고정 장량동 도구이거나 오타. 전자만 통과시키고
+        // 후자는 어차피 McpController가 "알 수 없는 도구"로 떨어뜨린다.
+        return domain == McpDomain.WASTE;
     }
 
     /** list_scenarios 도구 호출 결과(CallToolResult content). */
