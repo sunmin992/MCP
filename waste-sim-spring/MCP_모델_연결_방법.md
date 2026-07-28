@@ -8,10 +8,26 @@
 
 ## 1. 현재 구조
 
-`waste-sim-spring`은 하나의 MCP 서버(`POST /mcp`, JSON-RPC 2.0)를 갖고 있다.
+`waste-sim-spring`은 하나의 MCP 서버(JSON-RPC 2.0)를 갖고 있고, **도메인별로 진입점을 나눠**
+노출한다(전부 같은 프로세스·포트 8090).
 
-- `McpController` — `initialize`/`tools/list`/`tools/call`/`ping` 처리.
-- `McpToolCatalog` — 도구 목록·JSON Schema 정의.
+| 엔드포인트 | 노출 범위 |
+|---|---|
+| `POST /mcp` | 허브 — 모든 도메인의 도구. 도메인 분리 이전부터 쓰던 주소라 그대로 유지(하위호환) |
+| `POST /mcp/waste` | 장량동 수거 시뮬레이션 도구만 |
+| `POST /mcp/edge` | 라즈베리파이 엣지 발열 도구만 |
+
+도메인 목록은 `McpDomain` enum 하나가 갖고 있고, 어떤 도구가 어느 도메인인지는 **도구 자신이**
+`domain()`으로 선언한다. `McpToolCatalog`가 그 값으로 `tools/list`를 필터링하고, `tools/call`도
+같은 기준으로 막는다 — 목록만 가리고 실행을 열어두면 이름만 아는 클라이언트가 아무
+엔드포인트에서나 남의 도메인 도구를 부를 수 있어, 분리가 표시상의 구분에 그치기 때문이다.
+
+같은 `McpDomain.slug()` 값이 웹 UI 경로(`localhost:8090/waste`, `/edge`)와 WebSocket 채팅
+메시지의 `domain` 필드에도 그대로 쓰인다. 셋이 한 곳에서 나오므로 서로 어긋날 수 없다.
+
+- `McpController` — `initialize`/`tools/list`/`tools/call`/`ping` 처리. 허브·도메인 엔드포인트가 같은 `dispatch()`를 공유한다.
+- `McpDomain` — 도메인 목록(slug·label·설명). 도메인 추가 시 여기에 한 줄 넣으면 MCP 엔드포인트와 웹 경로가 동시에 생긴다.
+- `McpToolCatalog` — 도구 목록·JSON Schema 정의 + 도메인 필터링(`toolsList(mapper, domain)`, `belongsTo`).
 - `SimulationTool` — 검증(`SimulationConfigValidator`) → 실행을 캡슐화하는 파사드. MCP·REST·채팅 세 진입점이 전부 이 한 곳만 호출한다.
 - `SimulationEngine` — 장량동 쓰레기 시뮬레이션을 실제로 계산하는 Java 이벤트 큐 엔진.
 
@@ -86,14 +102,66 @@ public interface McpToolProvider {
 자동 수집)으로 등록된 구현체를 모으고, `McpToolCatalog.toolsList()`·`McpController.callTool()`이
 이 레지스트리도 함께 조회하도록 이미 배선돼 있다.
 
-**현재 상태**: 등록된 구현체가 하나도 없어(빈 리스트) 기존 도구 목록에 영향이 없다 —
-확장점만 준비된 상태. `McpControllerTest`에 가짜 독립 도구(`FakeIndependentTool`)로
-등록·라우팅·검증 미적용을 확인하는 테스트 3개가 있다.
+**현재 상태**: 라즈베리파이 R&E 실험용 엣지 발열 도구 3종이 이 확장점으로 등록돼 있다
+(`com.wastesim.edge` 패키지). `McpControllerTest`에 가짜 독립 도구(`FakeIndependentTool`)로
+등록·라우팅·검증 미적용을 확인하는 테스트 3개가 그대로 남아 있어, 확장점 자체의 계약도
+계속 검증된다.
 
-**나중에 실제 모델을 붙일 때 할 일은 이것뿐이다**: `McpToolProvider`를 구현하는 클래스
-하나(예: `EdgeThrottlingModelAdapter`)를 만들어 `@Component`로 등록하고, 그 안에서 학습된
-모델을 호출(Java로 포팅하거나 `PythonWasteSimAdapter`처럼 서브프로세스로 Python 호출)해
-`ToolResult`로 감싸 반환하면 끝난다. `McpController`·`McpToolCatalog`는 다시 손댈 필요가 없다.
+### 3.1 등록된 구현체 (엣지 발열 도구)
+
+| 구현체 | toolName | 하는 일 |
+|---|---|---|
+| `SimulateEdgeThrottlingTool` | `simulate_edge_throttling` | 열 RC 모델 + 펌웨어 클럭 거버너 상태머신으로 TTT·TED·TRT와 온도/클럭/FPS 시계열 산출 |
+| `SimulateHeatsinkLayoutTool` | `simulate_heatsink_layout` | 방열판 형상·배치·기류에서 R_ja를 계산하고 그 값으로 발열 시뮬레이션까지 돌려 후보 배치를 순위화 |
+| `CalibrateEdgeThermalModelTool` | `calibrate_edge_thermal_model` | 실측 시계열에서 τ_h·τ_c·R_ja·C_th를 역추정하고 실측 TTT/TED/TRT 추출, `profileId`로 저장 |
+
+세 도구는 서로 이어져 있다 — 실측을 캘리브레이션해 얻은 `profileId`를 앞의 두 도구에
+넣으면, 문헌 추정치가 아니라 학생이 직접 잰 보드로 계산한다. 실험 설계·측정 절차·
+로그 스키마는 `RE_엣지_발열실험_설계.md`, 라즈베리파이 측정 스크립트는 `scripts/edge/`에 있다.
+
+### 3.2 채팅(자연어)에서의 도메인 라우팅
+
+MCP 클라이언트(GPT·Claude)는 `tools/list`를 보고 스스로 도구를 고르지만, 이 서버의 자체
+채팅 UI는 그렇지 않다 — `ChatController`의 게이트가 전부 장량동 전제였기 때문에, 채팅으로
+들어온 엣지 요청은 도구를 타지 못하고 일반 답변으로 빠졌다. 그 간극을 도메인 게이트로 메웠다.
+
+```
+사용자 메시지
+   │
+   ├─ DomainIntentDetector (결정론) ── 엣지 어휘가 더 많은가?
+   │        │ 예                                    │ 아니오
+   │        ▼                                       ▼
+   │   EdgeToolSelector (결정론)              기존 장량동 파이프라인
+   │        │  세 도구 중 하나                (시나리오 → 시각 → 실행의도 → …)
+   │        ▼
+   │   GPT: arguments JSON 추출
+   │        ▼
+   │   EdgeParamGuard: 보드·냉각·모드·정책을 이번 메시지 기준으로 덮어씀
+   │        ▼
+   │   McpToolRegistry.byToolName(...).call(args)   ← MCP tools/call과 같은 구현체
+   │        ▼
+   │   EdgeArgs 검증(fail-closed) → EdgeChatFormatter 한국어 요약
+```
+
+설계상 중요한 세 가지.
+
+- **도구 구현체를 공유한다.** 채팅용 계산 경로를 따로 만들지 않았다 — `SimulationTool` 파사드를
+  세 진입점이 공유하는 것과 같은 이유로, "채팅으로 물었을 때와 MCP로 불렀을 때 답이 다른"
+  상황이 생길 수 없다.
+- **도메인·도구 선택은 LLM이 하지 않는다**(C2). 잘못 고르면 엉뚱한 모델이 실행되고, 같은
+  문장이 실행할 때마다 다른 도구로 가면 학생 실험의 재현성이 깨진다.
+- **기존 동작은 그대로다.** `DomainIntentDetector`는 엣지 어휘가 장량동 어휘보다 <b>많을 때만</b>
+  전환한다. 동점이거나 엣지 어휘가 없으면 `null`을 반환해 기존 흐름을 그대로 타므로, 이 게이트가
+  없던 때와 장량동 대화는 완전히 동일하게 동작한다(`DomainRoutingTest`가 회귀를 막는다).
+
+**새 독립 도구를 하나 더 붙일 때 할 일**: `McpToolProvider`를 구현하는 클래스 하나를
+만들어 `@Component`로 등록하고, 그 안에서 모델을 호출(Java로 포팅하거나
+`PythonWasteSimAdapter`처럼 서브프로세스로 Python 호출)해 `ToolResult`로 감싸 반환하면
+끝난다. `McpController`·`McpToolCatalog`는 다시 손댈 필요가 없다.
+
+**검증은 구현체 책임이다**: 공용 `SimulationConfigValidator`를 타지 않으므로, 엣지 도구들은
+`EdgeArgs`(범위·enum·필수 항목을 <b>모아서</b> 검증하고 하나라도 어긋나면 실행 전에
+`ToolResult.rejected`)로 같은 fail-closed 원칙을 스스로 지킨다.
 
 ## 4. 새 모델/도구를 추가하는 표준 절차
 
@@ -110,8 +178,10 @@ public interface McpToolProvider {
 6. **테스트 추가** — 어댑터 단위 테스트(정상/오류/타임아웃) + 필요하면 기존 모델과의 비교
    회귀 테스트.
 7. **채팅 라우팅(선택)** — 사용자가 자연어로 "이 모델로 실행해줘"라고 했을 때 어떤 도구로
-   갈지 결정론적 감지기(`EngineSelectionDetector`와 같은 패턴, 정규식 기반)를 하나 추가한다.
-   LLM이 실행 여부/모델 선택을 직접 판단하게 하지 않는다(C2 원칙 — 아래 §6 참고).
+   갈지 결정론적 감지기(정규식 기반)를 하나 추가한다. LLM이 실행 여부/모델 선택을 직접
+   판단하게 하지 않는다(C2 원칙 — 아래 §6 참고). 같은 도메인의 엔진 변형이면
+   `EngineSelectionDetector`에 키워드를 추가하고, 아예 다른 도메인이면 `DomainIntentDetector`
+   (도메인 판정) + 도메인별 도구 선택기(`EdgeToolSelector` 같은 것)를 §3.2 구조로 하나 더 만든다.
 
 ## 5. 아키텍처 요약도
 
@@ -125,20 +195,28 @@ public interface McpToolProvider {
               ┌─────────────────┼─────────────────────────┐
               │                 │                          │
    SimulationModelRegistry      │                McpToolRegistry
-   (SimulationConfig 기반)      │           (독립 JSON 기반, 등록 0개)
+   (SimulationConfig 기반)      │           (독립 JSON 기반, 엣지 도구 3종)
               │                 │                          │
-     JavaEngineProvider   PythonWasteSimAdapter    (미래: EdgeThrottlingModelAdapter 등)
-     (SimulationEngine)   (ProcessBuilder → python)
+     JavaEngineProvider   PythonWasteSimAdapter    simulate_edge_throttling
+     (SimulationEngine)   (ProcessBuilder → python)  simulate_heatsink_layout
+                                                     calibrate_edge_thermal_model
               │                 │
-     공통: SimulationConfigValidator        각 구현체가 자체 검증
+     공통: SimulationConfigValidator        각 구현체가 자체 검증(EdgeArgs)
      (모델과 무관하게 항상 먼저 검증)
 ```
 
 ## 6. 라즈베리파이 엣지 모델 연동 계획 (§3 McpToolProvider의 구체 적용 사례)
 
 R&E 프로젝트(라즈베리파이 4/5 엣지 AI 발열·소비전력·추론성능 분석)에서 나올 모델·데이터를
-이 시스템에 연결하는 방법을 제안받아 검토한 내용이다. 아래 3가지 방법 모두 아직 실제 모델이
-없어 미착수 상태이며, §3의 `McpToolProvider` 확장점으로 구현하는 것을 전제로 정리했다.
+이 시스템에 연결하는 방법을 제안받아 검토한 내용이다. §3의 `McpToolProvider` 확장점으로
+구현하는 것을 전제로 정리했다.
+
+> **진행 상황(갱신)**: 아래 §6.2에 해당하는 "발열·스로틀링" 쪽은 §3.1 표의 도구 3종으로
+> **구현 완료**됐다. 다만 방향이 조금 다르다 — 원래 구상은 "라즈베리파이가 보낸 상태로
+> 장량동 시뮬레이션의 샘플링 주기를 조절한다"였는데, 실제로 만든 것은 <b>엣지 발열 자체를
+> 시뮬레이션하는 독립 도구</b>다(학생이 하드웨어 없이도 실험을 설계하고, 실측 몇 점으로
+> 나머지 조건을 외삽할 수 있어야 했기 때문). 장량동 엔진과의 결합(§6.1·§6.2의
+> `edgeSamplingIntervalMinutes` 같은 필드)은 여전히 미착수다.
 
 ### 6.1 엣지 카메라 비전 AI → DEVS 시뮬레이션 실측 보정
 

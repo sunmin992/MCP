@@ -17,12 +17,22 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.wastesim.edge.EdgeChatFormatter;
+import com.wastesim.edge.EdgeParamGuard;
+import com.wastesim.edge.EdgeThermalProfileStore;
+import com.wastesim.edge.HeatsinkPresets;
+import com.wastesim.mcp.McpDomain;
+import com.wastesim.mcp.McpToolProvider;
+import com.wastesim.mcp.McpToolRegistry;
 import com.wastesim.model.ChatMessage;
 import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.model.TrafficProfile;
 import com.wastesim.model.TruckType;
+import com.wastesim.service.DomainIntentDetector;
+import com.wastesim.service.EdgeToolSelector;
 import com.wastesim.service.EngineSelectionDetector;
 import com.wastesim.service.ExecutionIntentDetector;
 import com.wastesim.service.JailbreakFilter;
@@ -55,6 +65,11 @@ public class ChatController {
     private final SimulationTool tool;
     private final MeterRegistry metrics;
     private final TrafficDataService trafficData;
+    /** 장량동과 무관한 독립 도구(라즈베리파이 엣지 발열 3종)를 이름으로 찾기 위한 레지스트리. */
+    private final McpToolRegistry independentTools;
+    private final EdgeThermalProfileStore edgeProfiles;
+    private final com.fasterxml.jackson.databind.ObjectMapper edgeMapper =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록).
     //
@@ -72,6 +87,11 @@ public class ChatController {
     // (EngineSelectionDetector — 어떤 엔진으로 실행할지도 D-03처럼 이번 메시지
     // 기준으로만 판정하고, 확인 대기 동안에는 그 판정을 그대로 들고 있는다).
     private final Map<String, String> pendingModelIds = new ConcurrentHashMap<>();
+    // 세션이 마지막으로 확정한 도메인(sessionId → Domain). 클라이언트가 domain을
+    // 실어 보내지 않는 경우에만 쓰이는 폴백이다 — 브라우저 UI는 항상 실어 보내므로
+    // 여기에 의존하지 않지만, 스크립트나 예전 클라이언트에서 도메인 어휘가 없는
+    // 후속 메시지("12시에 실행해줘")가 계속 되물음에 걸리는 걸 막는다.
+    private final Map<String, DomainIntentDetector.Domain> sessionDomains = new ConcurrentHashMap<>();
     // DESIGN_DECISIONS.md D-06(실행 중 재요청은 순차 처리) — 세션이 하나뿐이므로
     // (D-05) 전역 락 하나로 충분하다. 세션 분리 시 sessionId별 락으로 승격.
     private final Object sessionLock = new Object();
@@ -80,12 +100,16 @@ public class ChatController {
                           OpenAiService openAiService,
                           SimulationTool tool,
                           MeterRegistry metrics,
-                          TrafficDataService trafficData) {
+                          TrafficDataService trafficData,
+                          McpToolRegistry independentTools,
+                          EdgeThermalProfileStore edgeProfiles) {
         this.messaging = messaging;
         this.openAiService = openAiService;
         this.tool = tool;
         this.metrics = metrics;
         this.trafficData = trafficData;
+        this.independentTools = independentTools;
+        this.edgeProfiles = edgeProfiles;
     }
 
     @MessageMapping("/chat.send")
@@ -105,11 +129,43 @@ public class ChatController {
 
         String userText = incoming.getContent();
 
+        // 1.0단계 — 도메인 확정. echo보다 먼저 하는 이유: 확정 결과를 echo 메시지에
+        // 실어 보내야 클라이언트가 답변이 도착하기 전에 사이드바·URL을 전환할 수
+        // 있다. 나중에 실으면 화면이 장량동인 채로 엣지 답변이 먼저 그려진다.
+        //
+        // 클라이언트가 도메인을 실어 보냈으면(= 사용자가 시작화면에서 골랐거나
+        // 이미 /waste·/edge 화면에 있음) 그 값이 키워드 추측을 이긴다.
+        DomainIntentDetector.Domain domain = resolveDomain(sessionId, incoming.getDomain(), userText);
+
         // 1. 사용자 메시지 echo
         ChatMessage userMsg = new ChatMessage(ChatMessage.MessageType.USER, userText);
+        userMsg.setDomain(slugOf(domain));
         messaging.convertAndSend("/topic/messages", userMsg);
 
         try {
+            // 1.4단계 — 도메인 게이트(결정론, LLM 미사용). 이 MCP 서버는 장량동
+            // 쓰레기 모델과 라즈베리파이 엣지 발열 모델을 함께 들고 있고, 사용자
+            // 요청이 둘 중 어디로 가야 하는지를 여기서 확정한다.
+            //
+            // 아래 장량동 게이트들보다 먼저 검사하는 이유: 엣지 요청에도 "배치",
+            // "비교" 같은 단어가 흔히 섞여 시나리오 게이트에 잘못 걸릴 수 있다.
+            // 반대 방향의 오탐(장량동 요청이 엣지로 새는 것)은 DomainIntentDetector가
+            // 양쪽 키워드 수를 비교해 막는다 — 엣지 키워드가 더 많을 때만 전환하므로
+            // 기존 장량동 대화는 이 게이트가 없던 때와 완전히 동일하게 동작한다.
+            //
+            // 도메인 자체는 위 1.0단계에서 이미 확정했다(echo에 실어 보내야 해서).
+            if (domain == DomainIntentDetector.Domain.UNKNOWN) {
+                // 도메인 중립 시작화면에서 단서 없는 첫 메시지 — 장량동으로 흘려보내지
+                // 않고 되묻는다. 여기서 폴백하면 사용자가 고르지도 않은 도메인의
+                // 시뮬레이터에 갇힌다(DomainIntentDetector#classify 주석 참고).
+                askWhichDomain(history, userText);
+                return;
+            }
+            if (domain == DomainIntentDetector.Domain.EDGE_THERMAL) {
+                runEdgeTool(userText, history);
+                return;
+            }
+
             // 1.5. 시나리오 실험 게이트(결정론, LLM 미사용) — 사이드바 "시나리오
             // 실험" 버튼 11종과 동일한 요청을 자연어로도 받는다
             // (ScenarioIntentDetector). 단일 실행(0/1단계)보다 먼저 검사한다 —
@@ -307,6 +363,10 @@ public class ChatController {
             histories.clear();
             pendingConfigs.clear();
             pendingModelIds.clear();
+            // 기억해 둔 도메인도 함께 지운다 — 대화를 초기화했는데 이전 도메인이
+            // 남아 있으면, 클라이언트가 도메인을 안 보내는 경우 "새 대화"가 예전
+            // 도메인으로 조용히 이어진다.
+            sessionDomains.clear();
         }
         ChatMessage sysMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM, "대화 이력이 초기화되었습니다.");
         messaging.convertAndSend("/topic/messages", sysMsg);
@@ -322,6 +382,198 @@ public class ChatController {
      * 조정할지"는 필요하면 사이드바 버튼(또는 REST)에서 직접 조정하는 역할
      * 분담이다.
      */
+    /**
+     * 라즈베리파이 엣지 발열 도메인 요청을 처리한다 — MCP {@code tools/call}과 <b>같은
+     * 도구 구현체</b>({@link McpToolProvider})를 그대로 호출한다. 채팅용 계산 경로를 따로
+     * 두지 않는 것이 중요하다: 그러면 "채팅으로 물었을 때와 MCP로 불렀을 때 답이 다른"
+     * 상황이 원천적으로 생기지 않는다(SimulationTool 파사드를 세 진입점이 공유하는 것과
+     * 같은 이유).
+     *
+     * <p>인자를 만드는 순서가 이 메서드의 핵심이다.
+     * <ol>
+     *   <li>{@link EdgeToolSelector} — 어느 도구인지 결정론적으로 확정(LLM 아님)</li>
+     *   <li>{@link OpenAiService#extractEdgeParams} — GPT가 숫자·enum을 JSON으로 추출</li>
+     *   <li>{@link EdgeParamGuard} — 실험 조건을 좌우하는 필드는 이번 메시지 기준으로 덮어씀</li>
+     *   <li>도구의 자체 검증({@code EdgeArgs}) — 범위 밖이면 실행 없이 거부(fail-closed)</li>
+     * </ol>
+     */
+    /**
+     * 이번 메시지를 어느 도메인으로 보낼지 확정한다.
+     *
+     * <p><b>클라이언트가 실어 보낸 도메인이 항상 이긴다.</b> 사용자가 시작화면에서
+     * 카드를 고르거나 {@code /waste}·{@code /edge} 화면에 들어와 있으면 화면 자체가
+     * 명시적 선언이므로, 서버가 문장 어휘로 그 선택을 뒤집으면 안 된다 — 엣지 화면에서
+     * "수거 트럭 영상 추론할 때 발열"처럼 양쪽 어휘가 섞인 문장을 쳤을 때 화면과 다른
+     * 도메인의 답이 돌아오면 사용자는 방금 한 선택이 무시됐다고 느낀다.
+     *
+     * <p>도메인이 없을 때(= 루트 시작화면의 첫 메시지)만 키워드로 판정하며, 이때는
+     * 장량동 폴백이 없는 {@link DomainIntentDetector#classify}를 쓴다.
+     *
+     * @param clientDomain 클라이언트가 보낸 슬러그({@code "waste"}/{@code "edge"}), 없으면 {@code null}
+     * @return 세 값 중 하나. {@code null}은 반환하지 않는다.
+     */
+    private DomainIntentDetector.Domain resolveDomain(String sessionId, String clientDomain, String userText) {
+        McpDomain declared = McpDomain.fromSlug(clientDomain);
+        if (declared == McpDomain.EDGE) return DomainIntentDetector.Domain.EDGE_THERMAL;
+        if (declared == McpDomain.WASTE) return DomainIntentDetector.Domain.WASTE_SIM;
+
+        DomainIntentDetector.Domain guess = DomainIntentDetector.classify(userText);
+        if (guess != DomainIntentDetector.Domain.UNKNOWN) {
+            sessionDomains.put(sessionId, guess);
+            return guess;
+        }
+        // 단서가 없는 문장이라도 대화가 이미 한 도메인에서 진행 중이면 그 도메인을
+        // 이어간다. 이게 없으면 "12시에 실행해줘"처럼 도메인 어휘가 하나도 없는
+        // 후속 메시지마다 되묻게 되어, 도메인을 안 실어 보내는 클라이언트에서는
+        // 대화가 진행되지 않는다. 되묻는 건 정말 처음부터 아무 단서도 없을 때만이다.
+        DomainIntentDetector.Domain remembered = sessionDomains.get(sessionId);
+        return remembered != null ? remembered : DomainIntentDetector.Domain.UNKNOWN;
+    }
+
+    /** 도메인 → 클라이언트가 URL·사이드바 전환에 쓰는 슬러그. UNKNOWN이면 {@code null}. */
+    private String slugOf(DomainIntentDetector.Domain domain) {
+        if (domain == DomainIntentDetector.Domain.EDGE_THERMAL) return McpDomain.EDGE.slug();
+        if (domain == DomainIntentDetector.Domain.WASTE_SIM) return McpDomain.WASTE.slug();
+        return null;
+    }
+
+    /**
+     * 도메인을 판정할 단서가 전혀 없는 첫 메시지에 되묻는다 — 추측해서 한쪽으로
+     * 보내지 않는다.
+     *
+     * <p>이 프로젝트가 실행 판정에서 지켜온 태도(C2 — 근거가 확실할 때만 실행)를
+     * 도메인 선택에도 그대로 적용한 것이다. "안녕하세요"를 장량동 시뮬레이터로
+     * 흘려보내면 사용자는 고르지도 않은 도메인의 사이드바를 마주하게 된다.
+     */
+    private void askWhichDomain(List<Map<String, String>> history, String userText) {
+        metrics.counter("waste.chat.domain", "result", "unknown").increment();
+        StringBuilder sb = new StringBuilder("어느 시뮬레이션을 도와드릴까요?\n\n");
+        for (McpDomain d : McpDomain.values()) {
+            sb.append("- **").append(d.label()).append("** — ").append(d.description()).append("\n");
+        }
+        sb.append("\n위 카드를 고르거나, 하고 싶은 실험을 한 문장으로 적어 주세요.");
+        reply(sb.toString(), userText, history);
+    }
+
+    private void runEdgeTool(String userText, List<Map<String, String>> history) {
+        String toolName = EdgeToolSelector.select(userText);
+        metrics.counter("waste.chat.edge_tool", "tool", toolName).increment();
+
+        // 캘리브레이션은 측정 시계열이 있어야 하는데 채팅 메시지로는 실어 나를 수 없다.
+        // 실행하는 척하는 대신 보내는 방법을 알려주고, 저장된 프로파일을 보여준다.
+        if (EdgeToolSelector.TOOL_CALIBRATE.equals(toolName)) {
+            reply(EdgeChatFormatter.calibrationGuide(edgeProfiles.all()), userText, history);
+            return;
+        }
+
+        McpToolProvider provider = independentTools.byToolName(toolName);
+        if (provider == null) {
+            reply("엣지 발열 도구가 이 서버에 등록돼 있지 않습니다.", userText, history);
+            return;
+        }
+
+        messaging.convertAndSend("/topic/messages",
+                new ChatMessage(ChatMessage.MessageType.SYSTEM, "엣지 발열 모델 실행 중..."));
+
+        ObjectNode args = EdgeParamGuard.merge(
+                openAiService.extractEdgeParams(history, userText), EdgeParamGuard.fromText(userText));
+
+        // 보드를 둘 다 언급했으면 비교 요청이다 — 한쪽만 골라 한 번 돌리면 사용자가
+        // 물어본 것에 대한 답이 아니다. 나머지 조건을 그대로 둔 채 board만 바꿔 두 번
+        // 실행한다(runEdgeComparison).
+        //
+        // 발열 시뮬레이션 도구에만 적용한다. 방열판 도구는 결과가 지표 한 벌이 아니라
+        // 후보 순위표라, 두 보드 것을 같은 표에 나란히 놓으면 "1위 후보"가 두 개인
+        // 읽을 수 없는 표가 된다 — 그 비교는 별도 포맷이 필요하고 지금은 지원하지 않는다.
+        if (EdgeToolSelector.TOOL_THROTTLING.equals(toolName)
+                && EdgeParamGuard.isBoardComparison(userText)) {
+            runEdgeComparison(provider, args, userText, history);
+            return;
+        }
+        if (!args.has("board")) {
+            reply("어느 보드인지 알려주세요 — 라즈베리파이 4와 5는 발열 특성이 많이 다릅니다.",
+                    userText, history);
+            return;
+        }
+        // 회복 실험인데 조건이 비어 있으면 스로틀링이 실제로 일어나는 표준 조건을 채운다.
+        // 무엇을 가정했는지는 아래에서 답변 앞에 명시한다(조용히 바꾸지 않는다).
+        boolean assumed = EdgeParamGuard.applyRecoveryExperimentDefaults(args);
+
+        if (EdgeToolSelector.TOOL_HEATSINK.equals(toolName)) {
+            // 후보 치수까지 자연어로 받지 않고 서버가 들고 있는 표준 후보로 비교한다
+            // (HeatsinkPresets — 값이 고정이라 언제 돌려도 같은 표가 나온다).
+            try {
+                args.set("layouts", edgeMapper.readTree(HeatsinkPresets.LAYOUTS_JSON));
+            } catch (Exception e) {
+                log.error("방열판 프리셋 파싱 실패", e);
+                reply("방열판 후보를 준비하지 못했습니다: " + e.getMessage(), userText, history);
+                return;
+            }
+        }
+
+        ToolResult tr = provider.call(args);
+        if (!tr.ready()) {
+            StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
+            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+            reply(sb.toString().trim(), userText, history);
+            return;
+        }
+
+        @SuppressWarnings("unchecked")
+        Map<String, Object> out = (Map<String, Object>) tr.result();
+        String text = EdgeToolSelector.TOOL_HEATSINK.equals(toolName)
+                ? EdgeChatFormatter.heatsink(out)
+                : EdgeChatFormatter.throttling(out);
+        if (assumed) {
+            text = "회복 시간을 재려면 스로틀링이 실제로 걸리는 조건이어야 해서, "
+                 + "무냉각·최대 처리량으로 가정하고 실행했습니다.\n\n" + text;
+        }
+        reply(text, userText, history);
+    }
+
+    /**
+     * 보드 비교 — 같은 도구를 {@code board}만 바꿔 두 번 호출하고 결과를 나란히 보여준다.
+     *
+     * <p><b>왜 인자를 복제하는가</b>: 비교가 성립하려면 보드 외의 모든 조건(냉각·주변온도·
+     * 워크로드·부하시간)이 완전히 같아야 한다. 같은 {@code ObjectNode}를 재사용하면 첫 실행에서
+     * 도구가 채운 기본값이 두 번째 실행에 섞여 들어가 "무엇을 통제하고 무엇을 바꿨는지"가
+     * 흐려진다 — R&E에서는 그게 실험이 아니라 그냥 두 번 돌린 게 된다. 그래서 매번
+     * {@code deepCopy()}로 같은 출발점에서 시작한다.
+     *
+     * <p>비교 축을 보드로 고정한 것은 이 도구의 입력 중 <b>결과를 가장 크게 가르는 축</b>이기
+     * 때문이다(Pi5는 동적 소비전력이 Pi4의 2배 이상이라 같은 냉각에서도 거동이 완전히 다르다).
+     * 냉각·주변온도 비교가 필요해지면 이 메서드의 축만 바꿔 일반화하면 된다.
+     */
+    private void runEdgeComparison(McpToolProvider provider, ObjectNode baseArgs,
+                                   String userText, List<Map<String, String>> history) {
+        metrics.counter("waste.chat.edge_tool", "tool", "board_comparison").increment();
+
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (String board : List.of("pi4", "pi5")) {
+            ObjectNode args = baseArgs.deepCopy();
+            args.put("board", board);
+            ToolResult tr = provider.call(args);
+            if (!tr.ready()) {
+                StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
+                for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+                reply(sb.toString().trim(), userText, history);
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> out = (Map<String, Object>) tr.result();
+            results.add(out);
+        }
+        reply(EdgeChatFormatter.boardComparison(results), userText, history);
+    }
+
+    /** 봇 답변 전송 + 대화 이력 갱신(엣지 경로 공통) — runChatScenario 말미와 같은 처리. */
+    private void reply(String text, String userText, List<Map<String, String>> history) {
+        messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, text));
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", text));
+        while (history.size() > 20) history.remove(0);
+    }
+
     private void runChatScenario(String type, List<Map<String, String>> history, String userText) {
         messaging.convertAndSend("/topic/messages",
                 new ChatMessage(ChatMessage.MessageType.SYSTEM, "시나리오 실행 중..."));

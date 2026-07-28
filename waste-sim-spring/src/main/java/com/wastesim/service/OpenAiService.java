@@ -208,6 +208,68 @@ public class OpenAiService {
         }
     }
 
+    // ── 엣지(라즈베리파이 발열) 도구 인자 추출 전용 프롬프트 ──────────────────
+    //
+    // 장량동 추출 프롬프트와 분리한 이유: 두 도메인은 필드가 하나도 겹치지 않는다.
+    // 한 프롬프트에 두 스키마를 다 넣으면 모델이 엉뚱한 필드를 섞어 내놓는다(수거시각이
+    // 들어간 발열 요청 등). 어느 도메인인지는 DomainIntentDetector가 이미 결정론적으로
+    // 확정한 뒤라, 여기서는 "무엇을 추출할지"만 알려주면 된다.
+    private static final String EDGE_EXTRACTION_SYSTEM_PROMPT = """
+            사용자 메시지에서 라즈베리파이 발열/스로틀링 시뮬레이션 파라미터를 추출하세요.
+            이미 "엣지 발열 요청"으로 확정된 메시지이므로 판단은 필요 없고 추출만 하세요.
+
+            JSON 객체 하나만 출력하세요. 설명·코드펜스 금지.
+
+            필드(전부 선택):
+            - board: "pi4" | "pi5"
+            - cooling: "bare"(무냉각) | "passive"(방열판) | "active"(팬)
+            - ambientTempC: 주변/실내 온도(숫자)
+            - workloadMode: "target_fps" | "max_throughput"
+            - targetFps: 목표 추론 FPS(숫자)
+            - maxFps: 스로틀링 없을 때의 최대 FPS(숫자)
+            - loadSeconds: 고부하 유지 시간(초)
+            - recoveryPolicy: "r1_stop" | "r2_low_load" | "r3_active_cooling" | "none"
+            - recoverySeconds: 회복 관찰 시간(초)
+            - profileId: 실측 캘리브레이션 프로파일 id(예: "cal-001")
+
+            규칙:
+            1. 메시지에 언급되지 않은 필드는 아예 넣지 마세요. 값을 추측하거나 기본값을
+               채워 넣지 마세요 — 빠진 값은 서버가 알아서 기본값을 씁니다.
+            2. 시간은 초로 변환하세요. "10분"->600, "1시간"->3600, "30초"->30.
+            3. 이전 대화에서 언급된 값을 이번 메시지에 끌어오지 마세요. 이번 메시지에
+               적힌 것만 추출합니다.
+
+            예시)
+            "라즈베리파이 5 무냉각으로 20분 돌리면 언제 스로틀링 걸려?"
+            -> {"board":"pi5","cooling":"bare","loadSeconds":1200}
+
+            "pi4에 방열판 달고 15fps로 실행, 실내 28도"
+            -> {"board":"pi4","cooling":"passive","targetFps":15,"ambientTempC":28}
+
+            "스로틀링 걸린 다음 팬 100%로 켜면 얼마나 빨리 회복돼? 10분 관찰"
+            -> {"recoveryPolicy":"r3_active_cooling","recoverySeconds":600}
+            """;
+
+    /**
+     * 엣지 발열 도구의 arguments JSON을 추출한다. 도메인·도구 선택은 이미
+     * 결정론적으로 끝난 뒤이므로 여기서는 값만 뽑는다.
+     *
+     * <p>실패하면 {@code null}을 반환한다 — 호출측({@code ChatController})은 이때
+     * {@code EdgeParamGuard}가 정규식으로 뽑아낸 값만으로 실행을 이어간다. LLM 백엔드가
+     * 죽어도 엣지 요청이 멈추지 않게 하려는 의도적 설계다.
+     */
+    public JsonNode extractEdgeParams(List<Map<String, String>> history, String userText) {
+        try {
+            String raw = callChat(EDGE_EXTRACTION_SYSTEM_PROMPT, history, userText, 0.1, 300, true);
+            if (raw == null) return null;
+            JsonNode p = mapper.readTree(stripCodeFence(raw));
+            return p.isObject() ? p : null;
+        } catch (Exception e) {
+            log.debug("엣지 파라미터 추출 파싱 실패: {}", e.getMessage());
+            return null;
+        }
+    }
+
     /** 실행 요청이 아닐 때 순수 대화형 답변을 생성한다. JSON을 내지 않는다. */
     public String answerPlain(List<Map<String, String>> history, String userText) {
         try {

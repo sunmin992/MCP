@@ -1,5 +1,7 @@
 package com.wastesim.controller;
 
+import com.wastesim.edge.EdgeThermalProfileStore;
+import com.wastesim.mcp.McpToolRegistry;
 import com.wastesim.model.ChatMessage;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
@@ -11,6 +13,8 @@ import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
@@ -32,7 +36,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         // SimulationConfig.getCollectionTimeLabel()은 collectionTimeMinutes를
         // 매번 "%02d:%02d"로 재포맷하므로("8:30"→setter가 파싱 후 getter가
@@ -86,7 +91,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -110,7 +116,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -138,7 +145,8 @@ class ChatControllerTest {
         TrafficDataService trafficData = new TrafficDataService();
 
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         controller.handleMessage(userMsg("Node_A, Node_C, Node_B, Node_D 순서로 방문하면 얼마나 걸려?"));
 
@@ -175,7 +183,8 @@ class ChatControllerTest {
         OpenAiService openAiService = mock(OpenAiService.class);
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
-                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData);
+                messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
 
         controller.handleMessage(userMsg(userText));
 
@@ -187,7 +196,18 @@ class ChatControllerTest {
                 .findFirst().orElse(null);
     }
 
+    /**
+     * 장량동 화면(/waste)에 있는 사용자가 보낸 메시지를 흉내낸다.
+     *
+     * <p>{@code domain}을 실어 보내는 것이 <b>실제 클라이언트 동작</b>이다 — 브라우저
+     * UI는 도메인이 확정된 뒤 모든 메시지에 현재 화면의 도메인을 붙여 보내고
+     * (js/chat.js#send), 서버는 그 값을 키워드 추측보다 우선한다. 이 필드가 없으면
+     * "12시에 실행해줘"처럼 도메인 어휘가 하나도 없는 문장은 도메인 미정으로
+     * 판정되어 되묻기로 빠지는데, 그건 시작화면에서만 일어나야 하는 동작이다.
+     */
     private ChatMessage userMsg(String text) {
-        return new ChatMessage(ChatMessage.MessageType.USER, text);
+        ChatMessage m = new ChatMessage(ChatMessage.MessageType.USER, text);
+        m.setDomain("waste");
+        return m;
     }
 }
