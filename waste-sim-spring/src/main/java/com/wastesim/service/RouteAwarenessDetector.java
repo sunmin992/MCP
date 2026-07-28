@@ -30,21 +30,47 @@ public final class RouteAwarenessDetector {
         return text != null && TRUCK_KEYWORDS.matcher(text).find();
     }
 
-    private static final Pattern NODE_TOKEN = Pattern.compile("(?i)Node_[A-Za-z]");
+    // 실측 회귀: 원래는 "Node_A"(밑줄 필수)만 인식해서, 사용자가 실제로 친
+    // "node A,D,C,B 순서로 방문하면 얼마나 걸려"가 하나도 안 잡혔다 — 경로가
+    // null이 되니 ChatController의 경로 소요시간 게이트를 못 타고 전체 실행
+    // 경로로 흘러가 엉뚱하게 "수거 시각을 알려달라"고 되물었다. 밑줄 없이
+    // 공백으로 띄우거나("node A") 아예 붙여 쓴("nodeA") 형태도 같이 받는다.
+    private static final Pattern NODE_TOKEN =
+            Pattern.compile("(?i)node[\\s_-]*([A-Za-z])(?![A-Za-z])");
+
+    // 위와 같은 회귀의 나머지 절반 — "node A,D,C,B"처럼 첫 노드에만 접두어를
+    // 붙이고 나머지는 글자만 나열하는 표기. 접두어 없는 낱글자를 아무 데서나
+    // 주우면 오탐이 되므로, 직전 노드 토큰 바로 뒤에 구분자로 이어질 때만
+    // 같은 경로의 연속으로 인정한다.
+    private static final Pattern TRAILING_NODE_LETTER =
+            Pattern.compile("\\s*[,、·/→~-]\\s*([A-Za-z])(?![A-Za-z])");
 
     /**
-     * 메시지 안에 등장하는 순서 그대로 "Node_X" 토큰을 뽑는다. LLM이 만든
+     * 메시지 안에 등장하는 순서 그대로 노드 토큰을 뽑는다. LLM이 만든
      * routeSequence는 신뢰하지 않고(환각·이력 이어받기 둘 다 실측으로 확인됨)
      * 이 결과로 완전히 대체한다. 하나도 없으면 null(라우트 미지정).
      */
     public static List<String> extractRouteSequence(String text) {
         if (text == null) return null;
         Matcher m = NODE_TOKEN.matcher(text);
+        Matcher trailing = TRAILING_NODE_LETTER.matcher(text);
         List<String> out = new ArrayList<>();
-        while (m.find()) {
-            String token = m.group();
-            out.add("Node_" + Character.toUpperCase(token.charAt(token.length() - 1)));
+        int scanFrom = 0;
+        while (m.find(scanFrom)) {
+            out.add(normalize(m.group(1)));
+            int pos = m.end();
+            // 바로 뒤에 붙어 이어지는 낱글자 나열만 흡수한다(start()==pos 요구).
+            while (trailing.find(pos) && trailing.start() == pos) {
+                out.add(normalize(trailing.group(1)));
+                pos = trailing.end();
+            }
+            scanFrom = pos;
         }
         return out.isEmpty() ? null : out;
+    }
+
+    /** 표기가 어떻든 내부 표준형("Node_X", 대문자)으로 통일한다. */
+    private static String normalize(String letter) {
+        return "Node_" + Character.toUpperCase(letter.charAt(0));
     }
 }
