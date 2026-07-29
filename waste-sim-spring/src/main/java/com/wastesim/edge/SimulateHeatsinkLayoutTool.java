@@ -34,9 +34,11 @@ public class SimulateHeatsinkLayoutTool implements McpToolProvider {
     private final HeatsinkThermalModel model = new HeatsinkThermalModel();
     private final ThermalSimulator simulator = new ThermalSimulator();
     private final EdgeThermalProfileStore profiles;
+    private final AiLoadProfileService aiLoads;
 
-    public SimulateHeatsinkLayoutTool(EdgeThermalProfileStore profiles) {
+    public SimulateHeatsinkLayoutTool(EdgeThermalProfileStore profiles, AiLoadProfileService aiLoads) {
         this.profiles = profiles;
+        this.aiLoads = aiLoads;
     }
 
 
@@ -61,6 +63,8 @@ public class SimulateHeatsinkLayoutTool implements McpToolProvider {
                 "board": {"type": "string", "enum": ["pi4", "pi5"], "description": "대상 보드"},
                 "ambientTempC": {"type": "number", "description": "주변 온도 ℃", "default": 25},
                 "workloadMode": {"type": "string", "enum": ["target_fps", "max_throughput"], "default": "max_throughput"},
+                "aiLoadProfileId": {"type": "string", "enum": ["steady", "burst", "mixed"],
+                  "description": "AI 부하 패턴 — 생략하면 상수 부하. 상수 부하에서 순위는 열저항 R_ja로만 정해지지만, burst/mixed처럼 부하가 출렁이면 열용량이 피크 온도를 좌우해 후보 순위가 뒤집힐 수 있다"},
                 "targetFps": {"type": "number", "description": "목표 추론 FPS(target_fps 모드)", "default": 10},
                 "maxFps": {"type": "number", "description": "스로틀링 없을 때의 최대 FPS(실측값 권장)"},
                 "loadSeconds": {"type": "number", "description": "고부하 유지 시간(초)", "default": 1800},
@@ -154,7 +158,13 @@ public class SimulateHeatsinkLayoutTool implements McpToolProvider {
 
         // 열용량·전력은 프리셋/실측 프로파일에서 가져오고, R_ja만 배치별로 갈아끼운다.
         ThermalParams base = EdgeToolSupport.thermalParams(a, board, CoolingPreset.PASSIVE, ambient, profiles);
-        ThermalSimulator.Spec baseSpec = EdgeToolSupport.spec(a, board, base, 1800.0, WorkloadMode.MAX_THROUGHPUT);
+
+        // 부하 패턴은 이 도구에서 특히 중요하다 — 상수 부하에서는 후보 순위가 R_ja로만
+        // 정해지지만, 부하가 출렁이면 열용량이 피크 온도를 좌우해 순위가 뒤집힐 수 있다.
+        // 조용히 무시하면 "패턴 조건에서 비교했다"고 믿은 채 상수 부하 순위를 읽게 된다.
+        AiLoadProfile aiLoad = EdgeToolSupport.aiLoadProfile(a, aiLoads);
+        ThermalSimulator.Spec baseSpec = EdgeToolSupport.spec(a, board, base, 1800.0,
+                WorkloadMode.MAX_THROUGHPUT, aiLoad);
 
         if (a.hasErrors()) return ToolResult.rejected(a.errors());
 
@@ -178,6 +188,13 @@ public class SimulateHeatsinkLayoutTool implements McpToolProvider {
         out.put("ambientTempC", ambient);
         out.put("workloadMode", baseSpec.mode().name().toLowerCase());
         out.put("loadSeconds", baseSpec.loadSec());
+        if (baseSpec.aiLoad() != null) {
+            AiLoadProfile lp = baseSpec.aiLoad();
+            out.put("aiLoadProfileId", lp.getId());
+            out.put("aiLoadProfileLabel", lp.getLabel());
+            // 순위를 읽기 전에 "이 패턴이 애초에 순위를 바꿀 수 있는 시간 규모인가"를 알려준다.
+            out.put("aiLoadNote", lp.timescaleNote(base.tauSeconds()));
+        }
         out.put("ranking", rows);
         out.put("bestLayout", rows.get(0).get("name"));
         out.put("interpretation", interpretation(rows));
@@ -190,7 +207,7 @@ public class SimulateHeatsinkLayoutTool implements McpToolProvider {
                                     ThermalParams p, ThermalSimulator.Spec baseSpec, boolean includeSeries) {
         ThermalSimulator.Spec spec = new ThermalSimulator.Spec(p, baseSpec.mode(), baseSpec.targetFps(),
                 baseSpec.loadSec(), baseSpec.policy(), baseSpec.recoverySec(), p.rJaKPerW(),
-                baseSpec.dtSec(), baseSpec.sampleSec(), baseSpec.triggerOnThrottle());
+                baseSpec.dtSec(), baseSpec.sampleSec(), baseSpec.triggerOnThrottle(), baseSpec.aiLoad());
         ThermalRun run = simulator.run(board, spec);
 
         Map<String, Object> m = new LinkedHashMap<>();

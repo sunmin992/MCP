@@ -24,8 +24,12 @@ public final class EdgeChatFormatter {
         Map<String, Object> m = (Map<String, Object>) out.get("metrics");
         StringBuilder sb = new StringBuilder();
 
-        sb.append(String.format("%s · %s · %s%n",
-                out.get("board"), coolingKo(str(out, "cooling")), modeKo(str(out, "workloadMode"))));
+        // 부하 패턴은 조건 줄에 함께 적는다 — 같은 보드·냉각이라도 패턴이 다르면 다른
+        // 실험이므로, 어느 패턴으로 돌렸는지 보이지 않으면 결과를 잘못 비교하게 된다.
+        String loadLabel = aiLoadLabel(out);
+        sb.append(String.format("%s · %s · %s%s%n",
+                out.get("board"), coolingKo(str(out, "cooling")), modeKo(str(out, "workloadMode")),
+                loadLabel == null ? "" : " · " + loadLabel));
 
         Double ttt = num(m, "tttSec");
         Double soft = num(m, "softLimitEntrySec");
@@ -142,8 +146,12 @@ public final class EdgeChatFormatter {
     public static String heatsink(Map<String, Object> out) {
         List<Map<String, Object>> ranking = (List<Map<String, Object>>) out.get("ranking");
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("%s · 주변 %s℃ · 방열판 배치 비교%n",
-                out.get("board"), fmt(num(out, "ambientTempC"))));
+        // 부하 패턴에 따라 순위 자체가 뒤집힐 수 있으므로, 어느 패턴으로 비교한 표인지
+        // 제목에 반드시 드러낸다 — 안 그러면 다른 조건의 순위표를 나란히 놓고 비교하게 된다.
+        String loadLabel = aiLoadLabel(out);
+        sb.append(String.format("%s · 주변 %s℃ · 방열판 배치 비교%s%n",
+                out.get("board"), fmt(num(out, "ambientTempC")),
+                loadLabel == null ? "" : " · " + loadLabel));
 
         for (Map<String, Object> row : ranking) {
             Double ttt = num(row, "tttSec");
@@ -165,6 +173,10 @@ public final class EdgeChatFormatter {
             sb.append("\n[1위 후보 주의]\n");
             for (String w : warns) sb.append("· ").append(w).append('\n');
         }
+        // 패턴이 순위를 실제로 바꿀 수 있는 시간 규모인지 함께 알려준다 — 느린 패턴을
+        // 넣고 "패턴을 줬는데 왜 순위가 그대로지?"라고 오해하는 것을 막는다.
+        Object loadNote = out.get("aiLoadNote");
+        if (loadNote != null) sb.append("\n※ ").append(loadNote).append('\n');
         sb.append('\n').append(HeatsinkPresets.NOTICE);
         return sb.toString().trim();
     }
@@ -202,6 +214,18 @@ public final class EdgeChatFormatter {
     }
 
     private static String sec(Double v) { return v == null ? "해당 없음" : fmt(v) + "초"; }
+
+    /** 실행에 쓰인 AI 부하 패턴 라벨. 패턴을 안 썼으면 null(조건 줄에 아무것도 붙이지 않는다). */
+    @SuppressWarnings("unchecked")
+    private static String aiLoadLabel(Map<String, Object> out) {
+        Object lp = out.get("aiLoadProfile");
+        if (lp instanceof Map<?, ?> m) {
+            Object label = ((Map<String, Object>) m).get("label");
+            if (label != null) return label.toString();
+        }
+        Object flat = out.get("aiLoadProfileLabel");
+        return flat == null ? null : flat.toString();
+    }
 
     private static String coolingKo(String c) {
         if (c == null) return "-";

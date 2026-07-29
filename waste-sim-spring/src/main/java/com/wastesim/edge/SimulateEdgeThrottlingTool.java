@@ -3,6 +3,7 @@ package com.wastesim.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.wastesim.mcp.McpDomain;
 import com.wastesim.mcp.McpToolProvider;
+import com.wastesim.tool.ErrorCode;
 import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
 
@@ -28,9 +29,11 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
 
     private final ThermalSimulator simulator = new ThermalSimulator();
     private final EdgeThermalProfileStore profiles;
+    private final AiLoadProfileService aiLoads;
 
-    public SimulateEdgeThrottlingTool(EdgeThermalProfileStore profiles) {
+    public SimulateEdgeThrottlingTool(EdgeThermalProfileStore profiles, AiLoadProfileService aiLoads) {
         this.profiles = profiles;
+        this.aiLoads = aiLoads;
     }
 
 
@@ -70,6 +73,8 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
                 "sampleIntervalSeconds": {"type": "number", "description": "결과 시계열 출력 간격(초)", "default": 5},
                 "startTempC": {"type": "number", "description": "실험 시작 온도 ℃. 기본값은 해당 냉각 조건의 유휴 정상상태 온도"},
                 "profileId": {"type": "string", "description": "calibrate_edge_thermal_model로 저장한 실측 파라미터 id(예: cal-001). 넣으면 프리셋 대신 실측값으로 계산"},
+                "aiLoadProfileId": {"type": "string", "enum": ["steady", "burst", "mixed"],
+                  "description": "AI 데이터센터식 시변 부하 패턴 — steady(일정, 대조군), burst(2분 몰림/3분 한가 반복), mixed(한가대→피크대 흐름 + 각 구간 버스트). 생략하면 부하가 일정하다. workloadMode와는 독립된 축이며, 목표 FPS·최대 처리량 어느 쪽에도 배율로 곱해진다"},
                 "thermalOverride": {"type": "object", "description": "열 파라미터 직접 지정",
                   "properties": {
                     "rJaKPerW": {"type": "number", "description": "전체 열저항 K/W"},
@@ -95,7 +100,9 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         double ambient = a.dbl("ambientTempC", 25.0, -20.0, 60.0);
 
         ThermalParams p = EdgeToolSupport.thermalParams(a, board, cooling, ambient, profiles);
-        ThermalSimulator.Spec spec = EdgeToolSupport.spec(a, board, p, 900.0, WorkloadMode.TARGET_FPS);
+
+        AiLoadProfile aiLoad = EdgeToolSupport.aiLoadProfile(a, aiLoads);
+        ThermalSimulator.Spec spec = EdgeToolSupport.spec(a, board, p, 900.0, WorkloadMode.TARGET_FPS, aiLoad);
         boolean includeSeries = a.bool("includeSeries", true);
 
         if (a.hasErrors()) return ToolResult.rejected(a.errors());
@@ -109,6 +116,17 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         out.put("cooling", cooling.name().toLowerCase());
         out.put("workloadMode", spec.mode().name().toLowerCase());
         out.put("targetFps", spec.targetFps());
+        if (spec.aiLoad() != null) {
+            // 어떤 패턴으로 돌렸는지 결과에 남긴다(재현성 — params를 함께 돌려주는 것과 같은 취지).
+            Map<String, Object> lp = new LinkedHashMap<>();
+            lp.put("id", spec.aiLoad().getId());
+            lp.put("label", spec.aiLoad().getLabel());
+            lp.put("cycleSeconds", spec.aiLoad().cycleSeconds());
+            lp.put("meanLevel", spec.aiLoad().meanLevel());
+            lp.put("peakLevel", spec.aiLoad().peakLevel());
+            lp.put("timescaleFit", spec.aiLoad().timescaleFit(run.params().tauSeconds()).name().toLowerCase());
+            out.put("aiLoadProfile", lp);
+        }
         out.put("recoveryPolicy", spec.policy().name().toLowerCase());
         out.put("loadSeconds", spec.loadSec());
         out.put("recoverySeconds", spec.recoverySec());

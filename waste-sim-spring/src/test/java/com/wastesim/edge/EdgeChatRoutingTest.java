@@ -45,7 +45,7 @@ class EdgeChatRoutingTest {
         assertEquals(15.0, args.path("targetFps").asDouble(), 1e-9);
         assertEquals("max_throughput", args.path("workloadMode").asText());
 
-        ToolResult tr = new SimulateEdgeThrottlingTool(store).call(args);
+        ToolResult tr = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService()).call(args);
         assertTrue(tr.ready(), () -> "정규식 값만으로도 실행돼야 한다: " + tr.errors());
     }
 
@@ -86,7 +86,7 @@ class EdgeChatRoutingTest {
         assertEquals("bare", args.path("cooling").asText());
         assertEquals("max_throughput", args.path("workloadMode").asText());
 
-        ToolResult tr = new SimulateEdgeThrottlingTool(store).call(args);
+        ToolResult tr = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService()).call(args);
         assertTrue(tr.ready(), () -> String.valueOf(tr.errors()));
         @SuppressWarnings("unchecked")
         Map<String, Object> out = (Map<String, Object>) tr.result();
@@ -123,7 +123,7 @@ class EdgeChatRoutingTest {
 
         ObjectNode args = EdgeParamGuard.merge(null, EdgeParamGuard.fromText("pi5 방열판 배치 비교해줘"));
         args.set("layouts", layouts);
-        ToolResult tr = new SimulateHeatsinkLayoutTool(store).call(args);
+        ToolResult tr = new SimulateHeatsinkLayoutTool(store, new AiLoadProfileService()).call(args);
         assertTrue(tr.ready(), () -> "프리셋으로 바로 실행돼야 한다: " + tr.errors());
 
         @SuppressWarnings("unchecked")
@@ -254,7 +254,7 @@ class EdgeChatRoutingTest {
 
     @SuppressWarnings("unchecked")
     private Map<String, Object> run(String argsJson) throws Exception {
-        ToolResult tr = new SimulateEdgeThrottlingTool(store).call(om.readTree(argsJson));
+        ToolResult tr = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService()).call(om.readTree(argsJson));
         assertTrue(tr.ready(), () -> String.valueOf(tr.errors()));
         return (Map<String, Object>) tr.result();
     }
