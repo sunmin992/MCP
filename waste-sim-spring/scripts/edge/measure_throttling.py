@@ -24,6 +24,22 @@
     # 라즈베리파이가 없는 곳에서 스크립트 동작만 확인(가짜 센서값)
     python3 measure_throttling.py --simulate --load 30 --recovery-seconds 20 --ambient 25
 
+워크로드 종류를 바꿔 발열 특성을 비교하려면 --load-kind 를 쓴다(InferenceLoad 참고).
+연산 병목(tflite)과 메모리 대역폭 병목(llama)은 온도 곡선 모양부터 다르게 나올 수 있다.
+
+    # 연산 병목 — TFLite 이미지 추론
+    python3 measure_throttling.py --board pi5 --cooling bare --mode max_throughput \\
+        --load-kind tflite --load-model models/mobilenet_v2_int8.tflite \\
+        --model mobilenet-v2 --precision int8 --load 900 --ambient 26.5
+
+    # 메모리 병목 — llama.cpp 텍스트 생성
+    python3 measure_throttling.py --board pi5 --cooling bare --mode max_throughput \\
+        --load-kind llama --load-model models/qwen2.5-1.5b-q4.gguf --load-tokens 32 \\
+        --model qwen2.5-1.5b --precision int8 --load 900 --ambient 26.5
+
+종류가 다르면 CSV의 fps 열 단위가 달라(frames vs generations) 서로 비교할 수 없다.
+작업 간 비교는 단위가 같은 전력·온도·TTT로 하고, 성능 저하는 각자의 기준선 대비 %로 본다.
+
 주의: 이 스크립트는 보드를 의도적으로 뜨겁게 만든다. 반드시 사람이 있는 곳에서,
 가연물 없는 평평한 곳에 두고 돌릴 것. 90℃를 넘으면 자동으로 중단한다.
 """
@@ -137,29 +153,124 @@ def set_fan(level: int, cooling_device: str = "/sys/class/thermal/cooling_device
 # ── 추론 부하 ────────────────────────────────────────────────────────────────
 
 class InferenceLoad:
-    """AI 추론 한 프레임에 해당하는 연산 부하.
+    """AI 추론 한 프레임에 해당하는 연산 부하 — 워크로드 종류를 바꿔 끼울 수 있다.
 
-    실제 실험에서는 여기를 학생이 쓰는 모델 추론 호출로 바꾸는 것이 가장 좋다
-    (예: tflite Interpreter.invoke()). 모델을 아직 못 정했거나 비교 기준이 필요할 때를 위해
-    numpy 행렬곱(없으면 순수 파이썬)으로 대체 부하를 제공한다 — 어느 쪽이든 CPU를 4코어로
-    태우는 것이 목적이므로 발열 특성 실험에는 충분하다."""
+    "어떤 AI 작업이 더 뜨거운가"는 물리적으로 "어떤 작업이 지속적으로 더 많은 전력을
+    끌어쓰는가"와 같은 질문이다. 그런데 그 답은 모델 크기가 아니라 **어느 자원이
+    병목인가**로 갈린다 — 연산(ALU) 병목이면 코어를 꽉 채워 계속 태우고, 메모리 대역폭
+    병목이면 ALU가 데이터를 기다리며 노는 구간이 생겨 같은 "큰 모델"이라도 전력이 낮을
+    수 있다. 그래서 워크로드 종류 자체가 실험 요인이 될 수 있고, 이 클래스가 그 요인을
+    바꿔 끼우는 자리다.
 
-    def __init__(self, size: int = 320, threads: int = 0):
-        self.kind = "numpy-matmul"
+    --load-kind 로 고른다.
+
+    ===========  =============================================================
+    matmul       행렬곱(기본). 모델 파일 없이 CPU를 태우는 합성 부하 —
+                 기준선·장비 점검용. numpy가 없으면 순수 파이썬으로 폴백한다
+    tflite       TFLite 이미지 추론. **연산 병목의 대표** — 매 프레임 같은
+                 연산이라 재현성이 가장 높다. --load-model 에 .tflite 경로
+    llama        llama.cpp 텍스트 생성. **메모리 대역폭 병목의 대표** —
+                 프리필(병렬)과 디코드(순차)가 갈려 사용률이 출렁이므로
+                 온도 곡선 모양이 위 둘과 다르게 나올 수 있다.
+                 --load-model 에 .gguf 경로, --load-tokens 로 프레임당 토큰 수
+    ===========  =============================================================
+
+    **백엔드가 없거나 모델을 못 열면 조용히 대체하지 않고 실패한다.** "tflite를 쟀다"고
+    적어 둔 메타데이터 옆에 실제로는 행렬곱을 잰 CSV가 남으면, 그 데이터는 나중에
+    되돌릴 방법이 없다. 다만 --simulate(흐름 점검)일 때는 예외로 경고 후 matmul로
+    넘어간다 — 그쪽은 애초에 센서값도 가짜라 데이터로 쓰지 않기 때문이다.
+
+    frame() 한 번이 처리하는 단위가 종류마다 다르다(:attr:`unit`). CSV의 fps 열은 그
+    단위의 초당 개수이므로 **종류가 다르면 fps를 서로 비교할 수 없다** — 작업 간 비교는
+    단위가 같은 전력·온도·TTT로 하고, 성능 저하는 각자의 기준선 대비 %로 본다.
+    """
+
+    #: frame() 한 번이 무엇을 처리하는지 = CSV fps 열의 단위.
+    UNITS = {"matmul": "frames", "tflite": "frames", "llama": "generations"}
+
+    def __init__(self, kind: str = "matmul", model_path: str | None = None,
+                 tokens: int = 32, size: int = 320, threads: int = 0):
+        self.kind = kind
+        self.unit = self.UNITS.get(kind, "frames")
+        self.model_path = model_path
+        self.tokens = tokens
         self.threads = threads or (os.cpu_count() or 4)
+        self.detail = ""
+        self._np = None
+        self._interp = None
+        self._llm = None
+
+        if kind == "matmul":
+            self._init_matmul(size)
+        elif kind == "tflite":
+            self._init_tflite()
+        elif kind == "llama":
+            self._init_llama()
+        else:
+            raise ValueError(f"알 수 없는 부하 종류: {kind}")
+
+    # ── 종류별 준비 ─────────────────────────────────────────────────────────
+
+    def _init_matmul(self, size: int) -> None:
         try:
-            import numpy as np  # noqa: F401
+            import numpy as np
             self._np = np
             self._a = np.random.rand(size, size).astype("float32")
             self._b = np.random.rand(size, size).astype("float32")
+            self.kind = "numpy-matmul"
+            self.detail = f"{size}x{size} float32 x{self.threads}"
         except ImportError:
-            self._np = None
+            # 합성 부하 안에서의 폴백은 "다른 실험"이 아니라 같은 목적(코어 태우기)의
+            # 저속 구현이므로 허용한다. 무엇으로 돌았는지는 kind에 남는다.
             self.kind = "python-fallback"
             self._n = size // 8
+            self.detail = "numpy 없음 — 순수 파이썬"
+
+    def _init_tflite(self) -> None:
+        if not self.model_path:
+            raise ValueError("tflite 부하에는 --load-model <모델.tflite> 가 필요하다")
+        import numpy as np
+        self._np = np
+        try:                                    # 라즈베리파이는 보통 런타임만 설치한다
+            from tflite_runtime.interpreter import Interpreter
+        except ImportError:
+            from tensorflow.lite import Interpreter   # 전체 TF가 깔린 환경
+
+        self._interp = Interpreter(model_path=self.model_path, num_threads=self.threads)
+        self._interp.allocate_tensors()
+        inp = self._interp.get_input_details()[0]
+        self._in_index = inp["index"]
+        # 입력은 한 번 만들어 매 프레임 같은 것을 넣는다 — 입력이 바뀌면 연산량이
+        # 달라져 다른 실험이 된다(전처리 시간이 측정에 섞이는 것도 막는다).
+        shape, dtype = inp["shape"], inp["dtype"]
+        if np.issubdtype(dtype, np.integer):
+            self._input = np.random.randint(0, 256, size=shape).astype(dtype)
+        else:
+            self._input = np.random.rand(*shape).astype(dtype)
+        self.detail = f"{os.path.basename(self.model_path)} input={list(shape)} threads={self.threads}"
+
+    def _init_llama(self) -> None:
+        if not self.model_path:
+            raise ValueError("llama 부하에는 --load-model <모델.gguf> 가 필요하다")
+        from llama_cpp import Llama
+        self._llm = Llama(model_path=self.model_path, n_threads=self.threads, verbose=False)
+        self._prompt = "Explain how a heat sink works in one paragraph."
+        self.detail = (f"{os.path.basename(self.model_path)} "
+                       f"tokens/frame={self.tokens} threads={self.threads}")
+
+    # ── 프레임 실행 ─────────────────────────────────────────────────────────
 
     def frame(self) -> None:
-        """추론 1프레임 분량의 연산."""
-        if self._np is not None:
+        """추론 1프레임(:attr:`unit` 하나) 분량의 연산."""
+        if self._interp is not None:
+            self._interp.set_tensor(self._in_index, self._input)
+            self._interp.invoke()
+        elif self._llm is not None:
+            # 매 프레임 KV 캐시를 비운다 — 안 비우면 두 번째 프레임부터 프리필이
+            # 생략돼 디코드만 재는 셈이 되고, 프레임마다 연산량이 달라진다.
+            self._llm.reset()
+            self._llm.create_completion(self._prompt, max_tokens=self.tokens)
+        elif self._np is not None:
             for _ in range(self.threads):
                 self._a @ self._b
         else:
@@ -188,6 +299,10 @@ class RunMeta:
     started_at_iso: str = ""
     finished_at_iso: str = ""
     load_kind: str = ""
+    #: fps 열의 단위(frames/generations) — 종류가 다르면 fps를 서로 비교할 수 없다.
+    load_unit: str = "frames"
+    load_detail: str = ""
+    load_model_path: str = ""
     notes: str = ""
     sample_interval_sec: float = 1.0
     columns: list = field(default_factory=list)
@@ -214,6 +329,12 @@ def main() -> int:
     ap.add_argument("--label", default="", help="조건 라벨(예: pi5-passive-int8-26C)")
     ap.add_argument("--model", default="unspecified", help="추론 모델 이름")
     ap.add_argument("--precision", default="fp32", choices=["fp32", "fp16", "int8"])
+    ap.add_argument("--load-kind", default="matmul", choices=["matmul", "tflite", "llama"],
+                    help="부하 종류 — matmul(합성 기준선) / tflite(연산 병목) / llama(메모리 병목)")
+    ap.add_argument("--load-model", default=None,
+                    help="tflite(.tflite)·llama(.gguf) 모델 파일 경로")
+    ap.add_argument("--load-tokens", type=int, default=32,
+                    help="llama: frame() 한 번에 생성할 토큰 수")
     ap.add_argument("--interval", type=float, default=1.0, help="샘플링 간격(초)")
     ap.add_argument("--outdir", default="runs")
     ap.add_argument("--max-temp", type=float, default=90.0, help="안전 중단 온도 ℃")
@@ -232,7 +353,21 @@ def main() -> int:
     csv_path = os.path.join(args.outdir, run_id + ".csv")
     meta_path = os.path.join(args.outdir, run_id + ".json")
 
-    load = InferenceLoad()
+    # 부하 준비 실패는 조용히 넘기지 않는다 — 무엇을 측정했는지 알 수 없는 데이터가
+    # 남는 것이 실행이 멈추는 것보다 나쁘다(--simulate는 데이터로 쓰지 않으므로 예외).
+    try:
+        load = InferenceLoad(kind=args.load_kind, model_path=args.load_model,
+                             tokens=args.load_tokens)
+    except Exception as e:
+        if args.simulate:
+            print(f"[!] '{args.load_kind}' 부하를 준비하지 못해 matmul로 대체한다(--simulate): {e}")
+            load = InferenceLoad(kind="matmul")
+        else:
+            print(f"[x] '{args.load_kind}' 부하를 준비하지 못했다: {e}")
+            print("    다른 부하로 조용히 바꾸면 이 CSV가 무엇을 잰 것인지 알 수 없게 되므로 중단한다.")
+            print("    백엔드 설치(tflite-runtime / llama-cpp-python)와 --load-model 경로를 확인할 것.")
+            return 2
+
     meta = RunMeta(run_id=run_id, label=args.label or run_id, board=args.board,
                    cooling=args.cooling, mode=args.mode, target_fps=args.target_fps,
                    load_seconds=args.load, recovery_policy=args.recovery,
@@ -240,11 +375,15 @@ def main() -> int:
                    ambient_temp_c=args.ambient if args.ambient is not None else float("nan"),
                    model=args.model, precision=args.precision,
                    started_at_iso=datetime.now(timezone.utc).isoformat(),
-                   load_kind=load.kind, sample_interval_sec=args.interval,
+                   load_kind=load.kind, load_unit=load.unit, load_detail=load.detail,
+                   load_model_path=args.load_model or "",
+                   sample_interval_sec=args.interval,
                    columns=CSV_COLUMNS)
 
     print(f"[i] run_id={run_id}")
-    print(f"[i] 부하 종류={load.kind}  단계: 기준선 {args.baseline:.0f}s → 부하 {args.load:.0f}s "
+    print(f"[i] 부하 종류={load.kind} ({load.unit}/s)"
+          + (f"  {load.detail}" if load.detail else ""))
+    print(f"[i] 단계: 기준선 {args.baseline:.0f}s → 부하 {args.load:.0f}s "
           f"→ 회복({args.recovery}) {args.recovery_seconds:.0f}s")
     print(f"[i] 출력: {csv_path}")
 
