@@ -78,18 +78,29 @@ public class ThermalSimulator {
      * @param aiLoad        AI 데이터센터식 시변 부하 패턴. null이면 부하가 일정하다(기존 동작).
      *                      {@code mode}와는 <b>독립된 축</b>이다 — 패턴은 "목표를 시각에 따라 몇 %로
      *                      낼 것인가"라는 배율이라, 목표 FPS 모드에도 최대 처리량 모드에도 똑같이 곱해진다
+     * @param heatsink      2노드 모델용 방열판 열 덩어리. null이면 1노드(기존 동작)로 적분한다.
+     *                      정상상태는 두 모델이 완전히 같고 과도응답만 달라진다({@link HeatsinkMass})
      */
     public record Spec(ThermalParams params, WorkloadMode mode, double targetFps,
                        double loadSec, RecoveryPolicy policy, double recoverySec,
                        double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
-                       AiLoadProfile aiLoad) {
+                       AiLoadProfile aiLoad, HeatsinkMass heatsink) {
 
-        /** 부하 패턴 없이(상수 부하) 실행하는 기존 형태 — 호출부·테스트 하위호환. */
+        /** 부하 패턴 없이(상수 부하) 1노드로 실행하는 기존 형태 — 호출부·테스트 하위호환. */
         public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
                     double loadSec, RecoveryPolicy policy, double recoverySec,
                     double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle) {
             this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
-                    dtSec, sampleSec, triggerOnThrottle, null);
+                    dtSec, sampleSec, triggerOnThrottle, null, null);
+        }
+
+        /** 부하 패턴만 쓰고 1노드로 적분하는 형태. */
+        public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
+                    double loadSec, RecoveryPolicy policy, double recoverySec,
+                    double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
+                    AiLoadProfile aiLoad) {
+            this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
+                    dtSec, sampleSec, triggerOnThrottle, aiLoad, null);
         }
 
         /** 이 시각의 부하 배율(0~1). 패턴이 없으면 항상 1.0이라 기존 동작과 완전히 같다. */
@@ -105,6 +116,23 @@ public class ThermalSimulator {
 
         double t = 0.0;
         double temp = p.startTempC();
+        // 2노드일 때 방열판 노드의 초기 온도. 유휴 상태에서 이미 열평형에 있었다고 보고
+        // T_hs = T_soc − P_유휴·R_int 로 잡는다 — 방열판은 SoC보다 항상 차가우므로
+        // 둘을 같은 값으로 두고 시작하면 첫 몇 초 동안 없던 열이 흘러 곡선이 왜곡된다.
+        HeatsinkMass hs = spec.heatsink();
+        double tempHs = hs == null ? temp
+                : Math.max(p.ambientC(), temp - p.idlePowerW() * hs.rInternalKPerW());
+        // 두 열저항 조건(부하 구간·회복 구간) 모두에서 분해가 성립하는지 루프 밖에서 먼저
+        // 확인한다 — 적분 도중에 터지면 어느 조건이 문제인지 알기 어렵고 부분 결과만 남는다.
+        int subSteps = 1;
+        if (hs != null) {
+            double rHsLoad = hs.heatsinkToAirKPerW(p.rJaKPerW());
+            double rHsRecovery = hs.heatsinkToAirKPerW(spec.recoveryRJa());
+            // 빠른 모드의 시정수 — 이보다 충분히 잘게 적분해야 명시적 오일러가 안정적이다.
+            double tauFast = Math.min(p.cThJPerK() * hs.rInternalKPerW(),
+                    hs.cThJPerK() * Math.min(rHsLoad, rHsRecovery));
+            subSteps = (int) Math.max(1, Math.ceil(spec.dtSec() / (tauFast / 20.0)));
+        }
         double clockRatio = 1.0;
         int govState = 0;               // 0=정상, 1=소프트 제한, 2=하드 스로틀링
         boolean throttled = false;
@@ -258,7 +286,25 @@ public class ThermalSimulator {
             }
 
             // ── 적분 ─────────────────────────────────────────────────────
-            temp += (powerW - (temp - p.ambientC()) / rJa) / p.cThJPerK() * dt;
+            if (hs == null) {
+                temp += (powerW - (temp - p.ambientC()) / rJa) / p.cThJPerK() * dt;
+            } else {
+                // 2노드 — SoC가 내부 저항을 거쳐 방열판으로 열을 밀고, 방열판이 공기로 버린다.
+                // rJa는 회복 구간에 달라질 수 있으므로(팬 가동) 방열판→공기 몫도 매 스텝 다시 나눈다.
+                //
+                // 부분 스텝으로 나누는 이유: 2노드는 시정수가 둘인데 SoC↔방열판 결합이
+                // 만드는 빠른 쪽이 전체 시정수보다 훨씬 짧을 수 있다. 바깥 루프의 dt는
+                // 전체 시정수 기준으로 정해지므로, 그대로 적분하면 빠른 모드에서 발산한다.
+                double rHsToAir = hs.heatsinkToAirKPerW(rJa);
+                double sub = dt / subSteps;
+                for (int i = 0; i < subSteps; i++) {
+                    double qToHeatsink = (temp - tempHs) / hs.rInternalKPerW();
+                    double dSoc = (powerW - qToHeatsink) / p.cThJPerK();
+                    double dHs = (qToHeatsink - (tempHs - p.ambientC()) / rHsToAir) / hs.cThJPerK();
+                    temp += dSoc * sub;
+                    tempHs += dHs * sub;
+                }
+            }
             t += dt;
         }
         if (episodeStart != null) {
@@ -283,6 +329,15 @@ public class ThermalSimulator {
         // 부하 패턴을 쓴 경우, 결과를 읽기 전에 "이 패턴이 애초에 차이를 드러낼 수 있는
         // 시간 규모인가"부터 알려준다. 이게 없으면 느린 패턴을 넣고 "패턴을 넣었는데 왜
         // 순위가 그대로지?"라고 오해하게 된다(이 실험 설계에서 가장 빠지기 쉬운 함정).
+        if (hs != null) {
+            notes.add(String.format(
+                    "2노드 모델로 계산했다 — 방열판을 별도 열 덩어리로 본다(열용량 %.1f J/K, SoC→방열판 %.2f K/W, 방열판→공기 %.2f K/W). "
+                    + "정상상태 온도는 1노드와 같고 과도응답만 달라진다: 부하가 출렁일 때 방열판 질량이 피크를 흡수하므로, 열저항이 더 나쁜 방열판이 피크 온도에서는 이길 수 있다.",
+                    hs.cThJPerK(), hs.rInternalKPerW(), hs.heatsinkToAirKPerW(p.rJaKPerW())));
+            if (spec.aiLoad() == null || spec.aiLoad().isConstant()) {
+                notes.add("다만 이번 실행은 부하가 일정해서 2노드로 바꾼 효과가 거의 드러나지 않는다 — 열용량 차이를 보려면 aiLoadProfileId로 burst나 mixed를 함께 지정할 것.");
+            }
+        }
         if (spec.aiLoad() != null) {
             AiLoadProfile lp = spec.aiLoad();
             notes.add(String.format("AI 부하 패턴 '%s' 적용 — 주기 %.0f초, 평균 배율 %.2f, 최대 배율 %.2f.",

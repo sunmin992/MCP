@@ -83,6 +83,36 @@ final class EdgeToolSupport {
     }
 
     /**
+     * 2노드 모델용 방열판 열 덩어리를 읽는다. 지정하지 않았으면 null(기존 1노드).
+     *
+     * <p>입력은 두 갈래다 — 저울로 잰 {@code heatsinkMassG}(+재질)이 기본이고,
+     * 열용량을 직접 아는 경우엔 {@code heatsinkCThJPerK}로 넣는다. 둘 다 없으면
+     * 2노드로 갈 근거가 없으므로 1노드로 둔다.
+     *
+     * <p>{@code rInternalKPerW}(SoC→방열판)의 기본값은 보드의 {@code rJc}(다이→패키지)다.
+     * TIM 층 저항이 여기에 더해져야 정확하지만, 그 값은 방열판 배치 도구가 형상에서
+     * 계산하는 것이라 여기서는 하한인 rJc를 쓰고 사용자가 덮어쓸 수 있게 둔다.
+     */
+    static HeatsinkMass heatsinkMass(EdgeArgs a, BoardType board, ThermalParams p) {
+        double massG = a.dbl("heatsinkMassG", 0.0, 0.0, 5000.0);
+        double cTh = a.dbl("heatsinkCThJPerK", 0.0, 0.0, 100000.0);
+        if (massG <= 0 && cTh <= 0) return null;
+
+        double rInternal = a.dbl("rInternalKPerW", board.rJcKPerW(), 0.05, 50.0);
+        if (rInternal >= p.rJaKPerW()) {
+            a.reject(ErrorCode.OUT_OF_RANGE, "rInternalKPerW", String.format(
+                    "SoC→방열판 열저항(%.2f)이 전체 열저항(%.2f) 이상이다 — 전체는 내부와 "
+                    + "방열판→공기의 직렬 합이므로 내부가 더 작아야 한다.", rInternal, p.rJaKPerW()));
+            return null;
+        }
+        if (cTh > 0) return new HeatsinkMass(cTh, rInternal);
+
+        HeatsinkLayout.Material mat = a.enumVal("heatsinkMaterial", HeatsinkLayout.Material.ALUMINUM,
+                HeatsinkLayout.Material::parse, "aluminum, copper", false);
+        return HeatsinkMass.ofMass(massG, mat, rInternal);
+    }
+
+    /**
      * {@code aiLoadProfileId}를 읽어 부하 패턴을 찾는다. 지정하지 않았으면 null(상수 부하).
      *
      * <p>오타난 id를 조용히 무시하면 "패턴을 넣었다고 믿었는데 실제로는 상수 부하로
@@ -126,8 +156,10 @@ final class EdgeToolSupport {
         boolean onThrottle = a.bool("applyRecoveryOnThrottle", true);
         // dt는 시정수보다 훨씬 작아야 적분 오차가 무시된다 — τ/50과 0.5초 중 작은 값, 하한 0.05초.
         double dt = Math.max(0.05, Math.min(0.5, p.tauSeconds() / 50.0));
+        // 2노드 여부는 인자에서 직접 읽는다 — spec()을 쓰는 도구는 전부 자동으로 지원된다.
+        HeatsinkMass heatsink = heatsinkMass(a, board, p);
         return new ThermalSimulator.Spec(p, mode, targetFps, loadSec, policy, recoverySec,
-                recoveryRJa, dt, sampleSec, onThrottle, aiLoad);
+                recoveryRJa, dt, sampleSec, onThrottle, aiLoad, heatsink);
     }
 
     /** 방열판 후보 하나를 읽는다. 형상·배치·기류·TIM 전부 범위 검증한다. */
