@@ -303,12 +303,210 @@ class RunMeta:
     load_unit: str = "frames"
     load_detail: str = ""
     load_model_path: str = ""
+    #: AI 부하 패턴 — 서버 시뮬레이터와 같은 파일을 썼음을 남긴다. 없으면 상수 부하.
+    #: 이 값이 없으면 나중에 "이 CSV가 어느 패턴이었나"를 복원할 방법이 없다.
+    #: 동시/순차 스케줄 — 이 값이 없으면 같은 총작업량의 두 실행을 구분할 수 없다.
+    schedule: str = "sequential"
+    jobs: int = 1
+    threads_per_job: int = 0
+    load_pattern_id: str = ""
+    load_pattern_file: str = ""
+    load_pattern_cycle_sec: float = 0.0
+    load_pattern_mean_level: float = 1.0
     notes: str = ""
     sample_interval_sec: float = 1.0
     columns: list = field(default_factory=list)
 
 
-CSV_COLUMNS = ["t_sec", "iso_time", "phase", "soc_temp_c", "clock_mhz",
+class AiLoadPattern:
+    """AI 데이터센터식 시변 부하 패턴 — 시각에 따라 부하 배율을 바꾼다.
+
+    **서버 시뮬레이터와 같은 JSON을 읽는다**(`src/main/resources/edge/ai-load-*.json`).
+    이게 이 클래스의 존재 이유다 — 패턴을 여기서 따로 정의하면 시뮬레이션과 실측이
+    "비슷하지만 다른" 조건이 되어, 보고서의 핵심 표(시뮬 vs 실측 비교)를 채울 수 없다.
+    한쪽만 고쳐도 어긋나므로 정의는 한 곳에만 둔다.
+
+    구간(segment) 목록을 순서대로 재생하고 주기가 끝나면 처음부터 반복한다.
+    배율 1.0이 "그 실행의 기준 부하를 100% 낸다"는 뜻이다.
+
+    부하를 줄이는 방법은 운용 모드마다 다르다.
+      target_fps      목표 FPS 자체를 배율만큼 낮춘다(더 자주 쉰다)
+      max_throughput  최대 속도로 돌리되 듀티비를 배율에 맞춘다 — 계산 자체를 느리게
+                      할 수는 없으므로 "일한 시간 / 전체 시간"을 배율로 맞춘다.
+                      시뮬레이터가 사용률(util)을 배율로 두는 것과 같은 처리다.
+    """
+
+    #: 배율이 이보다 작으면 사실상 유휴로 본다(0이면 대기 시간이 무한이 된다).
+    MIN_LEVEL = 0.02
+
+    def __init__(self, path: str):
+        with open(path, encoding="utf-8") as f:
+            data = json.load(f)
+        self.id = data.get("id") or os.path.splitext(os.path.basename(path))[0]
+        self.label = data.get("label", self.id)
+        self.segments = [(float(s["durationSec"]), float(s["level"]))
+                         for s in data.get("segments", []) if float(s["durationSec"]) > 0]
+        if not self.segments:
+            raise ValueError(f"부하 패턴에 구간이 없다: {path}")
+        self.cycle = sum(d for d, _ in self.segments)
+
+    def level_at(self, t_sec: float) -> float:
+        """이 시각의 부하 배율(0~1). 주기를 넘으면 처음부터 반복한다."""
+        t = t_sec % self.cycle
+        acc = 0.0
+        for dur, level in self.segments:
+            acc += dur
+            if t < acc:
+                return min(1.0, max(0.0, level))
+        return min(1.0, max(0.0, self.segments[-1][1]))
+
+    def mean_level(self) -> float:
+        return sum(lv * d for d, lv in self.segments) / self.cycle
+
+    def peak_level(self) -> float:
+        return max(lv for _, lv in self.segments)
+
+    @staticmethod
+    def resolve(name: str, explicit_dir: str | None = None) -> str:
+        """패턴 이름(steady/burst/mixed) 또는 파일 경로를 실제 경로로 바꾼다.
+
+        스크립트 위치에서 서버 리소스 디렉터리를 거슬러 찾는다 — 같은 저장소를
+        clone하기만 하면 경로 설정 없이 동작해야 하기 때문이다.
+        """
+        if os.path.exists(name):
+            return name
+        here = os.path.dirname(os.path.abspath(__file__))
+        candidates = []
+        if explicit_dir:
+            candidates.append(os.path.join(explicit_dir, f"ai-load-{name}.json"))
+        candidates.append(os.path.normpath(
+            os.path.join(here, "..", "..", "src", "main", "resources", "edge", f"ai-load-{name}.json")))
+        for c in candidates:
+            if os.path.exists(c):
+                return c
+        raise FileNotFoundError(
+            f"부하 패턴 '{name}'을 찾지 못했다. 찾아본 경로: {candidates} — "
+            "저장소 밖에서 실행한다면 --load-pattern-dir 로 리소스 폴더를 지정할 것.")
+
+
+class LoadRunner:
+    """추론 부하를 워커 스레드에서 돌리며 <b>동시 실행과 순차 실행을 비교</b>할 수 있게 한다.
+
+    <h3>왜 스레드로 옮겼는가</h3>
+    열적으로 의미 있는 변수는 "몇 개의 스레드가 동시에 계산하고 있는가"다. 한 모델이
+    코어를 다 쓰면(기존 기본값 num_threads=4) 인스턴스를 늘려도 OS가 시분할할 뿐이라
+    소비전력이 늘지 않아 동시/순차가 열적으로 구분되지 않는다. 그래서 인스턴스마다
+    스레드 수를 나눠 주고(--threads-per-job), 몇 개를 동시에 돌릴지를 스케줄로 정한다.
+
+        sequential   워커 1개가 인스턴스들을 번갈아 한 프레임씩 처리 →
+                     동시에 계산하는 스레드 = threads_per_job
+        concurrent   워커 N개가 각자 자기 인스턴스를 계속 처리 →
+                     동시에 계산하는 스레드 = jobs × threads_per_job
+
+    총 작업량은 같고 시간 분포와 순간 전력만 다르다 — "같은 일을 몰아서 하나 펼쳐서
+    하나"의 비교이고, 이것이 AI 데이터센터의 스케줄링 의사결정과 대응한다.
+
+    <h3>GIL</h3>
+    tflite의 invoke()와 numpy 행렬곱은 C 레벨에서 GIL을 놓으므로 스레드로 실제 병렬이
+    된다. 순수 파이썬 폴백(numpy 없음)만 GIL에 막히므로 그 경우 경고한다.
+    """
+
+    def __init__(self, instances: list, schedule: str, mode: str, target_fps: float):
+        self.instances = instances
+        self.schedule = schedule
+        self.mode = mode
+        self.target_fps = target_fps
+        self.jobs = len(instances)
+        #: 워커별 누적 프레임 수. 각 워커가 자기 칸만 통째로 덮어써서 락이 필요 없다.
+        self.counts = [0] * self.jobs
+        #: 메인 루프가 갱신하는 지시 상태 — (돌릴지, 부하 배율).
+        self._run = False
+        self._level = 1.0
+        self._stop = False
+        self._threads: list = []
+
+    # ── 메인 루프가 호출 ────────────────────────────────────────────────
+    def set_state(self, run: bool, level: float) -> None:
+        self._level = level
+        self._run = run
+
+    def total_frames(self) -> int:
+        return sum(self.counts)
+
+    def active_jobs(self) -> int:
+        """지금 계산 중인 인스턴스 수 — CSV에 남겨 전력·온도와 맞춰 본다."""
+        if not self._run:
+            return 0
+        return self.jobs if self.schedule == "concurrent" else 1
+
+    def busy_threads(self, threads_per_job: int) -> int:
+        return self.active_jobs() * threads_per_job
+
+    def start(self) -> None:
+        import threading
+        if self.schedule == "concurrent":
+            for i in range(self.jobs):
+                t = threading.Thread(target=self._worker_one, args=(i,), daemon=True)
+                t.start()
+                self._threads.append(t)
+        else:
+            t = threading.Thread(target=self._worker_rotating, daemon=True)
+            t.start()
+            self._threads.append(t)
+
+    def stop(self) -> None:
+        self._stop = True
+        for t in self._threads:
+            t.join(timeout=3.0)
+
+    # ── 워커 ──────────────────────────────────────────────────────────
+    def _worker_one(self, idx: int) -> None:
+        """concurrent — 자기 인스턴스만 계속 처리한다."""
+        inst = self.instances[idx]
+        local = 0
+        while not self._stop:
+            if not self._pace(lambda: inst.frame()):
+                continue
+            local += 1
+            self.counts[idx] = local
+
+    def _worker_rotating(self) -> None:
+        """sequential — 인스턴스들을 번갈아 한 프레임씩. 동시에 도는 건 항상 하나다."""
+        locals_ = [0] * self.jobs
+        idx = 0
+        while not self._stop:
+            inst = self.instances[idx]
+            if not self._pace(lambda: inst.frame()):
+                continue
+            locals_[idx] += 1
+            self.counts[idx] = locals_[idx]
+            idx = (idx + 1) % self.jobs      # 인스턴스마다 작업량을 고르게 준다
+
+    def _pace(self, do_frame) -> bool:
+        """한 프레임 실행 + 모드별 페이싱. 실행하지 않았으면 False."""
+        if not self._run:
+            time.sleep(0.02)
+            return False
+        level = self._level
+        if level < AiLoadPattern.MIN_LEVEL:
+            time.sleep(0.02)
+            return False
+
+        start = time.time()
+        do_frame()
+        busy = time.time() - start
+
+        if self.mode == "target_fps":
+            # 인스턴스가 여러 개면 각자 목표의 1/N을 담당해 합이 목표가 되게 한다.
+            per_job_target = max(self.target_fps * level / max(self.jobs, 1), 1e-6)
+            time.sleep(max(0.0, 1.0 / per_job_target - busy))
+        elif level < 0.999:
+            # 최대 처리량 — 계산을 느리게 할 수 없으므로 듀티비를 배율에 맞춘다.
+            time.sleep(max(0.0, busy * (1.0 / level - 1.0)))
+        return True
+
+
+CSV_COLUMNS = ["t_sec", "iso_time", "phase", "load_level", "active_jobs", "soc_temp_c", "clock_mhz",
                "throttled", "throttled_bits", "power_w", "volts", "fan_rpm", "fps"]
 
 
@@ -335,6 +533,22 @@ def main() -> int:
                     help="tflite(.tflite)·llama(.gguf) 모델 파일 경로")
     ap.add_argument("--load-tokens", type=int, default=32,
                     help="llama: frame() 한 번에 생성할 토큰 수")
+    ap.add_argument("--schedule", default="sequential", choices=["sequential", "concurrent"],
+                    help="여러 모델 인스턴스를 순차로 돌릴지 동시에 돌릴지. 총 작업량은 같고 "
+                         "순간 전력과 소요 시간이 달라진다 — 같은 일을 '펼쳐서' 하나 '몰아서' 하나의 비교. "
+                         "--jobs 1이면 둘이 같다")
+    ap.add_argument("--jobs", type=int, default=1,
+                    help="모델 인스턴스 개수(기본 1). 동시/순차 비교를 하려면 코어 수(보통 4)로 둘 것")
+    ap.add_argument("--threads-per-job", type=int, default=0,
+                    help="인스턴스당 스레드 수. 0이면 자동(코어수÷jobs) — jobs=1이면 전체 코어를 "
+                         "쓰므로 기존 동작과 같고, jobs=4면 각 1스레드가 되어 동시/순차가 "
+                         "열적으로 실제로 구분된다")
+    ap.add_argument("--load-pattern", default=None,
+                    help="AI 부하 패턴 — steady/burst/mixed 또는 JSON 경로. "
+                         "서버 시뮬레이터와 같은 파일을 읽으므로 시뮬과 실측을 같은 조건으로 비교할 수 있다. "
+                         "생략하면 부하가 일정하다(기존 동작)")
+    ap.add_argument("--load-pattern-dir", default=None,
+                    help="패턴 JSON 폴더를 직접 지정(저장소 밖에서 실행할 때)")
     ap.add_argument("--interval", type=float, default=1.0, help="샘플링 간격(초)")
     ap.add_argument("--outdir", default="runs")
     ap.add_argument("--max-temp", type=float, default=90.0, help="안전 중단 온도 ℃")
@@ -355,17 +569,41 @@ def main() -> int:
 
     # 부하 준비 실패는 조용히 넘기지 않는다 — 무엇을 측정했는지 알 수 없는 데이터가
     # 남는 것이 실행이 멈추는 것보다 나쁘다(--simulate는 데이터로 쓰지 않으므로 예외).
+    jobs = max(1, args.jobs)
+    # 스레드 배분 — 자동이면 코어를 인스턴스 수로 나눈다. jobs=1이면 전체 코어를 쓰므로
+    # 기존 동작과 같고, jobs=4면 각 1스레드가 되어 동시/순차의 전력 차이가 실제로 생긴다.
+    threads_per_job = args.threads_per_job or max(1, (os.cpu_count() or 4) // jobs)
+
     try:
-        load = InferenceLoad(kind=args.load_kind, model_path=args.load_model,
-                             tokens=args.load_tokens)
+        instances = [InferenceLoad(kind=args.load_kind, model_path=args.load_model,
+                                   tokens=args.load_tokens, threads=threads_per_job)
+                     for _ in range(jobs)]
     except Exception as e:
         if args.simulate:
             print(f"[!] '{args.load_kind}' 부하를 준비하지 못해 matmul로 대체한다(--simulate): {e}")
-            load = InferenceLoad(kind="matmul")
+            instances = [InferenceLoad(kind="matmul", threads=threads_per_job) for _ in range(jobs)]
         else:
             print(f"[x] '{args.load_kind}' 부하를 준비하지 못했다: {e}")
             print("    다른 부하로 조용히 바꾸면 이 CSV가 무엇을 잰 것인지 알 수 없게 되므로 중단한다.")
             print("    백엔드 설치(tflite-runtime / llama-cpp-python)와 --load-model 경로를 확인할 것.")
+            return 2
+    load = instances[0]      # 메타데이터용 대표 인스턴스(종류·단위·상세는 모두 같다)
+
+    # 순수 파이썬 폴백은 GIL에 막혀 스레드가 병렬로 돌지 않는다 — 동시 실행이
+    # 이름만 동시가 되어 전력이 안 올라가므로, 그 조합은 실험이 성립하지 않는다.
+    if jobs > 1 and load.kind == "python-fallback":
+        print("[!] 순수 파이썬 부하는 GIL 때문에 동시 실행이 실제로 병렬이 되지 않는다 —"
+              " numpy를 설치하거나 --load-kind tflite 를 쓸 것.", file=sys.stderr)
+
+    # 부하 패턴도 실패를 조용히 넘기지 않는다 — 패턴을 줬다고 믿었는데 상수 부하로
+    # 돌아간 CSV가 남으면, 나중에 그 데이터로 순위를 비교하는 순간 결론이 틀어진다.
+    pattern = None
+    if args.load_pattern:
+        try:
+            pattern_path = AiLoadPattern.resolve(args.load_pattern, args.load_pattern_dir)
+            pattern = AiLoadPattern(pattern_path)
+        except Exception as e:
+            print(f"[x] 부하 패턴을 읽지 못했다: {e}", file=sys.stderr)
             return 2
 
     meta = RunMeta(run_id=run_id, label=args.label or run_id, board=args.board,
@@ -377,15 +615,32 @@ def main() -> int:
                    started_at_iso=datetime.now(timezone.utc).isoformat(),
                    load_kind=load.kind, load_unit=load.unit, load_detail=load.detail,
                    load_model_path=args.load_model or "",
+                   schedule=args.schedule, jobs=jobs, threads_per_job=threads_per_job,
+                   load_pattern_id=pattern.id if pattern else "",
+                   load_pattern_file=os.path.basename(pattern_path) if pattern else "",
+                   load_pattern_cycle_sec=pattern.cycle if pattern else 0.0,
+                   load_pattern_mean_level=pattern.mean_level() if pattern else 1.0,
                    sample_interval_sec=args.interval,
                    columns=CSV_COLUMNS)
 
     print(f"[i] run_id={run_id}")
     print(f"[i] 부하 종류={load.kind} ({load.unit}/s)"
           + (f"  {load.detail}" if load.detail else ""))
+    if pattern:
+        print(f"[i] 부하 패턴={pattern.id} '{pattern.label}' — 주기 {pattern.cycle:.0f}s, "
+              f"평균 배율 {pattern.mean_level():.2f}, 최대 {pattern.peak_level():.2f}")
+        print(f"[i]   ({pattern_path})")
+    else:
+        print("[i] 부하 패턴=없음(일정한 부하)")
+    busy = jobs * threads_per_job if args.schedule == "concurrent" else threads_per_job
+    print(f"[i] 스케줄={args.schedule}  인스턴스 {jobs}개 × {threads_per_job}스레드 "
+          f"→ 동시 계산 스레드 {busy}개 / 코어 {os.cpu_count()}")
     print(f"[i] 단계: 기준선 {args.baseline:.0f}s → 부하 {args.load:.0f}s "
           f"→ 회복({args.recovery}) {args.recovery_seconds:.0f}s")
     print(f"[i] 출력: {csv_path}")
+
+    runner = LoadRunner(instances, args.schedule, args.mode, args.target_fps)
+    runner.start()
 
     t_zero = time.time()
     # 기준선·부하·회복의 경계 시각(초). 캘리브레이션 도구의 loadEndSeconds가 곧 t_load_end다.
@@ -393,7 +648,7 @@ def main() -> int:
     t_load_end = args.baseline + args.load
     t_end = t_load_end + args.recovery_seconds
 
-    frames = 0
+    frames_mark = 0
     last_fps_mark = 0.0
     fps = 0.0
     aborted = ""
@@ -421,22 +676,23 @@ def main() -> int:
                 elif phase == "RECOVERY":
                     run_frame = args.recovery in ("r2_low_load", "r3_active_cooling")
 
-                if run_frame:
-                    target = args.target_fps
-                    if phase == "RECOVERY" and args.recovery == "r2_low_load":
-                        target *= 0.25
-                    if args.mode == "target_fps":
-                        # 목표 FPS 페이싱 — 한 프레임 처리 후 남는 시간은 쉰다
-                        frame_start = time.time()
-                        load.frame()
-                        frames += 1
-                        sleep = max(0.0, 1.0 / target - (time.time() - frame_start))
-                        time.sleep(sleep)
-                    else:
-                        load.frame()
-                        frames += 1
-                else:
-                    time.sleep(0.05)
+                # 부하 패턴 배율 — 회복 정책과는 곱셈으로 합성된다(정책의 의미가 유지된다).
+                #
+                # 패턴 시계는 반드시 **부하 시작**을 0으로 잡는다. 서버 시뮬레이터에는
+                # 기준선 단계가 없어 t=0이 곧 부하 시작이므로, 여기서 t_zero(기준선 포함)를
+                # 기준으로 재면 기준선 길이만큼 패턴이 밀려 같은 패턴인데 다른 구간을
+                # 재생하게 된다 — 시뮬과 실측을 같은 조건으로 비교할 수 없게 되므로
+                # 이 정렬이 패턴 재생 기능의 전제다.
+                level = 1.0 if pattern is None else pattern.level_at(max(0.0, now - t_load_start))
+
+                # R2(저부하 유지)는 배율에 곱해 합성한다 — 패턴이 있어도 정책 의미가 유지된다.
+                eff_level = level
+                if phase == "RECOVERY" and args.recovery == "r2_low_load":
+                    eff_level *= 0.25
+
+                # 실제 계산은 워커 스레드가 한다. 메인 루프는 지시만 하고 센싱에 집중한다.
+                runner.set_state(run_frame, eff_level)
+                time.sleep(min(0.05, args.interval / 4.0))
 
                 # ── 샘플링 ───────────────────────────────────────────────
                 now = time.time() - t_zero
@@ -444,9 +700,12 @@ def main() -> int:
                     continue
                 next_sample += args.interval
 
+                # 워커들이 누적한 총 프레임에서 구간 증가분으로 FPS를 낸다.
+                # 인스턴스가 여러 개면 전체 합이므로 "시스템 처리량"이 된다.
                 if now - last_fps_mark >= 1.0:
-                    fps = frames / (now - last_fps_mark)
-                    frames = 0
+                    total = runner.total_frames()
+                    fps = (total - frames_mark) / (now - last_fps_mark)
+                    frames_mark = total
                     last_fps_mark = now
 
                 if args.simulate:
@@ -464,8 +723,9 @@ def main() -> int:
                     power = read_power_w()
 
                 throttled = "" if bits is None else int(bool(bits & 0x4))
-                f.write("{:.1f},{},{},{},{},{},{},{},{},{},{:.2f}\n".format(
-                    now, datetime.now(timezone.utc).isoformat(), phase,
+                f.write("{:.1f},{},{},{:.3f},{},{},{},{},{},{},{},{},{:.2f}\n".format(
+                    now, datetime.now(timezone.utc).isoformat(), phase, level,
+                    runner.active_jobs(),
                     "" if temp is None else f"{temp:.1f}",
                     "" if clock is None else f"{clock:.0f}",
                     throttled,
@@ -488,6 +748,7 @@ def main() -> int:
         except KeyboardInterrupt:
             aborted = "사용자 중단(Ctrl-C)"
         finally:
+            runner.stop()               # 워커 스레드를 세워 보드가 계속 달궈지지 않게 한다
             if args.recovery == "r3_active_cooling":
                 set_fan(args.fan_max)   # 안전: 끝나도 팬은 켠 채로 둔다
 
