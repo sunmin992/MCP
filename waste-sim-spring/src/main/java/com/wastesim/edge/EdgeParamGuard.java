@@ -108,6 +108,36 @@ public final class EdgeParamGuard {
             + "|대조군|부하\\s*패턴\\s*없)",
             Pattern.CASE_INSENSITIVE);
 
+    // ── 방열판 질량·재질 (2노드 모델) ───────────────────────────────────
+    // 질량은 열용량을 정하고, 열용량은 부하가 출렁일 때 피크 온도를 좌우한다 — 즉
+    // "어떤 실험을 돌렸는지"가 바뀌는 값이라 다른 실험 조건과 똑같이 정규식으로 확정한다.
+
+    /** "90g", "90 그램", "0.12kg" — 단위를 붙여 말할 때만 가져온다(4GB·40mm는 안 걸린다). */
+    private static final Pattern HEATSINK_MASS = Pattern.compile(
+            "(\\d+(?:\\.\\d+)?)\\s*(kg|g(?![a-z])|그램|그람)", Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern MAT_COPPER = Pattern.compile("(구리|copper)", Pattern.CASE_INSENSITIVE);
+    private static final Pattern MAT_ALUMINUM = Pattern.compile("(알루미늄|aluminum|aluminium)", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * 이번 메시지가 <b>재질 두 개를 비교</b>해 달라는 요청인가 — 질량을 준 상태에서
+     * 알루미늄과 구리를 함께 언급한 경우.
+     *
+     * <p>{@link #isBoardComparison}과 같은 이유로 필요하다(실측 회귀): "90g 알루미늄과
+     * 90g 구리 방열판 비교해줘"가 재질 하나(구리)만 골라 한 번 실행돼서, 사용자가
+     * 물어본 비교가 아니라 <b>한쪽 결과만</b> 돌아왔다. 어느 쪽을 고르든 그건 다른
+     * 실험이므로, 호출측이 재질만 바꿔 두 번 실행할 수 있게 이 판정을 노출한다.
+     *
+     * <p>질량을 요구하는 이유: 질량 없이 재질만 말한 문장("구리랑 알루미늄 차이가 커?")은
+     * 애초에 방열판 배치·재질 비교 도구로 라우팅되므로 여기서 다룰 대상이 아니다.
+     */
+    public static boolean isMaterialComparison(String text) {
+        if (text == null || text.isBlank()) return false;
+        return HEATSINK_MASS.matcher(text).find()
+                && MAT_COPPER.matcher(text).find()
+                && MAT_ALUMINUM.matcher(text).find();
+    }
+
     private static final Pattern AMBIENT = Pattern.compile(
             "(?:실내|주변|상온|기온|외부|환경|ambient)\\s*(?:온도\\s*)?(?:가|는|이)?\\s*(\\d{1,2}(?:\\.\\d)?)\\s*(?:도|℃|°c|c\\b)",
             Pattern.CASE_INSENSITIVE);
@@ -151,6 +181,22 @@ public final class EdgeParamGuard {
         else if (LOAD_BURST.matcher(text).find()) n.put("aiLoadProfileId", "burst");
         else if (LOAD_STEADY.matcher(text).find()) n.put("aiLoadProfileId", "steady");
 
+
+        // 방열판 질량 — 있으면 2노드 모델로 계산된다. 재질은 질량이 있을 때만 의미가
+        // 있으므로(열용량 = 질량 × 비열) 함께 있을 때만 넣는다. 재질만 말한 문장은
+        // 애초에 배치·재질 비교 도구로 라우팅된다(EdgeToolSelector).
+        Matcher mass = HEATSINK_MASS.matcher(text);
+        if (mass.find()) {
+            double v = Double.parseDouble(mass.group(1));
+            String unit = mass.group(2).toLowerCase();
+            n.put("heatsinkMassG", unit.startsWith("k") ? v * 1000.0 : v);
+            // 재질을 둘 다 언급했으면 비교 요청이므로 여기서 하나를 고르지 않는다 —
+            // 고르면 사용자가 물어본 것과 다른 실험이 조용히 실행된다(보드 비교와 같은 이유).
+            if (!isMaterialComparison(text)) {
+                if (MAT_COPPER.matcher(text).find()) n.put("heatsinkMaterial", "copper");
+                else if (MAT_ALUMINUM.matcher(text).find()) n.put("heatsinkMaterial", "aluminum");
+            }
+        }
 
         Matcher amb = AMBIENT.matcher(text);
         if (amb.find()) n.put("ambientTempC", Double.parseDouble(amb.group(1)));

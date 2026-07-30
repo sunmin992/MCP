@@ -490,6 +490,13 @@ public class ChatController {
             runEdgeComparison(provider, args, userText, history);
             return;
         }
+        // 재질을 둘 다 언급했으면 같은 이유로 두 번 실행한다 — 질량이 같아도 비열이
+        // 달라 열용량이 달라지므로(2노드), 한쪽만 골라 돌리면 물어본 비교가 아니다.
+        if (EdgeToolSelector.TOOL_THROTTLING.equals(toolName)
+                && EdgeParamGuard.isMaterialComparison(userText)) {
+            runEdgeMaterialComparison(provider, args, userText, history);
+            return;
+        }
         if (!args.has("board")) {
             reply("어느 보드인지 알려주세요 — 라즈베리파이 4와 5는 발열 특성이 많이 다릅니다.",
                     userText, history);
@@ -564,6 +571,33 @@ public class ChatController {
             results.add(out);
         }
         reply(EdgeChatFormatter.boardComparison(results), userText, history);
+    }
+
+    /**
+     * 재질만 바꿔 두 번 실행한다(알루미늄 → 구리 순서). 보드 비교와 구조가 같고
+     * 바꾸는 필드만 다르다 — 같은 질량이라도 비열 차이로 열용량이 달라지므로
+     * 2노드 모델에서 과도응답이 갈린다.
+     */
+    private void runEdgeMaterialComparison(McpToolProvider provider, ObjectNode baseArgs,
+                                           String userText, List<Map<String, String>> history) {
+        metrics.counter("waste.chat.edge_tool", "tool", "material_comparison").increment();
+
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (String material : List.of("aluminum", "copper")) {
+            ObjectNode args = baseArgs.deepCopy();
+            args.put("heatsinkMaterial", material);
+            ToolResult tr = provider.call(args);
+            if (!tr.ready()) {
+                StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
+                for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+                reply(sb.toString().trim(), userText, history);
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> out = (Map<String, Object>) tr.result();
+            results.add(out);
+        }
+        reply(EdgeChatFormatter.materialComparison(results), userText, history);
     }
 
     /** 봇 답변 전송 + 대화 이력 갱신(엣지 경로 공통) — runChatScenario 말미와 같은 처리. */

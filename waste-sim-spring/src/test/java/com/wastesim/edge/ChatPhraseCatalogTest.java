@@ -3,6 +3,7 @@ package com.wastesim.edge;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.wastesim.service.DomainIntentDetector;
 import com.wastesim.service.EdgeToolSelector;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -115,6 +116,82 @@ class ChatPhraseCatalogTest {
                 DomainIntentDetector.classify("핀 개수를 늘리면 정말 더 시원해져?"));
         assertEquals(DomainIntentDetector.Domain.EDGE_THERMAL,
                 DomainIntentDetector.classify("pi5 방열판 핀 개수를 늘리면 정말 더 시원해져?"));
+    }
+
+    // ── 방열판 질량·재질 (2노드) ────────────────────────────────────────
+
+    @Test
+    @DisplayName("질량을 말하면 특정 방열판 지정 — 발열 시뮬레이션으로 가고 2노드로 계산된다")
+    void heatsinkMassRoutesToThrottlingNotLayout() {
+        check("pi5에 90g 알루미늄 방열판 달고 최대 처리량으로 버스트 부하 돌려줘",
+                EdgeToolSelector.TOOL_THROTTLING,
+                "board", "pi5", "cooling", "passive",
+                "heatsinkMassG", "90.0", "heatsinkMaterial", "aluminum",
+                "aiLoadProfileId", "burst");
+        check("라즈베리파이 5에 구리 방열판 120그램 달고 20분 돌려줘",
+                EdgeToolSelector.TOOL_THROTTLING,
+                "heatsinkMassG", "120.0", "heatsinkMaterial", "copper");
+    }
+
+    @Test
+    @DisplayName("질량 없이 재질만 말하면 여전히 배치·재질 비교다")
+    void materialWithoutMassStillGoesToLayout() {
+        check("구리 방열판이랑 알루미늄 방열판 차이가 커?", EdgeToolSelector.TOOL_HEATSINK);
+        assertFalse(EdgeParamGuard.fromText("구리랑 알루미늄 차이가 커?").hasNonNull("heatsinkMassG"));
+    }
+
+    /** 실측 회귀 — "90g 알루미늄과 90g 구리 비교"가 구리 하나만 골라 한 번 실행됐다.
+     *  어느 쪽을 고르든 사용자가 물어본 비교가 아니라 한쪽 결과일 뿐이다. */
+    @Test
+    @DisplayName("재질을 둘 다 말하면 비교 요청 — 한쪽을 골라 확정하지 않는다")
+    void materialComparisonDoesNotSilentlyPickOne() {
+        String text = "90g 알루미늄과 90g 구리 방열판 비교해줘";
+        assertTrue(EdgeParamGuard.isMaterialComparison(text));
+
+        ObjectNode n = EdgeParamGuard.fromText(text);
+        assertEquals(90.0, n.get("heatsinkMassG").asDouble(), 1e-9, "질량은 공통이라 확정한다");
+        assertFalse(n.hasNonNull("heatsinkMaterial"),
+                "재질을 확정하면 비교가 아니라 한쪽 실행이 된다");
+        assertEquals(EdgeToolSelector.TOOL_THROTTLING, EdgeToolSelector.select(text));
+    }
+
+    @Test
+    @DisplayName("재질이 하나면 비교가 아니라 그 재질로 확정한다")
+    void singleMaterialIsNotAComparison() {
+        assertFalse(EdgeParamGuard.isMaterialComparison("90g 알루미늄 방열판 달고 돌려줘"));
+        assertEquals("aluminum",
+                EdgeParamGuard.fromText("90g 알루미늄 방열판 달고 돌려줘").get("heatsinkMaterial").asText());
+        assertEquals("copper",
+                EdgeParamGuard.fromText("90g 구리 방열판 달고 돌려줘").get("heatsinkMaterial").asText());
+    }
+
+    @Test
+    @DisplayName("질량 없이 재질만 둘이면 배치·재질 비교 도구의 몫이다")
+    void twoMaterialsWithoutMassIsNotHandledHere() {
+        assertFalse(EdgeParamGuard.isMaterialComparison("구리랑 알루미늄 차이가 커?"));
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK, EdgeToolSelector.select("구리랑 알루미늄 차이가 커?"));
+    }
+
+    @Test
+    void kilogramIsConvertedToGrams() {
+        assertEquals(1200.0,
+                EdgeParamGuard.fromText("pi5에 1.2kg 방열판 달고 돌려줘").get("heatsinkMassG").asDouble(), 1e-9);
+    }
+
+    @Test
+    @DisplayName("g가 붙은 무관한 표기는 질량으로 오인하지 않는다")
+    void unrelatedUnitsAreNotMistakenForMass() {
+        for (String t : new String[]{"pi5 8GB로 20분 돌려줘", "40mm 방열판 배치 비교",
+                                      "라즈베리파이 5 무냉각 20분"}) {
+            assertFalse(EdgeParamGuard.fromText(t).hasNonNull("heatsinkMassG"), t);
+        }
+    }
+
+    @Test
+    @DisplayName("배치 어휘가 명시되면 질량이 있어도 배치 비교다")
+    void explicitLayoutWordsStillWinOverMass() {
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK,
+                EdgeToolSelector.select("90g 알루미늄 방열판 배치를 비교해줘"));
     }
 
     /** "방열판만 상태에서"는 냉각 조건이지 배치 비교 대상이 아니다(회귀 케이스). */

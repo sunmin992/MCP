@@ -76,14 +76,41 @@ public final class EdgeChatFormatter {
     public static String boardComparison(List<Map<String, Object>> runs) {
         if (runs == null || runs.size() < 2) return "비교할 결과가 부족합니다.";
         Map<String, Object> a = runs.get(0), b = runs.get(1);
+        return comparison(runs,
+                String.format("보드 비교 — %s vs %s", a.get("board"), b.get("board")),
+                String.format("공통 조건: %s · %s · 부하 %s초",
+                        coolingKo(str(a, "cooling")), modeKo(str(a, "workloadMode")),
+                        fmt(num(a, "loadSeconds"))),
+                String.valueOf(a.get("board")), String.valueOf(b.get("board")));
+    }
+
+    /**
+     * {@code simulate_edge_throttling}을 재질만 바꿔 두 번 돌린 결과 비교.
+     * 질량이 같아도 비열이 달라 열용량이 달라지므로(알루미늄 900 / 구리 385 J/kg·K)
+     * 부하가 출렁일 때 피크 온도가 갈린다 — 그 차이가 이 표의 요점이다.
+     */
+    @SuppressWarnings("unchecked")
+    public static String materialComparison(List<Map<String, Object>> runs) {
+        if (runs == null || runs.size() < 2) return "비교할 결과가 부족합니다.";
+        Map<String, Object> a = runs.get(0);
+        return comparison(runs, "방열판 재질 비교 — 알루미늄 vs 구리",
+                String.format("공통 조건: %s · %s · %s · 부하 %s초",
+                        a.get("board"), coolingKo(str(a, "cooling")), modeKo(str(a, "workloadMode")),
+                        fmt(num(a, "loadSeconds"))),
+                "알루미늄", "구리");
+    }
+
+    /** 같은 조건에서 한 요인만 바꿔 두 번 돌린 결과를 나란히 놓는 공통 표. */
+    @SuppressWarnings("unchecked")
+    private static String comparison(List<Map<String, Object>> runs, String title, String header,
+                                     String nameA, String nameB) {
+        Map<String, Object> a = runs.get(0), b = runs.get(1);
         Map<String, Object> ma = (Map<String, Object>) a.get("metrics");
         Map<String, Object> mb = (Map<String, Object>) b.get("metrics");
 
         StringBuilder sb = new StringBuilder();
-        sb.append(String.format("보드 비교 — %s vs %s%n", a.get("board"), b.get("board")));
-        sb.append(String.format("공통 조건: %s · %s · 부하 %s초%n%n",
-                coolingKo(str(a, "cooling")), modeKo(str(a, "workloadMode")),
-                fmt(num(a, "loadSeconds"))));
+        sb.append(title).append(System.lineSeparator());
+        sb.append(header).append(System.lineSeparator()).append(System.lineSeparator());
 
         row(sb, "스로틀링 진입(TTT)", secOrNone(num(ma, "tttSec")), secOrNone(num(mb, "tttSec")));
         row(sb, "소프트 제한(80℃) 진입", secOrNone(num(ma, "softLimitEntrySec")), secOrNone(num(mb, "softLimitEntrySec")));
@@ -93,7 +120,7 @@ public final class EdgeChatFormatter {
         row(sb, "FPS 하락", fmt(num(ma, "fpsDropPercent")) + "%", fmt(num(mb, "fpsDropPercent")) + "%");
         row(sb, "가열 시정수 τ", fmt(num(ma, "tauHeatingSec")) + "초", fmt(num(mb, "tauHeatingSec")) + "초");
 
-        sb.append('\n').append(comparisonVerdict(a, b, ma, mb)).append('\n');
+        sb.append('\n').append(comparisonVerdict(nameA, nameB, ma, mb)).append('\n');
 
         // 두 실행의 notes를 합치되 중복은 제거한다 — 같은 조건에서 돌렸으므로
         // "이 조건에서는 스로틀링이 안 걸린다" 같은 문장이 양쪽에 똑같이 붙는 일이 흔하다.
@@ -106,31 +133,61 @@ public final class EdgeChatFormatter {
         return sb.toString().trim();
     }
 
-    /** 두 보드가 실제로 어떻게 갈렸는지 한 줄로 결론 내린다. */
-    private static String comparisonVerdict(Map<String, Object> a, Map<String, Object> b,
+    /** 표시 자리수(0.1℃) 아래 차이는 같은 값으로 본다 — "0℃ 더 뜨겁다"는 문장을 막는다. */
+    private static final double TEMP_TIE_C = 0.05;
+
+    /**
+     * 두 실행이 실제로 어떻게 갈렸는지 한 줄로 결론 낸다.
+     *
+     * <p>기준 지표를 고정하지 않는 이유: 열저항이 다른 비교(보드)는 정상상태 온도로
+     * 갈리지만, <b>열저항이 같은 비교(재질·질량만 다름)는 정상상태가 아예 동일하다</b> —
+     * 정상상태 식 {@code T_주변 + P·R_ja}에 열용량이 나타나지 않기 때문이다. 그 경우
+     * 갈리는 것은 피크 온도뿐이므로 판정 기준을 피크로 옮긴다. 실측 회귀: 재질 비교에서
+     * "구리가 0℃ 더 뜨겁게 안정된다(43.2℃ vs 43.2℃)"는 무의미한 문장이 나왔다.
+     */
+    private static String comparisonVerdict(String nameA, String nameB,
                                             Map<String, Object> ma, Map<String, Object> mb) {
         Double tA = num(ma, "tttSec"), tB = num(mb, "tttSec");
         Double sA = num(ma, "steadyStateTempC"), sB = num(mb, "steadyStateTempC");
-        String nameA = String.valueOf(a.get("board")), nameB = String.valueOf(b.get("board"));
+        Double pA = num(ma, "peakTempC"), pB = num(mb, "peakTempC");
 
         // 정상상태 온도는 항상 계산되지만, 없을 때 산술로 NPE를 내느니 비교를 포기한다 —
         // 표는 이미 위에 찍혔으므로 해석 한 줄이 빠지는 게 예외보다 낫다.
         if (sA == null || sB == null) return "→ 두 실행의 정상상태 온도를 비교할 수 없습니다.";
+        boolean steadyTied = Math.abs(sA - sB) < TEMP_TIE_C;
 
         if (tA != null && tB != null) {
             String faster = tA < tB ? nameA : nameB;
-            return String.format("→ %s가 %s초 먼저 스로틀링에 걸린다(%s초 vs %s초). 정상상태 온도는 %s℃ 차이.",
-                    faster, fmt(Math.abs(tA - tB)), fmt(tA), fmt(tB), fmt(Math.abs(sA - sB)));
+            String tail = steadyTied
+                    ? String.format("정상상태 온도는 양쪽 %s℃로 같다.", fmt(sA))
+                    : String.format("정상상태 온도는 %s℃ 차이.", fmt(Math.abs(sA - sB)));
+            return String.format("→ %s가 %s초 먼저 스로틀링에 걸린다(%s초 vs %s초). %s",
+                    faster, fmt(Math.abs(tA - tB)), fmt(tA), fmt(tB), tail);
         }
         if (tA == null && tB == null) {
+            if (steadyTied) {
+                // 열저항이 같은 비교 — 피크 온도가 유일한 차이다.
+                if (pA == null || pB == null || Math.abs(pA - pB) < TEMP_TIE_C) {
+                    return String.format("→ 양쪽 다 스로틀링에 걸리지 않고 정상상태(%s℃)도 피크도 사실상 같다 — "
+                            + "열용량 차이를 드러내려면 부하 패턴(burst·mixed)을 넣거나 주변 온도를 올려야 한다.",
+                            fmt(sA));
+                }
+                String hotterPeak = pA > pB ? nameA : nameB;
+                String coolerPeak = pA > pB ? nameB : nameA;
+                return String.format("→ 정상상태 온도는 양쪽 %s℃로 같다(열저항이 같으므로 당연하다 — 정상상태 식에는 열용량이 없다). "
+                        + "갈리는 것은 피크 온도로 %s가 %s℃ 더 높다(%s℃ vs %s℃): 부하가 출렁일 때 열용량이 큰 %s 쪽이 피크를 더 눌러 준다.",
+                        fmt(sA), hotterPeak, fmt(Math.abs(pA - pB)), fmt(pA), fmt(pB), coolerPeak);
+            }
             String hotter = sA > sB ? nameA : nameB;
+            String peakTail = (pA == null || pB == null || Math.abs(pA - pB) < TEMP_TIE_C) ? ""
+                    : String.format(" 피크 온도 차이는 %s℃다.", fmt(Math.abs(pA - pB)));
             return String.format("→ 이 조건에서는 양쪽 다 스로틀링에 걸리지 않는다. 다만 %s가 %s℃ 더 뜨겁게 안정된다(%s℃ vs %s℃) — "
-                    + "차이를 드러내려면 무냉각·최대 처리량으로 바꾸거나 주변 온도를 올려야 한다.",
-                    hotter, fmt(Math.abs(sA - sB)), fmt(sA), fmt(sB));
+                    + "차이를 더 벌리려면 무냉각·최대 처리량으로 바꾸거나 주변 온도를 올려야 한다.%s",
+                    hotter, fmt(Math.abs(sA - sB)), fmt(sA), fmt(sB), peakTail);
         }
         String throttled = tA != null ? nameA : nameB;
         String safe = tA != null ? nameB : nameA;
-        return String.format("→ 같은 조건인데 %s만 스로틀링에 걸리고 %s는 걸리지 않는다 — 이 조건이 두 보드의 경계선이다.",
+        return String.format("→ 같은 조건인데 %s만 스로틀링에 걸리고 %s는 걸리지 않는다 — 이 조건이 둘의 경계선이다.",
                 throttled, safe);
     }
 
