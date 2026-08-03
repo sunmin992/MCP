@@ -2,7 +2,7 @@ package com.wastesim.model;
 
 public class ChatMessage {
 
-    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO }
+    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT }
 
     private MessageType type;
     private String content;
@@ -29,6 +29,19 @@ public class ChatMessage {
      * <p>{@code null}이면 "아직 도메인 미정" — 시작화면의 첫 메시지가 여기 해당한다.
      */
     private String domain;
+
+    /**
+     * EDGE_RESULT 전용 — 엣지 도구가 돌려준 결과 원본(들).
+     *
+     * <p>서버가 이미 {@code content}에 사람이 읽는 텍스트를 만들어 넣지만, 화면에
+     * 보드·방열판·팬 구성을 그리고 지표를 표로 정리하려면 <b>구조화된 값</b>이 필요하다.
+     * 텍스트를 클라이언트에서 다시 파싱하는 방식은 포매터 문구가 바뀔 때마다 조용히
+     * 깨지므로 원본을 그대로 함께 보낸다.
+     *
+     * <p>비교 실행(보드·재질·팬 유무)은 결과가 둘이므로 항상 목록으로 담는다 —
+     * 하나짜리 실행도 원소 1개 목록이라 클라이언트 분기가 하나로 끝난다.
+     */
+    private java.util.List<java.util.Map<String, Object>> edgeRuns;
 
     public ChatMessage() {}
 
@@ -57,4 +70,7 @@ public class ChatMessage {
 
     public String getDomain() { return domain; }
     public void setDomain(String d) { this.domain = d; }
+
+    public java.util.List<java.util.Map<String, Object>> getEdgeRuns() { return edgeRuns; }
+    public void setEdgeRuns(java.util.List<java.util.Map<String, Object>> r) { this.edgeRuns = r; }
 }

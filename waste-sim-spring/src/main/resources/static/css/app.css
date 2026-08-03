@@ -478,3 +478,82 @@
       font-size: 11px;
       color: var(--accent);
     }
+
+    /* ── 엣지 발열 결과 (EDGE_RESULT) ───────────────────────────────
+       서버가 보낸 구조화 결과를 구성 단면도 + 지표 표로 그린다. 텍스트 해설은
+       접어 두고 필요할 때만 펼친다 — 표와 그림이 먼저 읽혀야 한다. */
+    .msg.edge-result {
+      align-self: flex-start;
+      max-width: 96%;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      border-bottom-left-radius: 4px;
+      padding: 14px 16px;
+      gap: 12px;
+    }
+
+    .edge-cond { display: flex; flex-wrap: wrap; gap: 6px; }
+    .edge-chip {
+      font-size: 11.5px;
+      color: var(--text);
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 3px 10px;
+    }
+    .edge-chip b { color: var(--muted); font-weight: 500; margin-right: 4px; }
+
+    /* 비교 실행이면 단면도가 둘 — 좁아지면 세로로 쌓인다. */
+    .edge-dgms {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+      gap: 10px;
+    }
+    .edge-dgm-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px;
+    }
+    .edge-dgm-wrap figcaption {
+      font-size: 11.5px;
+      color: var(--muted);
+      text-align: center;
+      padding-bottom: 2px;
+    }
+    .edge-dgm { width: 100%; height: auto; display: block; }
+    .edge-dgm .dgm-lbl { font-size: 9px; fill: var(--muted); }
+    .edge-dgm .dgm-lbl.dim { opacity: 0.7; }
+    .edge-dgm .dgm-chip { font-size: 10px; fill: #fff; font-weight: 600; }
+
+    .edge-tbl {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .edge-tbl th, .edge-tbl td {
+      text-align: left;
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--border);
+    }
+    .edge-tbl th { color: var(--muted); font-weight: 500; font-size: 11.5px; }
+    .edge-tbl td:first-child { color: var(--muted); }
+    .edge-tbl td:not(:first-child) { color: var(--text); }
+
+    .edge-notes summary {
+      cursor: pointer;
+      font-size: 12px;
+      color: var(--accent);
+      padding: 2px 0;
+    }
+    .edge-notes pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      font-family: inherit;
+      font-size: 12.5px;
+      line-height: 1.6;
+      color: var(--text);
+      padding-top: 6px;
+    }
