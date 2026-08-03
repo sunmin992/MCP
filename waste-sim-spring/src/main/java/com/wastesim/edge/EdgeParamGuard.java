@@ -138,6 +138,74 @@ public final class EdgeParamGuard {
                 && MAT_ALUMINUM.matcher(text).find();
     }
 
+    // ── 냉각팬 ──────────────────────────────────────────────────────────
+
+    /** 명시적 회전수 — "2500 RPM", "3000rpm". 숫자만으로는 잡지 않는다(온도·시간과 섞인다). */
+    private static final Pattern FAN_RPM = Pattern.compile(
+            "(\\d{3,5})\\s*(?:rpm|알피엠)", Pattern.CASE_INSENSITIVE);
+
+    private static final Pattern FAN_WORD = Pattern.compile("(팬|쿨러|fan)", Pattern.CASE_INSENSITIVE);
+    /** 팬이 "있는" 쪽을 가리키는 표현. */
+    private static final Pattern FAN_ON = Pattern.compile(
+            "(있을|있는|켰을|켠|켜고|달았|단\\s|장착|부착|on\\b)", Pattern.CASE_INSENSITIVE);
+    /** 팬이 "없는" 쪽을 가리키는 표현. */
+    private static final Pattern FAN_OFF = Pattern.compile(
+            "(없을|없는|껐을|끈|끄고|안\\s*달|미장착|off\\b)", Pattern.CASE_INSENSITIVE);
+    /** 한 단어로 유무 비교를 뜻하는 표현. */
+    private static final Pattern FAN_BOTH = Pattern.compile("유무", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * "팬 없이 / 팬을 끄고"처럼 <b>팬이 없는 쪽</b>을 가리키는 표현.
+     *
+     * <p>실측 회귀: "팬 없을 때 돌려줘"가 냉각 조건 판정에서 {@code ACTIVE}("팬")에 걸려
+     * <b>팬 냉각으로 실행</b>됐다. 부정을 보지 않고 단어만 본 탓인데, 그러면 "있을 때"와
+     * "없을 때"가 완전히 같은 결과를 내서 사용자가 물어본 비교가 성립하지 않는다.
+     *
+     * <p>이때 냉각 조건은 무냉각이 아니라 <b>방열판</b>으로 본다 — 팬을 뗀다고 방열판까지
+     * 사라지는 것은 아니고, 팬 유무 비교(runEdgeFanComparison)도 양쪽을 방열판으로 고정하므로
+     * 한 문장으로 물으나 두 문장으로 나눠 물으나 같은 조건이 된다.
+     */
+    private static final Pattern FAN_ABSENT = Pattern.compile(
+            "(팬|쿨러|fan)[을를이가은는\\s]*(없|끄|미장착|안\\s*달|off\\b)", Pattern.CASE_INSENSITIVE);
+
+    /** 방열판을 빼겠다는 표현. */
+    private static final Pattern HEATSINK_ABSENT = Pattern.compile(
+            "(방열판|히트\\s*싱크|heatsink)[을를이가은는\\s]*(없|빼|안\\s*달|미장착)", Pattern.CASE_INSENSITIVE);
+
+    /**
+     * 냉각 프리셋으로 표현할 수 없는 조합인가 — <b>방열판 없이 팬만</b> 다는 경우.
+     *
+     * <p>보드 프리셋은 무냉각 / 방열판 / 방열판+팬 세 가지로만 보정돼 있다
+     * ({@link CoolingPreset}). 방열판 없이 팬만 부는 조건은 기준값이 없어서, 그대로
+     * 실행하면 무냉각 값이 나오고 <b>팬을 켜든 끄든 결과가 같아진다</b> — 실측 회귀로
+     * 확인된 문제다. 조용히 한쪽으로 처리하는 대신 호출측이 되물을 수 있게 노출한다.
+     */
+    public static boolean isUnsupportedCoolingCombo(String text) {
+        if (text == null || text.isBlank()) return false;
+        boolean noHeatsink = HEATSINK_ABSENT.matcher(text).find() || BARE.matcher(text).find();
+        boolean fanPresent = FAN_WORD.matcher(text).find() && !FAN_ABSENT.matcher(text).find();
+        return noHeatsink && fanPresent;
+    }
+
+    /**
+     * 이번 메시지가 <b>팬 유무를 비교</b>해 달라는 요청인가.
+     *
+     * <p>{@link #isBoardComparison}·{@link #isMaterialComparison}과 같은 이유로 필요하다 —
+     * 한쪽만 골라 돌리면 사용자가 물어본 비교가 아니다. 팬은 특히 이 판정이 중요한데,
+     * 열저항을 낮추는 대신 전력을 쓰므로 <b>유무를 나란히 놓아야 트레이드오프가 보이기</b>
+     * 때문이다.
+     *
+     * <p>"있음"과 "없음" 표현이 <b>둘 다</b> 있을 때만(또는 "유무") 비교로 본다.
+     * 한쪽만 있으면 단일 실행이고, 특히 "스로틀링 걸리면 팬 켜면"은 회복 정책(R3)이라
+     * 비교로 오인하면 안 된다.
+     */
+    public static boolean isFanComparison(String text) {
+        if (text == null || text.isBlank()) return false;
+        if (!FAN_WORD.matcher(text).find()) return false;
+        if (FAN_BOTH.matcher(text).find()) return true;
+        return FAN_ON.matcher(text).find() && FAN_OFF.matcher(text).find();
+    }
+
     private static final Pattern AMBIENT = Pattern.compile(
             "(?:실내|주변|상온|기온|외부|환경|ambient)\\s*(?:온도\\s*)?(?:가|는|이)?\\s*(\\d{1,2}(?:\\.\\d)?)\\s*(?:도|℃|°c|c\\b)",
             Pattern.CASE_INSENSITIVE);
@@ -166,7 +234,10 @@ public final class EdgeParamGuard {
         // 단, 팬 언급이 '회복 조치'인 경우(R3: "스로틀링 걸리면 팬 100%로 켜면")는 부하
         // 구간의 냉각 조건으로 옮기면 안 된다 — 처음부터 팬이 돌고 있으면 스로틀링 자체가
         // 안 걸려서, 정작 학생이 물어본 회복 시간을 잴 수 없는 실행이 된다.
+        // "팬 없이"는 ACTIVE보다 먼저 본다 — 단어("팬")만 보면 부정이 무시돼
+        // "있을 때"와 "없을 때"가 같은 조건으로 실행된다(FAN_ABSENT 주석 참고).
         if (BARE.matcher(text).find()) n.put("cooling", "bare");
+        else if (FAN_ABSENT.matcher(text).find()) n.put("cooling", "passive");
         else if (ACTIVE.matcher(text).find() && !r3) n.put("cooling", "active");
         else if (PASSIVE.matcher(text).find()) n.put("cooling", "passive");
 
@@ -196,6 +267,12 @@ public final class EdgeParamGuard {
                 if (MAT_COPPER.matcher(text).find()) n.put("heatsinkMaterial", "copper");
                 else if (MAT_ALUMINUM.matcher(text).find()) n.put("heatsinkMaterial", "aluminum");
             }
+        }
+
+        // 팬 회전수 — 유무 비교일 때는 호출측이 0과 정격으로 두 번 돌리므로 확정하지 않는다.
+        Matcher rpm = FAN_RPM.matcher(text);
+        if (rpm.find() && !isFanComparison(text)) {
+            n.put("fanRpm", Double.parseDouble(rpm.group(1)));
         }
 
         Matcher amb = AMBIENT.matcher(text);

@@ -86,6 +86,39 @@ class EdgeComparisonVerdictTest {
         assertFalse(text.contains("0℃ 차이"), text);
     }
 
+    // ── 한국어 조사 ─────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("받침에 따라 조사를 고른다 — '팬 없음가' 같은 문장을 막는다")
+    void particleFollowsFinalConsonant() {
+        assertEquals("이", EdgeChatFormatter.particle("팬 없음", "이", "가"));   // 음 — 받침 O
+        assertEquals("이", EdgeChatFormatter.particle("팬 가동", "이", "가"));   // 동 — 받침 O
+        assertEquals("이", EdgeChatFormatter.particle("알루미늄", "이", "가"));  // 늄 — 받침 O
+        assertEquals("가", EdgeChatFormatter.particle("구리", "이", "가"));      // 리 — 받침 X
+        assertEquals("는", EdgeChatFormatter.particle("구리", "은", "는"));
+    }
+
+    @Test
+    @DisplayName("숫자로 끝나면 읽는 소리의 받침을 따른다 — Pi 5는 '오'라 받침이 없다")
+    void particleHandlesTrailingDigits() {
+        assertEquals("가", EdgeChatFormatter.particle("Raspberry Pi 5", "이", "가"));   // 오
+        assertEquals("가", EdgeChatFormatter.particle("Raspberry Pi 4", "이", "가"));   // 사
+        assertEquals("이", EdgeChatFormatter.particle("후보 3", "이", "가"));            // 삼
+        assertEquals("이", EdgeChatFormatter.particle("후보 1", "이", "가"));            // 일
+        assertEquals("가", EdgeChatFormatter.particle(null, "이", "가"));
+    }
+
+    @Test
+    @DisplayName("결론 문장에 조사가 실제로 적용된다")
+    void verdictUsesCorrectParticle() {
+        String text = EdgeChatFormatter.fanComparison(List.of(
+                run("Raspberry Pi 5", null, 76.8, 76.8),
+                run("Raspberry Pi 5", null, 61.2, 61.2)));
+        assertTrue(text.contains("팬 없음이"), "받침 있는 라벨에는 '이':\n" + text);
+        assertFalse(text.contains("팬 없음가"), text);
+        assertFalse(text.contains("팬 가동가"), text);
+    }
+
     @Test
     @DisplayName("한쪽만 걸리면 경계선이라고 알려준다(보드에 국한된 문구를 쓰지 않는다)")
     void onlyOneThrottledIsCalledABoundary() {

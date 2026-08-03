@@ -73,6 +73,9 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
                 "sampleIntervalSeconds": {"type": "number", "description": "결과 시계열 출력 간격(초)", "default": 5},
                 "startTempC": {"type": "number", "description": "실험 시작 온도 ℃. 기본값은 해당 냉각 조건의 유휴 정상상태 온도"},
                 "profileId": {"type": "string", "description": "calibrate_edge_thermal_model로 저장한 실측 파라미터 id(예: cal-001). 넣으면 프리셋 대신 실측값으로 계산"},
+                "fanRpm": {"type": "number", "description": "냉각팬 회전수. 넣으면 회전수에 맞춰 열저항이 낮아지고 소비전력이 함께 집계된다. 0이면 팬을 끈 상태(대조군) — 팬 유무·세기를 같은 조건에서 비교할 때 쓴다"},
+                "fanRatedRpm": {"type": "number", "description": "팬 정격(최대) 회전수", "default": 5000},
+                "fanRatedPowerW": {"type": "number", "description": "정격 회전수에서의 팬 소비전력 W. 전력은 회전수의 3승에 비례하므로 절반만 돌리면 1/8만 쓴다", "default": 0.5},
                 "heatsinkMassG": {"type": "number", "description": "방열판 질량(g). 넣으면 방열판을 별도 열 덩어리로 보는 2노드 모델로 계산한다 — 정상상태는 1노드와 같고 과도응답만 달라진다. 부하가 출렁일 때 질량이 피크를 흡수하는 효과를 보려면 필요하다"},
                 "heatsinkMaterial": {"type": "string", "enum": ["aluminum", "copper"], "description": "방열판 재질(질량→열용량 변환용). 비열 알루미늄 900 / 구리 385 J/(kg·K)이라 같은 질량이면 알루미늄이 열용량이 크다", "default": "aluminum"},
                 "heatsinkCThJPerK": {"type": "number", "description": "방열판 열용량 J/K 직접 지정. heatsinkMassG 대신 쓴다"},
@@ -118,6 +121,9 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         out.put("board", board.label());
         out.put("soc", board.soc());
         out.put("cooling", cooling.name().toLowerCase());
+        // 주변 온도는 실험 조건 중에서도 가장 자주 빠뜨리는 값이라(R_ja 계산의 기준)
+        // 배치 비교 도구와 마찬가지로 결과에 그대로 되돌려 남긴다.
+        out.put("ambientTempC", ambient);
         out.put("workloadMode", spec.mode().name().toLowerCase());
         out.put("targetFps", spec.targetFps());
         if (spec.aiLoad() != null) {
@@ -130,6 +136,19 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
             lp.put("peakLevel", spec.aiLoad().peakLevel());
             lp.put("timescaleFit", spec.aiLoad().timescaleFit(run.params().tauSeconds()).name().toLowerCase());
             out.put("aiLoadProfile", lp);
+        }
+        // 구성 요소는 화면이 보드·방열판·팬 구성도를 그리는 데 쓴다 — 없으면 담지 않아
+        // "지정하지 않음"과 "0으로 지정함"이 구분된다(팬 0 RPM은 달려 있지만 꺼진 상태).
+        if (spec.fan() != null) {
+            out.put("fanRpm", spec.fan().rpm());
+            out.put("fanRatedRpm", spec.fan().ratedRpm());
+            out.put("fanPowerW", ThermalSimulator.round(spec.fan().powerW(), 3));
+        }
+        if (spec.heatsink() != null) {
+            out.put("heatsinkCThJPerK", spec.heatsink().cThJPerK());
+            double massG = a.dbl("heatsinkMassG", 0.0, 0.0, 5000.0);
+            if (massG > 0) out.put("heatsinkMassG", massG);
+            if (a.has("heatsinkMaterial")) out.put("heatsinkMaterial", a.str("heatsinkMaterial", "aluminum"));
         }
         out.put("recoveryPolicy", spec.policy().name().toLowerCase());
         out.put("loadSeconds", spec.loadSec());
@@ -163,6 +182,12 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         m.put("fpsDropPercent", run.fpsDropPercent());
         m.put("tauHeatingSec", run.tauHeatingSec());
         m.put("energyJ", run.energyJ());
+        // 팬을 켰을 때만 노출한다 — 팬이 없으면 0이라 표만 길어지고, 가성비 판정의
+        // 분모가 totalEnergyJ라는 점이 오히려 흐려진다.
+        if (run.fanEnergyJ() > 0) {
+            m.put("fanEnergyJ", run.fanEnergyJ());
+            m.put("totalEnergyJ", run.totalEnergyJ());
+        }
         return m;
     }
 }

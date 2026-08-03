@@ -172,6 +172,76 @@ class ChatPhraseCatalogTest {
         assertEquals(EdgeToolSelector.TOOL_HEATSINK, EdgeToolSelector.select("구리랑 알루미늄 차이가 커?"));
     }
 
+    // ── 팬 유무 비교 ────────────────────────────────────────────────────
+
+    @Test
+    @DisplayName("팬 유무를 물으면 비교 요청 — 회전수를 확정하지 않는다")
+    void fanComparisonIsDetected() {
+        for (String t : new String[]{
+                "pi5에 팬 있을 때와 없을 때 비교해줘",
+                "팬 유무에 따라 얼마나 차이나?",
+                "팬 켰을 때랑 껐을 때 비교해줘"}) {
+            assertTrue(EdgeParamGuard.isFanComparison(t), t);
+            assertEquals(EdgeToolSelector.TOOL_THROTTLING, EdgeToolSelector.select(t), t);
+        }
+    }
+
+    /** 실측 회귀 — "팬 없을 때"가 단어("팬")만 보고 팬 냉각으로 실행돼서,
+     *  "있을 때"와 "없을 때"가 완전히 같은 결과를 냈다. */
+    @Test
+    @DisplayName("'팬 없을 때'는 팬 냉각이 아니다 — 부정을 봐야 두 조건이 갈린다")
+    void fanNegationIsNotActiveCooling() {
+        for (String t : new String[]{
+                "pi5 최대 처리량으로 팬 없을 때 20분 돌려줘",
+                "팬 없이 20분 돌리면 어떻게 돼?",
+                "팬을 끄고 돌려줘"}) {
+            assertEquals("passive", EdgeParamGuard.fromText(t).get("cooling").asText(),
+                    "팬을 뗀 것이지 방열판까지 없앤 게 아니다: " + t);
+        }
+        // 반대쪽은 그대로 팬 냉각이어야 한다 — 두 조건이 실제로 갈리는지 확인
+        assertEquals("active",
+                EdgeParamGuard.fromText("pi5 최대 처리량으로 팬 있을 때 20분 돌려줘").get("cooling").asText());
+    }
+
+    /** 실측 회귀 — "팬 있을 때 방열판 없이"가 무냉각으로 실행돼서, 팬을 켜든 끄든
+     *  결과가 같았다. 프리셋(무냉각/방열판/방열판+팬)에 없는 조합이라 계산할 수 없다. */
+    @Test
+    @DisplayName("방열판 없이 팬만 다는 조합은 계산 불가로 잡아낸다")
+    void fanWithoutHeatsinkIsFlaggedUnsupported() {
+        assertTrue(EdgeParamGuard.isUnsupportedCoolingCombo("pi4에 팬 있을 때 방열판 없이 25분 돌려줘"));
+        assertTrue(EdgeParamGuard.isUnsupportedCoolingCombo("무냉각에 팬만 달고 돌려줘"));
+    }
+
+    @Test
+    @DisplayName("양쪽 다 없거나 방열판이 있으면 정상 조합이다")
+    void supportedCoolingCombosAreNotFlagged() {
+        // 팬도 방열판도 없음 = 무냉각(프리셋 있음)
+        assertFalse(EdgeParamGuard.isUnsupportedCoolingCombo("pi4에 팬 없을 때 방열판 없이 돌려줘"));
+        assertFalse(EdgeParamGuard.isUnsupportedCoolingCombo("pi5 무냉각으로 20분 돌려줘"));
+        // 방열판이 있으면 팬을 달든 안 달든 프리셋이 있다
+        assertFalse(EdgeParamGuard.isUnsupportedCoolingCombo("pi5 방열판에 팬 달고 돌려줘"));
+        assertFalse(EdgeParamGuard.isUnsupportedCoolingCombo("팬 있을 때와 없을 때 비교해줘"));
+    }
+
+    @Test
+    @DisplayName("팬을 한쪽으로만 말하면 비교가 아니다 — 회복 정책과 헷갈리면 안 된다")
+    void singleSidedFanMentionIsNotComparison() {
+        assertFalse(EdgeParamGuard.isFanComparison("pi5에 팬 달고 20분 돌려줘"));
+        // R3 회복 정책 — "팬 켜면"이 비교로 오인되면 회복 실험이 통째로 바뀐다
+        String r3 = "스로틀링 걸리면 팬 100%로 켜면 얼마나 빨리 회복돼?";
+        assertFalse(EdgeParamGuard.isFanComparison(r3));
+        assertEquals("r3_active_cooling", EdgeParamGuard.fromText(r3).get("recoveryPolicy").asText());
+    }
+
+    @Test
+    @DisplayName("명시적 회전수는 그대로 쓰고, 유무 비교일 때는 확정하지 않는다")
+    void explicitRpmIsExtractedExceptInComparison() {
+        assertEquals(2500.0,
+                EdgeParamGuard.fromText("pi5 팬 2500rpm으로 돌려줘").get("fanRpm").asDouble(), 1e-9);
+        assertFalse(EdgeParamGuard.fromText("팬 5000rpm 있을 때와 없을 때 비교해줘").hasNonNull("fanRpm"),
+                "유무 비교는 호출측이 0과 정격으로 두 번 돌린다");
+    }
+
     @Test
     void kilogramIsConvertedToGrams() {
         assertEquals(1200.0,

@@ -100,6 +100,23 @@ public final class EdgeChatFormatter {
                 "알루미늄", "구리");
     }
 
+    /**
+     * 팬을 끈 상태와 정격으로 돌린 결과 비교.
+     *
+     * <p>팬은 열저항을 낮추는 대신 전력을 쓰므로, 온도만 보면 언제나 켜는 것이 이득이다.
+     * 그래서 <b>얼마를 더 써서 몇 도를 벌었는지</b>를 함께 보여야 판단할 수 있다.
+     */
+    @SuppressWarnings("unchecked")
+    public static String fanComparison(List<Map<String, Object>> runs) {
+        if (runs == null || runs.size() < 2) return "비교할 결과가 부족합니다.";
+        Map<String, Object> a = runs.get(0);
+        return comparison(runs, "냉각팬 유무 비교 — 팬 없음 vs 팬 가동",
+                String.format("공통 조건: %s · %s · 주변 %s℃ · 부하 %s초",
+                        a.get("board"), modeKo(str(a, "workloadMode")),
+                        fmt(num(a, "ambientTempC")), fmt(num(a, "loadSeconds"))),
+                "팬 없음", "팬 가동");
+    }
+
     /** 같은 조건에서 한 요인만 바꿔 두 번 돌린 결과를 나란히 놓는 공통 표. */
     @SuppressWarnings("unchecked")
     private static String comparison(List<Map<String, Object>> runs, String title, String header,
@@ -120,7 +137,19 @@ public final class EdgeChatFormatter {
         row(sb, "FPS 하락", fmt(num(ma, "fpsDropPercent")) + "%", fmt(num(mb, "fpsDropPercent")) + "%");
         row(sb, "가열 시정수 τ", fmt(num(ma, "tauHeatingSec")) + "초", fmt(num(mb, "tauHeatingSec")) + "초");
 
+        // 어느 한쪽이라도 팬을 썼으면 에너지 분해를 함께 보여준다 — 냉각을 산 대가가
+        // 얼마인지가 이 표의 요점이 되고, 온도만 보면 언제나 팬이 이기기 때문이다.
+        Double fanA = num(ma, "fanEnergyJ"), fanB = num(mb, "fanEnergyJ");
+        if (fanA != null || fanB != null) {
+            row(sb, "SoC 소비 에너지", fmt(num(ma, "energyJ")) + "J", fmt(num(mb, "energyJ")) + "J");
+            row(sb, "팬 소비 에너지", fmt(fanA == null ? 0.0 : fanA) + "J", fmt(fanB == null ? 0.0 : fanB) + "J");
+            row(sb, "총 소비 에너지",
+                    fmt(totalEnergy(ma)) + "J", fmt(totalEnergy(mb)) + "J");
+        }
+
         sb.append('\n').append(comparisonVerdict(nameA, nameB, ma, mb)).append('\n');
+        String cost = coolingCostLine(nameA, nameB, ma, mb);
+        if (cost != null) sb.append(cost).append('\n');
 
         // 두 실행의 notes를 합치되 중복은 제거한다 — 같은 조건에서 돌렸으므로
         // "이 조건에서는 스로틀링이 안 걸린다" 같은 문장이 양쪽에 똑같이 붙는 일이 흔하다.
@@ -131,6 +160,61 @@ public final class EdgeChatFormatter {
         }
         appendNotes(sb, new java.util.ArrayList<>(merged));
         return sb.toString().trim();
+    }
+
+    /**
+     * 앞 단어의 받침에 따라 조사를 고른다 — "팬 없음<b>가</b>"처럼 어색한 문장을 막는다.
+     *
+     * <p>비교 대상 이름이 보드 라벨("Raspberry Pi 5")만 있을 때는 드러나지 않다가,
+     * 재질·팬 비교에서 한글 라벨("팬 없음", "구리")이 들어오면서 문제가 됐다.
+     *
+     * <p>숫자로 끝나면 읽는 소리의 받침을 따른다 — "Pi 5"는 "오"라서 받침이 없고,
+     * "Pi 4"는 "사"라서 역시 없다. 한글도 숫자도 아니면 받침 없음으로 본다.
+     */
+    static String particle(String word, String afterBatchim, String afterVowel) {
+        if (word == null || word.isBlank()) return afterVowel;
+        char last = word.charAt(word.length() - 1);
+        if (last >= 0xAC00 && last <= 0xD7A3) {
+            return (last - 0xAC00) % 28 != 0 ? afterBatchim : afterVowel;
+        }
+        if (last >= '0' && last <= '9') {
+            // 영(ㅇ)·일(ㄹ)·삼(ㅁ)·육(ㄱ)·칠(ㄹ)·팔(ㄹ)은 받침이 있고 이·사·오·구는 없다.
+            return "013678".indexOf(last) >= 0 ? afterBatchim : afterVowel;
+        }
+        return afterVowel;
+    }
+
+    /** SoC + 팬. 팬 에너지가 없으면 SoC 에너지가 곧 총합이다. */
+    private static double totalEnergy(Map<String, Object> m) {
+        Double total = num(m, "totalEnergyJ");
+        if (total != null) return total;
+        Double soc = num(m, "energyJ");
+        return soc == null ? 0.0 : soc;
+    }
+
+    /**
+     * 냉각을 산 대가를 "1℃당 몇 J"로 환산해 한 줄 덧붙인다 — 온도 이득만 보면 팬은
+     * 언제나 이기므로, 비용을 같은 문장에 놓아야 적정 수준을 판단할 수 있다.
+     * 팬을 안 쓴 비교에서는 붙이지 않는다(null).
+     */
+    private static String coolingCostLine(String nameA, String nameB,
+                                          Map<String, Object> ma, Map<String, Object> mb) {
+        Double fanA = num(ma, "fanEnergyJ"), fanB = num(mb, "fanEnergyJ");
+        if (fanA == null && fanB == null) return null;
+        Double pA = num(ma, "peakTempC"), pB = num(mb, "peakTempC");
+        if (pA == null || pB == null) return null;
+
+        double dTemp = pA - pB;                                   // A 대비 B가 낮춘 온도
+        double dEnergy = totalEnergy(mb) - totalEnergy(ma);       // 그러려고 더 쓴 에너지
+        if (Math.abs(dTemp) < TEMP_TIE_C) {
+            return String.format("→ 다만 %s%s 온도를 거의 낮추지 못하면서 에너지만 %sJ 더 쓴다 — 이 조건에서는 켤 이유가 없다.",
+                    nameB, particle(nameB, "은", "는"), fmt(Math.abs(dEnergy)));
+        }
+        String cooler = dTemp > 0 ? nameB : nameA;
+        return String.format("→ 비용: %s%s %s℃ 낮추는 데 에너지를 %sJ 더 쓴다(1℃당 %sJ). "
+                + "팬 전력은 회전수의 3승이라 회전수를 낮추면 이 비용이 급격히 줄어든다 — 요구 온도만 맞추는 지점을 찾는 것이 이 실험의 목적이다.",
+                cooler, particle(cooler, "이", "가"), fmt(Math.abs(dTemp)), fmt(Math.abs(dEnergy)),
+                fmt(Math.abs(dEnergy) / Math.abs(dTemp)));
     }
 
     /** 표시 자리수(0.1℃) 아래 차이는 같은 값으로 본다 — "0℃ 더 뜨겁다"는 문장을 막는다. */
@@ -161,8 +245,8 @@ public final class EdgeChatFormatter {
             String tail = steadyTied
                     ? String.format("정상상태 온도는 양쪽 %s℃로 같다.", fmt(sA))
                     : String.format("정상상태 온도는 %s℃ 차이.", fmt(Math.abs(sA - sB)));
-            return String.format("→ %s가 %s초 먼저 스로틀링에 걸린다(%s초 vs %s초). %s",
-                    faster, fmt(Math.abs(tA - tB)), fmt(tA), fmt(tB), tail);
+            return String.format("→ %s%s %s초 먼저 스로틀링에 걸린다(%s초 vs %s초). %s",
+                    faster, particle(faster, "이", "가"), fmt(Math.abs(tA - tB)), fmt(tA), fmt(tB), tail);
         }
         if (tA == null && tB == null) {
             if (steadyTied) {
@@ -175,20 +259,21 @@ public final class EdgeChatFormatter {
                 String hotterPeak = pA > pB ? nameA : nameB;
                 String coolerPeak = pA > pB ? nameB : nameA;
                 return String.format("→ 정상상태 온도는 양쪽 %s℃로 같다(열저항이 같으므로 당연하다 — 정상상태 식에는 열용량이 없다). "
-                        + "갈리는 것은 피크 온도로 %s가 %s℃ 더 높다(%s℃ vs %s℃): 부하가 출렁일 때 열용량이 큰 %s 쪽이 피크를 더 눌러 준다.",
-                        fmt(sA), hotterPeak, fmt(Math.abs(pA - pB)), fmt(pA), fmt(pB), coolerPeak);
+                        + "갈리는 것은 피크 온도로 %s%s %s℃ 더 높다(%s℃ vs %s℃): 부하가 출렁일 때 열용량이 큰 %s 쪽이 피크를 더 눌러 준다.",
+                        fmt(sA), hotterPeak, particle(hotterPeak, "이", "가"),
+                        fmt(Math.abs(pA - pB)), fmt(pA), fmt(pB), coolerPeak);
             }
             String hotter = sA > sB ? nameA : nameB;
             String peakTail = (pA == null || pB == null || Math.abs(pA - pB) < TEMP_TIE_C) ? ""
                     : String.format(" 피크 온도 차이는 %s℃다.", fmt(Math.abs(pA - pB)));
-            return String.format("→ 이 조건에서는 양쪽 다 스로틀링에 걸리지 않는다. 다만 %s가 %s℃ 더 뜨겁게 안정된다(%s℃ vs %s℃) — "
+            return String.format("→ 이 조건에서는 양쪽 다 스로틀링에 걸리지 않는다. 다만 %s%s %s℃ 더 뜨겁게 안정된다(%s℃ vs %s℃) — "
                     + "차이를 더 벌리려면 무냉각·최대 처리량으로 바꾸거나 주변 온도를 올려야 한다.%s",
-                    hotter, fmt(Math.abs(sA - sB)), fmt(sA), fmt(sB), peakTail);
+                    hotter, particle(hotter, "이", "가"), fmt(Math.abs(sA - sB)), fmt(sA), fmt(sB), peakTail);
         }
         String throttled = tA != null ? nameA : nameB;
         String safe = tA != null ? nameB : nameA;
-        return String.format("→ 같은 조건인데 %s만 스로틀링에 걸리고 %s는 걸리지 않는다 — 이 조건이 둘의 경계선이다.",
-                throttled, safe);
+        return String.format("→ 같은 조건인데 %s만 스로틀링에 걸리고 %s%s 걸리지 않는다 — 이 조건이 둘의 경계선이다.",
+                throttled, safe, particle(safe, "은", "는"));
     }
 
     /** 지표 한 줄: 라벨과 두 값. */

@@ -96,6 +96,9 @@ public class ChatController {
     // (D-05) 전역 락 하나로 충분하다. 세션 분리 시 sessionId별 락으로 승격.
     private final Object sessionLock = new Object();
 
+    /** 팬 유무 비교에서 "있음" 쪽으로 쓸 회전수 — 도구의 fanRatedRpm 기본값과 같아야 한다. */
+    private static final double DEFAULT_FAN_RATED_RPM = 5000.0;
+
     public ChatController(SimpMessagingTemplate messaging,
                           OpenAiService openAiService,
                           SimulationTool tool,
@@ -497,6 +500,30 @@ public class ChatController {
             runEdgeMaterialComparison(provider, args, userText, history);
             return;
         }
+        // 팬 유무도 마찬가지다 — 팬은 열저항을 낮추는 대신 전력을 쓰므로, 유무를 나란히
+        // 놓아야 "얼마를 더 써서 몇 도를 벌었는가"라는 트레이드오프가 드러난다.
+        if (EdgeToolSelector.TOOL_THROTTLING.equals(toolName)
+                && EdgeParamGuard.isFanComparison(userText)) {
+            runEdgeFanComparison(provider, args, userText, history);
+            return;
+        }
+        // "방열판 없이 팬만"은 프리셋에 없는 조합이라 그대로 돌리면 무냉각 값이 나오고
+        // 팬을 켜든 끄든 같은 결과가 된다 — 조용히 돌리면 사용자는 그게 팬의 효과라고
+        // 읽는다. 무엇이 안 되는지와 대신 물을 수 있는 조건을 알려준다.
+        if (EdgeToolSelector.TOOL_THROTTLING.equals(toolName)
+                && EdgeParamGuard.isUnsupportedCoolingCombo(userText)) {
+            reply("방열판 없이 팬만 다는 조건은 아직 계산할 수 없습니다.\n\n"
+                + "보드의 냉각 기준값이 무냉각 / 방열판 / 방열판+팬 세 가지로만 보정돼 있어서, "
+                + "방열판 없이 팬만 부는 경우의 열저항 기준이 없습니다. 그대로 돌리면 무냉각 값이 나와 "
+                + "팬을 켜든 끄든 같은 결과가 됩니다.\n\n"
+                + "대신 이렇게 물어보실 수 있습니다:\n"
+                + "- \"팬 있을 때와 없을 때 비교해줘\" — 방열판을 단 상태에서 팬만 켜고 끈 비교\n"
+                + "- \"무냉각으로 돌려줘\" — 방열판도 팬도 없는 기준선\n\n"
+                + "방열판 없이 팬만 부는 조건이 꼭 필요하면 그 조건을 실측해서 "
+                + "\"실측 데이터로 모델 보정해줘\"로 열저항을 넣어 주셔야 합니다.",
+                userText, history);
+            return;
+        }
         if (!args.has("board")) {
             reply("어느 보드인지 알려주세요 — 라즈베리파이 4와 5는 발열 특성이 많이 다릅니다.",
                     userText, history);
@@ -535,7 +562,13 @@ public class ChatController {
             text = "회복 시간을 재려면 스로틀링이 실제로 걸리는 조건이어야 해서, "
                  + "무냉각·최대 처리량으로 가정하고 실행했습니다.\n\n" + text;
         }
-        reply(text, userText, history);
+        // 배치 비교는 결과가 후보 순위표라 구성도(보드+방열판+팬)로 그릴 대상이 아니다 —
+        // 발열 시뮬레이션만 구조화해서 보낸다.
+        if (EdgeToolSelector.TOOL_HEATSINK.equals(toolName)) {
+            reply(text, userText, history);
+        } else {
+            replyEdge(text, List.of(out), userText, history);
+        }
     }
 
     /**
@@ -570,7 +603,7 @@ public class ChatController {
             Map<String, Object> out = (Map<String, Object>) tr.result();
             results.add(out);
         }
-        reply(EdgeChatFormatter.boardComparison(results), userText, history);
+        replyEdge(EdgeChatFormatter.boardComparison(results), results, userText, history);
     }
 
     /**
@@ -597,10 +630,64 @@ public class ChatController {
             Map<String, Object> out = (Map<String, Object>) tr.result();
             results.add(out);
         }
-        reply(EdgeChatFormatter.materialComparison(results), userText, history);
+        replyEdge(EdgeChatFormatter.materialComparison(results), results, userText, history);
+    }
+
+    /**
+     * 팬을 끈 상태(0 RPM)와 정격으로 두 번 실행한다.
+     *
+     * <p>냉각 조건을 방열판(passive)으로 고정하는 이유: 팬 모델이 회전수에서 열저항을
+     * 직접 계산하므로, "팬"이라는 단어 때문에 냉각 조건이 active로 잡히면 0 RPM 실행에
+     * "팬 냉각"이라는 라벨이 붙어 표가 스스로 모순된다. 실제 열저항은 어차피 회전수가
+     * 정하므로 라벨만 정직하게 맞춘다.
+     */
+    private void runEdgeFanComparison(McpToolProvider provider, ObjectNode baseArgs,
+                                      String userText, List<Map<String, String>> history) {
+        metrics.counter("waste.chat.edge_tool", "tool", "fan_comparison").increment();
+
+        double ratedRpm = baseArgs.path("fanRatedRpm").asDouble(DEFAULT_FAN_RATED_RPM);
+        List<Map<String, Object>> results = new ArrayList<>();
+        for (double rpm : List.of(0.0, ratedRpm)) {
+            ObjectNode args = baseArgs.deepCopy();
+            args.put("cooling", "passive");
+            args.put("fanRpm", rpm);
+            args.put("fanRatedRpm", ratedRpm);
+            ToolResult tr = provider.call(args);
+            if (!tr.ready()) {
+                StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
+                for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+                reply(sb.toString().trim(), userText, history);
+                return;
+            }
+            @SuppressWarnings("unchecked")
+            Map<String, Object> out = (Map<String, Object>) tr.result();
+            results.add(out);
+        }
+        replyEdge(EdgeChatFormatter.fanComparison(results), results, userText, history);
     }
 
     /** 봇 답변 전송 + 대화 이력 갱신(엣지 경로 공통) — runChatScenario 말미와 같은 처리. */
+    /**
+     * 엣지 결과를 <b>텍스트와 구조화된 원본을 함께</b> 보낸다.
+     *
+     * <p>화면이 보드·방열판·팬 구성을 그리고 지표를 표로 정리하려면 값이 필요한데,
+     * 클라이언트가 포매터 문장을 다시 파싱하게 하면 문구를 고칠 때마다 조용히 깨진다.
+     * 그래서 사람이 읽는 텍스트는 그대로 두고 원본을 곁들인다 — 렌더러가 없는
+     * 클라이언트는 {@code content}만 읽어도 지금과 똑같이 동작한다.
+     *
+     * @param runs 도구 결과 원본. 비교 실행은 둘, 단일 실행은 하나짜리 목록
+     */
+    private void replyEdge(String text, List<Map<String, Object>> runs,
+                           String userText, List<Map<String, String>> history) {
+        ChatMessage msg = new ChatMessage(ChatMessage.MessageType.EDGE_RESULT, text);
+        msg.setEdgeRuns(runs);
+        msg.setDomain("edge");
+        messaging.convertAndSend("/topic/messages", msg);
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", text));
+        while (history.size() > 20) history.remove(0);
+    }
+
     private void reply(String text, String userText, List<Map<String, String>> history) {
         messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, text));
         history.add(Map.of("role", "user", "content", userText));
