@@ -27,7 +27,12 @@ import java.util.List;
  * @param meanFpsLoad      부하 구간 평균 FPS
  * @param fpsDropPercent   기준 FPS 대비 부하 구간 후반 FPS 하락률(%)
  * @param tauHeatingSec    가열 시정수(초)
- * @param energyJ          전체 소비 에너지(J)
+ * @param energyJ          SoC가 소비한 에너지(J) — 온도를 만든 몫
+ * @param fanEnergyJ       냉각팬이 소비한 에너지(J). 팬이 없으면 0.
+ *                         팬 전력은 모터에서 소비되어 SoC를 데우지 않으므로 {@code energyJ}와
+ *                         분리해 집계한다 — 온도의 원인과 비용의 원인이 다르기 때문이다
+ * @param totalEnergyJ     SoC + 팬 = 시스템 전체 소비 에너지(J). <b>가성비 판정의 분모</b>가
+ *                         이 값이다 — 팬을 세게 돌려 온도를 낮춰도 여기가 커지면 손해다
  * @param series           시계열 샘플(다운샘플링됨)
  * @param notes            해석에 필요한 경고·주석
  */
@@ -51,6 +56,8 @@ public record ThermalRun(
         double fpsDropPercent,
         double tauHeatingSec,
         double energyJ,
+        double fanEnergyJ,
+        double totalEnergyJ,
         List<Sample> series,
         List<String> notes) {
 

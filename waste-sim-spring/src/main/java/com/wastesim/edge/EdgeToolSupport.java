@@ -83,6 +83,35 @@ final class EdgeToolSupport {
     }
 
     /**
+     * 냉각팬을 읽는다. {@code fanRpm}이 없으면 null(팬 없음).
+     *
+     * <p>회전수를 주면 열저항이 그에 맞춰 낮아지고 소비전력이 집계된다 — 팬을 "공짜로
+     * 시원하게 해 주는 장치"가 아니라 <b>전력을 쓰는 대가로 냉각을 사는 요소</b>로 다뤄야
+     * "적정 수준에서 멈추는 것이 낫다"는 결론이 계산으로 나온다.
+     */
+    static FanSpec fan(EdgeArgs a) {
+        if (!a.has("fanRpm")) return null;
+        double ratedRpm = a.dbl("fanRatedRpm", 5000.0, 100.0, 30000.0);
+        double rpm = a.dbl("fanRpm", 0.0, 0.0, 30000.0);
+        double ratedPower = a.dbl("fanRatedPowerW", 0.5, 0.0, 50.0);
+        return new FanSpec(rpm, ratedRpm, ratedPower);
+    }
+
+    /**
+     * 팬 회전수에 맞춰 전체 열저항을 다시 계산한다. 팬이 없거나 사용자가 열저항을 직접
+     * 지정한 경우에는 손대지 않는다.
+     *
+     * <p>보간의 두 끝점은 보드의 기존 프리셋(수동·능동 냉각)이다 — 이미 검증된 두 값을
+     * 지나도록 계수를 역산하므로, 팬 모델을 켠다고 기존 결과가 어긋나지 않는다.
+     */
+    static ThermalParams applyFan(ThermalParams p, BoardType board, FanSpec fan, EdgeArgs a) {
+        if (fan == null || a.has("rJaKPerW") || a.has("thermalOverride")) return p;
+        double rJa = fan.effectiveRJa(board.rJaKPerW(CoolingPreset.PASSIVE),
+                board.rJaKPerW(CoolingPreset.ACTIVE), board.rJcKPerW());
+        return p.withRJa(rJa);
+    }
+
+    /**
      * 2노드 모델용 방열판 열 덩어리를 읽는다. 지정하지 않았으면 null(기존 1노드).
      *
      * <p>입력은 두 갈래다 — 저울로 잰 {@code heatsinkMassG}(+재질)이 기본이고,
@@ -139,6 +168,11 @@ final class EdgeToolSupport {
     static ThermalSimulator.Spec spec(EdgeArgs a, BoardType board, ThermalParams p,
                                       double defaultLoadSec, WorkloadMode defaultMode,
                                       AiLoadProfile aiLoad) {
+        // 팬을 먼저 반영한다 — 열저항이 바뀌면 시정수도 바뀌므로, 아래의 적분 간격(dt)과
+        // 회복 구간 기본 열저항이 모두 팬이 반영된 값을 기준으로 정해져야 한다.
+        FanSpec fanSpec = fan(a);
+        p = applyFan(p, board, fanSpec, a);
+
         WorkloadMode mode = a.enumVal("workloadMode", defaultMode, WorkloadMode::parse, MODE_ENUM, false);
         double targetFps = a.dbl("targetFps", Math.min(10.0, p.maxFps()), 0.1, 1000.0);
         double loadSec = a.dbl("loadSeconds", defaultLoadSec, 10.0, 21600.0);
@@ -159,7 +193,7 @@ final class EdgeToolSupport {
         // 2노드 여부는 인자에서 직접 읽는다 — spec()을 쓰는 도구는 전부 자동으로 지원된다.
         HeatsinkMass heatsink = heatsinkMass(a, board, p);
         return new ThermalSimulator.Spec(p, mode, targetFps, loadSec, policy, recoverySec,
-                recoveryRJa, dt, sampleSec, onThrottle, aiLoad, heatsink);
+                recoveryRJa, dt, sampleSec, onThrottle, aiLoad, heatsink, fanSpec);
     }
 
     /** 방열판 후보 하나를 읽는다. 형상·배치·기류·TIM 전부 범위 검증한다. */

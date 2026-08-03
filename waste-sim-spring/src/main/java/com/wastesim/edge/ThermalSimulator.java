@@ -80,18 +80,30 @@ public class ThermalSimulator {
      *                      낼 것인가"라는 배율이라, 목표 FPS 모드에도 최대 처리량 모드에도 똑같이 곱해진다
      * @param heatsink      2노드 모델용 방열판 열 덩어리. null이면 1노드(기존 동작)로 적분한다.
      *                      정상상태는 두 모델이 완전히 같고 과도응답만 달라진다({@link HeatsinkMass})
+     * @param fan           냉각팬. null이면 팬 없음(기존 동작). 넣으면 열저항이 회전수에 따라
+     *                      낮아지는 대신 소비전력이 집계된다 — 팬 전력은 SoC를 데우지 않으므로
+     *                      온도 적분에는 들어가지 않고 비용 집계에만 더해진다({@link FanSpec})
      */
     public record Spec(ThermalParams params, WorkloadMode mode, double targetFps,
                        double loadSec, RecoveryPolicy policy, double recoverySec,
                        double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
-                       AiLoadProfile aiLoad, HeatsinkMass heatsink) {
+                       AiLoadProfile aiLoad, HeatsinkMass heatsink, FanSpec fan) {
+
+        /** 팬 없이 실행하는 형태 — 호출부·테스트 하위호환. */
+        public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
+                    double loadSec, RecoveryPolicy policy, double recoverySec,
+                    double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
+                    AiLoadProfile aiLoad, HeatsinkMass heatsink) {
+            this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
+                    dtSec, sampleSec, triggerOnThrottle, aiLoad, heatsink, null);
+        }
 
         /** 부하 패턴 없이(상수 부하) 1노드로 실행하는 기존 형태 — 호출부·테스트 하위호환. */
         public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
                     double loadSec, RecoveryPolicy policy, double recoverySec,
                     double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle) {
             this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
-                    dtSec, sampleSec, triggerOnThrottle, null, null);
+                    dtSec, sampleSec, triggerOnThrottle, null, null, null);
         }
 
         /** 부하 패턴만 쓰고 1노드로 적분하는 형태. */
@@ -100,7 +112,12 @@ public class ThermalSimulator {
                     double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
                     AiLoadProfile aiLoad) {
             this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
-                    dtSec, sampleSec, triggerOnThrottle, aiLoad, null);
+                    dtSec, sampleSec, triggerOnThrottle, aiLoad, null, null);
+        }
+
+        /** 이 실행의 팬 소비전력(W). 팬이 없으면 0 — 비용 집계에만 쓰고 온도 적분에는 넣지 않는다. */
+        double fanPowerW() {
+            return fan == null ? 0.0 : fan.powerW();
         }
 
         /** 이 시각의 부하 배율(0~1). 패턴이 없으면 항상 1.0이라 기존 동작과 완전히 같다. */
@@ -152,6 +169,7 @@ public class ThermalSimulator {
         double peak = temp;
         double loadEndTemp = temp;
         double energyJ = 0.0;
+        double fanEnergyJ = 0.0;
         double fpsSum = 0.0, fpsSamples = 0.0, throttledTime = 0.0;
         double fpsBaseSum = 0.0, fpsBaseN = 0.0, fpsMin = Double.MAX_VALUE;
         boolean loadHadThrottling = false, serviceDegraded = false, recoveryGateComputed = false;
@@ -277,6 +295,10 @@ public class ThermalSimulator {
 
             peak = Math.max(peak, temp);
             energyJ += powerW * dt;
+            // 팬 전력은 모터에서 소비되고 공기로 흩어진다 — SoC 열 노드에 들어가지 않으므로
+            // 위의 온도 적분에는 절대 더하지 않고 여기서 따로 집계한다. 합쳐서 적분하면
+            // 팬을 켤수록 온도가 올라가는 거꾸로 된 결과가 나온다.
+            fanEnergyJ += spec.fanPowerW() * dt;
 
             if (t >= nextSampleAt - 1e-9) {
                 series.add(new ThermalRun.Sample(round(t, 1), phase, round(temp, 2),
@@ -329,6 +351,17 @@ public class ThermalSimulator {
         // 부하 패턴을 쓴 경우, 결과를 읽기 전에 "이 패턴이 애초에 차이를 드러낼 수 있는
         // 시간 규모인가"부터 알려준다. 이게 없으면 느린 패턴을 넣고 "패턴을 넣었는데 왜
         // 순위가 그대로지?"라고 오해하게 된다(이 실험 설계에서 가장 빠지기 쉬운 함정).
+        if (spec.fan() != null) {
+            FanSpec f = spec.fan();
+            notes.add(String.format(
+                    "냉각팬 %.0f RPM(정격 %.0f의 %.0f%%) — 소비전력 %.2fW, 전체 열저항 %.2f K/W. "
+                    + "전력은 회전수의 3승, 냉각은 풍속의 0.8승에 비례하므로 회전수를 올릴수록 전력이 훨씬 가파르게 늘어난다.",
+                    f.rpm(), f.ratedRpm(), f.dutyRatio() * 100, f.powerW(), p.rJaKPerW()));
+            notes.add(String.format(
+                    "소비 에너지: SoC %.0fJ + 팬 %.0fJ = %.0fJ. 팬 전력은 SoC를 데우지 않으므로 온도 계산에는 들어가지 않지만, "
+                    + "가성비를 볼 때는 이 합계가 분모다 — 팬으로 온도를 낮춰도 합계가 커지면 손해다.",
+                    energyJ, fanEnergyJ, energyJ + fanEnergyJ));
+        }
         if (hs != null) {
             notes.add(String.format(
                     "2노드 모델로 계산했다 — 방열판을 별도 열 덩어리로 본다(열용량 %.1f J/K, SoC→방열판 %.2f K/W, 방열판→공기 %.2f K/W). "
@@ -407,6 +440,7 @@ public class ThermalSimulator {
                 round(peak, 2), round(loadEndTemp, 2), round(steady, 2), expected,
                 round(recoveryStart > 0 ? throttledTime / recoveryStart : 0.0, 3),
                 round(meanFps, 2), round(drop, 1), round(p.tauSeconds(), 1), round(energyJ, 1),
+                round(fanEnergyJ, 1), round(energyJ + fanEnergyJ, 1),
                 series, notes);
     }
 
