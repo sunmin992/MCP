@@ -124,6 +124,51 @@ class FanModelTest {
         assertTrue(notes.contains("분모"), "가성비 분모가 총합이라고 알려야 한다:\n" + notes);
     }
 
+    // ── 표현이 달라도 같은 팬 (실측 회귀) ───────────────────────────────
+
+    /**
+     * "팬 냉각"이라고만 해도 팬 전력이 집계돼야 한다.
+     *
+     * <p>실측 회귀: cooling=active는 프리셋 열저항만 가져오고 팬 객체를 만들지 않아
+     * 냉각 효과는 그대로인데 비용이 0이었다. 같은 팬인데 "fanRpm=5000"이라고 말할
+     * 때만 900J이 붙어서, <b>표현에 따라 결론이 달라지는</b> 상태였다.
+     */
+    @Test
+    @DisplayName("cooling=active만 줘도 정격으로 도는 팬으로 보고 전력을 집계한다")
+    void activeCoolingCountsFanEnergy() {
+        FanSpec byPreset = EdgeToolSupport.fan(args("{\"cooling\":\"active\"}"));
+        assertNotNull(byPreset, "'팬 냉각'인데 팬이 없으면 비용이 사라진다");
+        assertEquals(byPreset.ratedRpm(), byPreset.rpm(), 1e-9, "회전수를 안 밝히면 정격으로 본다");
+        assertTrue(byPreset.powerW() > 0);
+
+        FanSpec byRpm = EdgeToolSupport.fan(args("{\"fanRpm\":5000,\"fanRatedRpm\":5000}"));
+        assertEquals(byRpm.powerW(), byPreset.powerW(), 1e-9, "두 표현이 같은 팬이어야 한다");
+    }
+
+    @Test
+    @DisplayName("회전수를 명시하면 그 값이 이긴다 — '팬 냉각 + 2500rpm'은 절반 속도")
+    void explicitRpmWinsOverPreset() {
+        FanSpec f = EdgeToolSupport.fan(args("{\"cooling\":\"active\",\"fanRpm\":2500,\"fanRatedRpm\":5000}"));
+        assertEquals(2500.0, f.rpm(), 1e-9);
+        assertEquals(0.5 / 8, f.powerW(), 1e-9, "절반 회전수는 전력이 1/8");
+    }
+
+    @Test
+    @DisplayName("방열판·무냉각은 팬을 만들지 않는다 — 기존 동작 그대로")
+    void nonActiveCoolingHasNoFan() {
+        assertNull(EdgeToolSupport.fan(args("{\"cooling\":\"passive\"}")));
+        assertNull(EdgeToolSupport.fan(args("{\"cooling\":\"bare\"}")));
+        assertNull(EdgeToolSupport.fan(args("{}")));
+    }
+
+    private EdgeArgs args(String json) {
+        try {
+            return new EdgeArgs(new com.fasterxml.jackson.databind.ObjectMapper().readTree(json));
+        } catch (Exception e) {
+            throw new IllegalStateException(e);
+        }
+    }
+
     // ── 방어 ────────────────────────────────────────────────────────────
 
     @Test

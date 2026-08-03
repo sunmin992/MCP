@@ -4,6 +4,7 @@ import com.wastesim.model.OccupationType;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.TrafficProfile;
 import com.wastesim.model.TruckType;
+import com.wastesim.model.WasteType;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.simulation.SimulationEngine;
 import org.springframework.stereotype.Component;
@@ -62,6 +63,17 @@ public class SimulationConfigValidator {
         if (c.getThreshold() < 0 || c.getThreshold() > 1)
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "threshold", "민원 임계(threshold)는 0~1 사이여야 합니다."));
 
+        validateCollectionTimes(c, errs);
+        validateWasteTypes(c, errs);
+
+        // 노드 ID를 'A' + 인덱스로 만들기 때문에 27번째부터 Node_[ 같은 값이 나오고,
+        // 역변환(nodeIndex)은 알파벳 한 글자만 받아 규칙이 어긋난다. 지금 설계를 유지하는
+        // 대신 범위를 명시적으로 막는다 — 조용히 깨진 ID로 경로·교통 대응이 틀어지는 것보다 낫다.
+        if (c.getNumBuildings() > 26)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "numBuildings",
+                    "건물 수는 26 이하여야 합니다(노드 ID가 Node_A~Node_Z 한 글자 체계입니다). 받은 값: "
+                    + c.getNumBuildings()));
+
         if (c.getNumBuildings() < 1)
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "numBuildings", "건물 수는 1 이상이어야 합니다."));
 
@@ -80,9 +92,99 @@ public class SimulationConfigValidator {
 
         List<ValidationError> warns = new ArrayList<>();
         validateTraffic(c, errs, warns);
+        return finish(errs, warns);
+    }
+
+    private ValidationResult finish(List<ValidationError> errs, List<ValidationError> warns) {
 
         if (!errs.isEmpty()) return ValidationResult.fail(errs);
         return warns.isEmpty() ? ValidationResult.ok() : ValidationResult.ok(warns);
+    }
+
+    /** 하루 중 시각으로 쓰이는 필드는 모두 같은 범위를 지켜야 한다. */
+    private static final int MAX_MINUTE_OF_DAY = 1439;
+
+    /**
+     * 복수·주말 수거 시각도 단일 수거 시각과 같은 범위로 검증한다.
+     *
+     * <p>예전에는 {@code collectionTimeMinutes} 하나만 검사해서, 음수 시각은 시뮬레이션
+     * 시작 전에 수거 이벤트를 만들고 1440 이상은 다음 날로 넘어갔다 — 일별 집계와
+     * 교통 프로파일 적용 시각이 조용히 어긋난다.
+     */
+    private void validateCollectionTimes(SimulationConfig c, List<ValidationError> errs) {
+        List<Integer> times = c.getCollectionTimesMinutes();
+        if (times != null) {
+            java.util.Set<Integer> seen = new java.util.LinkedHashSet<>();
+            for (Integer m : times) {
+                if (m == null || m < 0 || m > MAX_MINUTE_OF_DAY) {
+                    errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "collectionTimesMinutes",
+                            "수거 시각은 0~1439분 범위여야 합니다. 받은 값: " + m));
+                } else if (!seen.add(m)) {
+                    errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "collectionTimesMinutes",
+                            "같은 수거 시각이 중복됐습니다: " + m + "분"));
+                }
+            }
+        }
+        Integer weekend = c.getWeekendCollectionTimeMinutes();
+        if (weekend != null && (weekend < 0 || weekend > MAX_MINUTE_OF_DAY)) {
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "weekendCollectionTimeMinutes",
+                    "주말 수거 시각은 0~1439분 범위여야 합니다. 받은 값: " + weekend));
+        }
+    }
+
+    /**
+     * 분리배출 유형별 설정을 검증한다.
+     *
+     * <p>예전에는 최상위 {@code capacity}·{@code threshold}만 검사해서, 유형 안의 값이
+     * 비물리적이어도 통과했다. 그 결과가 오류가 아니라 <b>조용히 다른 실험</b>이 되는 것이
+     * 문제였다 — 용량이 0이면 적재 비율이 0으로 처리돼 아무리 쌓여도 민원이 안 생기고,
+     * 임계가 음수면 모든 배출이 민원이 되며, 비율이 음수면 그 유형이 통째로 사라진다.
+     */
+    private void validateWasteTypes(SimulationConfig c, List<ValidationError> errs) {
+        List<WasteType> types = c.getWasteTypes();
+        if (types == null || types.isEmpty()) return;
+
+        java.util.Set<String> keys = new java.util.LinkedHashSet<>();
+        double fractionSum = 0;
+        for (WasteType w : types) {
+            if (w == null) {
+                errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "wasteTypes", "빈 폐기물 유형이 있습니다."));
+                continue;
+            }
+            String key = w.getKey();
+            if (key == null || key.isBlank()) {
+                errs.add(new ValidationError(ErrorCode.MISSING_FIELD, "wasteTypes.key", "폐기물 유형의 key가 비어 있습니다."));
+            } else if (!keys.add(key)) {
+                errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "wasteTypes.key",
+                        "폐기물 유형 key가 중복됐습니다: " + key));
+            }
+            String at = " (" + (key == null ? "?" : key) + ")";
+
+            if (!Double.isFinite(w.getFraction()) || w.getFraction() < 0 || w.getFraction() > 1) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "wasteTypes.fraction",
+                        "배출 비율은 0~1 사이여야 합니다" + at + ". 받은 값: " + w.getFraction()));
+            } else {
+                fractionSum += w.getFraction();
+            }
+            if (!Double.isFinite(w.getCapacity()) || w.getCapacity() <= 0) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "wasteTypes.capacity",
+                        "수거통 용량은 0보다 커야 합니다" + at + ". 받은 값: " + w.getCapacity()));
+            }
+            if (!Double.isFinite(w.getThreshold()) || w.getThreshold() < 0 || w.getThreshold() > 1) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "wasteTypes.threshold",
+                        "민원 임계는 0~1 사이여야 합니다" + at + ". 받은 값: " + w.getThreshold()));
+            }
+            if (w.getIntervalDays() < 1) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "wasteTypes.intervalDays",
+                        "수거 주기는 1일 이상이어야 합니다" + at + ". 받은 값: " + w.getIntervalDays()));
+            }
+        }
+        // 합계가 1이 아니면 실제 배출량보다 많거나 적은 폐기물이 생성된다 — 부동소수
+        // 오차를 감안해 허용 오차를 둔다.
+        if (Math.abs(fractionSum - 1.0) > 0.001) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "wasteTypes.fraction",
+                    String.format("배출 비율의 합이 1.0이어야 합니다. 현재 합계: %.3f", fractionSum)));
+        }
     }
 
     // ── 교통·폐기물 교차 검증 (TRAFFIC_EXTENSION_DESIGN.md §5.2) ──────────────

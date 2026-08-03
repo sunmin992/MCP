@@ -184,7 +184,7 @@ public class ThermalSimulator {
         double endTime = spec.loadSec() + spec.recoverySec();
         double nextSampleAt = 0.0;
 
-        while (t <= endTime + 1e-9) {
+        while (true) {
             // ── 회복 정책 적용 시점 판정 ────────────────────────────────────
             if (!recovering) {
                 boolean trigger = spec.triggerOnThrottle() && spec.policy() != RecoveryPolicy.NONE
@@ -198,10 +198,20 @@ public class ThermalSimulator {
             }
             String phase = recovering ? "RECOVERY" : "LOAD";
 
+            // 이번 반복이 실제로 덮는 시간 폭. 종료 시각에 정확히 닿으면 0이 되고, 그때는
+            // 상태만 기록하고 적분하지 않는다 — 예전에는 t == endTime에서도 dt를 통째로
+            // 적분해서 실행 시간이 dt만큼 길어지고 에너지가 과대 계산됐다(dt가 클수록 커짐).
+            double step = Math.min(dt, endTime - t);
+            boolean lastSample = step <= 1e-9;
+
             double rJa = recovering ? spec.recoveryRJa() : p.rJaKPerW();
             boolean workloadOn = !(recovering && spec.policy() == RecoveryPolicy.R1_STOP);
-            double effTarget = (recovering && spec.policy() == RecoveryPolicy.R2_LOW_LOAD)
-                    ? spec.targetFps() * LOW_LOAD_FACTOR : spec.targetFps();
+            // R2(저부하 유지)는 "요구하는 일의 양을 25%로 줄인다"는 정책이므로 운용 모드와
+            // 무관하게 적용돼야 한다. 예전에는 목표 FPS만 줄여서 최대 처리량 모드에서는
+            // 아무 효과가 없었고(무조치와 결과가 완전히 같았다), 정책 비교표에는 값이
+            // 채워지므로 "R2는 효과가 없다"는 잘못된 결론이 나왔다.
+            double policyFactor = (recovering && spec.policy() == RecoveryPolicy.R2_LOW_LOAD)
+                    ? LOW_LOAD_FACTOR : 1.0;
 
             // ── 클럭 거버너(히스테리시스 상태머신) ──────────────────────────
             if (temp >= p.hardLimitC()) govState = 2;
@@ -221,13 +231,13 @@ public class ThermalSimulator {
             // ── 부하·전력 ─────────────────────────────────────────────────
             // AI 부하 패턴은 "요구하는 일의 양"에 곱해진다 — 회복 정책(R1 중지 / R2 25%)과는
             // 곱셈으로 합성되므로, 패턴을 켜도 정책의 의미가 그대로 유지된다.
-            double level = spec.loadLevelAt(t);
+            double level = spec.loadLevelAt(t) * policyFactor;
             double achievableFps = p.maxFps() * clockRatio;
             double fps, util;
             if (!workloadOn) {
                 fps = 0.0; util = 0.0;
             } else if (spec.mode() == WorkloadMode.TARGET_FPS) {
-                double demand = effTarget * level;
+                double demand = spec.targetFps() * level;
                 fps = Math.min(demand, achievableFps);
                 util = Math.min(1.0, demand / Math.max(achievableFps, 1e-9));
             } else {
@@ -246,7 +256,7 @@ public class ThermalSimulator {
             if (!recovering) {
                 if (softActive && softEntry == null) softEntry = t;
                 if (throttled) {
-                    throttledTime += dt;
+                    throttledTime += step;
                     if (tttFirst == null) tttFirst = t;
                     if (tttCandidate == null) tttCandidate = t;
                     else if (ttt == null && t - tttCandidate >= THROTTLE_CONFIRM_SEC) ttt = tttCandidate;
@@ -294,11 +304,11 @@ public class ThermalSimulator {
             }
 
             peak = Math.max(peak, temp);
-            energyJ += powerW * dt;
+            energyJ += powerW * step;
             // 팬 전력은 모터에서 소비되고 공기로 흩어진다 — SoC 열 노드에 들어가지 않으므로
             // 위의 온도 적분에는 절대 더하지 않고 여기서 따로 집계한다. 합쳐서 적분하면
             // 팬을 켤수록 온도가 올라가는 거꾸로 된 결과가 나온다.
-            fanEnergyJ += spec.fanPowerW() * dt;
+            fanEnergyJ += spec.fanPowerW() * step;
 
             if (t >= nextSampleAt - 1e-9) {
                 series.add(new ThermalRun.Sample(round(t, 1), phase, round(temp, 2),
@@ -307,9 +317,12 @@ public class ThermalSimulator {
                 nextSampleAt += spec.sampleSec();
             }
 
+            // 마지막 시각의 상태·샘플까지 남긴 뒤 끝낸다 — 여기서부터는 덮을 구간이 없다.
+            if (lastSample) break;
+
             // ── 적분 ─────────────────────────────────────────────────────
             if (hs == null) {
-                temp += (powerW - (temp - p.ambientC()) / rJa) / p.cThJPerK() * dt;
+                temp += (powerW - (temp - p.ambientC()) / rJa) / p.cThJPerK() * step;
             } else {
                 // 2노드 — SoC가 내부 저항을 거쳐 방열판으로 열을 밀고, 방열판이 공기로 버린다.
                 // rJa는 회복 구간에 달라질 수 있으므로(팬 가동) 방열판→공기 몫도 매 스텝 다시 나눈다.
@@ -318,7 +331,7 @@ public class ThermalSimulator {
                 // 만드는 빠른 쪽이 전체 시정수보다 훨씬 짧을 수 있다. 바깥 루프의 dt는
                 // 전체 시정수 기준으로 정해지므로, 그대로 적분하면 빠른 모드에서 발산한다.
                 double rHsToAir = hs.heatsinkToAirKPerW(rJa);
-                double sub = dt / subSteps;
+                double sub = step / subSteps;
                 for (int i = 0; i < subSteps; i++) {
                     double qToHeatsink = (temp - tempHs) / hs.rInternalKPerW();
                     double dSoc = (powerW - qToHeatsink) / p.cThJPerK();
@@ -327,7 +340,7 @@ public class ThermalSimulator {
                     tempHs += dHs * sub;
                 }
             }
-            t += dt;
+            t += step;
         }
         if (episodeStart != null) {
             episodes.add(new ThermalRun.Episode(round(episodeStart, 1), null, null, round(episodePeak, 2)));

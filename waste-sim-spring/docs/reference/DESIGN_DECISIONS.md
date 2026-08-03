@@ -121,9 +121,9 @@ private SimulationConfig base() {
 1. ~~D-03·D-05·D-10을 위 권장대로 확정.~~ 완료.
 2. ~~위 테스트를 해당 테스트 클래스에 추가 → `mvn test` GREEN 확인.~~ 완료
    (`mvn clean test` 전체 그린 확인).
-3. 확정된 결정을 SDD §2.11 상태 컬럼에 "확정"으로 반영 — **미완료**: SDD/TDD가
-   `docs_waste-sim-spring_SRS_SDD_TDD.docx`(바이너리 Word 문서)라 이 세션의
-   텍스트 편집 도구로는 직접 반영하지 못했다. 별도로 docx 편집을 요청하면
-   반영 가능.
+3. 확정된 결정의 기준 문서는
+   `../specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_7.docx`다. 이 결정 기록에는
+   v1.7 작성 이후 코드와 함께 확정된 보충 결정을 보존한다. 다음 명세서 개정 시
+   SDD §2.12와 TDD 대응 항목에 반영한다.
 4. ~~나머지(D-01·02·04·06·07·11·12)는 우선순위대로 순차 확정.~~ 전부 확정
    완료(위 "확정 내역" 참고).

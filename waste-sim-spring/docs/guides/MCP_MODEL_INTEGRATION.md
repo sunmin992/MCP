@@ -117,7 +117,7 @@ public interface McpToolProvider {
 
 세 도구는 서로 이어져 있다 — 실측을 캘리브레이션해 얻은 `profileId`를 앞의 두 도구에
 넣으면, 문헌 추정치가 아니라 학생이 직접 잰 보드로 계산한다. 실험 설계·측정 절차·
-로그 스키마는 `RE_엣지_발열실험_설계.md`, 라즈베리파이 측정 스크립트는 `scripts/edge/`에 있다.
+로그 스키마는 `EDGE_THERMAL_EXPERIMENT.md`, 라즈베리파이 측정 스크립트는 `../../scripts/edge/`에 있다.
 
 ### 3.2 채팅(자연어)에서의 도메인 라우팅
 

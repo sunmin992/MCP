@@ -90,9 +90,19 @@ final class EdgeToolSupport {
      * "적정 수준에서 멈추는 것이 낫다"는 결론이 계산으로 나온다.
      */
     static FanSpec fan(EdgeArgs a) {
-        if (!a.has("fanRpm")) return null;
+        // 냉각 조건을 '팬'으로 지정했으면 회전수를 따로 말하지 않아도 팬이 도는 것으로 본다.
+        //
+        // 이렇게 하지 않으면 같은 팬인데 표현에 따라 비용이 사라진다(실측 회귀):
+        // "팬 냉각"이라고만 하면 프리셋 열저항만 가져와 냉각 효과는 그대로인데 전력이
+        // 집계되지 않고, "팬 5000rpm"이라고 해야 900J이 붙었다. 팬 전력을 모델링한 이유가
+        // "공짜가 아니어야 적정 수준이라는 결론이 나온다"는 것인데, 말하는 방식에 따라
+        // 그 비용이 없어지면 결론도 재현성도 함께 무너진다.
+        boolean activeCooling = CoolingPreset.ACTIVE == CoolingPreset.parse(a.str("cooling", null));
+        if (!a.has("fanRpm") && !activeCooling) return null;
+
         double ratedRpm = a.dbl("fanRatedRpm", 5000.0, 100.0, 30000.0);
-        double rpm = a.dbl("fanRpm", 0.0, 0.0, 30000.0);
+        // 회전수를 명시하면 그 값이 이긴다 — "팬 냉각 + 2500rpm"은 절반 속도가 맞다.
+        double rpm = a.dbl("fanRpm", activeCooling ? ratedRpm : 0.0, 0.0, 30000.0);
         double ratedPower = a.dbl("fanRatedPowerW", 0.5, 0.0, 50.0);
         return new FanSpec(rpm, ratedRpm, ratedPower);
     }
