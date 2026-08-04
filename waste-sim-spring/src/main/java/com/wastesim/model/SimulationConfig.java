@@ -124,7 +124,14 @@ public class SimulationConfig {
     public void setCollectionTimesMinutes(List<Integer> v) { this.collectionTimesMinutes = v; }
 
     public int getCollectionIntervalDays() { return collectionIntervalDays; }
-    public void setCollectionIntervalDays(int v) { this.collectionIntervalDays = Math.max(1, v); }
+    /**
+     * 받은 값을 그대로 보관한다 — 범위 판정은 {@code SimulationConfigValidator}가 한다.
+     *
+     * <p>예전에는 {@code Math.max(1, v)}로 보정했는데, 그러면 주기 0을 요청해도 매일
+     * 수거로 조용히 바뀌어 검증기가 잘못된 값을 볼 기회 자체가 없었다. 보정은 오류를
+     * 없애는 게 아니라 <b>보이지 않게</b> 만든다.
+     */
+    public void setCollectionIntervalDays(int v) { this.collectionIntervalDays = v; }
 
     public boolean isSkipWeekends() { return skipWeekends; }
     public void setSkipWeekends(boolean v) { this.skipWeekends = v; }
@@ -144,7 +151,8 @@ public class SimulationConfig {
     public void setNumTrucks(int v) { this.numTrucks = v; }
 
     public int getRouteTravelMinutes() { return routeTravelMinutes; }
-    public void setRouteTravelMinutes(int v) { this.routeTravelMinutes = Math.max(0, v); }
+    /** 보정하지 않는다 — 이유는 {@link #setCollectionIntervalDays(int)} 참고. */
+    public void setRouteTravelMinutes(int v) { this.routeTravelMinutes = v; }
 
     public List<WasteType> getWasteTypes() { return wasteTypes; }
     public void setWasteTypes(List<WasteType> v) { this.wasteTypes = v; }
@@ -181,7 +189,8 @@ public class SimulationConfig {
     public void setTruckCount(int v) { setNumTrucks(v); }
 
     public int getDispatchIntervalMinutes() { return dispatchIntervalMinutes; }
-    public void setDispatchIntervalMinutes(int v) { this.dispatchIntervalMinutes = Math.max(0, v); }
+    /** 보정하지 않는다 — 이유는 {@link #setCollectionIntervalDays(int)} 참고. */
+    public void setDispatchIntervalMinutes(int v) { this.dispatchIntervalMinutes = v; }
 
     public List<String> getRouteSequence() { return routeSequence; }
     public void setRouteSequence(List<String> v) { this.routeSequence = v; }
@@ -276,11 +285,24 @@ public class SimulationConfig {
         return String.format("%02d:%02d", minutes / 60, minutes % 60);
     }
 
-    /** "HH:MM" 문자열 → 자정 기준 분. (ScenarioController.toMinutes()와 중복이던 걸 통합) */
+    /** {@code H:MM} 또는 {@code HH:MM}만 허용한다 — 시 0~23, 분 0~59. */
+    private static final java.util.regex.Pattern HHMM =
+            java.util.regex.Pattern.compile("\\s*([01]?\\d|2[0-3]):([0-5]\\d)\\s*");
+
+    /**
+     * "HH:MM" 문자열 → 자정 기준 분. (ScenarioController.toMinutes()와 중복이던 걸 통합)
+     *
+     * <p>시와 분을 <b>각각</b> 검사한다. 예전에는 합계만 계산해서 {@code 12:99}가 819분,
+     * 즉 13:39로 조용히 바뀌었다 — 총 분이 하루 범위 안이라 이후 범위 검증도 통과하므로,
+     * 사용자가 요청한 시각과 다른 시각으로 실험이 돌아가고 아무도 알아채지 못했다.
+     */
     public static int hhmmToMinutes(String hhmm) {
-        String[] parts = hhmm.split(":");
-        int h = Integer.parseInt(parts[0].trim());
-        int m = parts.length > 1 ? Integer.parseInt(parts[1].trim()) : 0;
-        return h * 60 + m;
+        if (hhmm == null) throw new IllegalArgumentException("수거 시각이 비어 있습니다.");
+        java.util.regex.Matcher m = HHMM.matcher(hhmm);
+        if (!m.matches()) {
+            throw new IllegalArgumentException(
+                    "수거 시각은 HH:MM 형식이어야 합니다(시 00~23, 분 00~59). 받은 값: " + hhmm);
+        }
+        return Integer.parseInt(m.group(1)) * 60 + Integer.parseInt(m.group(2));
     }
 }

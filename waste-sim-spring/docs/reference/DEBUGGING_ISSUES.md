@@ -505,21 +505,21 @@ record compact constructor에서 방어하면 모든 생성 경로에 동일한 
 
 ## 6. 수정 권장 순서
 
-### 1단계: 결과를 직접 왜곡하는 P1 수정
+### 1단계: 결과를 직접 왜곡하는 P1 수정 — ✅ 완료
 
-1. E-01: R2 + MAX_THROUGHPUT 저부하 적용
-2. E-02: 종료 시각 추가 적분 제거
-3. W-03: 비수거일 차량·교통 이벤트 제거
-4. W-01: `wasteTypes` 내부 검증
-5. W-02: 모든 수거 시각 범위 검증
+1. ✅ E-01: R2 + MAX_THROUGHPUT 저부하 적용
+2. ✅ E-02: 종료 시각 추가 적분 제거
+3. ✅ W-03: 비수거일 차량·교통 이벤트 제거
+4. ✅ W-01: `wasteTypes` 내부 검증
+5. ✅ W-02: 모든 수거 시각 범위 검증
 
-### 2단계: 입력 경계 강화
+### 2단계: 입력 경계 강화 — ✅ 완료
 
-1. W-04: 엄격한 HH:MM 파싱
-2. E-03: 정수 입력 소수 거부
-3. E-05: NaN/Infinity 거부
-4. W-05/W-06: 건물 수와 확장 필드 검증
-5. A-01: MCP required 필드 서버 측 강제
+1. ✅ W-04: 엄격한 HH:MM 파싱 (`SimulationConfig.hhmmToMinutes` 정규식 파서, 시·분 각각 검증)
+2. ✅ E-03: 정수 입력 소수 거부 (`EdgeArgs.intVal` `isIntegralNumber` + long 범위 가드)
+3. ✅ E-05: NaN/Infinity 거부 (JSON은 `isNumber`가, 보정 CSV는 `CalibrateEdgeThermalModelTool.finite`가 차단)
+4. ✅ W-05/W-06: 건물 수(≤26)와 확장 필드 검증 (`SimulationConfigValidator.validateExtendedFields` — 주기·공휴일·비율·시각·월별 가중치. setter의 조용한 보정 제거)
+5. ✅ A-01: MCP required 필드 서버 측 강제 (`McpController`가 공개 스키마의 `required`를 실행 전에 검사 — `McpToolCatalog.missingRequired`)
 
 ### 3단계: 지표 의미와 모델 정책 정리
 
@@ -534,19 +534,19 @@ record compact constructor에서 방어하면 모든 생성 경로에 동일한 
 
 수정 완료 판단을 위한 최소 테스트 세트:
 
-- [ ] 사용자 지정 폐기물 종류의 비율·용량·임계값 검증
-- [ ] 복수·주말 수거 시각 범위 검증
-- [ ] 격일 수거의 비수거일 교통 민원 0
-- [ ] 잘못된 HH:MM 입력 거부
-- [ ] 27개 이상 건물 처리 정책 검증
-- [ ] MCP required 필드 누락 거부
-- [ ] R2 + MAX_THROUGHPUT 전력 감소
-- [ ] 상수 전력 × 실행시간과 energyJ 정확히 일치
-- [ ] 팬 전력 × 실행시간과 fanEnergyJ 정확히 일치
-- [ ] 소수 finCount 거부
-- [ ] 중간 null throttle 샘플 처리
-- [ ] CSV NaN/Infinity 거부
-- [ ] R1/R2/R3 회복 지표 의미 검증
+- [x] 사용자 지정 폐기물 종류의 비율·용량·임계값 검증
+- [x] 복수·주말 수거 시각 범위 검증
+- [x] 격일 수거의 비수거일 교통 민원 0
+- [x] 잘못된 HH:MM 입력 거부
+- [x] 27개 이상 건물 처리 정책 검증
+- [x] MCP required 필드 누락 거부
+- [x] R2 + MAX_THROUGHPUT 전력 감소
+- [x] 상수 전력 × 실행시간과 energyJ 정확히 일치
+- [x] 팬 전력 × 실행시간과 fanEnergyJ 정확히 일치
+- [x] 소수 finCount 거부
+- [ ] 중간 null throttle 샘플 처리 (3단계 E-04)
+- [x] CSV NaN/Infinity 거부
+- [ ] R1/R2/R3 회복 지표 의미 검증 (3단계 E-06)
 - [ ] 1노드와 2노드 모델의 정상상태 온도 일치
 - [ ] dt 변화에 따른 온도·에너지 수렴성 확인
 

@@ -163,6 +163,16 @@ public class McpController {
             return textResult("이 엔드포인트(/mcp/" + domain.slug() + ")의 도메인에 없는 도구: " + name, true);
         }
 
+        // 공개한 inputSchema의 required 필드를 실행 <b>전에</b> 강제한다(A-01). 이 검사가
+        // 없으면 collectionTime 없이 부른 요청이 조용히 기본값 12:00으로 돌아가, 클라이언트는
+        // 자기 요청이 불완전했다는 사실조차 모른 채 엉뚱한 실험 결과를 받는다. 스키마가
+        // 진실 원천이므로 별도 목록을 만들지 않고 스키마의 required를 그대로 재사용한다.
+        List<String> missing = McpToolCatalog.missingRequired(catalog.inputSchemaFor(mapper, name), args);
+        if (!missing.isEmpty()) {
+            return textResult("필수 인자 누락: " + String.join(", ", missing)
+                    + " (도구 " + name + "의 스키마에 required로 선언된 필드입니다)", true);
+        }
+
         // 모델 어댑터(run_waste_simulation, run_waste_simulation_devs, ...)는
         // 전부 SimulationModelRegistry로 라우팅한다 — 새 모델이 추가돼도 이
         // switch는 손댈 필요가 없다(MCP_모델_연결_방법.md §2).

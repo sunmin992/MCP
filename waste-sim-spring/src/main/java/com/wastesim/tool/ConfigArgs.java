@@ -29,6 +29,10 @@ public final class ConfigArgs {
         if (p.has("threshold"))            c.setThreshold(p.get("threshold").asDouble(0.8));
         if (p.has("numBuildings"))         c.setNumBuildings(p.get("numBuildings").asInt(4));
         if (p.has("residentsPerBuilding")) c.setResidentsPerBuilding(p.get("residentsPerBuilding").asInt(25));
+        // 수거 주기 — 엔진이 이 값으로 차량 운행일을 정한다(SimulationEngine#isTruckDay).
+        // 여기서 읽지 않으면 MCP로는 주기를 바꿀 방법이 없어, 격일 수거를 요청해도 매일
+        // 수거한 결과가 돌아온다.
+        if (p.has("collectionIntervalDays")) c.setCollectionIntervalDays(p.get("collectionIntervalDays").asInt(1));
 
         if (p.has("occupationMix") && p.get("occupationMix").isArray()) {
             List<String> mix = new ArrayList<>();

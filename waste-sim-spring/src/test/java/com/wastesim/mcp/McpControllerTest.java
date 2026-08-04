@@ -209,6 +209,54 @@ class McpControllerTest {
         assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("\"rttMinutes\":3"));
     }
 
+    // ── A-01: 공개한 스키마의 required 필드를 실행 시점에 강제 ──────────────────
+
+    @Test
+    void missingRequiredFieldIsRejectedNotDefaulted() throws Exception {
+        // collectionTime을 빼고 부르면 예전에는 기본값 12:00으로 조용히 돌아갔다.
+        // 이제는 실행 전에 "필수 인자 누락"으로 막고, 어떤 필드가 빠졌는지 알려줘야 한다.
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":30,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"run_waste_simulation\",\"arguments\":{\"days\":2,\"seeds\":2}}}");
+        assertTrue(b.path("result").path("isError").asBoolean(), "필수 필드 누락은 오류여야 한다");
+        String text = b.path("result").path("content").get(0).path("text").asText();
+        assertTrue(text.contains("collectionTime"), "무엇이 빠졌는지 알려야 한다: " + text);
+    }
+
+    @Test
+    void explicitNullForRequiredFieldIsAlsoRejected() throws Exception {
+        // 필드가 있어도 값이 null이면 실제로 준 게 아니다 — 누락과 똑같이 취급한다.
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":31,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"run_waste_simulation\",\"arguments\":{\"collectionTime\":null}}}");
+        assertTrue(b.path("result").path("isError").asBoolean());
+        assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("collectionTime"));
+    }
+
+    @Test
+    void updateRouteSequenceRequiresRouteSequence() throws Exception {
+        // 도구마다 required가 다르다 — update_route_sequence는 routeSequence가 필수다.
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":32,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"update_route_sequence\",\"arguments\":{\"collectionTime\":\"08:00\"}}}");
+        assertTrue(b.path("result").path("isError").asBoolean());
+        assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("routeSequence"));
+    }
+
+    @Test
+    void runScenarioRequiresType() throws Exception {
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":33,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"run_scenario\",\"arguments\":{\"days\":10}}}");
+        assertTrue(b.path("result").path("isError").asBoolean());
+        assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("type"));
+    }
+
+    @Test
+    void presentRequiredFieldStillRuns() throws Exception {
+        // required를 모두 채우면 예전과 똑같이 실행된다 — 강제가 정상 경로를 막지 않는다.
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":34,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"run_waste_simulation\","
+                + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2}}}");
+        assertFalse(b.path("result").path("isError").asBoolean());
+    }
+
     @Test
     void unknownDomainReturns404() throws Exception {
         McpController c = controller();

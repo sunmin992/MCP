@@ -42,16 +42,20 @@ class ChatControllerTest {
         // SimulationConfig.getCollectionTimeLabel()은 collectionTimeMinutes를
         // 매번 "%02d:%02d"로 재포맷하므로("8:30"→setter가 파싱 후 getter가
         // "08:30"으로 정규화) 한 자리 시로는 cfgToConfirm 분기를 재현할 수
-        // 없다 — 시(hour)가 0~23 범위를 벗어나야(가능성은 낮지만 파싱 자체는
-        // 성공하는 값) isValidCollectionTime이 false가 되어 확인 대기로
-        // 빠진다.
+        // 없다 — 시(hour)가 0~23 범위를 벗어나야 isValidCollectionTime이
+        // false가 되어 확인 대기로 빠진다.
+        //
+        // 예전에는 setCollectionTimeLabel("25:30")으로 만들었지만 W-04 이후
+        // 문자열 파서가 그런 값을 거부한다. 분(minute) 필드에 직접 넣어
+        // 같은 상태(라벨 "25:30")를 만든다 — 이 경로가 오히려 실제 상황에
+        // 더 가깝다. LLM이 아니라 내부 계산이 범위를 벗어난 분을 넣는 경우다.
         SimulationConfig cfgA = new SimulationConfig();
-        cfgA.setCollectionTimeLabel("25:30");   // 시 범위 초과 → 확인 대기 분기(cfgToConfirm)
+        cfgA.setCollectionTimeMinutes(25 * 60 + 30);   // 라벨 "25:30" → 확인 대기 분기(cfgToConfirm)
         cfgA.setDays(30);
         cfgA.setSeeds(30);
 
         SimulationConfig cfgB = new SimulationConfig();
-        cfgB.setCollectionTimeLabel("26:15");
+        cfgB.setCollectionTimeMinutes(26 * 60 + 15);   // 라벨 "26:15"
         cfgB.setDays(30);
         cfgB.setSeeds(30);
 

@@ -78,11 +78,19 @@ public class EdgeArgs {
     public int intVal(String field, int def, int min, int max) {
         if (!has(field)) return def;
         JsonNode v = node.get(field);
-        if (!v.isNumber()) {
+        // 소수를 조용히 절삭하면(10.9 → 10) 클라이언트가 보낸 값과 계산에 쓰인 값이 달라지고,
+        // 공개한 스키마의 integer 계약도 서버에서 지켜지지 않는다.
+        if (!v.isIntegralNumber()) {
             reject(ErrorCode.INVALID_ARGUMENTS, field, "정수여야 한다(받은 값: " + v.asText() + ")");
             return def;
         }
-        int i = v.asInt();
+        // long 범위를 넘는 값은 asInt()가 조용히 잘라내므로 먼저 막는다.
+        long asLong = v.asLong();
+        if (asLong < Integer.MIN_VALUE || asLong > Integer.MAX_VALUE) {
+            reject(ErrorCode.OUT_OF_RANGE, field, "정수 범위를 벗어났다(받은 값: " + v.asText() + ")");
+            return def;
+        }
+        int i = (int) asLong;
         if (i < min || i > max) {
             reject(ErrorCode.OUT_OF_RANGE, field, String.format("허용 범위 %d~%d를 벗어났다(받은 값: %d)", min, max, i));
             return def;

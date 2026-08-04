@@ -1,5 +1,6 @@
 package com.wastesim.mcp;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -44,6 +45,8 @@ public class McpToolCatalog {
                 "threshold": {"type": "number", "description": "민원 임계 적재율(0~1)", "default": 0.8},
                 "numBuildings": {"type": "integer", "default": 4},
                 "residentsPerBuilding": {"type": "integer", "default": 25},
+                "collectionIntervalDays": {"type": "integer", "minimum": 1, "default": 1,
+                  "description": "수거 주기(일). 2면 격일 수거 — 차량은 수거일에만 운행하므로 비수거일에는 이동시간·교통 민원이 발생하지 않는다"},
                 "occupationMix": {"type": "array", "items": {"type": "string"},
                   "description": "직업 구성: BlueCollar/Student/Housewife/NightShift/OfficeWorker"},
                 "trafficEnabled": {"type": "boolean", "description": "교통 레이어 사용 여부", "default": false},
@@ -172,6 +175,46 @@ public class McpToolCatalog {
         // 레지스트리에 없는 이름 = 위 고정 장량동 도구이거나 오타. 전자만 통과시키고
         // 후자는 어차피 McpController가 "알 수 없는 도구"로 떨어뜨린다.
         return domain == McpDomain.WASTE;
+    }
+
+    /**
+     * 주어진 도구의 inputSchema를 파싱해 반환한다 — tools/list가 노출하는 것과 <b>같은</b>
+     * 스키마다(단일 원천). 이름을 못 찾으면 {@code null}.
+     *
+     * <p>실행 시점(tools/call)에서 required 필드를 강제하려면 그 규칙이 어디에 선언돼
+     * 있는지를 알아야 하는데, 이미 공개한 JSON Schema가 바로 그 선언이다. 별도 검증
+     * 목록을 새로 두면 스키마와 어긋날 수 있으므로 스키마 자체를 재사용한다(A-01).
+     */
+    public JsonNode inputSchemaFor(ObjectMapper m, String toolName) throws Exception {
+        SimulationModelProvider model = models.byToolName(toolName);
+        if (model != null) return m.readTree(model.inputSchemaJson());
+        McpToolProvider indep = independentTools.byToolName(toolName);
+        if (indep != null) return m.readTree(indep.inputSchemaJson());
+        return switch (toolName) {
+            case "run_scenario" -> m.readTree(RUN_SCENARIO_SCHEMA);
+            case "list_scenarios" -> m.readTree(EMPTY_SCHEMA);
+            case "update_route_sequence" -> m.readTree(UPDATE_ROUTE_SCHEMA);
+            default -> null;
+        };
+    }
+
+    /**
+     * 스키마의 {@code required} 배열에 있는 필드 중 인자에서 빠졌거나 null인 것들을 모은다.
+     *
+     * <p>{@code hasNonNull}을 쓰므로 필드가 아예 없는 경우와 명시적 null을 똑같이 "누락"으로
+     * 본다 — 기본값 12:00으로 조용히 실행되던 문제(A-01)를 막는 지점이다. 스키마가 없거나
+     * required가 선언되지 않은 도구는 빈 목록을 돌려준다(강제할 계약이 없음).
+     */
+    public static java.util.List<String> missingRequired(JsonNode schema, JsonNode args) {
+        java.util.List<String> missing = new java.util.ArrayList<>();
+        if (schema == null) return missing;
+        JsonNode required = schema.path("required");
+        if (!required.isArray()) return missing;
+        for (JsonNode f : required) {
+            String field = f.asText();
+            if (args == null || !args.hasNonNull(field)) missing.add(field);
+        }
+        return missing;
     }
 
     /** list_scenarios 도구 호출 결과(CallToolResult content). */

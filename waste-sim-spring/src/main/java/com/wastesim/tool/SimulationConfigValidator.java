@@ -65,6 +65,7 @@ public class SimulationConfigValidator {
 
         validateCollectionTimes(c, errs);
         validateWasteTypes(c, errs);
+        validateExtendedFields(c, errs);
 
         // 노드 ID를 'A' + 인덱스로 만들기 때문에 27번째부터 Node_[ 같은 값이 나오고,
         // 역변환(nodeIndex)은 알파벳 한 글자만 받아 규칙이 어긋난다. 지금 설계를 유지하는
@@ -184,6 +185,98 @@ public class SimulationConfigValidator {
         if (Math.abs(fractionSum - 1.0) > 0.001) {
             errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "wasteTypes.fraction",
                     String.format("배출 비율의 합이 1.0이어야 합니다. 현재 합계: %.3f", fractionSum)));
+        }
+    }
+
+    /** 건물 간 이동시간의 현실적 상한(분) — 이보다 크면 하루 안에 순회가 끝나지 않는다. */
+    private static final int MAX_TRAVEL_MINUTES = 600;
+    /** 월별 가중치 배열 길이 — {@code resolveMonthlyFactor}가 월 인덱스로 직접 접근한다. */
+    private static final int MONTHS = 12;
+
+    /**
+     * 확장 설정 필드를 검증한다(DEBUGGING_ISSUES.md W-06).
+     *
+     * <p>이 필드들은 지금까지 검증기를 그냥 지나갔다. 일부는 setter나 사용 시점에서 조용히
+     * 보정됐고(예전 {@code Math.max(0, v)}, {@code SimulationEngine.clamp01}) 나머지는
+     * 보정도 없이 계산에 들어갔다. 둘 다 결과는 같다 — 요청한 것과 다른 실험이 돌아가고
+     * 클라이언트는 알 수 없다. 보정 대신 오류로 돌려주는 편이 API 신뢰성에 유리하다.
+     */
+    private void validateExtendedFields(SimulationConfig c, List<ValidationError> errs) {
+        if (c.getCollectionIntervalDays() < 1 || c.getCollectionIntervalDays() > 365)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "collectionIntervalDays",
+                    "수거 주기는 1~365일이어야 합니다. 받은 값: " + c.getCollectionIntervalDays()));
+
+        if (c.getRouteTravelMinutes() < 0 || c.getRouteTravelMinutes() > MAX_TRAVEL_MINUTES)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "routeTravelMinutes",
+                    "건물 간 이동시간은 0~" + MAX_TRAVEL_MINUTES + "분이어야 합니다. 받은 값: "
+                    + c.getRouteTravelMinutes()));
+
+        if (c.getDispatchIntervalMinutes() < 0 || c.getDispatchIntervalMinutes() > MAX_MINUTE_OF_DAY)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "dispatchIntervalMinutes",
+                    "배차 간격은 0~" + MAX_MINUTE_OF_DAY + "분이어야 합니다. 받은 값: "
+                    + c.getDispatchIntervalMinutes()));
+
+        // 점검 시각도 d*1440 + 이 값으로 이벤트를 만들므로 수거 시각과 같은 범위를 지켜야
+        // 한다 — 벗어나면 점검일과 집계일이 하루씩 어긋난다.
+        if (c.getLandlordInspectMinutes() < 0 || c.getLandlordInspectMinutes() > MAX_MINUTE_OF_DAY)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "landlordInspectMinutes",
+                    "임대인 점검 시각은 0~" + MAX_MINUTE_OF_DAY + "분(00:00~23:59)이어야 합니다. 받은 값: "
+                    + c.getLandlordInspectMinutes()));
+
+        ratio01(c.getLandlordThreshold(), "landlordThreshold", "임대인 점검 임계", errs);
+        ratio01(c.getReturnFraction(), "returnFraction", "귀가 배출 비율", errs);
+
+        if (!Double.isFinite(c.getTrafficComplaintWeight()) || c.getTrafficComplaintWeight() < 0)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "trafficComplaintWeight",
+                    "교통 민원 가중치는 0 이상의 유한한 값이어야 합니다. 받은 값: "
+                    + c.getTrafficComplaintWeight()));
+
+        validateHolidays(c, errs);
+        validateMonthlyFactor(c, errs);
+    }
+
+    private static void ratio01(double v, String field, String label, List<ValidationError> errs) {
+        if (!Double.isFinite(v) || v < 0 || v > 1)
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, field,
+                    label + "은(는) 0~1 사이여야 합니다. 받은 값: " + v));
+    }
+
+    /**
+     * 공휴일은 엔진의 날짜 인덱스와 같은 0-based여야 한다({@code for (int d = 0; d < days; d++)}).
+     * 기간 밖 값은 아무 효과 없이 무시되므로, 지정했다고 믿은 날에 수거가 그대로 일어난다.
+     */
+    private static void validateHolidays(SimulationConfig c, List<ValidationError> errs) {
+        List<Integer> holidays = c.getHolidays();
+        if (holidays == null) return;
+        java.util.Set<Integer> seen = new java.util.LinkedHashSet<>();
+        for (Integer d : holidays) {
+            if (d == null || d < 0 || d >= c.getDays()) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "holidays",
+                        "공휴일은 0~" + (c.getDays() - 1) + "일차(시뮬레이션 기간 안)여야 합니다. 받은 값: " + d));
+            } else if (!seen.add(d)) {
+                errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "holidays",
+                        "같은 공휴일이 중복됐습니다: " + d + "일차"));
+            }
+        }
+    }
+
+    /**
+     * {@code resolveMonthlyFactor}가 {@code monthIndex % length}로 접근하므로, 길이가 12가
+     * 아니면 월과 가중치의 대응이 어긋난다 — 길이 3이면 1·4·7·10월이 모두 같은 값이 된다.
+     */
+    private static void validateMonthlyFactor(SimulationConfig c, List<ValidationError> errs) {
+        double[] f = c.getMonthlyWasteFactor();
+        if (f == null) return;
+        if (f.length != MONTHS) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "monthlyWasteFactor",
+                    "월별 가중치는 1~12월 " + MONTHS + "개여야 합니다. 받은 길이: " + f.length));
+            return;
+        }
+        for (int i = 0; i < f.length; i++) {
+            if (!Double.isFinite(f[i]) || f[i] <= 0) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "monthlyWasteFactor",
+                        "월별 가중치는 0보다 큰 유한한 값이어야 합니다(" + (i + 1) + "월). 받은 값: " + f[i]));
+            }
         }
     }
 

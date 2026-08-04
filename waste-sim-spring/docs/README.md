@@ -4,7 +4,7 @@
 
 ## 기준 명세서
 
-- [waste-sim-spring SRS·SDD·TDD 통합 명세서 v1.7](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_7.docx)
+- [waste-sim-spring SRS·SDD·TDD 통합 명세서 v1.8](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_8.docx) (이전 버전: [v1.7](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_7.docx))
 
 통합 명세서에는 다음 내용이 포함되어 있다.
 
@@ -25,7 +25,7 @@
 - [채팅 자연어 요청 카탈로그](reference/CHAT_REQUEST_CATALOG.md)
 - [디버깅 점검 목록](reference/DEBUGGING_ISSUES.md)
 
-설계 결정 기록은 통합 명세서 v1.7 이후 코드와 함께 확정된 결정의 근거를 보존하므로 삭제하지 않는다. 디버깅 목록은 아직 명세서에 반영되지 않은 결함과 테스트 공백을 관리한다.
+설계 결정 기록은 통합 명세서 v1.7 이후 코드와 함께 확정된 결정의 근거를 보존하므로 삭제하지 않는다. 디버깅 목록은 아직 명세서에 반영되지 않은 결함과 테스트 공백을 관리한다 — v1.8은 P1 4건(E-01, E-02, W-01, W-03)을 반영했고, 잔여 P2/P3 항목은 목록에 남아 있다.
 
 ## 문서 관리 규칙
 
@@ -37,4 +37,6 @@
 
 ## 검증 메모
 
-통합 명세서는 259개 문단, 54개 표, 1개 섹션으로 구성되어 있으며 제목 계층과 SRS·SDD·TDD 구분을 구조적으로 확인했다. 댓글과 변경 추적은 없다. 현재 환경에는 LibreOffice가 없어 DOCX 페이지 렌더링 기반 시각 검증은 수행하지 못했다.
+v1.8은 286개 문단, 58개 표로 구성되어 있으며(v1.7 대비 +27 문단·+4 표), 제목 계층과 SRS·SDD·TDD 구분을 구조적으로 확인했다. LibreOffice로 PDF 변환 후 페이지 렌더링을 시각 검증했고(개정 이력·설계 결정·엣지 신규 절·부록 B 포함), 원본 대비 XML 스키마 검증을 통과했다. 댓글과 변경 추적은 없다.
+
+v1.7은 259개 문단, 54개 표, 1개 섹션으로 구성되어 있으며 제목 계층과 SRS·SDD·TDD 구분을 구조적으로 확인했다. 댓글과 변경 추적은 없다. 당시 환경에는 LibreOffice가 없어 DOCX 페이지 렌더링 기반 시각 검증은 수행하지 못했다.

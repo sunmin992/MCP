@@ -211,11 +211,14 @@ public class CalibrateEdgeThermalModelTool implements McpToolProvider {
             String[] c = line.split(",", -1);
             try {
                 out.add(new ThermalCalibrator.Sample(
-                        Double.parseDouble(c[iT].trim()),
-                        Double.parseDouble(c[iTemp].trim()),
+                        finite(c[iT].trim(), "t_sec", r + 1),
+                        finite(c[iTemp].trim(), "soc_temp_c", r + 1),
                         num(c, iP), num(c, iClk), num(c, iFps),
                         iThr >= 0 && iThr < c.length && !c[iThr].isBlank()
                                 ? parseBool(c[iThr].trim()) : null));
+            } catch (IllegalArgumentException e) {
+                a.reject(ErrorCode.INVALID_ARGUMENTS, "samplesCsv", e.getMessage());
+                return;
             } catch (Exception e) {
                 a.reject(ErrorCode.INVALID_ARGUMENTS, "samplesCsv",
                         (r + 1) + "번째 줄을 숫자로 읽지 못했다: " + line);
@@ -224,9 +227,35 @@ public class CalibrateEdgeThermalModelTool implements McpToolProvider {
         }
     }
 
+    /**
+     * 필수 열을 유한한 실수로 읽는다.
+     *
+     * <p>{@code Double.parseDouble}은 "NaN"·"Infinity"를 그대로 받아들이는데, 이후
+     * 범위 검증 {@code d < min || d > max}는 NaN에 대해 둘 다 false라 <b>그냥 통과한다</b>.
+     * 그러면 최고 온도·평균 전력·지수 적합·R²·RMSE가 전부 NaN으로 오염된 채 결과가
+     * 반환된다 — 오류가 아니라 "값이 이상한 정상 응답"이 되어 원인을 찾기 어렵다.
+     */
+    private static double finite(String raw, String column, int lineNo) {
+        double v;
+        try {
+            v = Double.parseDouble(raw);
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(lineNo + "번째 줄 " + column + " 값을 숫자로 읽지 못했다: " + raw);
+        }
+        if (!Double.isFinite(v)) {
+            throw new IllegalArgumentException(
+                    lineNo + "번째 줄 " + column + " 값이 유한한 숫자가 아니다: " + raw);
+        }
+        return v;
+    }
+
+    /** 선택 열 — 값이 없거나 유한하지 않으면 "측정 없음"으로 본다(NaN을 계산에 넣지 않는다). */
     private static Double num(String[] c, int idx) {
         if (idx < 0 || idx >= c.length || c[idx].isBlank()) return null;
-        try { return Double.parseDouble(c[idx].trim()); } catch (NumberFormatException e) { return null; }
+        try {
+            double v = Double.parseDouble(c[idx].trim());
+            return Double.isFinite(v) ? v : null;
+        } catch (NumberFormatException e) { return null; }
     }
 
     private static Boolean parseBool(String s) {

@@ -123,7 +123,7 @@ public class SimulationEngine {
 
         // ── 수거 이벤트 생성 ──────────────────────────────────────────────
         for (int d = 0; d < days; d++) {
-            if (!isTruckDay(d, cfg)) continue;
+            if (!isTruckDay(d, cfg, types)) continue;
             List<Integer> slots = daySlots(d, cfg);
             for (int k = 0; k < routes.size(); k++) {
                 List<Integer> route = routes.get(k);
@@ -299,11 +299,31 @@ public class SimulationEngine {
         if (time <= totalMinutes) pq.offer(new DischargeEvt(time, occ, building, day, amount));
     }
 
-    /** 트럭이 그 날 순회하는가 (공휴일/주말 제외) */
-    private static boolean isTruckDay(int day, SimulationConfig cfg) {
+    /**
+     * 트럭이 그 날 순회하는가.
+     *
+     * <p>공휴일·주말 외에 <b>수거 주기</b>도 본다. 예전에는 이 두 가지만 검사해서, 격일
+     * 수거로 설정해도 차량은 매일 돌면서 실제로는 아무 용기도 비우지 않는 날이 생겼다 —
+     * 그 날의 교통 민원과 이동 시간이 결과에 그대로 쌓여, 주기를 1·2·4일로 바꿔도 교통
+     * 민원이 똑같이 나왔다. 전역 {@code collectionIntervalDays}는 아예 읽히지도 않았다.
+     *
+     * <p><b>전역 주기와 유형별 주기의 결합 규칙</b>: 전역 주기는 "차량이 며칠에 한 번
+     * 오는가"이고, 유형별 주기는 "그 유형을 며칠에 한 번 비우는가"다. 차량이 오지 않는
+     * 날에는 어떤 유형도 비울 수 없으므로 전역 주기가 먼저 걸리고, 차량이 오는 날이라도
+     * 비울 유형이 하나도 없으면 운행할 이유가 없다. 즉 <b>둘 다 만족해야</b> 운행한다.
+     *
+     * <p>기본값(전역 1일, 기본 유형 1일)에서는 두 조건이 항상 참이라 기존 결과와 완전히
+     * 같다. 유형을 지정하지 않으면 {@code resolveWasteTypes()}가 전역 주기를 그대로 물려준
+     * 단일 유형을 만들므로, 그 경우에도 두 조건이 같은 날에 맞아떨어진다.
+     */
+    private static boolean isTruckDay(int day, SimulationConfig cfg, List<WasteType> types) {
         if (cfg.getHolidays() != null && cfg.getHolidays().contains(day)) return false;
         if (cfg.isSkipWeekends() && isWeekend(day)) return false;
-        return true;
+        if (day % Math.max(1, cfg.getCollectionIntervalDays()) != 0) return false;
+        for (WasteType t : types) {
+            if (day % Math.max(1, t.getIntervalDays()) == 0) return true;
+        }
+        return false;
     }
 
     private static boolean isWeekend(int day) {
