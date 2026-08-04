@@ -105,7 +105,7 @@ public class CalibrateEdgeThermalModelTool implements McpToolProvider {
                         s.has("powerW") ? s.dbl("powerW", 0, 0, 200.0) : null,
                         s.has("clockMhz") ? s.dbl("clockMhz", 0, 0, 10000.0) : null,
                         s.has("fps") ? s.dbl("fps", 0, 0, 10000.0) : null,
-                        s.has("throttled") ? s.raw("throttled").asBoolean() : null));
+                        throttledOf(s, i, a)));
                 if (!s.errors().isEmpty()) {
                     a.reject(ErrorCode.INVALID_ARGUMENTS, "samples[" + i + "]",
                             s.errors().get(0).message());
@@ -170,6 +170,25 @@ public class CalibrateEdgeThermalModelTool implements McpToolProvider {
         return ToolResult.ok(out);
     }
 
+    /**
+     * JSON의 {@code throttled}는 <b>진짜 boolean만</b> 받는다.
+     *
+     * <p>{@code asBoolean()}은 "yes"·"1"·숫자 같은 값을 조용히 false로 바꾼다. 그러면 측정
+     * 스크립트가 형식을 조금 다르게 뱉었을 때 <b>모든 샘플이 "스로틀링 없음"</b>이 되어,
+     * 실측 TTT가 통째로 사라진 채 정상 응답이 나간다. 필드가 아예 없으면(=미측정) null로
+     * 두는 것과, 있는데 형식이 틀린 것은 다른 문제이므로 후자는 오류로 돌려준다.
+     */
+    private static Boolean throttledOf(EdgeArgs s, int index, EdgeArgs parent) {
+        if (!s.has("throttled")) return null;
+        JsonNode v = s.raw("throttled");
+        if (!v.isBoolean()) {
+            parent.reject(ErrorCode.INVALID_ARGUMENTS, "samples[" + index + "].throttled",
+                    "true 또는 false여야 한다(받은 값: " + v.asText() + "). 측정하지 않았다면 필드를 넣지 말 것.");
+            return null;
+        }
+        return v.booleanValue();
+    }
+
     private static Map<String, Object> measured(ThermalCalibrator.Calibration cal) {
         Map<String, Object> m = new LinkedHashMap<>();
         m.put("tttSec", cal.measuredTttSec());
@@ -177,6 +196,8 @@ public class CalibrateEdgeThermalModelTool implements McpToolProvider {
         m.put("trtStateSec", cal.measuredTrtStateSec());
         m.put("peakTempC", cal.measuredPeakTempC());
         m.put("fpsDropPercent", cal.measuredFpsDropPercent());
+        // 결측 현황을 지표 옆에 붙인다 — 값만 보면 결측이 많은 실험도 정상 데이터로 읽힌다.
+        if (cal.throttleQuality() != null) m.put("throttleDataQuality", cal.throttleQuality());
         return m;
     }
 
@@ -214,8 +235,10 @@ public class CalibrateEdgeThermalModelTool implements McpToolProvider {
                         finite(c[iT].trim(), "t_sec", r + 1),
                         finite(c[iTemp].trim(), "soc_temp_c", r + 1),
                         num(c, iP), num(c, iClk), num(c, iFps),
+                        // 빈 셀은 "측정하지 않음"으로 허용하지만, 알 수 없는 문자열은
+                        // 결측으로 바꾸지 않고 행 번호와 함께 오류로 돌려준다.
                         iThr >= 0 && iThr < c.length && !c[iThr].isBlank()
-                                ? parseBool(c[iThr].trim()) : null));
+                                ? parseBool(c[iThr].trim(), r + 1) : null));
             } catch (IllegalArgumentException e) {
                 a.reject(ErrorCode.INVALID_ARGUMENTS, "samplesCsv", e.getMessage());
                 return;
@@ -258,11 +281,29 @@ public class CalibrateEdgeThermalModelTool implements McpToolProvider {
         } catch (NumberFormatException e) { return null; }
     }
 
-    private static Boolean parseBool(String s) {
-        return switch (s.toLowerCase()) {
+    /**
+     * CSV의 throttled 셀을 읽는다. 알 수 없는 표기는 <b>결측으로 바꾸지 않고</b> 오류다.
+     *
+     * <p>예전에는 해석 못 한 값을 null로 돌려줬는데, 그러면 헤더 이름만 맞고 값 형식이 다른
+     * 파일(예: "ON"/"OFF")이 전 구간 결측으로 처리돼 실측 TTT/TED/TRT가 조용히 사라진다.
+     * 어떤 줄이 문제인지 알려주면 학생이 스크립트를 고칠 수 있다.
+     */
+    private static Boolean parseBool(String s, int lineNo) {
+        Boolean known = switch (s.toLowerCase()) {
             case "1", "true", "t", "yes", "y" -> Boolean.TRUE;
             case "0", "false", "f", "no", "n" -> Boolean.FALSE;
-            default -> s.startsWith("0x") ? (Long.decode(s) & 0x4) != 0 : null;
+            default -> null;
         };
+        if (known != null) return known;
+        if (s.startsWith("0x") || s.startsWith("0X")) {
+            try {
+                return (Long.decode(s) & 0x4) != 0;
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException(
+                        lineNo + "번째 줄 throttled 값을 비트 표현으로 읽지 못했다: " + s);
+            }
+        }
+        throw new IllegalArgumentException(lineNo + "번째 줄 throttled 값을 해석할 수 없다: " + s
+                + " (허용: true/false, 1/0, 0x로 시작하는 비트값, 또는 빈 칸=미측정)");
     }
 }

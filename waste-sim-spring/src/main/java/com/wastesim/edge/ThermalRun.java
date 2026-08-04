@@ -25,7 +25,13 @@ import java.util.List;
  * @param throttlingExpected 이론상 스로틀링 발생 여부
  * @param throttledFraction 부하 구간 중 스로틀링 상태였던 시간 비율(0~1)
  * @param meanFpsLoad      부하 구간 평균 FPS
- * @param fpsDropPercent   기준 FPS 대비 부하 구간 후반 FPS 하락률(%)
+ * @param fpsDropPercent   기준 FPS 대비 부하 구간 후반 FPS 하락률(%) — <b>최악 순간</b>의 낙폭이다
+ * @param throughputLossPercent 스로틀링이 없었다면 낼 수 있었을 처리량 대비 <b>지속</b> 손실률(%).
+ *                         {@code (1 − 평균FPS / 무스로틀 달성가능FPS) × 100}.
+ *                         {@code fpsDropPercent}와 다른 질문에 답한다 — 저쪽은 "가장 깎였을 때 얼마나
+ *                         깎였나", 이쪽은 "실행 내내 일을 얼마나 못 했나"다. TTT가 발생하지 않아도
+ *                         소프트 제한만으로 이 값은 0이 아니므로, "TTT 없음 = 문제 없음"이라는
+ *                         오독을 막는 지표다
  * @param tauHeatingSec    가열 시정수(초)
  * @param energyJ          SoC가 소비한 에너지(J) — 온도를 만든 몫
  * @param fanEnergyJ       냉각팬이 소비한 에너지(J). 팬이 없으면 0.
@@ -54,6 +60,7 @@ public record ThermalRun(
         double throttledFraction,
         double meanFpsLoad,
         double fpsDropPercent,
+        double throughputLossPercent,
         double tauHeatingSec,
         double energyJ,
         double fanEnergyJ,

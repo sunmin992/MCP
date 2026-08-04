@@ -85,7 +85,8 @@ class EdgeMcpToolsTest {
         @SuppressWarnings("unchecked")
         Map<String, Object> m = (Map<String, Object>) out.get("metrics");
         for (String key : List.of("softLimitEntrySec", "tttSec", "medianTedSec", "trtStateSec",
-                "trtServiceSec", "trtFullSec", "peakTempC", "fpsDropPercent", "tauHeatingSec")) {
+                "trtServiceSec", "trtFullSec", "peakTempC", "fpsDropPercent",
+                "throughputLossPercent", "tauHeatingSec")) {
             assertTrue(m.containsKey(key), "측정 지표 누락: " + key);
         }
         assertNotNull(m.get("tttSec"), "Pi5 무냉각 35℃면 스로틀링이 관측돼야 한다");

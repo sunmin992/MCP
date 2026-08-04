@@ -201,7 +201,10 @@ const EDGE_ROWS = [
   ['medianTedSec',      'TED 중앙값',         v => v == null ? '-' : v + '초'],
   ['trtStateSec',       '회복(TRT_state)',    v => v == null ? '-' : v + '초'],
   ['meanFpsDuringLoad', '부하 중 평균 FPS',   v => v == null ? '-' : v],
-  ['fpsDropPercent',    'FPS 하락',           v => v == null ? '-' : v + '%'],
+  // 처리량 손실을 FPS 낙폭보다 위에 둔다 — TTT가 "발생 안 함"이어도 소프트 제한만으로
+  // 성능이 깎이는데, 그 사실이 표에서 가장 먼저 보여야 오독을 막는다.
+  ['throughputLossPercent', '처리량 손실(지속)', v => v == null ? '-' : v + '%'],
+  ['fpsDropPercent',    'FPS 낙폭(최악 순간)', v => v == null ? '-' : v + '%'],
   ['tauHeatingSec',     '가열 시정수 τ',      v => v == null ? '-' : v + '초'],
   ['energyJ',           'SoC 소비 에너지',    v => v == null ? '-' : Math.round(v) + 'J'],
   ['fanEnergyJ',        '팬 소비 에너지',     v => v == null ? null : Math.round(v) + 'J'],

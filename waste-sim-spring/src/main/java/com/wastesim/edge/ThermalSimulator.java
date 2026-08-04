@@ -170,8 +170,14 @@ public class ThermalSimulator {
         double loadEndTemp = temp;
         double energyJ = 0.0;
         double fanEnergyJ = 0.0;
-        double fpsSum = 0.0, fpsSamples = 0.0, throttledTime = 0.0;
-        double fpsBaseSum = 0.0, fpsBaseN = 0.0, fpsMin = Double.MAX_VALUE;
+        double throttledTime = 0.0;
+        // 아래 넷은 모두 <b>시간 가중 적분</b>이다 — 샘플 개수로 평균하면 종료 시각을 맞추려고
+        // 넣는 마지막 부분 스텝(예: 0.1초)이 정상 스텝(0.5초)과 같은 무게를 갖는다. 그 구간에서
+        // 스로틀링 상태가 바뀌면 평균 FPS와 처리량 손실이 실제 시간 평균에서 벗어난다.
+        double fpsIntegral = 0.0;        // ∫ 실제 FPS dt
+        double idealFpsIntegral = 0.0;   // ∫ 무스로틀 기준 FPS dt — 지속 손실률의 분모
+        double loadObservedSec = 0.0;    // 부하 구간에서 실제로 적분한 시간
+        double fpsBaseSum = 0.0, fpsBaseSec = 0.0, fpsMin = Double.MAX_VALUE;
         boolean loadHadThrottling = false, serviceDegraded = false, recoveryGateComputed = false;
 
         // 서비스 회복 기준선 — 목표 FPS 모드면 목표치, 최대 처리량 모드면 무스로틀 최대치
@@ -225,8 +231,16 @@ public class ThermalSimulator {
                 case 1 -> p.softFloorRatio();
                 default -> 1.0;
             };
-            clockRatio += (ratioTarget - clockRatio) * Math.min(1.0, dt / CLOCK_SLEW_TAU_SEC);
-            clockRatio = Math.max(minRatio, Math.min(1.0, clockRatio));
+            // 클럭비는 시간에 따라 변하는 <b>상태</b>다 — 실제로 흐른 시간(step)만큼만 움직여야 한다.
+            // 고정 dt를 쓰면 두 군데서 어긋난다: (a) 마지막 부분 스텝이 0.1초여도 0.5초만큼
+            // 회복하고, (b) 시간이 전혀 흐르지 않는 종료 샘플(step=0)에서 한 번 더 회복한다.
+            // 그러면 마지막 시계열의 클럭·FPS가 실제보다 높게 찍히고, 그 클럭으로 판정하는
+            // trtServiceSec가 실제보다 빨리 확정된다. 거버너 상태 판정(위)은 현재 온도로 하되,
+            // 시간이 흐르지 않았으면 클럭은 그대로 둔다.
+            if (step > 0.0) {
+                clockRatio += (ratioTarget - clockRatio) * Math.min(1.0, step / CLOCK_SLEW_TAU_SEC);
+                clockRatio = Math.max(minRatio, Math.min(1.0, clockRatio));
+            }
 
             // ── 부하·전력 ─────────────────────────────────────────────────
             // AI 부하 패턴은 "요구하는 일의 양"에 곱해진다 — 회복 정책(R1 중지 / R2 25%)과는
@@ -270,14 +284,24 @@ public class ThermalSimulator {
                         episodeStart = null;
                     }
                 }
-                fpsSum += fps; fpsSamples++;
-                if (t <= baselineWindowSec) { fpsBaseSum += fps; fpsBaseN++; }
-                else fpsMin = Math.min(fpsMin, fps);
+                // 스로틀링이 전혀 없었다면(클럭 100%) 이 시점에 냈을 FPS — 지속 처리량
+                // 손실의 분모다. 부하 패턴을 쓰면 요구량 자체가 시간에 따라 변하므로
+                // 상수 maxFps가 아니라 매 시점의 요구량을 기준으로 쌓아야 한다.
+                double idealFps = spec.mode() == WorkloadMode.TARGET_FPS
+                        ? Math.min(spec.targetFps() * level, p.maxFps())
+                        : p.maxFps() * level;
+                fpsIntegral += fps * step;
+                idealFpsIntegral += idealFps * step;
+                loadObservedSec += step;
+                if (t <= baselineWindowSec) { fpsBaseSum += fps * step; fpsBaseSec += step; }
+                // 시간이 흐르지 않은 종료 샘플은 최저치 판정에도 넣지 않는다 — 폭이 0인
+                // 순간을 "그만큼 느렸다"고 셀 수는 없다.
+                else if (step > 0.0) fpsMin = Math.min(fpsMin, fps);
                 loadEndTemp = temp;
             } else {
                 if (!recoveryGateComputed) {
                     loadHadThrottling = throttled || !episodes.isEmpty();
-                    double base = fpsBaseN > 0 ? fpsBaseSum / fpsBaseN : serviceBaseline;
+                    double base = fpsBaseSec > 1e-9 ? fpsBaseSum / fpsBaseSec : serviceBaseline;
                     double lowest = fpsMin == Double.MAX_VALUE ? base : fpsMin;
                     serviceDegraded = lowest < SERVICE_RECOVERY_RATIO * base;
                     recoveryGateComputed = true;
@@ -441,10 +465,20 @@ public class ThermalSimulator {
                 : (teds.size() % 2 == 1 ? teds.get(teds.size() / 2)
                                         : (teds.get(teds.size() / 2 - 1) + teds.get(teds.size() / 2)) / 2.0);
 
-        double meanFps = fpsSamples > 0 ? fpsSum / fpsSamples : 0.0;
-        double baseFps = fpsBaseN > 0 ? fpsBaseSum / fpsBaseN : 0.0;
+        double meanFps = loadObservedSec > 1e-9 ? fpsIntegral / loadObservedSec : 0.0;
+        double baseFps = fpsBaseSec > 1e-9 ? fpsBaseSum / fpsBaseSec : 0.0;
         double lowest = fpsMin == Double.MAX_VALUE ? baseFps : fpsMin;
         double drop = baseFps > 1e-9 ? (baseFps - lowest) / baseFps * 100.0 : 0.0;
+
+        // 지속 처리량 손실 — "실행 내내 일을 얼마나 못 했나". TTT가 없어도 소프트 제한만으로
+        // 0이 아닐 수 있고, 그게 이 지표를 따로 두는 이유다(무냉각 Pi4가 80.3℃에서 안정돼
+        // TTT는 안 뜨지만 클럭이 80%로 묶여 처리량은 이미 20% 손실인 상황).
+        //
+        // 평균끼리 나누지 않고 <b>적분값끼리</b> 비교한다 — 둘이 같은 시간축의 적분이라
+        // 분모·분자가 정확히 대응하고, 부분 스텝이 있어도 "처리한 일의 양 / 처리했어야 할 일의 양"
+        // 이라는 의미가 그대로 유지된다.
+        double throughputLoss = idealFpsIntegral > 1e-9
+                ? Math.max(0.0, (idealFpsIntegral - fpsIntegral) / idealFpsIntegral * 100.0) : 0.0;
 
         return new ThermalRun(
                 board.label(), p,
@@ -452,7 +486,8 @@ public class ThermalSimulator {
                 round(trtState, 1), round(trtService, 1), round(trtFull, 1),
                 round(peak, 2), round(loadEndTemp, 2), round(steady, 2), expected,
                 round(recoveryStart > 0 ? throttledTime / recoveryStart : 0.0, 3),
-                round(meanFps, 2), round(drop, 1), round(p.tauSeconds(), 1), round(energyJ, 1),
+                round(meanFps, 2), round(drop, 1), round(throughputLoss, 1),
+                round(p.tauSeconds(), 1), round(energyJ, 1),
                 round(fanEnergyJ, 1), round(energyJ + fanEnergyJ, 1),
                 series, notes);
     }

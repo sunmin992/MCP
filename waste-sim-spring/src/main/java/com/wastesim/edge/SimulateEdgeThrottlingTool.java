@@ -180,6 +180,7 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         m.put("throttledFraction", run.throttledFraction());
         m.put("meanFpsDuringLoad", run.meanFpsLoad());
         m.put("fpsDropPercent", run.fpsDropPercent());
+        m.put("throughputLossPercent", run.throughputLossPercent());
         m.put("tauHeatingSec", run.tauHeatingSec());
         m.put("energyJ", run.energyJ());
         // 팬을 켰을 때만 노출한다 — 팬이 없으면 0이라 표만 길어지고, 가성비 판정의
