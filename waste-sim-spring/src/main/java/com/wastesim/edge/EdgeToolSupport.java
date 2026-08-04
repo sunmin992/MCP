@@ -108,6 +108,110 @@ final class EdgeToolSupport {
     }
 
     /**
+     * 팬 <b>배열</b>을 읽는다(실험 설계 §3~13). 없으면 기존 단일 {@code fanRpm}을
+     * 팬 1개짜리 배열로 감싼다(하위호환). 새 {@code fanArray}와 기존 {@code fanRpm}을
+     * 동시에 주면 어느 쪽이 진실인지 모호하므로 fail-closed로 거부한다.
+     */
+    static FanArraySpec fanArray(EdgeArgs a) {
+        if (!a.has("fanArray")) {
+            FanSpec legacy = fan(a);
+            return legacy == null ? null : FanArraySpec.legacy(legacy);
+        }
+        // §13 — 동시 입력 거부.
+        if (a.has("fanRpm") || a.has("fanRatedRpm") || a.has("fanRatedPowerW")) {
+            a.reject(ErrorCode.INVALID_ARGUMENTS, "fanArray",
+                    "fanArray와 기존 fanRpm/fanRatedRpm/fanRatedPowerW를 동시에 넣을 수 없다 — "
+                    + "어느 쪽이 진실인지 모호하므로 하나만 쓸 것(fail-closed).");
+            return null;
+        }
+
+        EdgeArgs fa = a.child("fanArray");
+        double pwm = fa.dbl("commandedPwmPercent", 100.0, 0.0, 100.0);
+        String presetId = fa.str("presetId", null);
+
+        // 프리셋 경로 — 이 제품(Pi5 40mm 2연팬)은 임시 사양이 프리셋에 박혀 있어,
+        // PWM만 얹으면 나머지 불확실성(측정범위·검증여부)이 그대로 보존된다.
+        if ("PI5_DUAL_40MM_PRELIMINARY".equalsIgnoreCase(presetId)) {
+            return FanArraySpec.pi5DualPreliminary(pwm);
+        }
+
+        // 일반 경로 — 필드를 직접 읽는다. fanCount는 사용자 입력을 믿지 않고 fans.length에서 센다.
+        java.util.List<FanArraySpec.Fan> fans = new java.util.ArrayList<>();
+        var arr = fa.raw("fans");
+        if (arr.isArray()) {
+            int i = 0;
+            for (var n : arr) {
+                EdgeArgs f = new EdgeArgs(n);
+                fans.add(new FanArraySpec.Fan(
+                        f.str("fanId", "FAN_" + (++i)),
+                        f.dbl("widthMm", 40, 0, 200), f.dbl("heightMm", 40, 0, 200),
+                        f.dbl("thicknessMm", 10, 0, 100),
+                        f.has("offsetXmm") ? f.dbl("offsetXmm", 0, -200, 200) : null,
+                        f.has("offsetYmm") ? f.dbl("offsetYmm", 0, -200, 200) : null,
+                        f.has("distanceMm") ? f.dbl("distanceMm", 0, 0, 500) : null,
+                        f.enumVal("flowDirection", null, FanArraySpec.FlowDirection::parse,
+                                "SUPPLY_DOWNWARD, SUPPLY_UPWARD, SUPPLY_HORIZONTAL, EXHAUST_UPWARD, PUSH_PULL", false)));
+                a.errors().addAll(f.errors());
+            }
+        }
+        if (fans.isEmpty()) {
+            fa.reject(ErrorCode.MISSING_FIELD, "fans", "팬 배열에는 fans[]가 최소 1개 필요하다.");
+            return null;
+        }
+
+        double ratedRpm = fa.dbl("ratedRpm", 7750, 100, 30000);
+        double ratedPowerW = fa.dbl("ratedPowerW", 0.625, 0, 50);
+        double ratedCurrentA = fa.dbl("ratedCurrentA", 0.125, 0, 20);
+        double supplyV = fa.dbl("supplyVoltageV", 5.0, 4.5, 5.5);   // Pi5 헤더는 5V 조건
+        Double measuredRpm = fa.has("measuredArrayRpm") ? fa.dbl("measuredArrayRpm", 0, 0, 30000) : null;
+        Double measuredCurrentA = fa.has("measuredCurrentA") ? fa.dbl("measuredCurrentA", 0, 0, 20) : null;
+
+        FanArraySpec.RatedValueScope ratedScope = fa.enumVal("ratedValueScope",
+                FanArraySpec.RatedValueScope.PER_FAN, EdgeToolSupport::parseRatedScope,
+                "PER_FAN, DUAL_FAN_ARRAY_ASSUMED, ARRAY_TOTAL_MEASURED", false);
+        FanArraySpec.MeasurementScope measScope = fa.enumVal("measurementScope",
+                FanArraySpec.MeasurementScope.UNKNOWN_PER_FAN_OR_TOTAL, EdgeToolSupport::parseMeasScope,
+                "PER_FAN, DUAL_FAN_TOTAL, UNKNOWN_PER_FAN_OR_TOTAL", false);
+        boolean tach = fa.bool("tachometerAvailable", measuredRpm != null);
+        boolean verified = fa.bool("verified", false);
+
+        // 전력 ≈ 전압×전류 검증 — 정격 전력과 전류가 둘 다 있으면 서로 맞아야 한다.
+        if (ratedPowerW > 0 && ratedCurrentA > 0) {
+            double expected = supplyV * ratedCurrentA;
+            if (Math.abs(expected - ratedPowerW) > Math.max(0.05, expected * 0.25)) {
+                fa.reject(ErrorCode.OUT_OF_RANGE, "ratedPowerW", String.format(
+                        "정격 전력(%.3fW)이 전압×전류(%.1fV×%.3fA=%.3fW)와 크게 어긋난다.",
+                        ratedPowerW, supplyV, ratedCurrentA, expected));
+            }
+        }
+
+        FanArraySpec.Startup startup = null;
+        if (fa.has("startup")) {
+            EdgeArgs s = fa.child("startup");
+            startup = new FanArraySpec.Startup(
+                    s.dbl("peakCurrentA", 0, 0, 20), s.dbl("peakPowerW", 0, 0, 100),
+                    s.has("durationSec") ? s.dbl("durationSec", 0, 0, 600) : null);
+        }
+
+        FanArraySpec.SourceStatus status = measuredCurrentA != null || measuredRpm != null
+                ? FanArraySpec.SourceStatus.MEASURED : FanArraySpec.SourceStatus.PRELIMINARY_ESTIMATE;
+
+        return new FanArraySpec(presetId, fans, FanArraySpec.PowerSource.PI5_DEDICATED_FAN_HEADER,
+                supplyV, FanArraySpec.ControlMode.PWM, pwm, tach, measuredRpm, measScope,
+                ratedRpm, ratedPowerW, ratedCurrentA, ratedScope, measuredCurrentA, startup, status, verified);
+    }
+
+    private static FanArraySpec.RatedValueScope parseRatedScope(String s) {
+        try { return FanArraySpec.RatedValueScope.valueOf(s.trim().toUpperCase()); }
+        catch (Exception e) { return null; }
+    }
+
+    private static FanArraySpec.MeasurementScope parseMeasScope(String s) {
+        try { return FanArraySpec.MeasurementScope.valueOf(s.trim().toUpperCase()); }
+        catch (Exception e) { return null; }
+    }
+
+    /**
      * 팬 회전수에 맞춰 전체 열저항을 다시 계산한다. 팬이 없거나 사용자가 열저항을 직접
      * 지정한 경우에는 손대지 않는다.
      *
@@ -180,8 +284,22 @@ final class EdgeToolSupport {
                                       AiLoadProfile aiLoad) {
         // 팬을 먼저 반영한다 — 열저항이 바뀌면 시정수도 바뀌므로, 아래의 적분 간격(dt)과
         // 회복 구간 기본 열저항이 모두 팬이 반영된 값을 기준으로 정해져야 한다.
-        FanSpec fanSpec = fan(a);
-        p = applyFan(p, board, fanSpec, a);
+        FanArraySpec fanArray = fanArray(a);
+        // 냉각(열저항)은 배열의 대표 팬 하나로만 결정한다 — 실측 전 개수·위치별 냉각 차이를
+        // 만들지 않는다(§10).
+        p = applyFan(p, board, fanArray == null ? null : fanArray.coolingFan(), a);
+
+        // FR-96 — 냉각판(방열판) 없이 팬만 돌릴 수 없다. 팬은 방열판 위에서만 의미가 있다.
+        if (fanArray != null) {
+            CoolingPreset cool = CoolingPreset.parse(a.str("cooling", null));
+            boolean hasCoolingPlate = cool == CoolingPreset.PASSIVE || cool == CoolingPreset.ACTIVE
+                    || a.has("heatsinkMassG") || a.has("heatsinkCThJPerK");
+            if (!hasCoolingPlate) {
+                a.reject(ErrorCode.INVALID_ARGUMENTS, "fanArray",
+                        "FR-96: 냉각판(방열판)이 없는데 팬을 지정했다 — 팬은 방열판 위에서만 냉각에 기여한다. "
+                        + "cooling=passive/active로 두거나 heatsinkMassG를 함께 지정할 것.");
+            }
+        }
 
         WorkloadMode mode = a.enumVal("workloadMode", defaultMode, WorkloadMode::parse, MODE_ENUM, false);
         double targetFps = a.dbl("targetFps", Math.min(10.0, p.maxFps()), 0.1, 1000.0);
@@ -203,7 +321,7 @@ final class EdgeToolSupport {
         // 2노드 여부는 인자에서 직접 읽는다 — spec()을 쓰는 도구는 전부 자동으로 지원된다.
         HeatsinkMass heatsink = heatsinkMass(a, board, p);
         return new ThermalSimulator.Spec(p, mode, targetFps, loadSec, policy, recoverySec,
-                recoveryRJa, dt, sampleSec, onThrottle, aiLoad, heatsink, fanSpec);
+                recoveryRJa, dt, sampleSec, onThrottle, aiLoad, heatsink, fanArray);
     }
 
     /** 방열판 후보 하나를 읽는다. 형상·배치·기류·TIM 전부 범위 검증한다. */

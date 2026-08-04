@@ -76,6 +76,21 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
                 "fanRpm": {"type": "number", "description": "냉각팬 회전수. 넣으면 회전수에 맞춰 열저항이 낮아지고 소비전력이 함께 집계된다. 0이면 팬을 끈 상태(대조군) — 팬 유무·세기를 같은 조건에서 비교할 때 쓴다"},
                 "fanRatedRpm": {"type": "number", "description": "팬 정격(최대) 회전수", "default": 5000},
                 "fanRatedPowerW": {"type": "number", "description": "정격 회전수에서의 팬 소비전력 W. 전력은 회전수의 3승에 비례하므로 절반만 돌리면 1/8만 쓴다", "default": 0.5},
+                "fanArray": {"type": "object",
+                  "description": "냉각팬 배열(Pi5 4핀 헤더 + 40mm 팬 2개 등). 위 단일 fanRpm과 동시에 넣으면 거부된다(fail-closed). presetId=\\"PI5_DUAL_40MM_PRELIMINARY\\"로 검증 전 임시 사양을 바로 쓰거나, fans[]·ratedRpm·ratedPowerW·commandedPwmPercent를 직접 지정한다. TACH 실측(measuredArrayRpm)·실측전류(measuredCurrentA)가 있으면 PWM 추정보다 우선한다. 팬 위치(offsetXmm·flowDirection)는 실측 전 조건 보존용 메타데이터로만 쓰고 냉각계수를 만들지 않는다",
+                  "properties": {
+                    "presetId": {"type": "string", "description": "PI5_DUAL_40MM_PRELIMINARY 등"},
+                    "commandedPwmPercent": {"type": "number", "default": 100},
+                    "measuredArrayRpm": {"type": "number", "description": "TACH 실측 RPM(있으면 PWM 추정보다 우선)"},
+                    "measuredCurrentA": {"type": "number", "description": "실측 전류(있으면 전력=5V×I)"},
+                    "ratedRpm": {"type": "number", "default": 7750},
+                    "ratedPowerW": {"type": "number", "default": 0.625},
+                    "ratedCurrentA": {"type": "number", "default": 0.125},
+                    "ratedValueScope": {"type": "string", "enum": ["PER_FAN", "DUAL_FAN_ARRAY_ASSUMED", "ARRAY_TOTAL_MEASURED"], "description": "정격값이 팬별인지 배열 전체인지 — 이중 계산 방지"},
+                    "measurementScope": {"type": "string", "enum": ["PER_FAN", "DUAL_FAN_TOTAL", "UNKNOWN_PER_FAN_OR_TOTAL"]},
+                    "verified": {"type": "boolean", "default": false},
+                    "fans": {"type": "array", "description": "팬 목록(fanCount는 이 길이에서 센다)", "items": {"type": "object"}}
+                  }},
                 "heatsinkMassG": {"type": "number", "description": "방열판 질량(g). 넣으면 방열판을 별도 열 덩어리로 보는 2노드 모델로 계산한다 — 정상상태는 1노드와 같고 과도응답만 달라진다. 부하가 출렁일 때 질량이 피크를 흡수하는 효과를 보려면 필요하다"},
                 "heatsinkMaterial": {"type": "string", "enum": ["aluminum", "copper"], "description": "방열판 재질(질량→열용량 변환용). 비열 알루미늄 900 / 구리 385 J/(kg·K)이라 같은 질량이면 알루미늄이 열용량이 크다", "default": "aluminum"},
                 "heatsinkCThJPerK": {"type": "number", "description": "방열판 열용량 J/K 직접 지정. heatsinkMassG 대신 쓴다"},
@@ -139,10 +154,21 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         }
         // 구성 요소는 화면이 보드·방열판·팬 구성도를 그리는 데 쓴다 — 없으면 담지 않아
         // "지정하지 않음"과 "0으로 지정함"이 구분된다(팬 0 RPM은 달려 있지만 꺼진 상태).
-        if (spec.fan() != null) {
-            out.put("fanRpm", spec.fan().rpm());
-            out.put("fanRatedRpm", spec.fan().ratedRpm());
-            out.put("fanPowerW", ThermalSimulator.round(spec.fan().powerW(), 3));
+        ThermalRun.FanReport fr = run.fanReport();
+        if (fr != null) {
+            out.put("fanCount", fr.fanCount());
+            out.put("commandedPwmPercent", fr.commandedPwmPercent());
+            out.put("measuredRpm", fr.measuredRpm());
+            out.put("effectiveRpm", fr.effectiveRpm());
+            out.put("rpmSource", fr.rpmSource());
+            out.put("fanCurrentA", fr.fanCurrentA());
+            out.put("fanPowerW", fr.fanPowerW());
+            out.put("fanEnergyJ", fr.fanEnergyJ());
+            out.put("fanStartupEnergyJ", fr.fanStartupEnergyJ());
+            out.put("startupPeakCurrentA", fr.startupPeakCurrentA());
+            out.put("fanSpecSource", fr.fanSpecSource());
+            out.put("fanSpecVerified", fr.fanSpecVerified());
+            out.put("fanMeasurementScope", fr.measurementScope());
         }
         if (spec.heatsink() != null) {
             out.put("heatsinkCThJPerK", spec.heatsink().cThJPerK());

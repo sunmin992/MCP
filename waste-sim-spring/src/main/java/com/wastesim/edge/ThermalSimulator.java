@@ -87,7 +87,16 @@ public class ThermalSimulator {
     public record Spec(ThermalParams params, WorkloadMode mode, double targetFps,
                        double loadSec, RecoveryPolicy policy, double recoverySec,
                        double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
-                       AiLoadProfile aiLoad, HeatsinkMass heatsink, FanSpec fan) {
+                       AiLoadProfile aiLoad, HeatsinkMass heatsink, FanArraySpec fanArray) {
+
+        /** 단일 {@link FanSpec}으로 실행하는 하위호환 형태 — 팬 1개짜리 배열로 감싼다(§13). */
+        public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
+                    double loadSec, RecoveryPolicy policy, double recoverySec,
+                    double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
+                    AiLoadProfile aiLoad, HeatsinkMass heatsink, FanSpec fan) {
+            this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
+                    dtSec, sampleSec, triggerOnThrottle, aiLoad, heatsink, FanArraySpec.legacy(fan));
+        }
 
         /** 팬 없이 실행하는 형태 — 호출부·테스트 하위호환. */
         public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
@@ -95,7 +104,7 @@ public class ThermalSimulator {
                     double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
                     AiLoadProfile aiLoad, HeatsinkMass heatsink) {
             this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
-                    dtSec, sampleSec, triggerOnThrottle, aiLoad, heatsink, null);
+                    dtSec, sampleSec, triggerOnThrottle, aiLoad, heatsink, (FanArraySpec) null);
         }
 
         /** 부하 패턴 없이(상수 부하) 1노드로 실행하는 기존 형태 — 호출부·테스트 하위호환. */
@@ -103,7 +112,7 @@ public class ThermalSimulator {
                     double loadSec, RecoveryPolicy policy, double recoverySec,
                     double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle) {
             this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
-                    dtSec, sampleSec, triggerOnThrottle, null, null, null);
+                    dtSec, sampleSec, triggerOnThrottle, null, null, (FanArraySpec) null);
         }
 
         /** 부하 패턴만 쓰고 1노드로 적분하는 형태. */
@@ -112,12 +121,12 @@ public class ThermalSimulator {
                     double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
                     AiLoadProfile aiLoad) {
             this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
-                    dtSec, sampleSec, triggerOnThrottle, aiLoad, null, null);
+                    dtSec, sampleSec, triggerOnThrottle, aiLoad, null, (FanArraySpec) null);
         }
 
         /** 이 실행의 팬 소비전력(W). 팬이 없으면 0 — 비용 집계에만 쓰고 온도 적분에는 넣지 않는다. */
         double fanPowerW() {
-            return fan == null ? 0.0 : fan.powerW();
+            return fanArray == null ? 0.0 : fanArray.arrayPowerW();
         }
 
         /** 이 시각의 부하 배율(0~1). 패턴이 없으면 항상 1.0이라 기존 동작과 완전히 같다. */
@@ -388,16 +397,24 @@ public class ThermalSimulator {
         // 부하 패턴을 쓴 경우, 결과를 읽기 전에 "이 패턴이 애초에 차이를 드러낼 수 있는
         // 시간 규모인가"부터 알려준다. 이게 없으면 느린 패턴을 넣고 "패턴을 넣었는데 왜
         // 순위가 그대로지?"라고 오해하게 된다(이 실험 설계에서 가장 빠지기 쉬운 함정).
-        if (spec.fan() != null) {
-            FanSpec f = spec.fan();
+        // 팬 배열의 기동 에너지·총에너지는 아래 결과(FanReport·totalEnergyJ)에도 쓰므로 여기서 한 번 계산한다.
+        Double fanStartupEnergyJ = spec.fanArray() == null ? null : spec.fanArray().startupEnergyJ();
+        double totalEnergyJ = energyJ + fanEnergyJ + (fanStartupEnergyJ != null ? fanStartupEnergyJ : 0.0);
+        if (spec.fanArray() != null) {
+            FanArraySpec fa = spec.fanArray();
             notes.add(String.format(
-                    "냉각팬 %.0f RPM(정격 %.0f의 %.0f%%) — 소비전력 %.2fW, 전체 열저항 %.2f K/W. "
+                    "냉각팬 %d개, PWM %.0f%% → 유효 %.0f RPM(정격 %.0f, 출처 %s) — 배열 소비전력 %.2fW, 전체 열저항 %.2f K/W. "
                     + "전력은 회전수의 3승, 냉각은 풍속의 0.8승에 비례하므로 회전수를 올릴수록 전력이 훨씬 가파르게 늘어난다.",
-                    f.rpm(), f.ratedRpm(), f.dutyRatio() * 100, f.powerW(), p.rJaKPerW()));
+                    fa.fanCount(), fa.commandedPwmPercent(), fa.effectiveRpm(), fa.ratedRpm(),
+                    fa.rpmSource(), fa.arrayPowerW(), p.rJaKPerW()));
             notes.add(String.format(
-                    "소비 에너지: SoC %.0fJ + 팬 %.0fJ = %.0fJ. 팬 전력은 SoC를 데우지 않으므로 온도 계산에는 들어가지 않지만, "
+                    "소비 에너지: SoC %.0fJ + 팬 %.0fJ%s = %.0fJ. 팬 전력은 SoC를 데우지 않으므로 온도 계산에는 들어가지 않지만, "
                     + "가성비를 볼 때는 이 합계가 분모다 — 팬으로 온도를 낮춰도 합계가 커지면 손해다.",
-                    energyJ, fanEnergyJ, energyJ + fanEnergyJ));
+                    energyJ, fanEnergyJ,
+                    fanStartupEnergyJ != null ? String.format(" + 기동 %.0fJ", fanStartupEnergyJ) : "",
+                    totalEnergyJ));
+            // §11 경고 — 이 프로젝트는 별도 warnings 채널이 없어 notes로 내보낸다.
+            notes.addAll(fa.warnings());
         }
         if (hs != null) {
             notes.add(String.format(
@@ -480,6 +497,20 @@ public class ThermalSimulator {
         double throughputLoss = idealFpsIntegral > 1e-9
                 ? Math.max(0.0, (idealFpsIntegral - fpsIntegral) / idealFpsIntegral * 100.0) : 0.0;
 
+        ThermalRun.FanReport fanReport = null;
+        if (spec.fanArray() != null) {
+            FanArraySpec fa = spec.fanArray();
+            Double curA = fa.arrayCurrentA();
+            fanReport = new ThermalRun.FanReport(
+                    fa.fanCount(), fa.commandedPwmPercent(), fa.measuredArrayRpm(),
+                    round(fa.effectiveRpm(), 0), fa.rpmSource().name(),
+                    curA == null ? null : round(curA, 4),
+                    round(fa.arrayPowerW(), 4), round(fanEnergyJ, 1),
+                    fanStartupEnergyJ == null ? null : round(fanStartupEnergyJ, 1),
+                    fa.startup() == null ? null : fa.startup().peakCurrentA(),
+                    fa.sourceStatus().name(), fa.verified(), fa.measurementScope().name());
+        }
+
         return new ThermalRun(
                 board.label(), p,
                 round(softEntry, 1), round(ttt, 1), round(tttFirst, 1), episodes, round(medianTed, 1),
@@ -488,7 +519,7 @@ public class ThermalSimulator {
                 round(recoveryStart > 0 ? throttledTime / recoveryStart : 0.0, 3),
                 round(meanFps, 2), round(drop, 1), round(throughputLoss, 1),
                 round(p.tauSeconds(), 1), round(energyJ, 1),
-                round(fanEnergyJ, 1), round(energyJ + fanEnergyJ, 1),
+                round(fanEnergyJ, 1), round(totalEnergyJ, 1), fanReport,
                 series, notes);
     }
 
