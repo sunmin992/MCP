@@ -2,7 +2,7 @@ package com.wastesim.model;
 
 public class ChatMessage {
 
-    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT }
+    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT, EDGE_SWEEP }
 
     private MessageType type;
     private String content;
@@ -43,6 +43,15 @@ public class ChatMessage {
      */
     private java.util.List<java.util.Map<String, Object>> edgeRuns;
 
+    /**
+     * EDGE_SWEEP 전용 — {@code sweep_fan_rpm}이 돌려준 결과 원본.
+     *
+     * <p>{@link #edgeRuns}와 따로 두는 이유: 스윕 결과는 실행 <b>목록</b>이 아니라 곡선
+     * 하나와 그 위에서 고른 운전점이다. 같은 필드에 억지로 담으면 클라이언트가 "원소가
+     * 여러 개면 비교, 어떤 키가 있으면 곡선"처럼 모양으로 추측해야 한다.
+     */
+    private java.util.Map<String, Object> edgeSweep;
+
     public ChatMessage() {}
 
     public ChatMessage(MessageType type, String content) {
@@ -73,4 +82,7 @@ public class ChatMessage {
 
     public java.util.List<java.util.Map<String, Object>> getEdgeRuns() { return edgeRuns; }
     public void setEdgeRuns(java.util.List<java.util.Map<String, Object>> r) { this.edgeRuns = r; }
+
+    public java.util.Map<String, Object> getEdgeSweep() { return edgeSweep; }
+    public void setEdgeSweep(java.util.Map<String, Object> s) { this.edgeSweep = s; }
 }

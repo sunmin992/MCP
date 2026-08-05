@@ -518,6 +518,10 @@ public class ThermalSimulator {
                 round(peak, 2), round(loadEndTemp, 2), round(steady, 2), expected,
                 round(recoveryStart > 0 ? throttledTime / recoveryStart : 0.0, 3),
                 round(meanFps, 2), round(drop, 1), round(throughputLoss, 1),
+                // 처리한 프레임 수는 부하 구간 FPS의 시간 적분이다 — 평균 FPS × 시간으로
+                // 다시 곱하지 않는다. 평균이 이미 시간 가중이라 같은 값이지만, 반올림된
+                // 평균을 되곱하면 스윕에서 지점끼리 비교할 때 오차가 남는다.
+                round(fpsIntegral, 1),
                 round(p.tauSeconds(), 1), round(energyJ, 1),
                 round(fanEnergyJ, 1), round(totalEnergyJ, 1), fanReport,
                 series, notes);

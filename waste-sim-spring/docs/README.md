@@ -24,6 +24,7 @@
 - [설계 결정 기록](reference/DESIGN_DECISIONS.md)
 - [채팅 자연어 요청 카탈로그](reference/CHAT_REQUEST_CATALOG.md)
 - [디버깅 점검 목록](reference/DEBUGGING_ISSUES.md)
+- [팬 RPM 스윕·최적점 탐색 설계](reference/FAN_RPM_SWEEP_DESIGN.md)
 
 설계 결정 기록은 통합 명세서 v1.7 이후 코드와 함께 확정된 결정의 근거를 보존하므로 삭제하지 않는다. 디버깅 목록은 아직 명세서에 반영되지 않은 결함과 테스트 공백을 관리한다 — v1.8은 P1 4건(E-01, E-02, W-01, W-03)을 반영했고, 잔여 P2/P3 항목은 목록에 남아 있다.
 

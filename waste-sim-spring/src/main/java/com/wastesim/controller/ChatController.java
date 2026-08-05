@@ -481,6 +481,13 @@ public class ChatController {
         ObjectNode args = EdgeParamGuard.merge(
                 openAiService.extractEdgeParams(history, userText), EdgeParamGuard.fromText(userText));
 
+        // 팬 속도 스윕은 결과가 지표 한 벌이 아니라 곡선이라 비교 분기(보드·재질·팬 유무)를
+        // 타지 않는다 — 스윕 자체가 이미 한 축(회전수)을 훑는 비교다.
+        if (EdgeToolSelector.TOOL_SWEEP.equals(toolName)) {
+            runEdgeFanSweep(provider, args, userText, history);
+            return;
+        }
+
         // 보드를 둘 다 언급했으면 비교 요청이다 — 한쪽만 골라 한 번 돌리면 사용자가
         // 물어본 것에 대한 답이 아니다. 나머지 조건을 그대로 둔 채 board만 바꿔 두 번
         // 실행한다(runEdgeComparison).
@@ -664,6 +671,42 @@ public class ChatController {
             results.add(out);
         }
         replyEdge(EdgeChatFormatter.fanComparison(results), results, userText, history);
+    }
+
+    /**
+     * 팬 속도 스윕 — 회전수를 훑어 "제약을 지키면서 에너지가 가장 적게 드는 운전점"을 찾는다.
+     *
+     * <p>비교 실행들(보드·재질·팬 유무)과 달리 <b>도구 한 번</b>으로 끝난다. 반복은 서버가
+     * 여기서 하는 것이 아니라 도구 안에서 하는데, 그래야 채팅으로 물으나 MCP로 부르나 같은
+     * 지점·같은 제약·같은 최적점이 나온다(계산 경로를 두 벌로 만들지 않는다는 원칙).
+     */
+    private void runEdgeFanSweep(McpToolProvider provider, ObjectNode args,
+                                 String userText, List<Map<String, String>> history) {
+        metrics.counter("waste.chat.edge_tool", "tool", "fan_sweep").increment();
+
+        if (!args.has("board")) {
+            reply("어느 보드인지 알려주세요 — 라즈베리파이 4와 5는 발열 특성이 많이 달라서 최적 팬 속도도 달라집니다.",
+                    userText, history);
+            return;
+        }
+        ToolResult tr = provider.call(args);
+        if (!tr.ready()) {
+            StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
+            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+            reply(sb.toString().trim(), userText, history);
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> out = (Map<String, Object>) tr.result();
+
+        String text = EdgeChatFormatter.fanSweep(out);
+        ChatMessage msg = new ChatMessage(ChatMessage.MessageType.EDGE_SWEEP, text);
+        msg.setEdgeSweep(out);
+        msg.setDomain("edge");
+        messaging.convertAndSend("/topic/messages", msg);
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", text));
+        while (history.size() > 20) history.remove(0);
     }
 
     /** 봇 답변 전송 + 대화 이력 갱신(엣지 경로 공통) — runChatScenario 말미와 같은 처리. */

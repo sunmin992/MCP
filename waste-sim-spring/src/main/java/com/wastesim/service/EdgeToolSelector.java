@@ -22,11 +22,36 @@ public final class EdgeToolSelector {
     public static final String TOOL_THROTTLING = "simulate_edge_throttling";
     public static final String TOOL_HEATSINK = "simulate_heatsink_layout";
     public static final String TOOL_CALIBRATE = "calibrate_edge_thermal_model";
+    public static final String TOOL_SWEEP = "sweep_fan_rpm";
 
     /** 실측 데이터로 모델을 보정하려는 요청. */
     private static final Pattern CALIBRATE = Pattern.compile(
             "(캘리브|calibrat|보정|실측\\s*(데이터|값|로그|결과)|측정\\s*(데이터|로그|결과|값)"
             + "|프로파일|profile|csv|역추정|시정수\\s*(구|추정)|피팅|fitting)",
+            Pattern.CASE_INSENSITIVE);
+
+    /**
+     * <b>최적 팬 속도</b>를 찾으려는 요청 — 한 지점을 돌리는 것이 아니라 여러 회전수를
+     * 훑어 비교해야 답이 나오는 질문이다.
+     *
+     * <p>발열 시뮬레이션보다 먼저 검사한다. "팬 몇 rpm이 가성비가 제일 좋아?"는 어휘상
+     * 발열 시뮬레이션과 완전히 겹치는데(팬·rpm·온도), 한 지점만 돌리면 사용자가 물어본
+     * <b>비교</b>가 통째로 빠진 답이 된다.
+     *
+     * <p>"최적"·"적정"은 단독으로 넣지 않고 회전수·팬·전력을 가리키는 말과 붙어 있을
+     * 때만 본다 — "최적 배치"는 방열판 도구의 질문이고, 여기로 새면 배치 비교가 스윕으로
+     * 바뀐다.
+     */
+    private static final Pattern SWEEP = Pattern.compile(
+            "(스윕|sweep"
+            + "|최적\\s*(의\\s*)?(rpm|알피엠|회전수|팬|속도|pwm|운전점|지점|냉각\\s*(세기|수준))"
+            + "|적정\\s*(rpm|알피엠|회전수|속도|수준|지점)"
+            + "|(rpm|알피엠|회전수|pwm|팬\\s*속도)[을를이가은는\\s]*(최적|스윕|얼마|몇)"
+            + "|몇\\s*(rpm|알피엠|%|퍼센트)"
+            + "|가성비"
+            + "|(전력|에너지)[을를이가은는\\s]*(최소|가장\\s*(적|작))"
+            + "|(전력|에너지)\\s*(소비\\s*)?(최소|최적)"
+            + ")",
             Pattern.CASE_INSENSITIVE);
 
     /**
@@ -73,10 +98,11 @@ public final class EdgeToolSelector {
     static final Pattern MASS = Pattern.compile(
             "\\d+(?:\\.\\d+)?\\s*(?:kg|g(?![a-z])|그램|그람)", Pattern.CASE_INSENSITIVE);
 
-    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 셋 중 하나를 반환한다(기본은 발열 시뮬레이션). */
+    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 넷 중 하나를 반환한다(기본은 발열 시뮬레이션). */
     public static String select(String text) {
         if (text == null) return TOOL_THROTTLING;
         if (CALIBRATE.matcher(text).find()) return TOOL_CALIBRATE;
+        if (SWEEP.matcher(text).find()) return TOOL_SWEEP;
         if (HEATSINK.matcher(text).find()) return TOOL_HEATSINK;
         // 재질만으로는 배치 비교로 보내지 않는다 — 질량이 함께 있으면 특정 방열판을
         // 지정한 발열 시뮬레이션 요청이다(HEATSINK_MATERIAL 주석 참고).

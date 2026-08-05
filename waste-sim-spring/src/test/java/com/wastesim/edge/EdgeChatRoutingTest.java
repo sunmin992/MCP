@@ -3,6 +3,7 @@ package com.wastesim.edge;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.wastesim.service.EdgeToolSelector;
 import com.wastesim.tool.ToolResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -47,6 +48,33 @@ class EdgeChatRoutingTest {
 
         ToolResult tr = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService()).call(args);
         assertTrue(tr.ready(), () -> "정규식 값만으로도 실행돼야 한다: " + tr.errors());
+    }
+
+    @Test
+    @DisplayName("최적 팬 속도를 묻는 문장은 스윕 도구로 간다 — 한 지점만 돌리면 비교가 빠진다")
+    void optimumQuestionsRouteToSweep() {
+        for (String q : List.of(
+                "팬 속도를 스윕해서 가성비가 가장 좋은 최적 RPM을 찾아줘",
+                "pi5에서 팬 몇 rpm이 제일 효율적이야?",
+                "총 전력이 최소가 되는 팬 속도 알려줘",
+                "적정 회전수가 어느 정도야?")) {
+            assertEquals(EdgeToolSelector.TOOL_SWEEP, EdgeToolSelector.select(q), q);
+        }
+    }
+
+    @Test
+    @DisplayName("스윕 어휘가 없는 기존 요청은 그대로 원래 도구로 간다(오라우팅 회귀 방지)")
+    void sweepPatternDoesNotStealExistingRequests() {
+        assertEquals(EdgeToolSelector.TOOL_THROTTLING, EdgeToolSelector.select(
+                "라즈베리파이 5 무냉각으로 20분 돌리면 언제 스로틀링 걸려?"));
+        assertEquals(EdgeToolSelector.TOOL_THROTTLING, EdgeToolSelector.select(
+                "팬 있을 때와 없을 때 비교해줘"));
+        assertEquals(EdgeToolSelector.TOOL_THROTTLING, EdgeToolSelector.select(
+                "pi5에 90g 알루미늄 방열판 달고 버스트 부하 돌려줘"));
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK, EdgeToolSelector.select(
+                "방열판을 어떤 형상·배치로 붙이는 게 가장 시원한지 비교해줘"));
+        assertEquals(EdgeToolSelector.TOOL_CALIBRATE, EdgeToolSelector.select(
+                "실측 데이터로 모델 보정해줘"));
     }
 
     @Test

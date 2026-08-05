@@ -32,6 +32,11 @@ import java.util.List;
  *                         깎였나", 이쪽은 "실행 내내 일을 얼마나 못 했나"다. TTT가 발생하지 않아도
  *                         소프트 제한만으로 이 값은 0이 아니므로, "TTT 없음 = 문제 없음"이라는
  *                         오독을 막는 지표다
+ * @param processedFrames  부하 구간에서 실제로 처리한 추론 프레임 수 = {@code ∫ FPS dt}.
+ *                         <b>RPM 스윕에서 "일한 양"의 기준</b>이다 — 최대 처리량 모드는 냉각을
+ *                         강화할수록 더 많이 처리하므로 총에너지만 비교하면 적게 일한 저RPM
+ *                         지점이 이긴다. 프레임당 에너지({@code totalEnergyJ / processedFrames})로
+ *                         나눠야 같은 질문에 답한다(FAN_RPM_SWEEP_DESIGN.md §6.2)
  * @param tauHeatingSec    가열 시정수(초)
  * @param energyJ          SoC가 소비한 에너지(J) — 온도를 만든 몫
  * @param fanEnergyJ       냉각팬이 소비한 에너지(J). 팬이 없으면 0.
@@ -63,6 +68,7 @@ public record ThermalRun(
         double meanFpsLoad,
         double fpsDropPercent,
         double throughputLossPercent,
+        double processedFrames,
         double tauHeatingSec,
         double energyJ,
         double fanEnergyJ,

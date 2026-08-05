@@ -27,6 +27,7 @@ class EdgeMcpToolsTest {
     private final SimulateEdgeThrottlingTool throttling = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService());
     private final SimulateHeatsinkLayoutTool layout = new SimulateHeatsinkLayoutTool(store, new AiLoadProfileService());
     private final CalibrateEdgeThermalModelTool calibrate = new CalibrateEdgeThermalModelTool(store);
+    private final SweepFanRpmTool sweep = new SweepFanRpmTool(store, new AiLoadProfileService());
 
     private JsonNode json(String s) throws Exception { return om.readTree(s); }
 
@@ -37,10 +38,10 @@ class EdgeMcpToolsTest {
     }
 
     @Test
-    @DisplayName("세 도구가 레지스트리에 등록되고 스키마가 유효한 JSON이다")
+    @DisplayName("네 도구가 레지스트리에 등록되고 스키마가 유효한 JSON이다")
     void toolsRegisterWithValidSchemas() throws Exception {
-        var registry = new McpToolRegistry(List.of(throttling, layout, calibrate));
-        assertEquals(3, registry.all().size());
+        var registry = new McpToolRegistry(List.of(throttling, layout, calibrate, sweep));
+        assertEquals(4, registry.all().size());
         for (McpToolProvider p : registry.all()) {
             assertSame(p, registry.byToolName(p.toolName()));
             assertFalse(p.description().isBlank());
@@ -51,6 +52,7 @@ class EdgeMcpToolsTest {
         assertNotNull(registry.byToolName("simulate_edge_throttling"));
         assertNotNull(registry.byToolName("simulate_heatsink_layout"));
         assertNotNull(registry.byToolName("calibrate_edge_thermal_model"));
+        assertNotNull(registry.byToolName("sweep_fan_rpm"));
     }
 
     @Test

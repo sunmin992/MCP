@@ -557,3 +557,34 @@
       color: var(--text);
       padding-top: 6px;
     }
+
+    /* ── 팬 속도 스윕 (EDGE_SWEEP) ──────────────────────────────────
+       곡선이 이 결과의 본체다 — 최적점 하나만 보면 "왜 그 지점인지"를 검증할 수 없다.
+       표는 곡선 아래에 두어, 그림에서 고른 지점을 숫자로 확인하는 순서가 되게 한다. */
+    .edge-sweep-chart {
+      width: 100%;
+      height: auto;
+      display: block;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+    }
+    .edge-sweep-legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      font-size: 11.5px;
+      color: var(--muted);
+      padding-top: 2px;
+    }
+    .edge-sweep-legend i {
+      display: inline-block;
+      width: 9px;
+      height: 9px;
+      border-radius: 2px;
+      margin-right: 4px;
+      vertical-align: middle;
+    }
+    /* 최적 지점 행 — 표에서도 곡선의 ★와 같은 지점임이 한눈에 보여야 한다. */
+    .edge-tbl tr.edge-opt td { color: var(--accent); font-weight: 600; }
+    .edge-tbl tr.edge-bad td { opacity: 0.62; }

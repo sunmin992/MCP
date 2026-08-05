@@ -117,6 +117,130 @@ public final class EdgeChatFormatter {
                 "팬 없음", "팬 가동");
     }
 
+    /**
+     * {@code sweep_fan_rpm} 결과 요약 — 최적 운전점과 곡선.
+     *
+     * <p>정격(PWM 100%)과의 대조를 반드시 함께 적는다. 최적점만 보여 주면 "그래서 팬을
+     * 최대로 돌리는 것보다 뭐가 나은가"라는, 이 연구가 답해야 할 질문이 답해지지 않는다 —
+     * 에너지를 얼마나 아끼고 온도를 얼마나 손해 보는지가 곧 <b>가성비의 정의</b>다.
+     */
+    @SuppressWarnings("unchecked")
+    public static String fanSweep(Map<String, Object> out) {
+        List<Map<String, Object>> points = (List<Map<String, Object>>) out.get("points");
+        Map<String, Object> opt = (Map<String, Object>) out.get("optimal");
+        StringBuilder sb = new StringBuilder();
+
+        String loadLabel = aiLoadLabel(out);
+        sb.append(String.format("팬 속도 스윕 — %s · %s · %s · 주변 %s℃ · 부하 %s초%s%n",
+                out.get("board"), coolingKo(str(out, "cooling")), modeKo(str(out, "workloadMode")),
+                fmt(num(out, "ambientTempC")), fmt(num(out, "loadSeconds")),
+                loadLabel == null ? "" : " · " + loadLabel));
+        sb.append(String.format("판정 기준: 하드 스로틀링 없음 · 최고 온도 %s℃ 이하 · 처리량 손실 %s%% 이하%n",
+                fmt(constraint(out, "maxPeakTempC")), fmt(constraint(out, "maxThroughputLossPercent"))));
+        sb.append(String.format("목적함수: %s%n%n", objectiveKo(str(out, "objective"))));
+
+        if (points != null) {
+            for (Map<String, Object> p : points) {
+                boolean feasible = Boolean.TRUE.equals(p.get("feasible"));
+                boolean isOptimal = opt != null
+                        && equalsWithin(num(p, "commandedPwmPercent"), num(opt, "commandedPwmPercent"));
+                sb.append(String.format("%s PWM %s%% (%s RPM) — 최고 %s℃, 총 %sJ%s%n",
+                        isOptimal ? "★" : (feasible ? "·" : "×"),
+                        fmt(num(p, "commandedPwmPercent")), fmt(num(p, "effectiveRpm")),
+                        fmt(num(p, "peakTempC")), fmt(num(p, "totalEnergyJ")),
+                        feasible ? "" : " — " + rejectionKo((List<String>) p.get("rejectionReasons"))));
+            }
+            sb.append('\n');
+        }
+
+        if (opt == null) {
+            sb.append("적합한 운전점이 없습니다 — 어떤 회전수로도 제약을 만족하지 못했습니다.\n");
+            Object rec = out.get("recommendation");
+            if (rec != null) sb.append("→ ").append(rec).append('\n');
+        } else {
+            sb.append(String.format("→ 최적 운전점: PWM %s%% (%s RPM) — 최고 %s℃, 팬 %sW, 총 %sJ%n",
+                    fmt(num(opt, "commandedPwmPercent")), fmt(num(opt, "effectiveRpm")),
+                    fmt(num(opt, "peakTempC")), fmt(num(opt, "fanPowerW")), fmt(num(opt, "totalEnergyJ"))));
+            String vs = fullSpeedComparison(opt, points);
+            if (vs != null) sb.append(vs).append('\n');
+        }
+
+        appendNotes(sb, (List<String>) out.get("notes"));
+        return sb.toString().trim();
+    }
+
+    /**
+     * 최적점과 정격(PWM 100%)의 대조 한 줄. 정격 지점이 스윕에 없으면 붙이지 않는다(null).
+     *
+     * <p>정격이 <b>제약을 어겨 탈락한</b> 경우에도 비교를 적는다 — 그때는 "최대로 돌려도
+     * 안 되는 조건"이라는 사실 자체가 결론이기 때문이다.
+     */
+    private static String fullSpeedComparison(Map<String, Object> opt, List<Map<String, Object>> points) {
+        if (points == null) return null;
+        Map<String, Object> full = null;
+        for (Map<String, Object> p : points) {
+            Double pwm = num(p, "commandedPwmPercent");
+            if (pwm != null && pwm >= 99.9) full = p;
+        }
+        if (full == null) return null;
+        Double optPwm = num(opt, "commandedPwmPercent");
+        if (optPwm != null && optPwm >= 99.9) {
+            return "→ 최적점이 정격 그 자체다 — 이 조건에서는 팬을 아낄 여지가 없다.";
+        }
+
+        double optE = orZero(num(opt, "totalEnergyJ")), fullE = orZero(num(full, "totalEnergyJ"));
+        double optT = orZero(num(opt, "peakTempC")), fullT = orZero(num(full, "peakTempC"));
+        double savedPercent = fullE > 1e-9 ? (fullE - optE) / fullE * 100.0 : 0.0;
+        // 절약 폭을 "크게"라고 단정하지 않는다 — 조건에 따라 3%일 수도 40%일 수도 있고,
+        // 얼마가 이득인지는 숫자를 보고 사용자가 판단할 몫이다.
+        return String.format("→ 정격(100%%) 대비 에너지 %sJ(%s%%) 절약, 최고 온도는 %s℃ 높다(%s℃ vs %s℃) — "
+                + "이만큼의 온도 여유를 내주고 그만큼의 전력을 아끼는 지점이다.",
+                fmt(Math.abs(fullE - optE)), fmt(Math.abs(savedPercent)),
+                fmt(Math.abs(optT - fullT)), fmt(optT), fmt(fullT));
+    }
+
+    private static double orZero(Double v) { return v == null ? 0.0 : v; }
+
+    /** 표시 자리수 안에서 같은 PWM인지 — 최적점 표시(★)를 곡선의 어느 줄에 붙일지 정한다. */
+    private static boolean equalsWithin(Double a, Double b) {
+        return a != null && b != null && Math.abs(a - b) < 0.01;
+    }
+
+    private static Double constraint(Map<String, Object> out, String key) {
+        Object c = out.get("constraints");
+        return c instanceof Map<?, ?> m ? num(castMap(m), key) : null;
+    }
+
+    @SuppressWarnings("unchecked")
+    private static Map<String, Object> castMap(Map<?, ?> m) { return (Map<String, Object>) m; }
+
+    private static String objectiveKo(String o) {
+        if (o == null) return "-";
+        return switch (o) {
+            case "min_total_energy" -> "시스템 총에너지 최소";
+            case "min_energy_per_frame" -> "추론 1건당 에너지 최소";
+            case "min_fan_energy" -> "팬 에너지 최소";
+            case "min_pwm" -> "최저 PWM";
+            default -> o;
+        };
+    }
+
+    private static String rejectionKo(List<String> reasons) {
+        if (reasons == null || reasons.isEmpty()) return "탈락";
+        StringBuilder sb = new StringBuilder();
+        for (String r : reasons) {
+            if (sb.length() > 0) sb.append(", ");
+            sb.append(switch (r) {
+                case "HARD_THROTTLED" -> "스로틀링 발생";
+                case "TOO_HOT" -> "온도 한계 초과";
+                case "THROUGHPUT_LOSS" -> "처리량 손실 초과";
+                case "TARGET_FPS_MISSED" -> "목표 FPS 미달";
+                default -> r;
+            });
+        }
+        return sb.toString();
+    }
+
     /** 같은 조건에서 한 요인만 바꿔 두 번 돌린 결과를 나란히 놓는 공통 표. */
     @SuppressWarnings("unchecked")
     private static String comparison(List<Map<String, Object>> runs, String title, String header,
