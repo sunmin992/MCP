@@ -19,6 +19,11 @@ import java.util.List;
  * @param trtFullSec       TRT_full — 유휴 정상상태 온도 +2℃ 이내로 완전 냉각될 때까지(초)
  * @param peakTempC        관측 최고 온도
  * @param loadEndTempC     부하 종료(=회복 시작) 시점 온도
+ * @param tempAmplitudeC   <b>온도 진폭</b> — 부하 후반(정착 구간)의 peak-to-peak 온도 폭(℃).
+ *                         부품 수명·안정성의 평가 축이다. 워밍업 램프를 진폭으로 오인하지 않도록
+ *                         부하 후반 절반만 본다. 상수 부하면 ≈0, burst/mixed 시변 부하면 주기적
+ *                         출렁임의 폭이 잡히고, 질량 큰 방열판(2노드 열용량)이 이 값을 눌러 준다
+ * @param loadSettledMeanTempC 정착 구간에서 온도가 진동하는 중심(평균) 온도(℃)
  * @param steadyStateTempC 이번 부하 조건에서 스로틀링이 없다고 가정한 이론 정상상태 온도
  *                         (목표 FPS 모드면 그 FPS를 유지하는 데 필요한 사용률 기준) —
  *                         hardLimit 초과면 "언젠가 반드시 스로틀링"
@@ -62,6 +67,8 @@ public record ThermalRun(
         Double trtFullSec,
         double peakTempC,
         double loadEndTempC,
+        double tempAmplitudeC,
+        double loadSettledMeanTempC,
         double steadyStateTempC,
         boolean throttlingExpected,
         double throttledFraction,

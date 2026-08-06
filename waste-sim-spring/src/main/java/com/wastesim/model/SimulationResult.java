@@ -9,6 +9,10 @@ public class SimulationResult {
 
     private String collectionTimeLabel;
     private int totalComplaints;
+    /** 적재 임계 초과로 거주민 배출 시 발생한 생활쓰레기 민원. */
+    private int wasteOverflowComplaints;
+    /** 임대인 점검 에이전트가 발생시킨 민원. */
+    private int landlordComplaints;
     private Map<String, Integer> byOccupation;
     private Map<Integer, Integer> byDay;
     private double peakFillKg;
@@ -17,13 +21,15 @@ public class SimulationResult {
 
     // Multi-seed experiment summary
     private double meanComplaints;
+    private double meanWasteOverflowComplaints;
+    private double meanLandlordComplaints;
     private double stdComplaints;
     private List<Integer> allTotals;
     private Map<String, Object> byOccupationSummary;
 
     // ── 교통 레이어 (TRAFFIC_EXTENSION_DESIGN.md §4) ────────────────────────
-    /** 교통 정체(RED 구간) 통과로 발생한 민원 수. trafficEnabled=false면 0. */
-    private int trafficComplaints;
+    /** 교통 정체(RED 구간) 통과 패널티. 생활쓰레기 민원과 단위가 달라 totalComplaints에 합산하지 않는다. */
+    private double trafficPenalty;
     /** 하루 수거 완료까지 평균 소요 시간(분, 첫 슬롯 시작 대비). */
     private double avgCompletionMinutes;
 
@@ -47,6 +53,12 @@ public class SimulationResult {
     public int getTotalComplaints() { return totalComplaints; }
     public void setTotalComplaints(int v) { this.totalComplaints = v; }
 
+    public int getWasteOverflowComplaints() { return wasteOverflowComplaints; }
+    public void setWasteOverflowComplaints(int v) { this.wasteOverflowComplaints = v; }
+
+    public int getLandlordComplaints() { return landlordComplaints; }
+    public void setLandlordComplaints(int v) { this.landlordComplaints = v; }
+
     public Map<String, Integer> getByOccupation() { return byOccupation; }
     public void setByOccupation(Map<String, Integer> v) { this.byOccupation = v; }
 
@@ -65,6 +77,12 @@ public class SimulationResult {
     public double getMeanComplaints() { return meanComplaints; }
     public void setMeanComplaints(double v) { this.meanComplaints = v; }
 
+    public double getMeanWasteOverflowComplaints() { return meanWasteOverflowComplaints; }
+    public void setMeanWasteOverflowComplaints(double v) { this.meanWasteOverflowComplaints = v; }
+
+    public double getMeanLandlordComplaints() { return meanLandlordComplaints; }
+    public void setMeanLandlordComplaints(double v) { this.meanLandlordComplaints = v; }
+
     public double getStdComplaints() { return stdComplaints; }
     public void setStdComplaints(double v) { this.stdComplaints = v; }
 
@@ -77,8 +95,8 @@ public class SimulationResult {
     public SimulationConfig getSimulationConfig() { return simulationConfig; }
     public void setSimulationConfig(SimulationConfig v) { this.simulationConfig = v; }
 
-    public int getTrafficComplaints() { return trafficComplaints; }
-    public void setTrafficComplaints(int v) { this.trafficComplaints = v; }
+    public double getTrafficPenalty() { return trafficPenalty; }
+    public void setTrafficPenalty(double v) { this.trafficPenalty = v; }
 
     public double getAvgCompletionMinutes() { return avgCompletionMinutes; }
     public void setAvgCompletionMinutes(double v) { this.avgCompletionMinutes = v; }

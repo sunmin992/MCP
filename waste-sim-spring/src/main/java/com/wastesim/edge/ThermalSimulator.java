@@ -187,6 +187,13 @@ public class ThermalSimulator {
         double idealFpsIntegral = 0.0;   // ∫ 무스로틀 기준 FPS dt — 지속 손실률의 분모
         double loadObservedSec = 0.0;    // 부하 구간에서 실제로 적분한 시간
         double fpsBaseSum = 0.0, fpsBaseSec = 0.0, fpsMin = Double.MAX_VALUE;
+        // 온도 진폭(안정성) — 부품 수명 평가 축. 워밍업 램프(0→정상)를 진폭으로 오인하지
+        // 않도록 <b>부하 후반 절반</b>(정착 구간)만 본다. 상수 부하면 여기서 온도가 거의
+        // 평평해 진폭≈0이고, burst 패턴이면 주기적 출렁임의 peak-to-peak가 잡힌다.
+        // 질량 큰 방열판(2노드)이 피크를 흡수하면 이 값이 작아진다 — 그게 이 지표의 요점이다.
+        double settleStart = spec.loadSec() * 0.5;
+        double settledMin = Double.MAX_VALUE, settledMax = -Double.MAX_VALUE;
+        double settledSum = 0.0, settledSec = 0.0;
         boolean loadHadThrottling = false, serviceDegraded = false, recoveryGateComputed = false;
 
         // 서비스 회복 기준선 — 목표 FPS 모드면 목표치, 최대 처리량 모드면 무스로틀 최대치
@@ -307,6 +314,13 @@ public class ThermalSimulator {
                 // 순간을 "그만큼 느렸다"고 셀 수는 없다.
                 else if (step > 0.0) fpsMin = Math.min(fpsMin, fps);
                 loadEndTemp = temp;
+                // 정착 구간(부하 후반)에서만 진폭·평균을 모은다.
+                if (t >= settleStart) {
+                    settledMin = Math.min(settledMin, temp);
+                    settledMax = Math.max(settledMax, temp);
+                    settledSum += temp * step;
+                    settledSec += step;
+                }
             } else {
                 if (!recoveryGateComputed) {
                     loadHadThrottling = throttled || !episodes.isEmpty();
@@ -497,6 +511,17 @@ public class ThermalSimulator {
         double throughputLoss = idealFpsIntegral > 1e-9
                 ? Math.max(0.0, (idealFpsIntegral - fpsIntegral) / idealFpsIntegral * 100.0) : 0.0;
 
+        // 온도 진폭·정착 평균 — 정착 구간에 샘플이 없으면(부하가 극단적으로 짧음) 0.
+        double tempAmplitude = settledMax >= settledMin ? settledMax - settledMin : 0.0;
+        double settledMean = settledSec > 1e-9 ? settledSum / settledSec : loadEndTemp;
+        if (tempAmplitude >= 1.0) {
+            notes.add(String.format(
+                    "정착 구간 온도 진폭 %.1f℃(평균 %.1f℃ 중심으로 출렁임) — 부품 수명·안정성 평가 축이다. "
+                    + "질량이 큰 방열판이나 2노드 열용량이 이 진폭을 눌러 준다. 상수 부하면 진폭이 거의 0이라, "
+                    + "이 값은 burst·mixed 같은 시변 부하에서 방열판을 비교할 때 의미가 있다.",
+                    tempAmplitude, settledMean));
+        }
+
         ThermalRun.FanReport fanReport = null;
         if (spec.fanArray() != null) {
             FanArraySpec fa = spec.fanArray();
@@ -515,7 +540,8 @@ public class ThermalSimulator {
                 board.label(), p,
                 round(softEntry, 1), round(ttt, 1), round(tttFirst, 1), episodes, round(medianTed, 1),
                 round(trtState, 1), round(trtService, 1), round(trtFull, 1),
-                round(peak, 2), round(loadEndTemp, 2), round(steady, 2), expected,
+                round(peak, 2), round(loadEndTemp, 2),
+                round(tempAmplitude, 2), round(settledMean, 2), round(steady, 2), expected,
                 round(recoveryStart > 0 ? throttledTime / recoveryStart : 0.0, 3),
                 round(meanFps, 2), round(drop, 1), round(throughputLoss, 1),
                 // 처리한 프레임 수는 부하 구간 FPS의 시간 적분이다 — 평균 FPS × 시간으로

@@ -325,10 +325,19 @@ public class SimulationConfigValidator {
             }
         }
 
-        // 교통 프로파일 미지정/미로드면 이후 교통 규칙(V-T3, V-T5)은 평가할 데이터가 없어 건너뜀
-        if (!c.isTrafficEnabled() || c.getTrafficProfileId() == null) return;
+        // 교통 적용을 요청했는데 프로파일이 없으면 조용히 비활성화하지 않고 차단한다.
+        if (!c.isTrafficEnabled()) return;
+        if (c.getTrafficProfileId() == null || c.getTrafficProfileId().isBlank()) {
+            errs.add(new ValidationError(ErrorCode.MISSING_FIELD, "trafficProfileId",
+                    "교통 레이어를 사용하려면 trafficProfileId가 필요합니다."));
+            return;
+        }
         TrafficProfile tp = trafficData.find(c.getTrafficProfileId());
-        if (tp == null) return;
+        if (tp == null) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "trafficProfileId",
+                    "등록되지 않은 교통 프로파일입니다: " + c.getTrafficProfileId()));
+            return;
+        }
 
         // V-T3: 대형트럭처럼 골목 진입 불가한 차종 + 대상 구역이 골목 → 교통상 실행 불가
         if (!truckType.alleyAccess) {
@@ -356,14 +365,10 @@ public class SimulationConfigValidator {
      * 별도 정밀 시뮬 없이 근사 계산하는 예측 적재율(수요/공급). 1.0 초과면
      * 배출량이 수거 용량을 지속적으로 초과한다는 뜻. (§5.2)
      *
-     * <p>공급 측은 두 경로 중 큰 쪽을 취한다: (a) 트럭 선언 용량
-     * (truckCount×truckType.capacityKg), (b) 실제 엔진이 강제하는 수거장(can)
-     * 총 용량(numBuildings×capacity) — 둘 다 수거횟수만큼 반복. 설계서 원문은
-     * (a)만 쓰지만, 이 엔진은 트럭 용량을 실제로 강제하지 않고(방문 시 무제한
-     * 수거) 수거장 용량·임계치만 강제하므로, (a)만 쓰면 기본 설정(4동×25명,
-     * LARGE_5TON 1대)조차 90kg/일 배출에 60kg/일 트럭 용량으로 "위험" 판정돼
-     * 시스템 기본값이 검증에 걸리는 문제가 있었다. truckCount==0(트럭 자체가
-     * 없음)은 수거장 용량과 무관하게 항상 과적으로 본다.
+     * <p>공급은 트럭 수 × 차종 정격 적재용량 × 일평균 운행횟수로 계산한다.
+     * 엔진도 운행별 잔여 적재용량을 실제로 차감하므로 검증기와 실행기의 물리
+     * 가정이 같다. 수거장 용량은 저장 한계이지 차량 운반 처리량이 아니므로
+     * 공급량에 더하지 않는다. truckCount==0이면 항상 수거 불가로 본다.
      */
     public double predictOverflowRatio(SimulationConfig c) {
         double dailyWasteKg = c.getNumBuildings() * c.getResidentsPerBuilding() * c.getWasteMeanKg();   // 거주민 평균 배출량(kg/일, 기본 0.9 — 캘리브레이션 시 wasteMeanKg로 조정)
@@ -380,8 +385,9 @@ public class SimulationConfigValidator {
             truckType = TruckType.LARGE_5TON;
         }
         double truckCapacityPerDay = c.getTruckCount() * truckType.capacityKg * collectionsPerDay;
-        double canCapacityPerDay = c.getNumBuildings() * c.getCapacity() * collectionsPerDay;
-        double supplyPerDay = Math.max(truckCapacityPerDay, canCapacityPerDay);
+        // 엔진도 실제로 트럭 적재용량을 강제하므로 일일 수거능력은 트럭 용량 합계다.
+        // 수거장 용량은 저장 한계이지 차량의 운반 처리량이 아니다.
+        double supplyPerDay = truckCapacityPerDay;
         if (supplyPerDay <= 0) return 999.0;
         return dailyWasteKg / supplyPerDay;
     }

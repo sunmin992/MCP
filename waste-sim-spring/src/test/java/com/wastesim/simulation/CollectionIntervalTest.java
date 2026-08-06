@@ -42,8 +42,8 @@ class CollectionIntervalTest {
     @Test
     @DisplayName("격일 수거면 교통 민원이 매일 수거의 절반 수준이어야 한다")
     void everyOtherDayHalvesTrafficComplaints() {
-        int daily = run(base(1)).getTrafficComplaints();
-        int everyOther = run(base(2)).getTrafficComplaints();
+        double daily = run(base(1)).getTrafficPenalty();
+        double everyOther = run(base(2)).getTrafficPenalty();
 
         assertTrue(daily > 0, "이 테스트는 교통 민원이 실제로 발생하는 조건이어야 한다");
         assertTrue(everyOther < daily,
@@ -58,9 +58,9 @@ class CollectionIntervalTest {
     @Test
     @DisplayName("3일 주기면 교통 민원이 더 줄어든다 — 주기가 길수록 단조 감소")
     void longerIntervalMeansFewerTrafficComplaints() {
-        int d1 = run(base(1)).getTrafficComplaints();
-        int d2 = run(base(2)).getTrafficComplaints();
-        int d4 = run(base(4)).getTrafficComplaints();
+        double d1 = run(base(1)).getTrafficPenalty();
+        double d2 = run(base(2)).getTrafficPenalty();
+        double d4 = run(base(4)).getTrafficPenalty();
         assertTrue(d1 > d2 && d2 > d4,
                 "주기가 길수록 운행일이 줄어야 한다 (" + d1 + " > " + d2 + " > " + d4 + ")");
     }
@@ -72,7 +72,7 @@ class CollectionIntervalTest {
         SimulationResult a = run(c);
         SimulationResult b = run(c);
         assertEquals(a.getTotalComplaints(), b.getTotalComplaints());
-        assertEquals(a.getTrafficComplaints(), b.getTrafficComplaints());
+        assertEquals(a.getTrafficPenalty(), b.getTrafficPenalty());
     }
 
     @Test
@@ -81,11 +81,11 @@ class CollectionIntervalTest {
         SimulationConfig c = base(1);
         // 두 유형 모두 2일 주기 — 홀수 날에는 비울 것이 없다.
         c.setWasteTypes(List.of(type("A", 0.5, 2), type("B", 0.5, 2)));
-        int both2 = run(c).getTrafficComplaints();
+        double both2 = run(c).getTrafficPenalty();
 
         SimulationConfig daily = base(1);
         daily.setWasteTypes(List.of(type("A", 0.5, 1), type("B", 0.5, 1)));
-        int both1 = run(daily).getTrafficComplaints();
+        double both1 = run(daily).getTrafficPenalty();
 
         assertTrue(both2 < both1,
                 "모든 유형이 비수거일이면 차량이 뜨면 안 된다 (" + both2 + " vs " + both1 + ")");
@@ -100,7 +100,7 @@ class CollectionIntervalTest {
         SimulationConfig allDaily = base(1);
         allDaily.setWasteTypes(List.of(type("A", 0.5, 1), type("B", 0.5, 1)));
 
-        assertEquals(run(allDaily).getTrafficComplaints(), run(mixed).getTrafficComplaints(),
+        assertEquals(run(allDaily).getTrafficPenalty(), run(mixed).getTrafficPenalty(),
                 "매일 수거 유형이 하나라도 있으면 운행일 수가 같아야 한다");
     }
 

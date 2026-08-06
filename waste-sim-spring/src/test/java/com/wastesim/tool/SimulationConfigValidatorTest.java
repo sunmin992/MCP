@@ -116,6 +116,33 @@ class SimulationConfigValidatorTest {
     }
 
     @Test
+    void trafficEnabledRequiresProfileId() {
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(true);
+        c.setTruckType("MEDIUM_2P5T");
+
+        ValidationResult r = v.validate(c);
+
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e ->
+                e.code() == ErrorCode.MISSING_FIELD && e.field().equals("trafficProfileId")));
+    }
+
+    @Test
+    void unknownTrafficProfileFailsClosed() {
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(true);
+        c.setTrafficProfileId("does-not-exist");
+        c.setTruckType("MEDIUM_2P5T");
+
+        ValidationResult r = v.validate(c);
+
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e ->
+                e.code() == ErrorCode.INVALID_ARGUMENTS && e.field().equals("trafficProfileId")));
+    }
+
+    @Test
     void redJudgedByGlobalHourlyWeight() {   // DESIGN_DECISIONS.md D-10
         // 13:00(전역 hourlyWeight[13]=1.78 ≥ 임계 1.7) → RED 경고 발생
         SimulationConfig peak = base();

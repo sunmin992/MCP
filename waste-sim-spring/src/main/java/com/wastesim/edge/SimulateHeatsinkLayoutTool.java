@@ -215,6 +215,9 @@ public class SimulateHeatsinkLayoutTool implements McpToolProvider {
         m.put("rJaKPerW", p.rJaKPerW());
         m.put("steadyStateTempC", run.steadyStateTempC());
         m.put("peakTempC", run.peakTempC());
+        // 온도 진폭 — 시변 부하(aiLoadProfileId)에서 방열판을 안정성으로 비교하는 축.
+        // 질량이 큰 방열판이 피크를 흡수하면 여기가 작아져, R_ja 순위와 어긋날 수 있다.
+        m.put("tempAmplitudeC", run.tempAmplitudeC());
         m.put("throttlingExpected", run.throttlingExpected());
         m.put("tttSec", run.tttSec());
         m.put("throttledFraction", run.throttledFraction());

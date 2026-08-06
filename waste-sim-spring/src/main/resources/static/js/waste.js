@@ -32,7 +32,19 @@ function buildResultBubble(msg) {
   stats.innerHTML = `
     <div class="result-stat">
       <div class="v">${r.meanComplaints?.toFixed(1) ?? '—'}</div>
-      <div class="l">월 평균 민원</div>
+      <div class="l">평균 생활 민원</div>
+    </div>
+    <div class="result-stat">
+      <div class="v">${r.meanWasteOverflowComplaints?.toFixed(1) ?? '—'}</div>
+      <div class="l">적재 초과 민원</div>
+    </div>
+    <div class="result-stat">
+      <div class="v">${r.meanLandlordComplaints?.toFixed(1) ?? '—'}</div>
+      <div class="l">임대인 민원</div>
+    </div>
+    <div class="result-stat">
+      <div class="v" style="color:var(--yellow)">${r.trafficPenalty?.toFixed(2) ?? '—'}</div>
+      <div class="l">교통 패널티</div>
     </div>
     <div class="result-stat">
       <div class="v" style="color:var(--yellow)">±${r.stdComplaints?.toFixed(1) ?? '—'}</div>
@@ -242,7 +254,7 @@ function renderTraffic(p) {
 
   const note = document.createElement('div');
   note.style.cssText = 'font-size:12px;color:var(--muted);margin-bottom:8px';
-  note.textContent = `혼잡 가중치가 ${p.congestionThresholdRed} 이상이면 정체(RED)로 판정되어 트럭 이동시간이 늘어나고 교통 유발 민원이 발생할 수 있습니다. 실측 포항 교통량 기반 데이터입니다.`;
+  note.textContent = `혼잡 가중치가 ${p.congestionThresholdRed} 이상이면 정체(RED)로 판정되어 트럭 이동시간과 별도 교통 패널티가 증가합니다. 생활쓰레기 민원에는 합산하지 않습니다. 실측 포항 교통량 기반 데이터입니다.`;
   bubble.appendChild(note);
 
   const cWrap = document.createElement('div');

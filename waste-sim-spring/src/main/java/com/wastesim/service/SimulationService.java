@@ -30,7 +30,9 @@ public class SimulationService {
     public SimulationResult runExperiment(SimulationConfig cfg) {
         List<Integer> totals = new ArrayList<>();
         Map<String, List<Integer>> occTotals = new LinkedHashMap<>();
-        List<Integer> trafficComplaints = new ArrayList<>();
+        List<Integer> wasteComplaints = new ArrayList<>();
+        List<Integer> landlordComplaints = new ArrayList<>();
+        List<Double> trafficPenalties = new ArrayList<>();
         List<Double> completionMinutes = new ArrayList<>();
 
         for (int seed = 1; seed <= cfg.getSeeds(); seed++) {
@@ -38,7 +40,9 @@ public class SimulationService {
             totals.add(r.getTotalComplaints());
             r.getByOccupation().forEach((occ, cnt) ->
                     occTotals.computeIfAbsent(occ, k -> new ArrayList<>()).add(cnt));
-            trafficComplaints.add(r.getTrafficComplaints());
+            wasteComplaints.add(r.getWasteOverflowComplaints());
+            landlordComplaints.add(r.getLandlordComplaints());
+            trafficPenalties.add(r.getTrafficPenalty());
             completionMinutes.add(r.getAvgCompletionMinutes());
         }
 
@@ -48,6 +52,8 @@ public class SimulationService {
         SimulationResult summary = new SimulationResult();
         summary.setCollectionTimeLabel(cfg.getCollectionTimeLabel());
         summary.setMeanComplaints(Math.round(mean * 10.0) / 10.0);
+        summary.setMeanWasteOverflowComplaints(round1(wasteComplaints.stream().mapToInt(Integer::intValue).average().orElse(0)));
+        summary.setMeanLandlordComplaints(round1(landlordComplaints.stream().mapToInt(Integer::intValue).average().orElse(0)));
         summary.setStdComplaints(Math.round(std * 10.0) / 10.0);
         summary.setAllTotals(totals);
 
@@ -60,9 +66,9 @@ public class SimulationService {
         summary.setByOccupationSummary(occSummary);
 
         // 교통 레이어 요약(§4) — 시드 평균. trafficEnabled=false면 항상 0.
-        double trafficMean = trafficComplaints.stream().mapToInt(Integer::intValue).average().orElse(0);
+        double trafficMean = trafficPenalties.stream().mapToDouble(Double::doubleValue).average().orElse(0);
         double completionMean = completionMinutes.stream().mapToDouble(Double::doubleValue).average().orElse(0);
-        summary.setTrafficComplaints((int) Math.round(trafficMean));
+        summary.setTrafficPenalty(Math.round(trafficMean * 100.0) / 100.0);
         summary.setAvgCompletionMinutes(Math.round(completionMean * 10.0) / 10.0);
 
         return summary;
@@ -74,5 +80,9 @@ public class SimulationService {
                 .mapToDouble(v -> (v - mean) * (v - mean))
                 .average().orElse(0);
         return Math.sqrt(variance);
+    }
+
+    private static double round1(double value) {
+        return Math.round(value * 10.0) / 10.0;
     }
 }

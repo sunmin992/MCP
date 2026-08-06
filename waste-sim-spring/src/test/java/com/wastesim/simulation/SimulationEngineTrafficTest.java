@@ -37,8 +37,8 @@ class SimulationEngineTrafficTest {
 
         assertTrue(peakResult.getAvgCompletionMinutes() > offpeakResult.getAvgCompletionMinutes(),
                 "피크 시각 수거의 완료 시간이 더 길어야 함");
-        assertTrue(peakResult.getTrafficComplaints() >= offpeakResult.getTrafficComplaints(),
-                "피크 시각 수거의 교통 민원이 더 많거나 같아야 함");
+        assertTrue(peakResult.getTrafficPenalty() >= offpeakResult.getTrafficPenalty(),
+                "피크 시각 수거의 교통 패널티가 더 크거나 같아야 함");
     }
 
     @Test
@@ -105,5 +105,32 @@ class SimulationEngineTrafficTest {
         double b = engine.run(staggered, 1).getPeakFillKg();
 
         assertNotEquals(a, b, 0.001, "시차 배차(dispatchIntervalMinutes)가 엔진 타이밍에 반영돼야 함");
+    }
+
+    @Test
+    void trafficPenaltyIsNotAddedToWasteComplaints() {
+        TrafficDataService data = new TrafficDataService();
+        TrafficProfile p = new TrafficProfile();
+        p.setId("always-red");
+        p.setCongestionThresholdRed(2.0);
+        double[] red = new double[24];
+        java.util.Arrays.fill(red, 3.0);
+        p.setHourlyWeight(red);
+        data.register(p);
+
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setDays(1);
+        cfg.setNumBuildings(2);
+        cfg.setCapacity(100_000);
+        cfg.setRouteTravelMinutes(10);
+        cfg.setTrafficEnabled(true);
+        cfg.setTrafficProfileId("always-red");
+
+        SimulationResult r = new SimulationEngine(data).run(cfg, 1);
+
+        assertTrue(r.getTrafficPenalty() > 0, "RED 구간 통과 패널티는 별도로 기록돼야 함");
+        assertEquals(0, r.getWasteOverflowComplaints());
+        assertEquals(0, r.getTotalComplaints(), "교통 패널티를 생활쓰레기 민원에 더하면 안 됨");
+        assertFalse(r.getByOccupation().containsKey("Traffic"));
     }
 }

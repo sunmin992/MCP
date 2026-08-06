@@ -70,7 +70,20 @@ public final class EdgeParamGuard {
         return PI4.matcher(text).find() && PI5.matcher(text).find();
     }
 
-    private static final Pattern BARE = Pattern.compile("(무냉각|냉각\\s*없|방열판\\s*없|맨\\s*보드|기본\\s*상태|아무것도\\s*안|bare)", Pattern.CASE_INSENSITIVE);
+    // "방열판이나 냉각팬 없이"처럼 방열판과 팬을 <b>함께</b> 부정하는 목록형은 무냉각이다.
+    // 실측 회귀: 이 문장이 FAN_ABSENT("냉각팬…없")에만 걸려 "팬만 없다 → 방열판 유지(passive)"로
+    // 처리됐다("없이"가 방열판까지 부정하는 걸 놓침). 둘 다 부정될 때만 매칭하도록 두 어휘가
+    // 모두 나오는 경우로 좁힌다 — "팬 없이"만 있으면(방열판 언급 없음) 여기 걸리지 않고 기존대로
+    // passive로 남고, "방열판 달고 팬 없이"(방열판은 있음)도 걸리지 않는다.
+    private static final String CONN = "(?:이나|나|또는|하고|과|와|랑|,|·|도)?";  // 목록 연결(방열판'이나'/'도' 팬…)
+    private static final String PART = "(?:이|가|은|는|을|를|도|만)?";              // 조사(팬'도'/'만' 없이)
+    private static final String NEG = "(?:없|빼)";                                    // 없이 / 빼면
+    private static final String BOTH_ABSENT =
+            "방열판\\s*" + CONN + "\\s*(?:냉각\\s*)?(?:팬|쿨러|fan)\\s*" + PART + "\\s*" + NEG
+            + "|(?:냉각\\s*)?(?:팬|쿨러|fan)\\s*" + CONN + "\\s*(?:방열판|히트\\s*싱크|heatsink)\\s*" + PART + "\\s*" + NEG;
+    private static final Pattern BARE = Pattern.compile(
+            "(무냉각|냉각\\s*없|방열판\\s*없|맨\\s*보드|기본\\s*상태|아무것도\\s*안|bare|" + BOTH_ABSENT + ")",
+            Pattern.CASE_INSENSITIVE);
     private static final Pattern ACTIVE = Pattern.compile("(팬|쿨러|능동\\s*냉각|액티브|active\\s*cool)", Pattern.CASE_INSENSITIVE);
     private static final Pattern PASSIVE = Pattern.compile("(방열판|히트\\s*싱크|heatsink|수동\\s*냉각|패시브|passive)", Pattern.CASE_INSENSITIVE);
 
@@ -166,7 +179,7 @@ public final class EdgeParamGuard {
      * 한 문장으로 물으나 두 문장으로 나눠 물으나 같은 조건이 된다.
      */
     private static final Pattern FAN_ABSENT = Pattern.compile(
-            "(팬|쿨러|fan)[을를이가은는\\s]*(없|끄|미장착|안\\s*달|off\\b)", Pattern.CASE_INSENSITIVE);
+            "(팬|쿨러|fan)[을를이가은는만도\\s]*(없|끄|빼|미장착|안\\s*달|off\\b)", Pattern.CASE_INSENSITIVE);
 
     /** 방열판을 빼겠다는 표현. */
     private static final Pattern HEATSINK_ABSENT = Pattern.compile(

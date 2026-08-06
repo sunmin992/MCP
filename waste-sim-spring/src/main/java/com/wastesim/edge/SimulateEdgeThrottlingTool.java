@@ -202,6 +202,9 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         m.put("trtFullSec", run.trtFullSec());
         m.put("peakTempC", run.peakTempC());
         m.put("loadEndTempC", run.loadEndTempC());
+        // 온도 진폭(안정성) — 부품 수명 평가 축. 상수 부하면 ≈0, 시변 부하에서 의미가 있다.
+        m.put("tempAmplitudeC", run.tempAmplitudeC());
+        m.put("loadSettledMeanTempC", run.loadSettledMeanTempC());
         m.put("steadyStateTempC", run.steadyStateTempC());
         m.put("throttledFraction", run.throttledFraction());
         m.put("meanFpsDuringLoad", run.meanFpsLoad());

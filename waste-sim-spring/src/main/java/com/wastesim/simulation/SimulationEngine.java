@@ -31,7 +31,6 @@ public class SimulationEngine {
 
     static final int DAY = 1440;
     static final String LANDLORD = "Landlord";
-    static final String TRAFFIC = "Traffic";
 
     private final TrafficDataService trafficData;
 
@@ -57,16 +56,26 @@ public class SimulationEngine {
         Evt(int time) { this.time = time; }
         @Override public int compareTo(Evt o) {
             int c = Integer.compare(this.time, o.time);
-            return c != 0 ? c : Integer.compare(this.priority(), o.priority());
+            if (c != 0) return c;
+            c = Integer.compare(this.priority(), o.priority());
+            return c != 0 ? c : Integer.compare(this.tieBreaker(), o.tieBreaker());
         }
         int priority() { return 1; }
+        int tieBreaker() { return 0; }
     }
 
     /** 수거: 트럭이 건물 b를 day d에 방문해 수거(due 종류만 비움) */
     static class CollectEvt extends Evt {
-        final int building, day;
-        CollectEvt(int time, int building, int day) { super(time); this.building = building; this.day = day; }
+        final int building, day, tripId, stopOrder;
+        CollectEvt(int time, int building, int day, int tripId, int stopOrder) {
+            super(time);
+            this.building = building;
+            this.day = day;
+            this.tripId = tripId;
+            this.stopOrder = stopOrder;
+        }
         @Override int priority() { return 0; }   // 같은 시각이면 수거 먼저
+        @Override int tieBreaker() { return tripId * 100 + stopOrder; }
     }
 
     /** 배출: 거주민이 건물 b에 amount(kg)만큼 배출 (외출/귀가 분할분 포함) */
@@ -120,6 +129,10 @@ public class SimulationEngine {
         int completionCount = 0;
 
         PriorityQueue<Evt> pq = new PriorityQueue<>();
+        // 운행(trip)마다 적재용량을 새로 부여한다. 같은 운행 안에서는 여러 수거장을
+        // 방문하면서 남은 용량이 감소하고, 다음 트럭/다음 수거 슬롯과는 공유하지 않는다.
+        Map<Integer, Double> remainingTruckCapacity = new HashMap<>();
+        int nextTripId = 0;
 
         // ── 수거 이벤트 생성 ──────────────────────────────────────────────
         for (int d = 0; d < days; d++) {
@@ -128,6 +141,8 @@ public class SimulationEngine {
             for (int k = 0; k < routes.size(); k++) {
                 List<Integer> route = routes.get(k);
                 for (int slot : slots) {
+                    int tripId = nextTripId++;
+                    remainingTruckCapacity.put(tripId, truckType.capacityKg);
                     int truckSlot = slot + k * cfg.getDispatchIntervalMinutes();
                     int arrival = d * DAY + truckSlot;
                     for (int pos = 0; pos < route.size(); pos++) {
@@ -146,7 +161,7 @@ public class SimulationEngine {
                             // 소요시간 단독 질의)와 동일 공식을 공유해 드리프트를 막는다.
                             arrival += TravelTimeCalculator.hopMinutes(travel, truckType.mobilityFactor, congestionWeight);
                         }
-                        if (arrival <= totalMinutes) pq.offer(new CollectEvt(arrival, b, d));
+                        if (arrival <= totalMinutes) pq.offer(new CollectEvt(arrival, b, d, tripId, pos));
                     }
                     completionSum += (arrival - (d * DAY + truckSlot));
                     completionCount++;
@@ -190,7 +205,8 @@ public class SimulationEngine {
         }
 
         // ── 집계 ──────────────────────────────────────────────────────────
-        int total = 0;
+        int wasteOverflowComplaints = 0;
+        int landlordComplaints = 0;
         Map<String, Integer> byOcc = new LinkedHashMap<>();
         // 실제 거주 중인 직업군은 이번 시드에서 민원이 0건이어도 반드시 키를
         // 남긴다 — 아래에서는 merge()가 민원이 실제로 발생했을 때만 값을
@@ -208,9 +224,22 @@ public class SimulationEngine {
             if (e.time > totalMinutes) break;
 
             if (e instanceof CollectEvt ce) {
-                // 분리배출 수거 주기: due 종류만 비움
+                // 분리배출 수거 주기: due 종류만 수거한다. 트럭 잔여용량이 부족하면
+                // 해당 건물의 due 폐기물들을 현재 적재량에 비례해 부분 수거한다.
+                double dueTotal = 0.0;
                 for (int t = 0; t < nT; t++) {
-                    if (ce.day % types.get(t).getIntervalDays() == 0) fill[ce.building][t] = 0.0;
+                    if (ce.day % types.get(t).getIntervalDays() == 0) dueTotal += fill[ce.building][t];
+                }
+                double remaining = remainingTruckCapacity.getOrDefault(ce.tripId, 0.0);
+                double collected = Math.min(dueTotal, remaining);
+                if (collected > 0 && dueTotal > 0) {
+                    double keepFraction = 1.0 - collected / dueTotal;
+                    for (int t = 0; t < nT; t++) {
+                        if (ce.day % types.get(t).getIntervalDays() == 0) {
+                            fill[ce.building][t] *= keepFraction;
+                        }
+                    }
+                    remainingTruckCapacity.put(ce.tripId, remaining - collected);
                 }
 
             } else if (e instanceof DischargeEvt de) {
@@ -226,7 +255,7 @@ public class SimulationEngine {
                     if (ratio >= wt.getThreshold()) complained = true;   // 한 종류라도 넘으면 1건
                 }
                 if (complained) {
-                    total++;
+                    wasteOverflowComplaints++;
                     byOcc.merge(de.occ.name(), 1, Integer::sum);
                     byDay.merge(de.day, 1, Integer::sum);
                 }
@@ -239,20 +268,17 @@ public class SimulationEngine {
                     if (cap > 0) worst = Math.max(worst, fill[ie.building][t] / cap);
                 }
                 if (worst >= cfg.getLandlordThreshold()) {
-                    total++;
+                    landlordComplaints++;
                     byOcc.merge(LANDLORD, 1, Integer::sum);
                     byDay.merge(ie.day, 1, Integer::sum);
                 }
             }
         }
 
-        // 교통 유발 민원(§4-5): RED 구간 통과 누적치를 총 민원에 합산하고
-        // "Traffic" 채널로 별도 노출한다. trafficProfile==null이면 0.
-        int trafficComplaints = (int) Math.round(trafficComplaintAccum);
-        if (trafficComplaints > 0) {
-            total += trafficComplaints;
-            byOcc.merge(TRAFFIC, trafficComplaints, Integer::sum);
-        }
+        // 교통 패널티는 생활쓰레기 민원과 단위가 다르므로 totalComplaints와
+        // byOccupation에 합산하지 않는다. 소수 가중치도 반올림하지 않고 보존한다.
+        double trafficPenalty = Math.round(trafficComplaintAccum * 100.0) / 100.0;
+        int total = wasteOverflowComplaints + landlordComplaints;
 
         double maxPeak = 0;
         for (double[] row : peak) for (double v : row) maxPeak = Math.max(maxPeak, v);
@@ -263,7 +289,9 @@ public class SimulationEngine {
         Map<Integer, Double> wasteMap = new TreeMap<>();
         for (int m = 0; m < nMonths; m++) wasteMap.put(m, Math.round(wasteByMonth[m] * 10.0) / 10.0);
         result.setWasteByMonth(wasteMap);
-        result.setTrafficComplaints(trafficComplaints);
+        result.setWasteOverflowComplaints(wasteOverflowComplaints);
+        result.setLandlordComplaints(landlordComplaints);
+        result.setTrafficPenalty(trafficPenalty);
         result.setAvgCompletionMinutes(
                 completionCount > 0 ? Math.round(completionSum * 10.0 / completionCount) / 10.0 : 0);
         return result;

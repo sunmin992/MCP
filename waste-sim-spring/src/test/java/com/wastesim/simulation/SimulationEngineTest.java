@@ -42,4 +42,30 @@ class SimulationEngineTest {
         assertEquals(3, r.getByOccupationSummary().size());
         r.getByOccupationSummary().values().forEach(v -> assertEquals(0.0, ((Number) v).doubleValue()));
     }
+
+    @Test
+    void truckCapacityLimitsCollectionAcrossDays() {
+        SimulationConfig base = new SimulationConfig();
+        base.setDays(2);
+        base.setNumBuildings(1);
+        base.setResidentsPerBuilding(2000);
+        base.setWasteMeanKg(0.9);
+        base.setWasteSigma(0);
+        base.setLeaveSigma(0);
+        base.setCapacity(10_000);
+        base.setThreshold(0.15);       // 1,500kg부터 민원
+        base.setCollectionTimeLabel("23:00");
+
+        SimulationConfig small = base.copy();
+        small.setTruckType("SMALL_1TON");
+        SimulationConfig large = base.copy();
+        large.setTruckType("LARGE_5TON");
+
+        SimulationEngine engine = new SimulationEngine(new TrafficDataService());
+        SimulationResult smallResult = engine.run(small, 1);
+        SimulationResult largeResult = engine.run(large, 1);
+
+        assertTrue(smallResult.getWasteOverflowComplaints() > largeResult.getWasteOverflowComplaints(),
+                "1톤 트럭은 첫날 폐기물을 전부 싣지 못해 다음 날 민원이 더 많아야 함");
+    }
 }
