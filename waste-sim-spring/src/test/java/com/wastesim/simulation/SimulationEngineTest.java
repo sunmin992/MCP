@@ -68,4 +68,30 @@ class SimulationEngineTest {
         assertTrue(smallResult.getWasteOverflowComplaints() > largeResult.getWasteOverflowComplaints(),
                 "1톤 트럭은 첫날 폐기물을 전부 싣지 못해 다음 날 민원이 더 많아야 함");
     }
+
+    @Test
+    void routeAllocationAndInitialLoadLimitCollectionAndExposeMassBalance() {
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setDays(1);
+        cfg.setNumBuildings(1);
+        cfg.setResidentsPerBuilding(2000);
+        cfg.setWasteMeanKg(0.9);
+        cfg.setWasteSigma(0);
+        cfg.setLeaveSigma(0);
+        cfg.setCapacity(10_000);
+        cfg.setCollectionTimeLabel("23:00");
+        cfg.setTruckType("LARGE_5TON");
+        cfg.setRouteAvailableCapacityKg(1200.0);
+        cfg.setInitialTruckLoadKg(200.0);
+
+        SimulationResult r = new SimulationEngine(new TrafficDataService()).run(cfg, 1);
+
+        assertEquals(1800.0, r.getGeneratedWasteKg());
+        assertEquals(1000.0, r.getCollectedWasteKg());
+        assertEquals(800.0, r.getResidualWasteKg());
+        assertEquals(1000.0, r.getAvailableCollectionCapacityKg());
+        assertEquals(100.0, r.getTruckUtilizationPercent());
+        assertEquals(100.0, r.getCollectionCapacityUtilizationPercent());
+        assertEquals(r.getGeneratedWasteKg(), r.getCollectedWasteKg() + r.getResidualWasteKg());
+    }
 }

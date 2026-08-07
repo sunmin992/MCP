@@ -175,4 +175,34 @@ class ExtendedFieldValidationTest {
         Arrays.fill(ok, 1.0);
         assertTrue(check(c -> c.setMonthlyWasteFactor(ok)).ready());
     }
+
+    @Test
+    @DisplayName("경로 배정용량은 양수이고 차종 정격용량 이하여야 한다")
+    void routeAvailableCapacityRejected() {
+        expectError("routeAvailableCapacityKg", c -> c.setRouteAvailableCapacityKg(0.0), "배정용량 0");
+        expectError("routeAvailableCapacityKg", c -> c.setRouteAvailableCapacityKg(Double.NaN), "NaN");
+        expectError("routeAvailableCapacityKg", c -> {
+            c.setTruckType("SMALL_1TON");
+            c.setRouteAvailableCapacityKg(1001.0);
+        }, "정격용량 초과");
+    }
+
+    @Test
+    @DisplayName("초기 적재량은 0 이상 배정용량 이하여야 한다")
+    void initialTruckLoadRejected() {
+        expectError("initialTruckLoadKg", c -> c.setInitialTruckLoadKg(-1), "음수 초기 적재");
+        expectError("initialTruckLoadKg", c -> {
+            c.setRouteAvailableCapacityKg(800.0);
+            c.setInitialTruckLoadKg(801.0);
+        }, "배정용량 초과");
+    }
+
+    @Test
+    @DisplayName("정격 내 배정용량과 초기 적재량은 통과한다")
+    void routeCapacityAndInitialLoadAccepted() {
+        assertTrue(check(c -> {
+            c.setRouteAvailableCapacityKg(800.0);
+            c.setInitialTruckLoadKg(200.0);
+        }).ready());
+    }
 }

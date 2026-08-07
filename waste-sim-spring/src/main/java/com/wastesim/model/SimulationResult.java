@@ -18,6 +18,14 @@ public class SimulationResult {
     private double peakFillKg;
     private int seed;
     private Map<Integer, Double> wasteByMonth;   // 월(0-based) → 총 배출량(kg)
+    private double generatedWasteKg;
+    private double collectedWasteKg;
+    private double residualWasteKg;
+    private double availableCollectionCapacityKg;
+    /** (초기 적재량 + 신규 수거량) / 경로 배정용량 합계 × 100. */
+    private double truckUtilizationPercent;
+    /** 신규 수거량 / 신규 수거 가능용량 합계 × 100. */
+    private double collectionCapacityUtilizationPercent;
 
     // Multi-seed experiment summary
     private double meanComplaints;
@@ -73,6 +81,19 @@ public class SimulationResult {
 
     public Map<Integer, Double> getWasteByMonth() { return wasteByMonth; }
     public void setWasteByMonth(Map<Integer, Double> v) { this.wasteByMonth = v; }
+
+    public double getGeneratedWasteKg() { return generatedWasteKg; }
+    public void setGeneratedWasteKg(double v) { this.generatedWasteKg = v; }
+    public double getCollectedWasteKg() { return collectedWasteKg; }
+    public void setCollectedWasteKg(double v) { this.collectedWasteKg = v; }
+    public double getResidualWasteKg() { return residualWasteKg; }
+    public void setResidualWasteKg(double v) { this.residualWasteKg = v; }
+    public double getAvailableCollectionCapacityKg() { return availableCollectionCapacityKg; }
+    public void setAvailableCollectionCapacityKg(double v) { this.availableCollectionCapacityKg = v; }
+    public double getTruckUtilizationPercent() { return truckUtilizationPercent; }
+    public void setTruckUtilizationPercent(double v) { this.truckUtilizationPercent = v; }
+    public double getCollectionCapacityUtilizationPercent() { return collectionCapacityUtilizationPercent; }
+    public void setCollectionCapacityUtilizationPercent(double v) { this.collectionCapacityUtilizationPercent = v; }
 
     public double getMeanComplaints() { return meanComplaints; }
     public void setMeanComplaints(double v) { this.meanComplaints = v; }

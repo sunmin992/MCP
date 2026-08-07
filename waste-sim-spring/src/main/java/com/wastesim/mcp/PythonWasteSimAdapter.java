@@ -58,6 +58,12 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
 
     @Override
     public ToolResult run(SimulationConfig cfg) {
+        if (cfg.getRouteAvailableCapacityKg() != null || cfg.getInitialTruckLoadKg() != 0.0) {
+            return ToolResult.rejected(new ValidationError(
+                    ErrorCode.INVALID_ARGUMENTS, "routeAvailableCapacityKg",
+                    "Python 참조 엔진은 routeAvailableCapacityKg/initialTruckLoadKg를 지원하지 않습니다. "
+                            + "이 필드는 Java 엔진에서 실행하세요."));
+        }
         String requestJson;
         try {
             requestJson = toBridgeJson(cfg);

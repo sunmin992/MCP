@@ -34,6 +34,12 @@ public class SimulationService {
         List<Integer> landlordComplaints = new ArrayList<>();
         List<Double> trafficPenalties = new ArrayList<>();
         List<Double> completionMinutes = new ArrayList<>();
+        List<Double> generatedWaste = new ArrayList<>();
+        List<Double> collectedWaste = new ArrayList<>();
+        List<Double> residualWaste = new ArrayList<>();
+        List<Double> availableCapacity = new ArrayList<>();
+        List<Double> truckUtilization = new ArrayList<>();
+        List<Double> collectionUtilization = new ArrayList<>();
 
         for (int seed = 1; seed <= cfg.getSeeds(); seed++) {
             SimulationResult r = engine.run(cfg, seed);
@@ -44,6 +50,12 @@ public class SimulationService {
             landlordComplaints.add(r.getLandlordComplaints());
             trafficPenalties.add(r.getTrafficPenalty());
             completionMinutes.add(r.getAvgCompletionMinutes());
+            generatedWaste.add(r.getGeneratedWasteKg());
+            collectedWaste.add(r.getCollectedWasteKg());
+            residualWaste.add(r.getResidualWasteKg());
+            availableCapacity.add(r.getAvailableCollectionCapacityKg());
+            truckUtilization.add(r.getTruckUtilizationPercent());
+            collectionUtilization.add(r.getCollectionCapacityUtilizationPercent());
         }
 
         double mean = totals.stream().mapToInt(Integer::intValue).average().orElse(0);
@@ -70,6 +82,12 @@ public class SimulationService {
         double completionMean = completionMinutes.stream().mapToDouble(Double::doubleValue).average().orElse(0);
         summary.setTrafficPenalty(Math.round(trafficMean * 100.0) / 100.0);
         summary.setAvgCompletionMinutes(Math.round(completionMean * 10.0) / 10.0);
+        summary.setGeneratedWasteKg(round2(mean(generatedWaste)));
+        summary.setCollectedWasteKg(round2(mean(collectedWaste)));
+        summary.setResidualWasteKg(round2(mean(residualWaste)));
+        summary.setAvailableCollectionCapacityKg(round2(mean(availableCapacity)));
+        summary.setTruckUtilizationPercent(round2(mean(truckUtilization)));
+        summary.setCollectionCapacityUtilizationPercent(round2(mean(collectionUtilization)));
 
         return summary;
     }
@@ -84,5 +102,13 @@ public class SimulationService {
 
     private static double round1(double value) {
         return Math.round(value * 10.0) / 10.0;
+    }
+
+    private static double round2(double value) {
+        return Math.round(value * 100.0) / 100.0;
+    }
+
+    private static double mean(List<Double> values) {
+        return values.stream().mapToDouble(Double::doubleValue).average().orElse(0.0);
     }
 }

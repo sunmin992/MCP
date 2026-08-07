@@ -31,12 +31,15 @@ class ConfigArgsTest {
         SimulationConfig c = ConfigArgs.fromJson(om.readTree(
                 "{\"trafficEnabled\":true,\"trafficProfileId\":\"jangryang-weekday\"," +
                 "\"truckType\":\"SMALL_1TON\",\"truckCount\":3,\"dispatchIntervalMinutes\":45," +
+                "\"routeAvailableCapacityKg\":800,\"initialTruckLoadKg\":200," +
                 "\"routeSequence\":[\"Node_A\",\"Node_C\",\"Node_B\"]}"));
         assertTrue(c.isTrafficEnabled());
         assertEquals("jangryang-weekday", c.getTrafficProfileId());
         assertEquals("SMALL_1TON", c.getTruckType());
         assertEquals(3, c.getTruckCount());
         assertEquals(45, c.getDispatchIntervalMinutes());
+        assertEquals(800.0, c.getRouteAvailableCapacityKg());
+        assertEquals(200.0, c.getInitialTruckLoadKg());
         assertEquals(List.of("Node_A", "Node_C", "Node_B"), c.getRouteSequence());
     }
 }

@@ -92,6 +92,8 @@ public class OpenAiService {
               "trafficEnabled": false,
               "trafficProfileId": "jangryang-weekday",
               "truckType": "LARGE_5TON",
+              "routeAvailableCapacityKg": null,
+              "initialTruckLoadKg": 0,
               "truckCount": 1,
               "dispatchIntervalMinutes": 0,
               "routeSequence": null,
@@ -108,10 +110,13 @@ public class OpenAiService {
               변환(예: "8시 반"→"08:30", "낮 12시"→"12:00", "저녁 7시"→"19:00").
               반드시 포함해야 합니다.
             - trafficEnabled/trafficProfileId/truckType/truckCount/
+              routeAvailableCapacityKg/initialTruckLoadKg/
               dispatchIntervalMinutes/routeSequence/routeTravelMinutes: 사용자가
               교통·정체·차량 종류·경로·배차 간격·건물 간 이동시간을 언급할
               때만 포함하세요(예: "소형 트럭 3대로 45분 간격 배차" →
               truckType=SMALL_1TON, truckCount=3, dispatchIntervalMinutes=45,
+              "구역에 800kg 배정, 이미 200kg 적재" →
+              routeAvailableCapacityKg=800, initialTruckLoadKg=200,
               "건물 간 이동시간 20분" → routeTravelMinutes=20). 언급 없으면
               생략하세요. 실행 가능 여부(교통 정체·과적 등)는 당신이 판단하지
               않습니다 — 서버가 결정론적으로 검증하고 필요하면 사용자에게

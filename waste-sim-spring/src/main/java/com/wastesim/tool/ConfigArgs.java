@@ -44,6 +44,10 @@ public final class ConfigArgs {
         if (p.has("trafficEnabled"))       c.setTrafficEnabled(p.get("trafficEnabled").asBoolean(false));
         if (p.hasNonNull("trafficProfileId")) c.setTrafficProfileId(p.get("trafficProfileId").asText());
         if (p.hasNonNull("truckType"))     c.setTruckType(p.get("truckType").asText());
+        if (p.hasNonNull("routeAvailableCapacityKg"))
+            c.setRouteAvailableCapacityKg(p.get("routeAvailableCapacityKg").asDouble());
+        if (p.has("initialTruckLoadKg"))
+            c.setInitialTruckLoadKg(p.get("initialTruckLoadKg").asDouble(0.0));
         if (p.has("truckCount"))           c.setTruckCount(p.get("truckCount").asInt(1));
         if (p.has("dispatchIntervalMinutes")) c.setDispatchIntervalMinutes(p.get("dispatchIntervalMinutes").asInt(0));
         if (p.has("routeTravelMinutes"))   c.setRouteTravelMinutes(p.get("routeTravelMinutes").asInt(0));

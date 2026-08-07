@@ -43,6 +43,18 @@ function buildResultBubble(msg) {
       <div class="l">임대인 민원</div>
     </div>
     <div class="result-stat">
+      <div class="v">${r.collectedWasteKg?.toFixed(1) ?? '—'}kg</div>
+      <div class="l">평균 수거량</div>
+    </div>
+    <div class="result-stat">
+      <div class="v" style="color:var(--yellow)">${r.residualWasteKg?.toFixed(1) ?? '—'}kg</div>
+      <div class="l">평균 잔류량</div>
+    </div>
+    <div class="result-stat">
+      <div class="v">${r.truckUtilizationPercent?.toFixed(1) ?? '—'}%</div>
+      <div class="l">트럭 이용률</div>
+    </div>
+    <div class="result-stat">
       <div class="v" style="color:var(--yellow)">${r.trafficPenalty?.toFixed(2) ?? '—'}</div>
       <div class="l">교통 패널티</div>
     </div>

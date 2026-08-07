@@ -289,14 +289,6 @@ public class SimulationConfigValidator {
                     "운행 트럭 대수가 0대라 수거를 수행할 수 없습니다."));
         }
 
-        // V-T2: 예측 적재율 > 1.2(120%) → 지속적 폐기물 누적(위생 붕괴)
-        double overflow = predictOverflowRatio(c);
-        if (overflow > 1.2) {
-            errs.add(new ValidationError(ErrorCode.CRITICAL_WASTE_ACCUMULATION, "truckCount",
-                    String.format("교통 정체는 방지되나 쓰레기 적재량이 한계를 초과(예측 적재율 %.0f%%)하여 " +
-                            "요청을 수행할 수 없습니다.", overflow * 100)));
-        }
-
         // truckType 파싱 실패(잘못된 값)는 별도 오류로 보고하고 이후 교통 검증은 건너뜀
         TruckType truckType;
         try {
@@ -304,6 +296,29 @@ public class SimulationConfigValidator {
         } catch (Exception ex) {
             errs.add(new ValidationError(ErrorCode.INVALID_ENUM, "truckType", "알 수 없는 차량 종류: " + c.getTruckType()));
             return;
+        }
+
+        Double allocated = c.getRouteAvailableCapacityKg();
+        if (allocated != null && (!Double.isFinite(allocated) || allocated <= 0
+                || allocated > truckType.capacityKg)) {
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "routeAvailableCapacityKg",
+                    "경로 배정용량은 0보다 크고 선택 차종의 정격용량(" + truckType.capacityKg
+                            + "kg) 이하여야 합니다. 받은 값: " + allocated));
+        }
+        double routeCapacity = c.resolveRouteCapacityKg(truckType.capacityKg);
+        double initialLoad = c.getInitialTruckLoadKg();
+        if (!Double.isFinite(initialLoad) || initialLoad < 0 || initialLoad > routeCapacity) {
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "initialTruckLoadKg",
+                    "초기 적재량은 0 이상 경로 배정용량(" + routeCapacity
+                            + "kg) 이하여야 합니다. 받은 값: " + initialLoad));
+        }
+
+        // V-T2: 초기 적재량을 제외한 실제 신규 수거 가능량을 공급으로 사용한다.
+        double overflow = predictOverflowRatio(c);
+        if (overflow > 1.2) {
+            errs.add(new ValidationError(ErrorCode.CRITICAL_WASTE_ACCUMULATION, "routeAvailableCapacityKg",
+                    String.format("쓰레기 적재량이 실제 신규 수거 가능량을 초과(예측 적재율 %.0f%%)하여 " +
+                            "요청을 수행할 수 없습니다.", overflow * 100)));
         }
 
         // V-T4: routeSequence가 실제 수거장 노드 집합과 불일치
@@ -384,7 +399,8 @@ public class SimulationConfigValidator {
         } catch (Exception ex) {
             truckType = TruckType.LARGE_5TON;
         }
-        double truckCapacityPerDay = c.getTruckCount() * truckType.capacityKg * collectionsPerDay;
+        double pickupCapacityPerTrip = c.resolvePickupCapacityKg(truckType.capacityKg);
+        double truckCapacityPerDay = c.getTruckCount() * pickupCapacityPerTrip * collectionsPerDay;
         // 엔진도 실제로 트럭 적재용량을 강제하므로 일일 수거능력은 트럭 용량 합계다.
         // 수거장 용량은 저장 한계이지 차량의 운반 처리량이 아니다.
         double supplyPerDay = truckCapacityPerDay;

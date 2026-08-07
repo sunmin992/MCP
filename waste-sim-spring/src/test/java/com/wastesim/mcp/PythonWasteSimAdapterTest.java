@@ -88,4 +88,16 @@ class PythonWasteSimAdapterTest {
         ToolResult r = a.run(cfg);
         assertFalse(r.ready());
     }
+
+    @Test
+    void rejectsCapacityFieldsUnsupportedByPythonReferenceEngine() {
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setRouteAvailableCapacityKg(800.0);
+        cfg.setInitialTruckLoadKg(200.0);
+
+        ToolResult r = adapter().run(cfg);
+
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e -> "routeAvailableCapacityKg".equals(e.field())));
+    }
 }

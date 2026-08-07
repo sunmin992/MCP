@@ -122,6 +122,9 @@ public class SimulationEngine {
         // 차종 기동성(mobilityFactor)은 기본값(LARGE_5TON=1.0)이 중립이라 항상
         // 적용해도 trafficEnabled=false인 기존 시나리오와 결과가 동일하다.
         TruckType truckType = TruckType.fromName(cfg.getTruckType());
+        double routeCapacityKg = cfg.resolveRouteCapacityKg(truckType.capacityKg);
+        double initialTruckLoadKg = cfg.getInitialTruckLoadKg();
+        double pickupCapacityKg = cfg.resolvePickupCapacityKg(truckType.capacityKg);
         TrafficProfile trafficProfile = cfg.isTrafficEnabled()
                 ? trafficData.find(cfg.getTrafficProfileId()) : null;
         double trafficComplaintAccum = 0;
@@ -132,6 +135,9 @@ public class SimulationEngine {
         // 운행(trip)마다 적재용량을 새로 부여한다. 같은 운행 안에서는 여러 수거장을
         // 방문하면서 남은 용량이 감소하고, 다음 트럭/다음 수거 슬롯과는 공유하지 않는다.
         Map<Integer, Double> remainingTruckCapacity = new HashMap<>();
+        double totalRouteCapacityKg = 0.0;
+        double totalInitialTruckLoadKg = 0.0;
+        double totalAvailableCollectionCapacityKg = 0.0;
         int nextTripId = 0;
 
         // ── 수거 이벤트 생성 ──────────────────────────────────────────────
@@ -142,7 +148,10 @@ public class SimulationEngine {
                 List<Integer> route = routes.get(k);
                 for (int slot : slots) {
                     int tripId = nextTripId++;
-                    remainingTruckCapacity.put(tripId, truckType.capacityKg);
+                    remainingTruckCapacity.put(tripId, pickupCapacityKg);
+                    totalRouteCapacityKg += routeCapacityKg;
+                    totalInitialTruckLoadKg += initialTruckLoadKg;
+                    totalAvailableCollectionCapacityKg += pickupCapacityKg;
                     int truckSlot = slot + k * cfg.getDispatchIntervalMinutes();
                     int arrival = d * DAY + truckSlot;
                     for (int pos = 0; pos < route.size(); pos++) {
@@ -207,6 +216,7 @@ public class SimulationEngine {
         // ── 집계 ──────────────────────────────────────────────────────────
         int wasteOverflowComplaints = 0;
         int landlordComplaints = 0;
+        double collectedWasteKg = 0.0;
         Map<String, Integer> byOcc = new LinkedHashMap<>();
         // 실제 거주 중인 직업군은 이번 시드에서 민원이 0건이어도 반드시 키를
         // 남긴다 — 아래에서는 merge()가 민원이 실제로 발생했을 때만 값을
@@ -240,6 +250,7 @@ public class SimulationEngine {
                         }
                     }
                     remainingTruckCapacity.put(ce.tripId, remaining - collected);
+                    collectedWasteKg += collected;
                 }
 
             } else if (e instanceof DischargeEvt de) {
@@ -282,6 +293,14 @@ public class SimulationEngine {
 
         double maxPeak = 0;
         for (double[] row : peak) for (double v : row) maxPeak = Math.max(maxPeak, v);
+        double generatedWasteKg = 0.0;
+        for (double v : wasteByMonth) generatedWasteKg += v;
+        double residualWasteKg = 0.0;
+        for (double[] row : fill) for (double v : row) residualWasteKg += v;
+        double truckUtilizationPercent = totalRouteCapacityKg > 0
+                ? (totalInitialTruckLoadKg + collectedWasteKg) / totalRouteCapacityKg * 100.0 : 0.0;
+        double collectionCapacityUtilizationPercent = totalAvailableCollectionCapacityKg > 0
+                ? collectedWasteKg / totalAvailableCollectionCapacityKg * 100.0 : 0.0;
         SimulationResult result = new SimulationResult(
                 cfg.getCollectionTimeLabel(), total, byOcc, byDay,
                 Math.round(maxPeak * 100.0) / 100.0, seed);
@@ -292,9 +311,19 @@ public class SimulationEngine {
         result.setWasteOverflowComplaints(wasteOverflowComplaints);
         result.setLandlordComplaints(landlordComplaints);
         result.setTrafficPenalty(trafficPenalty);
+        result.setGeneratedWasteKg(round2(generatedWasteKg));
+        result.setCollectedWasteKg(round2(collectedWasteKg));
+        result.setResidualWasteKg(round2(residualWasteKg));
+        result.setAvailableCollectionCapacityKg(round2(totalAvailableCollectionCapacityKg));
+        result.setTruckUtilizationPercent(round2(truckUtilizationPercent));
+        result.setCollectionCapacityUtilizationPercent(round2(collectionCapacityUtilizationPercent));
         result.setAvgCompletionMinutes(
                 completionCount > 0 ? Math.round(completionSum * 10.0 / completionCount) / 10.0 : 0);
         return result;
+    }
+
+    private static double round2(double value) {
+        return Math.round(value * 100.0) / 100.0;
     }
 
     // ── 헬퍼 ─────────────────────────────────────────────────────────────────

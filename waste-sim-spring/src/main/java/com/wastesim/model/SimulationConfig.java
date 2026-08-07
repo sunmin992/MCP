@@ -78,6 +78,10 @@ public class SimulationConfig {
     private String trafficProfileId = null;
     /** 차량 종류(TruckType 이름). */
     private String truckType = "LARGE_5TON";
+    /** 운행 1회당 이 경로에 배정된 적재용량(kg). null이면 차종 정격용량 전체. */
+    private Double routeAvailableCapacityKg = null;
+    /** 운행 시작 시 이미 실려 있는 적재량(kg). */
+    private double initialTruckLoadKg = 0.0;
     /** 트럭 간 시차 배차(분). >0이면 트럭 k의 출발이 slot+k*interval로 분산. */
     private int dispatchIntervalMinutes = 0;
     /** 수거장 방문 순서(노드 id, 예: "Node_A"). null이면 기본(round-robin) 순서. */
@@ -184,6 +188,12 @@ public class SimulationConfig {
     public String getTruckType() { return truckType; }
     public void setTruckType(String v) { this.truckType = v; }
 
+    public Double getRouteAvailableCapacityKg() { return routeAvailableCapacityKg; }
+    public void setRouteAvailableCapacityKg(Double v) { this.routeAvailableCapacityKg = v; }
+
+    public double getInitialTruckLoadKg() { return initialTruckLoadKg; }
+    public void setInitialTruckLoadKg(double v) { this.initialTruckLoadKg = v; }
+
     /** {@link #getNumTrucks()}의 별칭(설계서 필드명 truckCount). */
     public int getTruckCount() { return numTrucks; }
     public void setTruckCount(int v) { setNumTrucks(v); }
@@ -264,10 +274,23 @@ public class SimulationConfig {
         c.trafficEnabled = trafficEnabled;
         c.trafficProfileId = trafficProfileId;
         c.truckType = truckType;
+        c.routeAvailableCapacityKg = routeAvailableCapacityKg;
+        c.initialTruckLoadKg = initialTruckLoadKg;
         c.dispatchIntervalMinutes = dispatchIntervalMinutes;
         c.routeSequence = (routeSequence == null) ? null : new ArrayList<>(routeSequence);
         c.trafficComplaintWeight = trafficComplaintWeight;
         return c;
+    }
+
+    /** 차종 정격용량과 경로 배정용량 중 실제 운행에 적용할 값. */
+    public double resolveRouteCapacityKg(double nominalPayloadKg) {
+        if (routeAvailableCapacityKg == null) return nominalPayloadKg;
+        return Math.min(nominalPayloadKg, routeAvailableCapacityKg);
+    }
+
+    /** 기존 적재량을 제외하고 신규 폐기물을 실을 수 있는 용량. */
+    public double resolvePickupCapacityKg(double nominalPayloadKg) {
+        return Math.max(0.0, resolveRouteCapacityKg(nominalPayloadKg) - initialTruckLoadKg);
     }
 
     /** "HH:MM" 형식 문자열로 수거 시각 반환 */
