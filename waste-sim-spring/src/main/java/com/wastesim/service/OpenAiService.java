@@ -117,7 +117,11 @@ public class OpenAiService {
               truckType=SMALL_1TON, truckCount=3, dispatchIntervalMinutes=45,
               "구역에 800kg 배정, 이미 200kg 적재" →
               routeAvailableCapacityKg=800, initialTruckLoadKg=200,
-              "건물 간 이동시간 20분" → routeTravelMinutes=20). 언급 없으면
+              "건물 간 이동시간 20분" → routeTravelMinutes=20). routeAvailableCapacityKg는
+              운행 1회 배정 적재량이라 수거통 용량(capacity, 기본 30kg)과 전혀 다르며,
+              "한 번에 85kg만" "60kg 배정"처럼 작은 값이라도 그대로
+              routeAvailableCapacityKg에 넣으세요(작다고 버리거나 capacity와 혼동 금지).
+              언급 없으면
               생략하세요. 실행 가능 여부(교통 정체·과적 등)는 당신이 판단하지
               않습니다 — 서버가 결정론적으로 검증하고 필요하면 사용자에게
               직접 확인을 요청합니다.

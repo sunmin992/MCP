@@ -55,6 +55,14 @@ function buildResultBubble(msg) {
       <div class="l">트럭 이용률</div>
     </div>
     <div class="result-stat">
+      <div class="v" style="color:var(--yellow)">${r.unservedPickupCount ?? '—'}</div>
+      <div class="l">미수거 방문(회)</div>
+    </div>
+    <div class="result-stat">
+      <div class="v" style="color:var(--yellow)">${r.uncollectedDemandKg?.toFixed(1) ?? '—'}kg</div>
+      <div class="l">용량부족 미수거</div>
+    </div>
+    <div class="result-stat">
       <div class="v" style="color:var(--yellow)">${r.trafficPenalty?.toFixed(2) ?? '—'}</div>
       <div class="l">교통 패널티</div>
     </div>
@@ -95,6 +103,46 @@ function buildResultBubble(msg) {
         </div>`;
     }
     bubble.appendChild(barsDiv);
+  }
+
+  // 트럭별 운행 롤업 (§3.4) — 병목 트럭 식별
+  if (r.tripMetrics && r.tripMetrics.length > 0) {
+    const byTruck = {};
+    for (const t of r.tripMetrics) {
+      const a = byTruck[t.truckId] || { trips: 0, collected: 0, partial: 0 };
+      a.trips += 1;
+      a.collected += t.collectedKg || 0;
+      if ((t.partialPickupCount || 0) > 0) a.partial += 1;
+      byTruck[t.truckId] = a;
+    }
+    const rows = Object.entries(byTruck).map(([id, a]) =>
+      `<tr><td>${id}</td><td style="text-align:right">${a.trips}</td>` +
+      `<td style="text-align:right">${a.collected.toFixed(1)}kg</td>` +
+      `<td style="text-align:right;color:var(--yellow)">${a.partial || '—'}</td></tr>`).join('');
+    const tw = document.createElement('div');
+    tw.style.cssText = 'margin-top:12px;font-size:13px';
+    tw.innerHTML = `<div style="color:var(--muted);margin-bottom:4px">트럭별 운행</div>
+      <table style="width:100%;border-collapse:collapse">
+        <thead><tr style="color:var(--muted)">
+          <th style="text-align:left">트럭</th><th style="text-align:right">운행</th>
+          <th style="text-align:right">수거</th><th style="text-align:right">부분수거</th>
+        </tr></thead><tbody>${rows}</tbody></table>`;
+    bubble.appendChild(tw);
+  }
+
+  // 잔류량 분포 (§3.5) — 유형별 잔류 + 최대 잔류 건물
+  if (r.residualByWasteType && Object.keys(r.residualByWasteType).length > 0) {
+    const typeLabel = { GENERAL: '일반', FOOD: '음식물', RECYCLING: '재활용' };
+    const parts = Object.entries(r.residualByWasteType)
+      .map(([k, v]) => `${typeLabel[k] || k} ${Number(v).toFixed(1)}kg`).join(' · ');
+    const rd = document.createElement('div');
+    rd.style.cssText = 'margin-top:12px;font-size:13px';
+    let html = `<div style="color:var(--muted);margin-bottom:4px">유형별 잔류</div><div>${parts}</div>`;
+    if (r.maxResidualBuilding && r.maxResidualBuildingKg > 0) {
+      html += `<div style="margin-top:4px;color:var(--yellow)">최대 잔류 건물: ${r.maxResidualBuilding} ${Number(r.maxResidualBuildingKg).toFixed(1)}kg</div>`;
+    }
+    rd.innerHTML = html;
+    bubble.appendChild(rd);
   }
 
   // 히스토그램

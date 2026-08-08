@@ -30,6 +30,7 @@ import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.model.TrafficProfile;
+import com.wastesim.model.TripMetric;
 import com.wastesim.model.TruckType;
 import com.wastesim.service.DomainIntentDetector;
 import com.wastesim.service.EdgeToolSelector;
@@ -956,6 +957,21 @@ public class ChatController {
                 : String.format(" 시뮬레이션 결과 (수거시각: %s, %s)\n", r.getCollectionTimeLabel(), engineLabel));
         sb.append(String.format("- 월간 평균 민원: %.1f건 (±%.1f)\n",
                 r.getMeanComplaints(), r.getStdComplaints()));
+        // 트럭 용량 지표 — 발생량이 집계된 경우에만 표시(TRUCK_CAPACITY_ENHANCEMENT_PLAN.md).
+        if (r.getGeneratedWasteKg() > 0) {
+            sb.append(String.format("- 수거/잔류: 수거 %.1fkg · 잔류 %.1fkg (트럭 이용률 %.1f%%)\n",
+                    r.getCollectedWasteKg(), r.getResidualWasteKg(), r.getTruckUtilizationPercent()));
+            // 용량 부족 진단은 실제로 부분수거·미수거가 있었을 때만 알린다(§3.3).
+            if (r.getPartialPickupCount() > 0 || r.getUnservedPickupCount() > 0) {
+                sb.append(String.format("- 용량 부족: 부분수거 %d회 · 미수거 %d회 · 미수거 수요 %.1fkg\n",
+                        r.getPartialPickupCount(), r.getUnservedPickupCount(), r.getUncollectedDemandKg()));
+            }
+            appendTruckRollup(sb, r.getTripMetrics());
+            if (r.getMaxResidualBuilding() != null && r.getMaxResidualBuildingKg() > 0) {
+                sb.append(String.format("- 최대 잔류 건물: %s %.1fkg\n",
+                        r.getMaxResidualBuilding(), r.getMaxResidualBuildingKg()));
+            }
+        }
         if (r.getByOccupationSummary() != null) {
             sb.append("- 직업별 평균:\n");
             r.getByOccupationSummary().forEach((occ, cnt) -> {
@@ -969,5 +985,26 @@ public class ChatController {
             });
         }
         return sb.toString();
+    }
+
+    /**
+     * 트럭별 운행 롤업(§3.4) — 병목 트럭 식별용. 운행 지표를 truckId로 묶어 운행 횟수·
+     * 총 수거량·부분수거 발생 운행 수를 요약한다. 운행이 없으면 아무것도 덧붙이지 않는다.
+     */
+    private void appendTruckRollup(StringBuilder sb, List<TripMetric> trips) {
+        if (trips == null || trips.isEmpty()) return;
+        // truckId → [수거량 합, 운행 수, 부분수거 운행 수]
+        Map<String, double[]> byTruck = new LinkedHashMap<>();
+        for (TripMetric t : trips) {
+            double[] agg = byTruck.computeIfAbsent(t.truckId(), k -> new double[3]);
+            agg[0] += t.collectedKg();
+            agg[1] += 1;
+            if (t.partialPickupCount() > 0) agg[2] += 1;
+        }
+        sb.append("- 트럭별 운행:\n");
+        byTruck.forEach((truck, agg) -> sb.append(String.format(
+                "  %s: 운행 %d회 · 수거 %.1fkg%s\n",
+                truck, (int) agg[1], agg[0],
+                agg[2] > 0 ? String.format(" · 부분수거 %d회", (int) agg[2]) : "")));
     }
 }

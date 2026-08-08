@@ -4,6 +4,7 @@ import com.wastesim.model.OccupationType;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.model.TrafficProfile;
+import com.wastesim.model.TripMetric;
 import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
 import com.wastesim.service.TrafficDataService;
@@ -31,6 +32,8 @@ public class SimulationEngine {
 
     static final int DAY = 1440;
     static final String LANDLORD = "Landlord";
+    /** 부동소수 비교용 허용 오차(용량/수거량 kg 단위). */
+    static final double EPS = 1e-9;
 
     private final TrafficDataService trafficData;
 
@@ -140,18 +143,34 @@ public class SimulationEngine {
         double totalAvailableCollectionCapacityKg = 0.0;
         int nextTripId = 0;
 
+        // 용량 소진·부분수거 진단(§3.3)
+        int partialPickupCount = 0;      // 일부만 수거한 방문
+        int unservedPickupCount = 0;     // 잔여 용량 없어 전혀 못 한 방문
+        double uncollectedDemandKg = 0.0;// 수거 시점 용량 부족으로 남긴 수요(kg)
+        Set<Integer> exhaustedTrips = new HashSet<>();   // 적재용량을 모두 쓴 운행
+        // 운행별 상세(§3.4) — tripId → 누적기. 병목 트럭·경로 식별용.
+        Map<Integer, TripAcc> tripAccs = new LinkedHashMap<>();
+
         // ── 수거 이벤트 생성 ──────────────────────────────────────────────
         for (int d = 0; d < days; d++) {
             if (!isTruckDay(d, cfg, types)) continue;
             List<Integer> slots = daySlots(d, cfg);
             for (int k = 0; k < routes.size(); k++) {
                 List<Integer> route = routes.get(k);
-                for (int slot : slots) {
+                // 방문 노드가 없는 경로(트럭 수 > 건물 수일 때 발생)는 운행 이벤트를
+                // 만들지 않는다. 빈 운행까지 집계하면 배정용량·초기적재·완료시간
+                // 분모가 늘어나 트럭 이용률이 실제보다 낮게 왜곡된다(§3.1).
+                if (route.isEmpty()) continue;
+                for (int si = 0; si < slots.size(); si++) {
+                    int slot = slots.get(si);
                     int tripId = nextTripId++;
                     remainingTruckCapacity.put(tripId, pickupCapacityKg);
                     totalRouteCapacityKg += routeCapacityKg;
                     totalInitialTruckLoadKg += initialTruckLoadKg;
                     totalAvailableCollectionCapacityKg += pickupCapacityKg;
+                    String truckId = "T" + (k + 1);
+                    tripAccs.put(tripId, new TripAcc(truckId, truckId + "-D" + d + "-S" + si,
+                            routeCapacityKg, initialTruckLoadKg, pickupCapacityKg));
                     int truckSlot = slot + k * cfg.getDispatchIntervalMinutes();
                     int arrival = d * DAY + truckSlot;
                     for (int pos = 0; pos < route.size(); pos++) {
@@ -240,17 +259,35 @@ public class SimulationEngine {
                 for (int t = 0; t < nT; t++) {
                     if (ce.day % types.get(t).getIntervalDays() == 0) dueTotal += fill[ce.building][t];
                 }
-                double remaining = remainingTruckCapacity.getOrDefault(ce.tripId, 0.0);
-                double collected = Math.min(dueTotal, remaining);
-                if (collected > 0 && dueTotal > 0) {
-                    double keepFraction = 1.0 - collected / dueTotal;
-                    for (int t = 0; t < nT; t++) {
-                        if (ce.day % types.get(t).getIntervalDays() == 0) {
-                            fill[ce.building][t] *= keepFraction;
+                if (dueTotal > EPS) {
+                    double remaining = remainingTruckCapacity.getOrDefault(ce.tripId, 0.0);
+                    double collected = Math.min(dueTotal, remaining);
+                    TripAcc acc = tripAccs.get(ce.tripId);
+                    if (collected > EPS) {
+                        double keepFraction = 1.0 - collected / dueTotal;
+                        for (int t = 0; t < nT; t++) {
+                            if (ce.day % types.get(t).getIntervalDays() == 0) {
+                                fill[ce.building][t] *= keepFraction;
+                            }
+                        }
+                        double newRemaining = remaining - collected;
+                        remainingTruckCapacity.put(ce.tripId, newRemaining);
+                        collectedWasteKg += collected;
+                        if (acc != null) acc.collectedKg += collected;
+                        if (newRemaining <= EPS) exhaustedTrips.add(ce.tripId);
+                    }
+                    // 이번 방문에서 용량 부족으로 남긴 수요(§3.3). 같은 폐기물이 다음
+                    // 운행에서 재수거될 수 있어 종료 잔류량(residualWasteKg)과는 별개다.
+                    double shortfall = dueTotal - collected;
+                    if (shortfall > EPS) {
+                        uncollectedDemandKg += shortfall;
+                        if (collected > EPS) {
+                            partialPickupCount++;                    // 일부만 수거
+                            if (acc != null) acc.partialPickupCount++;
+                        } else {
+                            unservedPickupCount++;                   // 전혀 못 함
                         }
                     }
-                    remainingTruckCapacity.put(ce.tripId, remaining - collected);
-                    collectedWasteKg += collected;
                 }
 
             } else if (e instanceof DischargeEvt de) {
@@ -297,10 +334,47 @@ public class SimulationEngine {
         for (double v : wasteByMonth) generatedWasteKg += v;
         double residualWasteKg = 0.0;
         for (double[] row : fill) for (double v : row) residualWasteKg += v;
+
+        // P4(§3.5): 잔류량 분포 — 건물별·유형별·트럭별, 그리고 최대 잔류 건물.
+        double[] buildingResidual = new double[nB];
+        Map<String, Double> residualByBuilding = new LinkedHashMap<>();
+        for (int b = 0; b < nB; b++) {
+            double sum = 0.0;
+            for (int t = 0; t < nT; t++) sum += fill[b][t];
+            buildingResidual[b] = sum;
+            residualByBuilding.put(nodeId(b), round2(sum));
+        }
+        Map<String, Double> typeRaw = new LinkedHashMap<>();
+        for (int t = 0; t < nT; t++) {
+            double sum = 0.0;
+            for (int b = 0; b < nB; b++) sum += fill[b][t];
+            typeRaw.merge(types.get(t).getKey(), sum, Double::sum);
+        }
+        Map<String, Double> residualByWasteType = new LinkedHashMap<>();
+        typeRaw.forEach((key, v) -> residualByWasteType.put(key, round2(v)));
+        String maxResidualBuilding = null;
+        double maxResidualBuildingKg = 0.0;
+        for (int b = 0; b < nB; b++) {
+            if (buildingResidual[b] > maxResidualBuildingKg) {
+                maxResidualBuildingKg = buildingResidual[b];
+                maxResidualBuilding = nodeId(b);
+            }
+        }
+        // 트럭(경로)별 미수거량 — 빈 경로는 제외(P1). 각 건물은 정확히 한 트럭에 배정된다.
+        Map<String, Double> residualByTruck = new LinkedHashMap<>();
+        for (int k = 0; k < routes.size(); k++) {
+            List<Integer> route = routes.get(k);
+            if (route.isEmpty()) continue;
+            double sum = 0.0;
+            for (int b : route) sum += buildingResidual[b];
+            residualByTruck.put("T" + (k + 1), round2(sum));
+        }
         double truckUtilizationPercent = totalRouteCapacityKg > 0
                 ? (totalInitialTruckLoadKg + collectedWasteKg) / totalRouteCapacityKg * 100.0 : 0.0;
         double collectionCapacityUtilizationPercent = totalAvailableCollectionCapacityKg > 0
                 ? collectedWasteKg / totalAvailableCollectionCapacityKg * 100.0 : 0.0;
+        // 질량보존(§4.3): 내부값은 원본 정밀도로 계산하고 표시 단계에서만 반올림한다.
+        double massBalanceErrorKg = generatedWasteKg - collectedWasteKg - residualWasteKg;
         SimulationResult result = new SimulationResult(
                 cfg.getCollectionTimeLabel(), total, byOcc, byDay,
                 Math.round(maxPeak * 100.0) / 100.0, seed);
@@ -317,6 +391,17 @@ public class SimulationEngine {
         result.setAvailableCollectionCapacityKg(round2(totalAvailableCollectionCapacityKg));
         result.setTruckUtilizationPercent(round2(truckUtilizationPercent));
         result.setCollectionCapacityUtilizationPercent(round2(collectionCapacityUtilizationPercent));
+        result.setPartialPickupCount(partialPickupCount);
+        result.setUnservedPickupCount(unservedPickupCount);
+        result.setCapacityExhaustedTripCount(exhaustedTrips.size());
+        result.setUncollectedDemandKg(round2(uncollectedDemandKg));
+        result.setMassBalanceErrorKg(round2(massBalanceErrorKg));
+        result.setTripMetrics(buildTripMetrics(tripAccs));
+        result.setResidualByBuilding(residualByBuilding);
+        result.setResidualByWasteType(residualByWasteType);
+        result.setResidualByTruck(residualByTruck);
+        result.setMaxResidualBuilding(maxResidualBuilding);
+        result.setMaxResidualBuildingKg(round2(maxResidualBuildingKg));
         result.setAvgCompletionMinutes(
                 completionCount > 0 ? Math.round(completionSum * 10.0 / completionCount) / 10.0 : 0);
         return result;
@@ -324,6 +409,34 @@ public class SimulationEngine {
 
     private static double round2(double value) {
         return Math.round(value * 100.0) / 100.0;
+    }
+
+    /** 운행별 누적기(§3.4) — 구조(용량·초기적재)는 시드와 무관, 수거량만 시드마다 다르다. */
+    static final class TripAcc {
+        final String truckId, tripId;
+        final double allocatedCapacityKg, initialLoadKg, availablePickupCapacityKg;
+        double collectedKg = 0.0;
+        int partialPickupCount = 0;
+        TripAcc(String truckId, String tripId, double allocated, double initial, double available) {
+            this.truckId = truckId;
+            this.tripId = tripId;
+            this.allocatedCapacityKg = allocated;
+            this.initialLoadKg = initial;
+            this.availablePickupCapacityKg = available;
+        }
+    }
+
+    private static List<TripMetric> buildTripMetrics(Map<Integer, TripAcc> accs) {
+        List<TripMetric> out = new ArrayList<>(accs.size());
+        for (TripAcc a : accs.values()) {
+            double finalLoad = a.initialLoadKg + a.collectedKg;
+            double unused = a.allocatedCapacityKg - finalLoad;
+            double util = a.allocatedCapacityKg > 0 ? finalLoad / a.allocatedCapacityKg * 100.0 : 0.0;
+            out.add(new TripMetric(a.truckId, a.tripId,
+                    round2(a.allocatedCapacityKg), round2(a.initialLoadKg), round2(a.availablePickupCapacityKg),
+                    round2(a.collectedKg), round2(finalLoad), round2(unused), round2(util), a.partialPickupCount));
+        }
+        return out;
     }
 
     // ── 헬퍼 ─────────────────────────────────────────────────────────────────

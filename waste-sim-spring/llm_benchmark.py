@@ -216,6 +216,25 @@ PROMPTS = [
     # "교통+시각", "경로+시각" 케이스보다 겹치는 조건 수를 더 늘려 회귀 범위를 넓힌다.
     ("소형 트럭 3대로 45분 간격 배차하고 교통 정체도 반영해서 "
      "Node_A, Node_C, Node_B, Node_D 순서로 오후 1시에 수거해줘", True),
+    # ── 트럭 용량 배정 케이스 (라이브 데모 재현, ollama·qwen2.5:7b) ─────────────
+    # routeAvailableCapacityKg/initialTruckLoadKg 배정 어휘("N kg 배정", "한 번에
+    # N kg만 실을 수 있어")가 섞여도 실행 의도 판정과 시각 게이트가 흔들리지 않고
+    # RUN_SIMULATION JSON을 내야 한다. 세 케이스 모두 is_sim=True — 용량이
+    # 부족/과도한지는 실행 뒤 서버 검증기(SimulationConfigValidator)가 판정할 몫이지
+    # 모델의 의도분류가 미리 거를 일이 아니다. 실제로 60kg은 서버가 '예측 적재율
+    # 150% 초과'로 거부하지만(fail-closed), 그 판단 전에 모델은 JSON부터 내야 한다.
+    # ① 용량 넉넉 — 차종·대수·용량이 한 문장에 겹쳐도 실행 판정 유지(이용률 9%로 실행됨)
+    ("대형 5톤 트럭 1대로 23시에 수거하는데, 이 구역엔 한 번에 1000kg만 "
+     "실을 수 있어. 실행해줘", True),
+    # ② 용량 극단 — 서버가 거부할 값이라도 모델은 실행 JSON을 내야 한다(거부는 검증기 몫)
+    ("구역에 60kg만 배정해서 23시에 수거 실행해줘", True),
+    # ③ 용량 부족 — 부분수거가 나는 조건(85kg), 정상 실행되어 미수거·잔류 지표가 잡혀야 함
+    ("구역에 85kg만 배정해서 23시에 수거 실행해줘", True),
+    # ④ 배정용량 + 초기 적재 동시 — routeAvailableCapacityKg·initialTruckLoadKg를
+    # 둘 다 추출해야 하는 케이스. 추출 프롬프트가 두 필드를 알아야(운영과 동기화됨)
+    # "800kg 배정 + 200kg 적재"를 각 필드로 나눠 담을 수 있다. 초기 적재 어휘가
+    # 섞여도 실행 의도·시각 게이트가 흔들리면 안 된다.
+    ("구역에 800kg 배정하고 트럭에 이미 200kg 실린 상태로 14시에 수거 실행해줘", True),
     ("12시 쓰레기 배출량과 17시 쓰레기 배출량 실행해줘", False),
     # 수거 시각을 전혀 지정하지 않은 막연한 요청 → 되물어야 정답(False로 정정,
     # 이전엔 True였으나 "미지정 시 되물음" 정책과 모순되는 라벨이었음)
@@ -599,6 +618,8 @@ EXTRACTION_SYSTEM_PROMPT_PY = """사용자 메시지에서 쓰레기 수거 시�
   "trafficEnabled": false,
   "trafficProfileId": "jangryang-weekday",
   "truckType": "LARGE_5TON",
+  "routeAvailableCapacityKg": null,
+  "initialTruckLoadKg": 0,
   "truckCount": 1,
   "dispatchIntervalMinutes": 0,
   "routeSequence": null,
@@ -615,13 +636,19 @@ EXTRACTION_SYSTEM_PROMPT_PY = """사용자 메시지에서 쓰레기 수거 시�
   변환(예: "8시 반"→"08:30", "낮 12시"→"12:00", "저녁 7시"→"19:00").
   반드시 포함해야 합니다.
 - trafficEnabled/trafficProfileId/truckType/truckCount/
+  routeAvailableCapacityKg/initialTruckLoadKg/
   dispatchIntervalMinutes/routeSequence/routeTravelMinutes: 사용자가
   교통·정체·차량 종류·경로·배차 간격·건물 간 이동시간을 언급할 때만
   포함하세요(예: "소형 트럭 3대로 45분 간격 배차" → truckType=SMALL_1TON,
-  truckCount=3, dispatchIntervalMinutes=45, "건물 간 이동시간 20분" →
-  routeTravelMinutes=20). 언급 없으면 생략하세요. 실행 가능 여부(교통
-  정체·과적 등)는 당신이 판단하지 않습니다 — 서버가 결정론적으로
-  검증하고 필요하면 사용자에게 직접 확인을 요청합니다.
+  truckCount=3, dispatchIntervalMinutes=45, "구역에 800kg 배정, 이미
+  200kg 적재" → routeAvailableCapacityKg=800, initialTruckLoadKg=200,
+  "건물 간 이동시간 20분" → routeTravelMinutes=20). routeAvailableCapacityKg는
+  운행 1회 배정 적재량이라 수거통 용량(capacity, 기본 30kg)과 전혀 다르며,
+  "한 번에 85kg만" "60kg 배정"처럼 작은 값이라도 그대로
+  routeAvailableCapacityKg에 넣으세요(작다고 버리거나 capacity와 혼동 금지).
+  언급 없으면 생략하세요. 실행 가능 여부(교통 정체·과적 등)는 당신이 판단하지
+  않습니다 — 서버가 결정론적으로 검증하고 필요하면 사용자에게
+  직접 확인을 요청합니다.
 - 나머지 값은 사용자가 명시하지 않으면 위 기본값을 그대로 사용하세요."""
 
 # 실제 OpenAiService.PLAIN_ANSWER_SYSTEM_PROMPT와 100% 동일(방어 규칙 포함).
