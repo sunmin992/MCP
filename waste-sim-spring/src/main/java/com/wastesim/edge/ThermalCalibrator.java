@@ -1,5 +1,7 @@
 package com.wastesim.edge;
 
+import com.wastesim.util.Round;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -382,7 +384,7 @@ public class ThermalCalibrator {
         return best;
     }
 
-    private static double round1(double v) { return Math.round(v * 10.0) / 10.0; }
-    private static Double round1(Double v) { return v == null ? null : round1(v.doubleValue()); }
+    private static double round1(double v) { return Round.round1(v); }
+    private static Double round1(Double v) { return v == null ? null : Round.round1(v.doubleValue()); }
     private static double round3(double v) { return Math.round(v * 1000.0) / 1000.0; }
 }

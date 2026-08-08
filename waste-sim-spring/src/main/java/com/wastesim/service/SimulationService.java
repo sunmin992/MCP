@@ -5,6 +5,9 @@ import com.wastesim.model.SimulationResult;
 import com.wastesim.simulation.SimulationEngine;
 import org.springframework.stereotype.Service;
 
+import static com.wastesim.util.Round.round1;
+import static com.wastesim.util.Round.round2;
+
 import java.util.*;
 import java.util.stream.IntStream;
 
@@ -136,14 +139,6 @@ public class SimulationService {
                 .mapToDouble(v -> (v - mean) * (v - mean))
                 .average().orElse(0);
         return Math.sqrt(variance);
-    }
-
-    private static double round1(double value) {
-        return Math.round(value * 10.0) / 10.0;
-    }
-
-    private static double round2(double value) {
-        return Math.round(value * 100.0) / 100.0;
     }
 
     private static double mean(List<Double> values) {

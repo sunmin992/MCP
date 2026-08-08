@@ -555,9 +555,7 @@ public class ChatController {
 
         ToolResult tr = provider.call(args);
         if (!tr.ready()) {
-            StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
-            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
-            reply(sb.toString().trim(), userText, history);
+            replyValidationErrors(tr, userText, history);
             return;
         }
 
@@ -602,9 +600,7 @@ public class ChatController {
             args.put("board", board);
             ToolResult tr = provider.call(args);
             if (!tr.ready()) {
-                StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
-                for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
-                reply(sb.toString().trim(), userText, history);
+                replyValidationErrors(tr, userText, history);
                 return;
             }
             @SuppressWarnings("unchecked")
@@ -629,9 +625,7 @@ public class ChatController {
             args.put("heatsinkMaterial", material);
             ToolResult tr = provider.call(args);
             if (!tr.ready()) {
-                StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
-                for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
-                reply(sb.toString().trim(), userText, history);
+                replyValidationErrors(tr, userText, history);
                 return;
             }
             @SuppressWarnings("unchecked")
@@ -662,9 +656,7 @@ public class ChatController {
             args.put("fanRatedRpm", ratedRpm);
             ToolResult tr = provider.call(args);
             if (!tr.ready()) {
-                StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
-                for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
-                reply(sb.toString().trim(), userText, history);
+                replyValidationErrors(tr, userText, history);
                 return;
             }
             @SuppressWarnings("unchecked")
@@ -692,9 +684,7 @@ public class ChatController {
         }
         ToolResult tr = provider.call(args);
         if (!tr.ready()) {
-            StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
-            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
-            reply(sb.toString().trim(), userText, history);
+            replyValidationErrors(tr, userText, history);
             return;
         }
         @SuppressWarnings("unchecked")
@@ -751,7 +741,7 @@ public class ChatController {
         String reply;
         if (!tr.ready()) {
             StringBuilder sb = new StringBuilder("시나리오를 실행할 수 없습니다:\n");
-            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+            appendBullets(sb, tr.errors());
             reply = sb.toString().trim();
             messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, reply));
         } else {
@@ -860,7 +850,7 @@ public class ChatController {
         ToolResult tr = tool.runSimulation(cfg, modelId, skipWarnings);
         if (!tr.ready()) {
             StringBuilder sb = new StringBuilder("설정을 실행할 수 없습니다:\n");
-            for (ValidationError e : tr.errors()) sb.append("- ").append(e.message()).append("\n");
+            appendBullets(sb, tr.errors());
             messaging.convertAndSend("/topic/messages",
                     new ChatMessage(ChatMessage.MessageType.BOT, sb.toString().trim()));
             return;
@@ -873,7 +863,7 @@ public class ChatController {
             metrics.counter("waste.chat.needs_confirm").increment();
             putPendingConfig("default", cfg, modelId);
             StringBuilder sb = new StringBuilder("바로 실행하지 않고 확인을 요청드립니다:\n");
-            for (ValidationError w : tr.warnings()) sb.append("- ").append(w.message()).append("\n");
+            appendBullets(sb, tr.warnings());
             ChatMessage confirmMsg = new ChatMessage(ChatMessage.MessageType.CONFIRM, sb.toString().trim());
             confirmMsg.setSimulationConfig(cfg);
             messaging.convertAndSend("/topic/messages", confirmMsg);
@@ -1006,5 +996,17 @@ public class ChatController {
                 "  %s: 운행 %d회 · 수거 %.1fkg%s\n",
                 truck, (int) agg[1], agg[0],
                 agg[2] > 0 ? String.format(" · 부분수거 %d회", (int) agg[2]) : "")));
+    }
+
+    /** 검증 오류·경고 목록을 "- 메시지" 불릿으로 이어 붙인다(검증 실패/확인 버블 공통). */
+    private static void appendBullets(StringBuilder sb, List<ValidationError> items) {
+        for (ValidationError e : items) sb.append("- ").append(e.message()).append("\n");
+    }
+
+    /** 실행 검증 실패 사유를 불릿으로 정리해 되돌려주는 공통 응답(실행 경로 여러 곳에서 재사용). */
+    private void replyValidationErrors(ToolResult tr, String userText, List<Map<String, String>> history) {
+        StringBuilder sb = new StringBuilder("요청한 조건으로는 실행할 수 없습니다:\n");
+        appendBullets(sb, tr.errors());
+        reply(sb.toString().trim(), userText, history);
     }
 }

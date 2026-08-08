@@ -7,6 +7,8 @@ import com.wastesim.model.TrafficProfile;
 import com.wastesim.model.TripMetric;
 import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
+
+import static com.wastesim.util.Round.round2;
 import com.wastesim.service.TrafficDataService;
 import org.springframework.stereotype.Component;
 
@@ -405,10 +407,6 @@ public class SimulationEngine {
         result.setAvgCompletionMinutes(
                 completionCount > 0 ? Math.round(completionSum * 10.0 / completionCount) / 10.0 : 0);
         return result;
-    }
-
-    private static double round2(double value) {
-        return Math.round(value * 100.0) / 100.0;
     }
 
     /** 운행별 누적기(§3.4) — 구조(용량·초기적재)는 시드와 무관, 수거량만 시드마다 다르다. */
