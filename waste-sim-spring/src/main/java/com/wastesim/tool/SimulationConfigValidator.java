@@ -380,7 +380,9 @@ public class SimulationConfigValidator {
      * 별도 정밀 시뮬 없이 근사 계산하는 예측 적재율(수요/공급). 1.0 초과면
      * 배출량이 수거 용량을 지속적으로 초과한다는 뜻. (§5.2)
      *
-     * <p>공급은 트럭 수 × 차종 정격 적재용량 × 일평균 운행횟수로 계산한다.
+     * <p>공급은 실제 경로가 배정되는 트럭 수 × 운행별 신규 수거 가능량 ×
+     * 일평균 운행횟수로 계산한다. 건물보다 트럭이 많으면 엔진은 빈 경로의
+     * 운행을 생성하지 않으므로, 검증기도 방문 건물이 있는 트럭만 센다.
      * 엔진도 운행별 잔여 적재용량을 실제로 차감하므로 검증기와 실행기의 물리
      * 가정이 같다. 수거장 용량은 저장 한계이지 차량 운반 처리량이 아니므로
      * 공급량에 더하지 않는다. truckCount==0이면 항상 수거 불가로 본다.
@@ -400,7 +402,8 @@ public class SimulationConfigValidator {
             truckType = TruckType.LARGE_5TON;
         }
         double pickupCapacityPerTrip = c.resolvePickupCapacityKg(truckType.capacityKg);
-        double truckCapacityPerDay = c.getTruckCount() * pickupCapacityPerTrip * collectionsPerDay;
+        int activeTruckCount = Math.min(c.getTruckCount(), c.getNumBuildings());
+        double truckCapacityPerDay = activeTruckCount * pickupCapacityPerTrip * collectionsPerDay;
         // 엔진도 실제로 트럭 적재용량을 강제하므로 일일 수거능력은 트럭 용량 합계다.
         // 수거장 용량은 저장 한계이지 차량의 운반 처리량이 아니다.
         double supplyPerDay = truckCapacityPerDay;

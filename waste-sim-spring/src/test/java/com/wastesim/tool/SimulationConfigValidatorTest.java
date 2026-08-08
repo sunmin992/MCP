@@ -75,6 +75,23 @@ class SimulationConfigValidatorTest {
     }
 
     @Test
+    void overflowPredictionExcludesTrucksWithEmptyRoutes() {
+        SimulationConfig c = new SimulationConfig();
+        c.setNumBuildings(2);
+        c.setTruckCount(4);                   // T3·T4는 방문 건물이 없어 엔진에서 운행하지 않음
+        c.setResidentsPerBuilding(2000);      // 일 배출량 2 × 2000 × 0.9 = 3600kg
+        c.setTruckType("LARGE_5TON");
+        c.setRouteAvailableCapacityKg(1000.0);
+
+        // 실제 운행 트럭은 2대이므로 공급량은 2000kg, 예측 적재율은 180%다.
+        assertEquals(1.8, v.predictOverflowRatio(c), 1e-9);
+        ValidationResult result = v.validate(c);
+        assertFalse(result.ready());
+        assertTrue(result.errors().stream().anyMatch(e ->
+                e.code() == ErrorCode.CRITICAL_WASTE_ACCUMULATION));
+    }
+
+    @Test
     void trafficInfeasibleForLargeTruckInAlley() {   // UT-T5 (V-T3)
         SimulationConfig c = new SimulationConfig();
         c.setTrafficEnabled(true);
