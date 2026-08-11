@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.regex.Pattern;
 
 /**
- * 메시지가 사이드바 "시나리오 실험" 버튼 11종({@code SimulationTool#runScenario}가
+ * 메시지가 사이드바 "시나리오 실험" 버튼 12종({@code SimulationTool#runScenario}가
  * 받는 type 문자열) 중 어느 것을 가리키는지 결정론적으로 판정한다.
  *
  * <p>지금까지 채팅은 단일 실행(run_waste_simulation)만 자연어로 라우팅하고,
@@ -28,6 +28,11 @@ public final class ScenarioIntentDetector {
     // LinkedHashMap: 삽입 순서 = 검사 순서(먼저 매칭되는 것을 채택)
     private static final Map<String, Pattern[]> RULES = new LinkedHashMap<>();
     static {
+        // 차종×순서 탐색은 multi-truck(트럭 대수)보다 먼저 본다 — "트럭"이 두 규칙에
+        // 함께 걸리는데, 차종·순서를 말한 쪽이 더 구체적인 요청이다.
+        RULES.put("truck-route", pats(
+                "(차종|트럭\\s*(종류|크기)|[512]\\s*톤|방문\\s*순서|수거\\s*순서|경로\\s*순서)",
+                "(탐색|최적|가장\\s*(적|나은|좋)|찾아|조합|비교)"));
         RULES.put("monthly-waste", pats("월별", "배출"));
         RULES.put("waste-separation", pats("분리배출"));
         RULES.put("new-occupations", pats("(야간\\s*근무|1인\\s*직장인|확장\\s*거주민)"));

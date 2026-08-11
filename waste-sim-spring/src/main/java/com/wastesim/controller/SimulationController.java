@@ -3,8 +3,10 @@ package com.wastesim.controller;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.service.SimulationService;
+import com.wastesim.tool.ErrorCode;
 import com.wastesim.tool.SimulationTool;
 import com.wastesim.tool.ToolResult;
+import com.wastesim.tool.ValidationError;
 import com.wastesim.tool.ValidationResult;
 import com.wastesim.web.ApiError;
 import com.wastesim.web.CompareRequest;
@@ -53,6 +55,14 @@ public class SimulationController {
     /** POST /api/simulation/compare — 여러 수거 시각 비교 실험 (타입 DTO로 500 위험 제거) */
     @PostMapping("/compare")
     public ResponseEntity<?> compare(@RequestBody CompareRequest body) {
+        // 빈 times를 기본값으로 갈아끼우면 클라이언트는 자기 요청이 비었다는 사실을
+        // 모른 채 요청하지도 않은 시각의 결과를 받는다(A-02, D-26 조용한 보정 금지).
+        if (body.isTimesExplicitlyEmpty()) {
+            return ResponseEntity.badRequest().body(ApiError.of("VALIDATION", "수거시각 비교 요청 검증 실패",
+                    List.of(new ValidationError(ErrorCode.MISSING_FIELD, "times",
+                            "times는 비어 있을 수 없습니다. 비교할 수거 시각을 하나 이상 지정하거나 "
+                          + "times 필드를 아예 빼면 기본값(10:00·12:00·14:00)으로 실행됩니다."))));
+        }
         List<Object> results = new ArrayList<>();
         for (String t : body.getTimes()) {
             SimulationConfig cfg = new SimulationConfig();

@@ -20,6 +20,20 @@ class ScenarioIntentDetectorTest {
         assertEquals("new-occupations", ScenarioIntentDetector.detect("확장 거주민(야간·1인직장인)"));
         assertEquals("coupling-variants", ScenarioIntentDetector.detect("결합모델 변형(귀가·임대인)"));
         assertEquals("monthly-waste", ScenarioIntentDetector.detect("월별 배출량(1년·최다 달)"));
+        assertEquals("truck-route", ScenarioIntentDetector.detect("차종 × 방문 순서 탐색"));
+    }
+
+    @Test
+    void truckRouteSearchDoesNotStealMultiTruck() {
+        // "트럭"이 두 규칙에 함께 걸린다. 대수를 묻는 기존 요청이 탐색으로 새면
+        // 사용자가 물은 구역 분할 효과 대신 조합 순위표가 돌아온다.
+        assertEquals("multi-truck", ScenarioIntentDetector.detect("다중 트럭·구역 분할"));
+        assertEquals("multi-truck", ScenarioIntentDetector.detect("트럭을 여러 대로 나누면 어떻게 돼?"));
+
+        // 차종·순서를 실제로 가리키는 요청만 탐색으로 간다.
+        assertEquals("truck-route", ScenarioIntentDetector.detect("차종이랑 방문 순서 조합 중에 민원 가장 적은 거 찾아줘"));
+        assertEquals("truck-route", ScenarioIntentDetector.detect("1톤이랑 5톤 중에 뭐가 최적인지 비교해줘"));
+        assertEquals("truck-route", ScenarioIntentDetector.detect("수거 순서를 바꿔가며 최적 조합 탐색해줘"));
     }
 
     @Test

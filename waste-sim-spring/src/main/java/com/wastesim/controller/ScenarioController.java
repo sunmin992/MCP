@@ -171,7 +171,44 @@ public class ScenarioController {
         return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.monthlyWaste(base, monthlyFactor)));
     }
 
+    /** 12. 차종 × 방문 순서 탐색: 민원이 가장 적은 조합 */
+    @PostMapping("/truck-route")
+    public ResponseEntity<?> truckRoute(@RequestBody(required = false) Map<String, Object> body) {
+        Map<String, Object> b = body == null ? Map.of() : body;
+        SimulationConfig base = baseConfig(b, 10);
+        applyPreset(base, b);
+        // 이동시간을 명시하면 그대로 쓴다 — 지정하지 않으면 시나리오가 기본값을 채우고
+        // 무엇을 가정했는지 결과에 밝힌다(조용히 바꾸지 않는다).
+        if (b.get("routeTravelMinutes") instanceof Number n) base.setRouteTravelMinutes(n.intValue());
+        List<List<String>> routes = routeSequences(b);
+        List<String> truckTypes = stringList(b, "truckTypes");
+        return ApiError.respond(tool.runScenarioCustom(base,
+                () -> scenario.truckRouteSearch(base, routes, truckTypes)));
+    }
+
     // ── 공통 헬퍼 ─────────────────────────────────────────────────────────
+
+    /** {@code routeSequences: [["Node_A","Node_B"], ...]} — 형식이 아니면 null(자동 생성). */
+    private static List<List<String>> routeSequences(Map<String, Object> b) {
+        if (!(b.get("routeSequences") instanceof List<?> outer) || outer.isEmpty()) return null;
+        List<List<String>> out = new ArrayList<>();
+        for (Object o : outer) {
+            if (o instanceof List<?> inner && !inner.isEmpty()) {
+                List<String> seq = new ArrayList<>(inner.size());
+                for (Object node : inner) seq.add(String.valueOf(node));
+                out.add(seq);
+            }
+        }
+        return out.isEmpty() ? null : out;
+    }
+
+    private static List<String> stringList(Map<String, Object> b, String k) {
+        if (!(b.get(k) instanceof List<?> list) || list.isEmpty()) return null;
+        List<String> out = new ArrayList<>(list.size());
+        for (Object o : list) out.add(String.valueOf(o));
+        return out;
+    }
+
 
     private SimulationConfig baseConfig(Map<String, Object> b, int defaultSeeds) {
         SimulationConfig cfg = new SimulationConfig();

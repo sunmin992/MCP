@@ -77,7 +77,7 @@ class EdgeToolSelectorTest {
         }
     }
 
-    // ── 캘리브레이션이 가장 우선 ──────────────────────────────────────────────
+    // ── 캘리브레이션은 배치·발열보다 우선 ────────────────────────────────────
 
     @Test
     @DisplayName("실측 보정 요청은 배치 어휘가 섞여도 캘리브레이션이 이긴다")
@@ -86,6 +86,24 @@ class EdgeToolSelectorTest {
                 EdgeToolSelector.select("측정 데이터로 모델 보정해줘"));
         assertEquals(EdgeToolSelector.TOOL_CALIBRATE,
                 EdgeToolSelector.select("실측 CSV로 방열판 배치 모델을 보정하고 싶어"));
+    }
+
+    // ── 스윕이 캘리브레이션보다 우선 (FR-78) ─────────────────────────────────
+    //
+    // FR-78이 정한 검사 순서는 스윕 → 캘리브레이션 → 방열판 배치 → 발열이다.
+    // 두 어휘가 함께 나온 문장에서 캘리브레이션이 이기면 사용자는 답을 못 받는다 —
+    // 캘리브레이션은 시계열을 채팅으로 실어 나를 수 없어 채팅에서 실행하지 않고
+    // 보내는 방법만 안내하기 때문이다(FR-83). 스윕은 그 문장에서 실제로 실행된다.
+
+    @Test
+    @DisplayName("스윕 어휘가 있으면 캘리브레이션 어휘가 섞여도 스윕이 이긴다")
+    void sweepWinsOverCalibration() {
+        assertEquals(EdgeToolSelector.TOOL_SWEEP,
+                EdgeToolSelector.select("실측 프로파일 기준으로 최적 팬 rpm 찾아줘"));
+        assertEquals(EdgeToolSelector.TOOL_SWEEP,
+                EdgeToolSelector.select("보정된 모델로 pwm 스윕 돌려줘"));
+        assertEquals(EdgeToolSelector.TOOL_SWEEP,
+                EdgeToolSelector.select("측정 데이터 기준으로 팬 몇 rpm이 가성비가 제일 좋아?"));
     }
 
     @Test

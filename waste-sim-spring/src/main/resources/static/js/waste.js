@@ -396,7 +396,8 @@ const SCENARIO_META = {
   'waste-separation':{ title: '분리배출 효과',                chart: 'bar'  },
   'new-occupations': { title: '확장 거주민 유형별 최적 수거시각', chart: 'line' },
   'coupling-variants':{ title: '결합모델 변형(귀가·임대인)',   chart: 'bar'  },
-  'monthly-waste':   { title: '월별 배출량(1년·최다 달)',      chart: 'bar'  }
+  'monthly-waste':   { title: '월별 배출량(1년·최다 달)',      chart: 'bar'  },
+  'truck-route':     { title: '차종 × 방문 순서 탐색',         chart: 'bar'  }
 };
 const SCN_COLORS = ['#5c73f2', '#4ade80', '#f87171', '#facc15', '#7c5cf2', '#38bdf8'];
 

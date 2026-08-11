@@ -87,7 +87,7 @@ public class McpToolCatalog {
                 "type": {"type": "string",
                   "enum": ["occupation-mix","collection-sweep","behavior-grid","infra-grid","density",
                            "collection-schedule","multi-truck","waste-separation","new-occupations",
-                           "coupling-variants","monthly-waste"],
+                           "coupling-variants","monthly-waste","truck-route"],
                   "description": "실행할 시나리오 실험 유형"},
                 "days": {"type": "integer", "default": 30},
                 "seeds": {"type": "integer", "default": 10},

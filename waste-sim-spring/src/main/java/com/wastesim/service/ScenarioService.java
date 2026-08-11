@@ -4,7 +4,10 @@ import com.wastesim.model.ScenarioPreset;
 import com.wastesim.model.ScenarioResponse;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
+import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
+import com.wastesim.simulation.SimulationEngine;
+import com.wastesim.simulation.TravelTimeCalculator;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -17,6 +20,8 @@ import java.util.*;
  *  3) behaviorGrid            : 외출분산 α × 배출변동 β 민감도
  *  4) infraGrid               : 수거장 용량 C × 민원 임계 θ 트레이드오프
  *  5) densityComparison       : 저밀도 빌라촌 vs 고밀도 원룸촌
+ *  …
+ * 12) truckRouteSearch        : 차종 × 방문 순서 격자 → 민원 최소 조합
  */
 @Service
 public class ScenarioService {
@@ -353,5 +358,253 @@ public class ScenarioService {
         resp.addInsight("최소 배출 월", (minM + 1) + "월 (" + Math.round(minV) + " kg)");
         resp.addInsight("주의", "계절 가중치는 명절·여름·연말 패턴을 가정한 값으로, 실측 데이터가 아닙니다");
         return resp;
+    }
+
+    // ── 12. 차종 × 방문 순서 탐색 ──────────────────────────────────────────
+
+    /** 순서 후보를 자동 생성할 때 전수 탐색을 허용하는 상한. 4! = 24가 경계다. */
+    static final int MAX_AUTO_PERMUTATIONS = 24;
+
+    /** 한 번의 실험에서 비교할 순서 후보 개수 상한 — 실행 시간이 조합 수에 비례한다. */
+    static final int MAX_ROUTE_CANDIDATES = 24;
+
+    /**
+     * 격자가 "평평하다"고 볼 경계(건). 보고하는 평균은 0.1건 단위로 반올림하므로,
+     * 그보다 작은 폭은 사용자에게 보이지도 않는 차이다 — 그런 폭으로 축 순위를 매기면
+     * 표에는 같은 숫자가 늘어서 있는데 결론만 승자를 지목하는 상태가 된다.
+     */
+    static final double FLAT_GRID_EPSILON = 0.05;
+
+    /**
+     * 차종(용량·기동성) × 수거장 방문 순서의 격자를 훑어 <b>민원이 가장 적은 조합</b>을 찾는다.
+     *
+     * <p><b>왜 두 축을 함께 도는가</b>: 두 축은 독립이 아니다. 1톤 트럭은 골목을 빨리 돌지만
+     * 용량이 1,000kg뿐이라 많이 쌓인 건물을 뒤에 두면 용량이 먼저 바닥난다 — 즉 <b>어느
+     * 차종이 유리한지가 방문 순서에 따라 뒤집힌다</b>. 축을 따로 훑으면 이 상호작용이
+     * 통째로 사라지고 "5톤이 항상 낫다" 같은 뻔한 결론만 남는다.
+     *
+     * <p><b>이동시간을 반드시 확보한다</b>: 건물 간 이동시간이 0이면 방문 순서를 아무리
+     * 바꿔도 모든 건물이 같은 시각에 수거되어 순서가 결과에 반영될 물리적 여지가 없다.
+     * 차종의 기동성 배수도 0을 나눠 봐야 0이다. 그래서 base에 이동시간이 없으면
+     * {@link TravelTimeCalculator#DEFAULT_ROUTE_TRAVEL_MINUTES}를 채우고 그 사실을
+     * insight로 밝힌다(FR-47과 같은 이유 — 조용히 바꾸지 않는다).
+     *
+     * <p><b>순서 후보를 지어내지 않는다</b>: 건물이 n개면 순서는 n!이라 5개만 되어도 120가지다.
+     * 전수를 못 도는 규모에서 임의로 몇 개만 뽑아 "최적"이라 부르면 사용자는 탐색하지 않은
+     * 구간을 탐색했다고 읽는다. 그래서 (a) 후보를 직접 주면 그것만 돌고, (b) 자동 생성은
+     * {@link #MAX_AUTO_PERMUTATIONS} 이하일 때만 전수로 하며, (c) 그 위에서는 대표 후보만
+     * 돌면서 <b>전수가 아니라는 것</b>을 insight에 남긴다(엣지 스윕의 FR-100·101과 같은 원칙).
+     *
+     * @param base           공통 설정. 이동시간이 0이면 기본값으로 채운다
+     * @param routeSequences 비교할 방문 순서 후보(각각 Node_A 형식의 리스트). null이면 자동 생성
+     * @param truckTypeNames 비교할 차종 이름. null이면 전 차종
+     */
+    public ScenarioResponse truckRouteSearch(SimulationConfig base,
+                                             List<List<String>> routeSequences,
+                                             List<String> truckTypeNames) {
+        int nB = base.getNumBuildings();
+        List<TruckType> trucks = resolveTruckTypes(truckTypeNames);
+
+        boolean exhaustive;
+        List<List<String>> routes;
+        if (routeSequences != null && !routeSequences.isEmpty()) {
+            routes = new ArrayList<>(routeSequences.subList(0, Math.min(routeSequences.size(), MAX_ROUTE_CANDIDATES)));
+            exhaustive = false;                       // 사용자가 고른 부분집합이다
+        } else if (factorial(nB) <= MAX_AUTO_PERMUTATIONS) {
+            routes = allPermutations(nB);
+            exhaustive = true;
+        } else {
+            routes = representativeRoutes(nB);
+            exhaustive = false;
+        }
+
+        // 이동시간이 0이면 순서·차종이 결과에 반영될 여지가 없다(위 주석 참고).
+        SimulationConfig grid = base.copy();
+        boolean travelFilled = false;
+        if (grid.getRouteTravelMinutes() <= 0) {
+            grid.setRouteTravelMinutes(TravelTimeCalculator.DEFAULT_ROUTE_TRAVEL_MINUTES);
+            travelFilled = true;
+        }
+
+        ScenarioResponse resp = new ScenarioResponse(
+                "TRUCK_ROUTE_SEARCH", "차종 × 방문 순서 탐색 (민원 최소 조합)", "방문 순서");
+
+        List<String> cats = new ArrayList<>();
+        for (List<String> r : routes) cats.add(routeLabel(r));
+        resp.setXCategories(cats);
+
+        double bestMean = Double.MAX_VALUE, worstMean = -1;
+        TruckType bestTruck = null, worstTruck = null;
+        List<String> bestRoute = null, worstRoute = null;
+
+        // 축별 효과 크기 비교용 — 같은 순서에서 차종만 바꿨을 때의 폭과
+        // 같은 차종에서 순서만 바꿨을 때의 폭 중 어느 쪽이 큰지가 해석의 핵심이다.
+        double maxSpreadWithinRoute = 0.0;   // 순서 고정, 차종만 변화
+        double maxSpreadWithinTruck = 0.0;   // 차종 고정, 순서만 변화
+        double[][] means = new double[trucks.size()][routes.size()];
+
+        for (int ti = 0; ti < trucks.size(); ti++) {
+            TruckType truck = trucks.get(ti);
+            ScenarioResponse.Series s = resp.newSeries(truck.labelKo);
+            for (int ri = 0; ri < routes.size(); ri++) {
+                List<String> route = routes.get(ri);
+                SimulationConfig cfg = grid.copy();
+                cfg.setTruckType(truck.name());
+                cfg.setRouteSequence(new ArrayList<>(route));
+                double[] ms = meanStd(cfg);
+                s.add(ms[0], ms[1]);
+                means[ti][ri] = ms[0];
+                if (ms[0] < bestMean) { bestMean = ms[0]; bestTruck = truck; bestRoute = route; }
+                if (ms[0] > worstMean) { worstMean = ms[0]; worstTruck = truck; worstRoute = route; }
+            }
+        }
+
+        for (int ri = 0; ri < routes.size(); ri++) {
+            double lo = Double.MAX_VALUE, hi = -1;
+            for (int ti = 0; ti < trucks.size(); ti++) {
+                lo = Math.min(lo, means[ti][ri]);
+                hi = Math.max(hi, means[ti][ri]);
+            }
+            maxSpreadWithinRoute = Math.max(maxSpreadWithinRoute, hi - lo);
+        }
+        for (int ti = 0; ti < trucks.size(); ti++) {
+            double lo = Double.MAX_VALUE, hi = -1;
+            for (int ri = 0; ri < routes.size(); ri++) {
+                lo = Math.min(lo, means[ti][ri]);
+                hi = Math.max(hi, means[ti][ri]);
+            }
+            maxSpreadWithinTruck = Math.max(maxSpreadWithinTruck, hi - lo);
+        }
+
+        // key/value는 UI의 공통 렌더러가 그대로 쓰고, 나머지 필드는 MCP·REST 소비자가
+        // 문자열을 다시 파싱하지 않고 조합을 그대로 재현할 수 있게 구조화해 함께 싣는다.
+        // 전 조합이 동률이면 "최적"이라는 말이 없는 우열을 있다고 읽히게 한다 —
+        // 어느 조합을 골라도 같다는 사실 자체를 값에 실어 보낸다.
+        boolean flatGrid = Math.max(maxSpreadWithinRoute, maxSpreadWithinTruck) < FLAT_GRID_EPSILON;
+        resp.addInsight(comboInsight("최적 조합", bestTruck, bestRoute, bestMean, flatGrid));
+        resp.addInsight(comboInsight("최악 조합", worstTruck, worstRoute, worstMean, flatGrid));
+
+        resp.addInsight("개선 폭", round1(worstMean - bestMean) + "건");
+        resp.addInsight("탐색 조합 수", trucks.size() + "차종 × " + routes.size() + "순서 = "
+                + (trucks.size() * routes.size()) + "가지");
+
+        // 어느 축을 먼저 손봐야 하는지 — 이 실험을 돌리는 실질적 이유다.
+        //
+        // 다만 두 축이 모두 결과를 못 움직였다면 "그래도 차종 쪽이 크다"고 말해서는 안 된다.
+        // 0.0건과 0.0건을 비교해 승자를 발표하면 사용자는 없는 차이를 있다고 읽는다 —
+        // 엣지 비교의 D-25("정상상태도 피크도 같으면 조건을 바꾸라고 안내")와 같은 상황이다.
+        // 그래서 이 경우에는 순위를 매기는 대신 왜 평평한지와 무엇을 올려야 하는지를 알린다.
+        if (flatGrid) {
+            resp.addInsight("축별 효과",
+                    "이 조건에서는 차종·방문 순서 어느 쪽도 민원 수를 바꾸지 못했습니다(둘 다 0건 차이) — "
+                  + "순위를 매길 근거가 없습니다. 두 축이 결과에 반영되려면 (a) 건물 간 이동시간을 "
+                  + "늘려 방문 순서에 따른 수거 시각 차이를 만들거나, (b) 배출량을 늘려(거주민 수↑) "
+                  + "차종 정격용량이 실제로 부족해지는 구간으로 들어가야 합니다. "
+                  + "현재 이동시간 " + grid.getRouteTravelMinutes() + "분에서는 방문 순서를 바꿔도 "
+                  + "수거 시각 차이가 민원 임계를 넘나들 만큼 벌어지지 않습니다");
+        } else {
+            resp.addInsight("축별 효과",
+                    "차종만 바꿨을 때 최대 " + round1(maxSpreadWithinRoute) + "건, "
+                  + "순서만 바꿨을 때 최대 " + round1(maxSpreadWithinTruck) + "건 → "
+                  + (maxSpreadWithinRoute > maxSpreadWithinTruck ? "차종"
+                     : maxSpreadWithinTruck > maxSpreadWithinRoute ? "방문 순서"
+                     : "두") + " 축의 영향이 "
+                  + (maxSpreadWithinRoute == maxSpreadWithinTruck ? "같습니다" : "더 큽니다"));
+        }
+
+        if (!exhaustive) {
+            resp.addInsight("탐색 범위",
+                    "전수 탐색이 아닙니다 — 건물 " + nB + "개의 가능한 순서는 " + factorial(nB)
+                  + "가지이고 그중 " + routes.size() + "가지만 비교했습니다. "
+                  + "여기서 나온 최적 조합은 비교한 후보 안에서의 최적입니다");
+        }
+        if (travelFilled) {
+            resp.addInsight("가정",
+                    "건물 간 이동시간이 지정되지 않아 " + TravelTimeCalculator.DEFAULT_ROUTE_TRAVEL_MINUTES
+                  + "분으로 가정했습니다 — 이동시간이 0이면 방문 순서와 차종 기동성이 결과에 반영되지 않습니다");
+        }
+        return resp;
+    }
+
+    /** 조합 insight 한 줄 — 사람이 읽는 {@code value}와 기계가 읽는 구조화 필드를 함께 담는다. */
+    private static Map<String, Object> comboInsight(String key, TruckType truck, List<String> route,
+                                                    double mean, boolean tiedAcrossGrid) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        m.put("key", key);
+        m.put("value", (truck == null ? "-" : truck.labelKo) + " · "
+                + (route == null ? "-" : routeLabel(route)) + " (" + round1(mean) + "건)"
+                + (tiedAcrossGrid ? " — 전 조합 동률이라 우열이 없습니다" : ""));
+        m.put("tied", tiedAcrossGrid);
+        m.put("truckType", truck == null ? null : truck.name());
+        m.put("truckLabel", truck == null ? null : truck.labelKo);
+        m.put("routeSequence", route);
+        m.put("mean", round1(mean));
+        return m;
+    }
+
+    /** 이름 목록 → 차종. null·빈 목록이면 전 차종. 알 수 없는 이름은 {@link TruckType#fromName} 이 거부한다. */
+    private static List<TruckType> resolveTruckTypes(List<String> names) {
+        if (names == null || names.isEmpty()) return Arrays.asList(TruckType.values());
+        // 중복 입력이 격자를 부풀리지 않도록 순서를 보존하며 한 번씩만 남긴다.
+        LinkedHashSet<TruckType> out = new LinkedHashSet<>();
+        for (String n : names) out.add(TruckType.fromName(n));
+        return new ArrayList<>(out);
+    }
+
+    /** 건물 n개의 모든 방문 순서(Node_A…). 호출부가 n! ≤ 상한임을 보장한다. */
+    static List<List<String>> allPermutations(int n) {
+        List<List<String>> out = new ArrayList<>();
+        permute(new ArrayList<>(), new boolean[n], n, out);
+        return out;
+    }
+
+    private static void permute(List<Integer> acc, boolean[] used, int n, List<List<String>> out) {
+        if (acc.size() == n) {
+            List<String> seq = new ArrayList<>(n);
+            for (int b : acc) seq.add(SimulationEngine.nodeId(b));
+            out.add(seq);
+            return;
+        }
+        for (int i = 0; i < n; i++) {
+            if (used[i]) continue;
+            used[i] = true;
+            acc.add(i);
+            permute(acc, used, n, out);
+            acc.remove(acc.size() - 1);
+            used[i] = false;
+        }
+    }
+
+    /**
+     * 전수 탐색이 불가능한 규모에서 쓰는 대표 순서 — 정방향과 역방향 두 가지뿐이다.
+     * 여기에 "무작위 k개"를 섞지 않는 이유는, 무작위 후보가 섞이면 같은 요청이 실행마다
+     * 다른 최적을 내놓아 재현성(NFR-02)이 깨지기 때문이다.
+     */
+    static List<List<String>> representativeRoutes(int n) {
+        List<String> forward = new ArrayList<>(n);
+        for (int b = 0; b < n; b++) forward.add(SimulationEngine.nodeId(b));
+        List<String> reverse = new ArrayList<>(forward);
+        Collections.reverse(reverse);
+        return List.of(forward, reverse);
+    }
+
+    /** 차트 x축 라벨 — "A→C→B" 처럼 노드 접두사를 떼어 짧게 만든다. */
+    static String routeLabel(List<String> route) {
+        StringBuilder sb = new StringBuilder();
+        for (String node : route) {
+            if (sb.length() > 0) sb.append('→');
+            sb.append(node.startsWith("Node_") ? node.substring(5) : node);
+        }
+        return sb.toString();
+    }
+
+    private static int factorial(int n) {
+        int f = 1;
+        for (int i = 2; i <= n; i++) f *= i;
+        return f;
+    }
+
+    private static double round1(double v) {
+        return Math.round(v * 10) / 10.0;
     }
 }

@@ -38,6 +38,12 @@ public final class EdgeToolSelector {
      * 발열 시뮬레이션과 완전히 겹치는데(팬·rpm·온도), 한 지점만 돌리면 사용자가 물어본
      * <b>비교</b>가 통째로 빠진 답이 된다.
      *
+     * <p><b>캘리브레이션보다도 먼저 검사한다</b>(FR-78의 검사 순서: 스윕 → 캘리브레이션 →
+     * 방열판 배치 → 발열). "실측 프로파일 기준으로 최적 팬 rpm 찾아줘"처럼 두 어휘가
+     * 함께 나오는 문장에서 캘리브레이션이 이기면 답이 아예 나오지 않는다 — 캘리브레이션은
+     * 시계열을 채팅으로 실어 나를 수 없어 채팅에서 실행하지 않고 보내는 방법만 안내하기
+     * 때문이다(FR-83). 스윕은 그 문장에서 실제로 실행되어 사용자가 물은 운전점을 낸다.
+     *
      * <p>"최적"·"적정"은 단독으로 넣지 않고 회전수·팬·전력을 가리키는 말과 붙어 있을
      * 때만 본다 — "최적 배치"는 방열판 도구의 질문이고, 여기로 새면 배치 비교가 스윕으로
      * 바뀐다.
@@ -101,8 +107,8 @@ public final class EdgeToolSelector {
     /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 넷 중 하나를 반환한다(기본은 발열 시뮬레이션). */
     public static String select(String text) {
         if (text == null) return TOOL_THROTTLING;
-        if (CALIBRATE.matcher(text).find()) return TOOL_CALIBRATE;
         if (SWEEP.matcher(text).find()) return TOOL_SWEEP;
+        if (CALIBRATE.matcher(text).find()) return TOOL_CALIBRATE;
         if (HEATSINK.matcher(text).find()) return TOOL_HEATSINK;
         // 재질만으로는 배치 비교로 보내지 않는다 — 질량이 함께 있으면 특정 방열판을
         // 지정한 발열 시뮬레이션 요청이다(HEATSINK_MATERIAL 주석 참고).

@@ -127,6 +127,7 @@ public class SimulationTool {
                 case "new-occupations"     -> scenarioService.newOccupations(base, null);
                 case "coupling-variants"   -> scenarioService.couplingVariants(base);
                 case "monthly-waste"       -> scenarioService.monthlyWaste(base, null);
+                case "truck-route"         -> scenarioService.truckRouteSearch(base, null, null);
                 default -> null;
             };
             if (resp == null) {
@@ -167,6 +168,6 @@ public class SimulationTool {
     public List<String> scenarioTypes() {
         return List.of("occupation-mix", "collection-sweep", "behavior-grid", "infra-grid",
                 "density", "collection-schedule", "multi-truck", "waste-separation",
-                "new-occupations", "coupling-variants", "monthly-waste");
+                "new-occupations", "coupling-variants", "monthly-waste", "truck-route");
     }
 }
