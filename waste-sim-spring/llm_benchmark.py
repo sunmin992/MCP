@@ -244,6 +244,32 @@ PROMPTS = [
     # 버그의 재현 케이스이기도 함 — JSON 없이 "실행해봐야 안다"고 답해야 함).
     ("13시 교통량과 3시 교통량 비교해줘", False),
     ("이 시뮬레이션은 대체 뭘 하는 거야?", False),  # 오탐 체크: JSON 나오면 안 됨
+    # ── 도메인 혼합 어휘 케이스 (엣지 도메인 도입 이후 신규) ──────────────────
+    # 기존 비실행 케이스는 전부 장량동 어휘만 쓴다. 여기 둘은 라즈베리파이·카메라·
+    # 발열·FPS(엣지)와 장량동·쓰레기·수거·트럭·민원(폐기물)을 한 문장에 섞는다 —
+    # v1.7에서 도메인이 둘로 늘어난 뒤 실제로 들어올 법한 문장인데 테스트셋에
+    # 대응하는 케이스가 없었다.
+    #
+    # 둘 다 정답은 False다. 수거 시각이 하나도 없으므로 장량동 시뮬레이션을
+    # 실행할 근거가 없고, 되물어야 한다("미지정 시 되물음" 정책).
+    #
+    # 이 두 케이스가 특히 값진 이유: is_execution_request()만 놓고 보면 둘 다
+    # True를 돌려준다(순간값 조회도, 명시적 실행 거부도 아니므로). 실행을 막는
+    # 것은 오직 시각 게이트(count==0)다. 즉 FR-10이 "시각 0개면 실행 아님으로
+    # 확정"하는 조항 하나에 전적으로 의존하는 케이스라, 그 게이트가 약해지면
+    # 여기서 가장 먼저 깨진다.
+    #
+    # ① 카메라 영상으로 장량동 상황을 분석해 달라 — 시뮬레이션 실행 요청처럼
+    #    들리는 어휘("분석해줘")에 장량동 도메인 명사가 잔뜩 붙어 있지만, 정작
+    #    실행에 필요한 수거 시각이 없다. 모델이 시각을 지어내면(예: 임의로
+    #    "12:00") 사용자가 요청하지 않은 조건의 결과를 답으로 받는다.
+    ("라즈베리파이 카메라로 장량동 쓰레기 수거 트럭과 민원 상황을 분석해줘", False),
+    # ② 엣지 발열 질문인데 폐기물 어휘가 소재로 섞인 경우 — "쓰레기 수거 영상"은
+    #    추론 대상(워크로드)을 설명하는 말이지 수거 시뮬레이션을 돌려 달라는
+    #    뜻이 아니다. 실제로 물어본 것은 CPU 발열·FPS(엣지 도메인)다.
+    #    장량동 파이프라인이 여기서 JSON을 내면 사용자는 묻지도 않은 민원 통계를
+    #    받게 된다 — 도메인 오탐 0건(UT-51) 합격선이 지키려는 상황 그대로다.
+    ("라즈베리파이로 쓰레기 수거 영상을 추론할 때 CPU 발열과 FPS를 확인해줘", False),
 ]
 
 CODE_BLOCK = re.compile(r"```json\s*(\{[\s\S]*?\})\s*```")
@@ -1124,7 +1150,8 @@ def run_pipeline_benchmark(active):
 # 어느 수치를 인용해야 하는지 한눈에 안 보였다. 이 표는 세 섹션의 원본 집계
 # (raw dict, 이미 계산된 값 재사용 — 별도 재계산 없음)에서 그 세 지표만 뽑아
 # 모델별로 한 표에 모은 것으로, 다른 섹션의 판정 로직을 전혀 바꾸지 않는다.
-def build_key_metrics_summary(pipeline_results, fidelity_results, jailbreak_results):
+def build_key_metrics_summary(pipeline_results, fidelity_results, jailbreak_results,
+                              domain_results=None):
     lines = ["\n## 0) 핵심 지표 요약 (인용용)\n",
              "아래 세 지표가 이 시스템의 안전장치(2단계 결정론적 게이트 + 사후 필터)를 "
              "수치로 검증한다. 각 지표의 산출 방식과 원문 로그는 해당 섹션(②④⑤)을 참고할 것.\n",
@@ -1147,7 +1174,188 @@ def build_key_metrics_summary(pipeline_results, fidelity_results, jailbreak_resu
         defense_cell = f"{safe}/{j_total} ({100*safe//max(1,j_total)}%)" if j_total else "N/A"
 
         lines.append(f"| {model} | {fp_cell} | {halluc_cell} | {defense_cell} |")
+
+    # 도메인 라우팅은 모델별 지표가 아니므로(결정론) 위 표에 열로 넣지 않고
+    # 아래에 한 줄로 붙인다 — 같은 표에 넣으면 모델마다 같은 값이 반복돼
+    # "모델에 따라 달라지는 값"으로 잘못 읽힌다.
+    if domain_results:
+        c, t = domain_results.get("correct", 0), domain_results.get("total", 0)
+        leaks = domain_results.get("leaks", 0)
+        if t:
+            lines += ["",
+                      f"**도메인 라우팅 정확도: {c}/{t} ({100*c//t}%), 장량동→엣지 누수 {leaks}건** "
+                      "— 전 모델 공통(LLM 미사용 결정론 판정이라 모델과 무관). 상세는 마지막 섹션 참고."]
     return "\n".join(lines)
+
+
+# ── ⑨ 도메인 라우팅 정확도 ────────────────────────────────────
+#
+# 이 섹션이 재는 것은 "이번 메시지가 장량동인가 엣지인가"를 서버가 얼마나 정확히
+# 가르는가다(DomainIntentDetector, FR-76·77).
+#
+# ★ 다른 섹션과 결정적으로 다른 점: 이 판정에는 LLM이 전혀 관여하지 않는다.
+#   양쪽 도메인 어휘 수를 세어 많은 쪽을 고르는 순수 결정론 로직이다(C2 원칙).
+#   그래서 모델별로 재는 것이 의미가 없고 — 어느 모델을 꽂아도 값이 같다 —
+#   한 번만 측정해 "모델 무관"으로 보고한다. 이것 자체가 결과다: 도메인 라우팅은
+#   LLM 백엔드가 죽어 있어도 동일하게 동작한다(NFR-05·FR-80).
+#
+# ★ 정규식을 Java 소스에서 직접 읽어온다. 여기에 어휘를 베껴 두면 Java 쪽 어휘가
+#   바뀌었을 때 벤치마크만 옛 로직을 재게 된다 — 섹션 ①이 이미 폐기된 구조를
+#   측정하고 있는 것과 똑같은 함정이다. 소스를 파싱하면 그 드리프트가 원천적으로
+#   불가능하다. (225개 문장으로 Java 구현과 출력 완전 일치를 확인함)
+
+DOMAIN_SRC = os.path.join("src", "main", "java", "com", "wastesim", "service",
+                          "DomainIntentDetector.java")
+_JAVA_STR_LITERAL = re.compile(r'"((?:[^"\\]|\\.)*)"')
+
+
+def _java_pattern(src_text, name):
+    """Java의 `Pattern NAME = Pattern.compile("..." + "...", CASE_INSENSITIVE);`에서
+    문자열 리터럴을 이어붙여 정규식을 복원한다."""
+    m = re.search(r"Pattern\s+" + name + r"\s*=\s*Pattern\.compile\((.*?)\);", src_text, re.S)
+    if not m:
+        raise RuntimeError(f"{DOMAIN_SRC}에서 {name} 패턴을 찾지 못했다 — 소스 구조가 바뀌었는지 확인할 것")
+    joined = "".join(_JAVA_STR_LITERAL.findall(m.group(1)))
+    # Java 문자열 이스케이프만 되돌린다. unicode_escape로 통째 디코드하면
+    # latin-1 왕복이 일어나 한글 어휘가 전부 깨진다.
+    return joined.replace("\\\\", "\\").replace('\\"', '"')
+
+
+def load_domain_patterns():
+    """@return (EDGE, WASTE) 컴파일된 정규식. 소스를 못 읽으면 (None, None)."""
+    try:
+        text = open(DOMAIN_SRC, encoding="utf8").read()
+        return (re.compile(_java_pattern(text, "EDGE"), re.I),
+                re.compile(_java_pattern(text, "WASTE"), re.I))
+    except Exception as e:
+        print(f"  [건너뜀] 도메인 어휘를 Java 소스에서 읽지 못했다: {type(e).__name__}: {e}")
+        return None, None
+
+
+def domain_classify(text, edge_re, waste_re):
+    """DomainIntentDetector.classify — 도메인 중립 시작화면용 3분기 판정."""
+    if not text or not text.strip():
+        return "UNKNOWN", 0, 0
+    e, w = len(edge_re.findall(text)), len(waste_re.findall(text))
+    if e == 0 and w == 0:
+        return "UNKNOWN", e, w
+    return ("EDGE" if e > w else "WASTE"), e, w
+
+
+def domain_detect(text, edge_re, waste_re):
+    """DomainIntentDetector.detect — 장량동 화면 안에서의 2분기 판정.
+    엣지로 확정되지 않으면 None(=기존 장량동 파이프라인이 그대로 처리)."""
+    if not text or not text.strip():
+        return None
+    e = len(edge_re.findall(text))
+    if e == 0:
+        return None
+    return "EDGE" if e > len(waste_re.findall(text)) else None
+
+
+# (문장, 기대 도메인) — WASTE / EDGE / UNKNOWN
+#
+# 케이스 선정 기준: 어휘가 한쪽으로 명백한 문장은 맞히는 게 당연하므로 최소만 두고,
+# 실제로 판정이 갈릴 수 있는 경계에 집중한다.
+DOMAIN_CASES = [
+    # ── 명백한 장량동 ──────────────────────────────────────────────
+    ("12시에 수거하는 걸로 30일 시뮬레이션 돌려줘", "WASTE"),
+    ("대학가 동네에서 아침 8시 반에 수거하면 민원이 어떻게 되는지 실행해줘", "WASTE"),
+    ("교통 정체를 반영해서 13시에 수거하면 민원이 어떻게 되는지 실행해줘", "WASTE"),
+    ("Node_A, Node_C, Node_B 순서로 방문하면 얼마나 걸려?", "WASTE"),
+    ("분리배출하면 민원이 줄어드나?", "WASTE"),
+
+    # ── 명백한 엣지 ────────────────────────────────────────────────
+    ("라즈베리파이 5를 무냉각으로 30분 돌리면 언제 스로틀링 걸려?", "EDGE"),
+    ("방열판 배치를 바꾸면 온도가 얼마나 내려가?", "EDGE"),
+    ("pi4랑 pi5 발열 비교해줘", "EDGE"),
+    ("팬 rpm 몇이 가성비가 제일 좋아?", "EDGE"),
+    ("실측 CSV로 열 모델 캘리브레이션해줘", "EDGE"),
+
+    # ── 단서 없음 → 되물어야 함(FR-77) ─────────────────────────────
+    # 아무 단서 없는 첫 메시지가 조용히 한쪽 도메인으로 빨려 들어가면
+    # 사용자가 고르지도 않은 도메인에 갇힌다.
+    ("안녕하세요", "UNKNOWN"),
+    ("뭘 할 수 있어?", "UNKNOWN"),
+    ("이거 어떻게 쓰는 거야?", "UNKNOWN"),
+
+    # ── 경계: 두 도메인 어휘가 한 문장에 섞임 ──────────────────────
+    # 점수 비교 방식(한쪽 키워드 존재가 아니라 양쪽 개수 비교)이 실제로
+    # 필요한 이유가 되는 케이스들이다. 단어 하나로 전환하는 방식이었다면
+    # 아래 ①③은 전부 엣지로 새고, ②④는 장량동으로 샌다.
+    #
+    # ① 라즈베리파이는 촬영 수단일 뿐이고 물어본 것은 장량동 상황이다
+    ("라즈베리파이 카메라로 장량동 쓰레기 수거 트럭과 민원 상황을 분석해줘", "WASTE"),
+    # ② "쓰레기 수거 영상"은 추론 대상(워크로드)을 설명하는 말이고
+    #    실제로 물어본 것은 CPU 발열·FPS다
+    ("라즈베리파이로 쓰레기 수거 영상을 추론할 때 CPU 발열과 FPS를 확인해줘", "EDGE"),
+    # ③ 엣지 보드로 수거 트럭을 세는 이야기 — 물어본 것은 수거 정책이다
+    ("엣지 디바이스로 수거 트럭 대수를 세면 민원 예측이 정확해질까?", "WASTE"),
+    # ④ 트럭에 단 보드의 발열 — 물어본 것은 열이다
+    ("수거 트럭에 달린 라즈베리파이가 여름에 과열되는데 방열판 뭐 쓰지?", "EDGE"),
+    # ⑤ "온도"는 양쪽 다 나올 수 있는 중립 어휘 — 나머지 어휘가 갈라야 한다
+    ("여름에 기온 올라가면 쓰레기 배출량이 늘어나?", "WASTE"),
+]
+
+
+def run_domain_routing_benchmark():
+    print("\n" + "═" * 60)
+    print(f"도메인 라우팅 정확도 (결정론·모델 무관) | 케이스 {len(DOMAIN_CASES)}개")
+    print("═" * 60 + "\n")
+
+    edge_re, waste_re = load_domain_patterns()
+    if edge_re is None:
+        return "\n## 도메인 라우팅 정확도\n\n(건너뜀 — Java 소스에서 도메인 어휘를 읽지 못함)\n", {}
+
+    correct = 0
+    by_expected = {}          # 기대 도메인별 정답/전체
+    misroutes = []            # 오답 상세
+    waste_leaks = []          # 장량동 요청이 엣지로 샌 경우(하위호환 합격선)
+    for text, expected in DOMAIN_CASES:
+        got, e, w = domain_classify(text, edge_re, waste_re)
+        ok = (got == expected)
+        correct += ok
+        tot = by_expected.setdefault(expected, [0, 0])
+        tot[1] += 1
+        tot[0] += ok
+        # detect()는 장량동 화면 안에서의 판정 — 장량동 요청이 여기서 엣지로
+        # 새는 것이 v1.7 도입의 하위호환 합격선(도메인 오탐 0건)이다.
+        if expected == "WASTE" and domain_detect(text, edge_re, waste_re) == "EDGE":
+            waste_leaks.append(text)
+        mark = "OK  " if ok else "MISS"
+        print(f"  {mark}  기대={expected:<7} 판정={got:<7} (edge={e}, waste={w})  «{text[:44]}»")
+        if not ok:
+            misroutes.append((text, expected, got, e, w))
+
+    total = len(DOMAIN_CASES)
+    print(f"\n  정확도 {correct}/{total} ({100*correct//total}%), "
+          f"장량동→엣지 누수 {len(waste_leaks)}건")
+
+    lines = ["\n## 도메인 라우팅 정확도 (DomainIntentDetector)\n",
+             "이 판정에는 **LLM이 전혀 관여하지 않는다** — 양쪽 도메인 어휘 수를 세어 많은 쪽을 "
+             "고르는 결정론 로직이라 어느 모델을 꽂아도 결과가 같다(C2 원칙). 그래서 모델별이 "
+             "아니라 한 번만 측정한다. 이 성질 자체가 결과다: **LLM 백엔드가 죽어 있어도 "
+             "도메인 라우팅은 동일하게 동작한다**(NFR-05·FR-80).\n",
+             "어휘 정규식은 `DomainIntentDetector.java`에서 직접 읽어오므로 운영 코드와 "
+             "어긋날 수 없다.\n",
+             f"- 케이스 {total}개 (경계 케이스 5개 포함)\n",
+             "| 지표 | 값 |", "|---|---|",
+             f"| 전체 정확도 | {correct}/{total} ({100*correct//total}%) |"]
+    for exp in ("WASTE", "EDGE", "UNKNOWN"):
+        if exp in by_expected:
+            ok_n, tot_n = by_expected[exp]
+            lines.append(f"| {exp} 케이스 정확도 | {ok_n}/{tot_n} ({100*ok_n//tot_n}%) |")
+    lines.append(f"| **장량동 → 엣지 누수**(하위호환 합격선) | **{len(waste_leaks)}건** |")
+
+    if misroutes:
+        lines += ["\n### 오라우팅 상세\n",
+                  "| 문장 | 기대 | 판정 | edge점수 | waste점수 |", "|---|---|---|---|---|"]
+        for text, expected, got, e, w in misroutes:
+            lines.append(f"| {text} | {expected} | {got} | {e} | {w} |")
+    else:
+        lines.append("\n(오라우팅 없음)\n")
+
+    return "\n".join(lines), {"correct": correct, "total": total, "leaks": len(waste_leaks)}
 
 
 # ── 실행 ─────────────────────────────────────────────────────
@@ -1158,9 +1366,14 @@ def main():
     pipeline_report, pipeline_results = run_pipeline_benchmark(active)
     fidelity_report, fidelity_results = run_fidelity_benchmark(active)
     jailbreak_report, jailbreak_results = run_jailbreak_benchmark(active)
-    summary = build_key_metrics_summary(pipeline_results, fidelity_results, jailbreak_results)
+    # 결정론 섹션이라 모델 목록과 무관하게 항상 돈다 — active가 비어 있어도(모델을
+    # 하나도 못 붙였어도) 이 지표는 나온다.
+    domain_report, domain_results = run_domain_routing_benchmark()
+    summary = build_key_metrics_summary(pipeline_results, fidelity_results, jailbreak_results,
+                                        domain_results)
 
-    report = summary + "\n" + intent_report + "\n" + pipeline_report + "\n" + fidelity_report + "\n" + jailbreak_report
+    report = (summary + "\n" + intent_report + "\n" + pipeline_report + "\n"
+              + fidelity_report + "\n" + jailbreak_report + "\n" + domain_report)
     with open(REPORT, "w", encoding="utf-8") as f:
         f.write(report + "\n")
     print(f"\n리포트 저장: {REPORT}")

@@ -107,6 +107,49 @@ class DomainRoutingTest {
     }
 
     @Test
+    @DisplayName("팬 회전수 요청이 도메인 게이트에서 UNKNOWN으로 끊기지 않는다(v1.9)")
+    void fanSpeedRequestsReachEdgeDomain() {
+        // 실측 결함: sweep_fan_rpm(FR-97~103)을 추가하면서 EdgeToolSelector에는
+        // rpm·pwm·회전수 어휘를 넣었는데 그보다 먼저 도는 이 도메인 게이트에는
+        // 빠져 있었다. 그래서 아래 문장들이 양쪽 점수 0으로 UNKNOWN이 되어,
+        // 도구 선택기가 어휘를 전부 알고 있는데도 호출조차 되지 않았다.
+        String[] fanRequests = {
+                "팬 rpm 몇이 가성비가 제일 좋아?",
+                "pwm 50% 로 스윕 돌려줘",
+                "최적 회전수 찾아줘",
+                "팬 rpm 스윕해서 최적 운전점 알려줘",
+                "적정 회전수가 어느 정도야?",
+        };
+        for (String req : fanRequests) {
+            assertEquals(DomainIntentDetector.Domain.EDGE_THERMAL,
+                    DomainIntentDetector.classify(req),
+                    "팬 회전수 요청이 엣지로 가야 한다: " + req);
+            assertEquals(EdgeToolSelector.TOOL_SWEEP, EdgeToolSelector.select(req),
+                    "도메인을 통과했으면 스윕 도구로 가야 한다: " + req);
+        }
+    }
+
+    @Test
+    @DisplayName("장량동의 sweep·가성비 어휘는 엣지로 새지 않는다(위 수정의 반대 방향 회귀)")
+    void wasteSweepVocabularyDoesNotLeakToEdge() {
+        // 팬 어휘를 넓힐 때 "스윕"·"가성비"까지 넣으면 여기가 깨진다 —
+        // 장량동에도 수거시각 sweep 시나리오가 있고, "가성비"는 트럭 선택에도
+        // 쓰이는 중립 어휘다. 그래서 rpm·pwm·회전수·운전점만 넣었다.
+        String[] wasteRequests = {
+                "수거시각 sweep (06~18시)",
+                "수거시각 스윕 돌려줘",
+                "트럭 가성비 어떤 게 제일 좋아?",
+        };
+        for (String req : wasteRequests) {
+            assertNull(DomainIntentDetector.detect(req),
+                    "장량동 요청이 엣지로 새면 안 된다: " + req);
+            assertEquals(DomainIntentDetector.Domain.WASTE_SIM,
+                    DomainIntentDetector.classify(req),
+                    "장량동으로 판정돼야 한다: " + req);
+        }
+    }
+
+    @Test
     @DisplayName("엣지 요청 안에서 도구 선택도 결정론적으로 갈린다")
     void toolSelectionWithinEdgeDomain() {
         assertEquals(EdgeToolSelector.TOOL_THROTTLING,
