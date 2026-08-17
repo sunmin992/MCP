@@ -133,6 +133,37 @@ public record FanArraySpec(
         return ratedValueScope == RatedValueScope.PER_FAN ? base * fanCount() : base;
     }
 
+    /**
+     * 지정한 듀티(0~1)에서의 냉각 대표 팬 — 제어기가 매 순간 회전수를 바꿀 때 쓴다
+     * ({@link PtmController}). {@link #coolingFan()}은 이 배열에 고정된 듀티를 쓰는 형태다.
+     */
+    public FanSpec coolingFanAt(double duty) {
+        double d = Math.max(0.0, Math.min(1.0, duty));
+        return new FanSpec(ratedRpm * d, ratedRpm, ratedPowerW);
+    }
+
+    /**
+     * 지정한 듀티에서의 배열 전체 소비전력(W). 고정 운전용 {@link #arrayPowerW()}와 같은
+     * 물리를 쓰되 듀티만 갈아끼운다.
+     *
+     * <p>실측 전류가 있으면 그 값을 버리지 않는다 — 실측은 <b>측정한 그 한 점</b>의 전력이므로,
+     * 그 점을 기준으로 상사법칙(3승)으로 늘리고 줄인다. 실측을 무시하고 정격으로 되돌아가면
+     * 애써 잰 값이 제어 실행에서만 조용히 빠지게 된다.
+     */
+    public double arrayPowerWAt(double duty) {
+        double d = Math.max(0.0, Math.min(1.0, duty));
+        double cube = Math.pow(d, FanSpec.POWER_EXPONENT);
+        if (measuredCurrentA != null) {
+            double measuredDuty = dutyRatio();
+            // 측정 지점이 정지 상태면 기준으로 삼을 수 없다 — 정격 경로로 물러선다.
+            if (measuredDuty > 1e-9) {
+                return arrayPowerW() * cube / Math.pow(measuredDuty, FanSpec.POWER_EXPONENT);
+            }
+        }
+        double base = ratedPowerW * cube;
+        return ratedValueScope == RatedValueScope.PER_FAN ? base * fanCount() : base;
+    }
+
     /** 이 회전수에서의 배열 전체 소비전류(A) 추정. 실측이 있으면 그 값. */
     public Double arrayCurrentA() {
         if (measuredCurrentA != null) {

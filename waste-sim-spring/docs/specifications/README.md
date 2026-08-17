@@ -8,19 +8,20 @@
 |---|---|
 | 문서명 | waste-sim-spring SRS / SDD / TDD 통합 명세서 |
 | 현행 버전 | **v1.9** (2026-08-08) |
-| 원본 형식 | Google Docs → `.docx` 내보내기 |
-| 파일명 | `waste-sim-spring_SRS_SDD_TDD_v1.9.docx` |
+| 원본 형식 | Google Docs → Markdown 내보내기 |
+| 파일명 | [`docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md`](docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md) |
 
-## 왜 .docx가 이 디렉터리에 커밋돼 있지 않은가
+## v1.9부터 Markdown을 커밋한다
 
-저장소 `.gitignore`가 `*.docx`를 의도적으로 제외한다 — 바이너리라 병합이 불가능해서
-세 대의 개발 머신에서 충돌이 나기 때문이다. 그래서 **변환본은 각자 로컬에 두고**
-이 디렉터리에는 위치·버전·정합 상태만 기록한다. 파일을 이 경로(`docs/specifications/`)에
-같은 이름으로 놓아 두면 로컬에서는 문서 체계가 그대로 성립하고, git에는 올라가지 않는다.
+v1.8까지는 `.docx`를 기준으로 삼았는데, 바이너리라 병합이 불가능해 세 대의 개발
+머신에서 충돌이 났고 "어느 문단이 언제 왜 바뀌었는지"를 git으로 되짚을 수 없었다.
+v1.9는 같은 문서를 Markdown으로 내보내 커밋하므로 diff·PR 리뷰·blame이 그대로 된다.
+v1.8 `.docx`는 이력 보존용으로 남겨 둔다.
 
-## 코드와의 정합 상태 (2026-08-11 대조)
+## 코드와의 정합 상태 (2026-08-17 재대조)
 
-`mvn test` 390건 전건 통과 기준으로 v1.9 명세를 소스와 대조한 결과다.
+`mvn -B test` **425건 통과·2건 스킵**(Python 참조 엔진 미설치 환경) 기준으로 v1.9 명세를 소스와 대조한 결과다.
+스킵은 실패로 보지 않는다(TDD 3.14). 425건에는 PTM 제어기 신규 테스트 17건이 포함된다.
 
 ### 코드를 고친 것
 
@@ -35,6 +36,7 @@
 
 | 항목 | 내용 |
 |---|---|
+| **예측 냉각(PTM) 제어기** (2026-08-17) | 부록 A.3이 "제어기만 남았다"고 적어 둔 마지막 조각이다. `PtmController` + MCP 도구 `simulate_ptm_control`을 신설하고 **명세도 함께 갱신했다**(FR-108~112, SDD 2.15.11, TDD 3.6.13, 도구 10종·엣지 5종). 팬 회전수가 시간에 따라 바뀌므로 `ThermalSimulator`가 매 스텝 열저항·팬 전력을 다시 계산한다 — 제어기를 넣지 않으면 종전 경로 그대로다(UT-217로 고정). |
 | 시나리오 `truck-route` | **차종 × 방문 순서 격자 탐색**(민원 최소 조합)을 신설했다. FR-07의 시나리오가 **11종 → 12종**이 되므로 SRS 1.5(FR-07)·1.8.1·SDD 2.7.3(run_scenario 설명)·2.16(waste.js 버튼 수)·TDD를 함께 갱신해야 한다. 두 축을 따로 훑지 않고 격자로 도는 이유는 **상호작용** 때문이다 — 1톤은 골목을 빨리 돌지만 용량이 작아, 어느 차종이 유리한지가 방문 순서에 따라 뒤집힌다. |
 
 이 시나리오는 명세의 두 원칙을 그대로 따른다.
@@ -46,14 +48,37 @@
   왜 평평한지와 무엇을 올려야 축이 살아나는지(이동시간·거주민 수)를 알린다. 실제로 건물 3개·
   이동시간 15분 기본 조건에서는 18개 조합이 전부 9.3건으로 같게 나온다.
 
-### 문서를 고쳐야 하는 것 (코드가 맞다)
+### 문서를 고쳐야 하는 것 (코드가 맞다) — 2026-08-17 **전건 반영 완료**
+
+아래 11건은 v1.9 Markdown과 `docs/reference/DEBUGGING_ISSUES.md`에 이미 반영했다.
+표는 "무엇이 왜 틀렸었는지"를 남기기 위해 보존한다 — 다음 개정에서 같은 자리가 다시 어긋나는지 보는 기준선이다.
 
 | 위치 | 문서 기술 | 실제 코드 |
 |---|---|---|
-| SDD 2.7.1 | 현재 구현체 = 엣지 도구 **3종** | **4종** — v1.9에서 `sweep_fan_rpm`이 추가됐다(2.7.3 표와 자기모순) |
+| SRS 1.5(FR-07)·1.8.1·FR-54·SDD 2.7.3·2.14.1·2.16 | 시나리오 **11종** | **12종** — `truck-route`가 코드(`SimulationTool`·`ScenarioController`·`McpToolCatalog`·`ScenarioIntentDetector`)에 전부 등록돼 있다 |
+| SDD 2.7.1 | 현재 구현체 = 엣지 도구 **3종** | **4종** — v1.9에서 `sweep_fan_rpm`이 추가됐다(2.7.3 표와 자기모순). TDD IT-49·3.10 주석의 "엣지 3종"·"허브 8개"도 같이 어긋난다 |
 | SDD 2.10 | TruckType 용량 60 / 30 / 12 kg | **5000 / 2500 / 1000 kg** — FR-48이 정한 정격용량. 2.10의 숫자는 v1.7 잔재다 |
-| SDD 2.15.9 | 검사 순서 = 캘리브레이션 → 배치 → 발열 | 스윕이 빠져 있다. FR-78과 같은 4단계로 갱신할 것 |
-| SDD 2.16 | edge.js 109줄 · waste.js 507줄 · app.css 480줄 | **473 · 579 · 590줄** |
+| SDD 2.15.9 | 검사 순서 = 캘리브레이션 → 배치 → 발열 | **스윕 → 캘리브레이션 → 배치 → 발열** — `EdgeToolSelector.select()`. FR-78과 자기모순 |
+| SDD 2.15.5 4단계 | 목적함수 기본값 = `MIN_TOTAL_ENERGY` | **운용 모드별로 다르다** — `FanSweepResult.Objective.defaultFor()`는 MAX_THROUGHPUT일 때 `MIN_ENERGY_PER_FRAME`을 쓴다(총에너지로 고르면 *일을 덜 한* 저RPM 지점이 이기므로). FR-99에도 이 조건이 빠져 있다 |
+| SDD 2.16 | index.html 262 · waste.js 507 · edge.js 109 · app.css 480줄 | **265 · 580 · 473 · 590줄** (chat.js 181·domain.js 198은 일치) |
+| TDD IT-49 | 엣지 **3종**만 노출 | **4종** |
+| TDD 3.10 주석 | 운영 컨텍스트 허브 기준 **8개** | **9개** (2.7.3 "9종"과 자기모순) |
+| 부록 A.3 | main **78개** 클래스 · test **38개** 클래스 | **84 · 50** |
+| 부록 B.1 (E-04) | 반영 위치 = SDD **2.15.6** | 2.15.6은 HeatsinkThermalModel이다. 결측 3상태(UNKNOWN)는 `ThermalCalibrator` = **2.15.7** |
+| 부록 B.2 (E-07) | 미해결 | **해소됨** — `ThermalParams` compact constructor + `ThermalParamsInvariantTest`. B.1로 옮길 것 |
+| 부록 B.2 (A-02) | 미해결 | **해소됨** — `SimulationController`가 빈 `times`를 400 VALIDATION으로 거부. B.1로 옮길 것 |
+
+### 파생 문서에서 고칠 것 — **반영 완료**
+
+| 위치 | 내용 |
+|---|---|
+| `docs/reference/DEBUGGING_ISSUES.md` §6 3단계 | 1(E-04)·3(E-07)이 미완료로 남아 있다 — 둘 다 코드·테스트로 해소됐다(`ThrottleMissingDataTest`·`ThermalParamsInvariantTest`) |
+| `docs/reference/DEBUGGING_ISSUES.md` §7 | 체크박스 3개가 비어 있다 — 중간 null throttle(`ThrottleMissingDataTest`), 1노드/2노드 정상상태 일치(`TwoNodeThermalModelTest.steadyStateMatchesOneNodeModel`), dt 수렴(`ThermalSimulatorAccuracyTest`) 전부 존재한다 |
+
+### 문서가 맞고 저장소가 따라가야 할 것
+
+TDD 3.15 환경 메모가 지적한 **Maven Wrapper(`mvnw`/`mvnw.cmd`)가 아직 없다.** 개발자와 CI가 같은
+Maven 버전으로 회귀를 재현하려면 추가해야 한다 — 문서 오류가 아니라 남은 작업이다.
 
 ### 남겨 둔 것
 

@@ -170,6 +170,82 @@ public final class EdgeChatFormatter {
     }
 
     /**
+     * {@code simulate_ptm_control} 결과 요약 — 제어 방식별 비교표.
+     *
+     * <p>에너지만 나열하지 않고 <b>피크 온도를 같은 줄에 놓는다.</b> PTM은 허용된 온도 여유를
+     * 끝까지 써서 에너지를 아끼는 제어라, 에너지만 보면 언제나 이긴 것처럼 보이고 그 대가
+     * (더 뜨겁게 도는 것)가 표에서 사라진다.
+     */
+    @SuppressWarnings("unchecked")
+    public static String ptmControl(Map<String, Object> out) {
+        List<Map<String, Object>> runs = (List<Map<String, Object>>) out.get("runs");
+        StringBuilder sb = new StringBuilder();
+
+        String loadLabel = aiLoadLabel(out);
+        sb.append(String.format("팬 제어 방식 비교(PTM) — %s · %s · 주변 %s℃ · 부하 %s초%s%n",
+                out.get("board"), coolingKo(str(out, "cooling")),
+                fmt(num(out, "ambientTempC")), fmt(num(out, "loadSeconds")),
+                loadLabel == null ? "" : " · " + loadLabel));
+        Map<String, Object> ctl = (Map<String, Object>) out.get("control");
+        if (ctl != null) {
+            sb.append(String.format("제어 설정: 목표 %s℃ · 예측 지평 %s초 · 제어 주기 %s초%n%n",
+                    fmt(num(ctl, "targetTempC")), fmt(num(ctl, "predictionHorizonSeconds")),
+                    fmt(num(ctl, "controlIntervalSeconds"))));
+        }
+
+        String best = str(out, "best");
+        if (runs != null) {
+            for (Map<String, Object> r : runs) {
+                boolean isBest = best != null && best.equals(r.get("mode"));
+                boolean throttled = Boolean.TRUE.equals(r.get("throttled"));
+                sb.append(String.format("%s %s — 평균 듀티 %s%%, 최고 %s℃, 총 %sJ%s%n",
+                        isBest ? "★" : (throttled ? "×" : "·"),
+                        r.get("modeLabel"), fmt(num(r, "meanFanDutyPercent")),
+                        fmt(num(r, "peakTempC")), fmt(num(r, "totalEnergyJ")),
+                        throttled ? " — 스로틀링 발생(제외)" : ""));
+            }
+            sb.append('\n');
+        }
+
+        if ("NO_FEASIBLE_MODE".equals(str(out, "status"))) {
+            sb.append("어느 제어 방식으로도 스로틀링을 막지 못했습니다.\n");
+            Object rec = out.get("recommendation");
+            if (rec != null) sb.append("→ ").append(rec).append('\n');
+        } else {
+            sb.append(String.format("→ 승자: %s", out.get("bestLabel")));
+            Double saved = num(out, "energySavedVsAlwaysMaxPercent");
+            if (saved != null) {
+                sb.append(String.format(" — 항상 최대로 돌릴 때보다 에너지 %s%% 절감", fmt(saved)));
+            }
+            sb.append('\n');
+            String cost = ptmTradeoffLine(runs);
+            if (cost != null) sb.append(cost).append('\n');
+        }
+
+        appendNotes(sb, (List<String>) out.get("notes"));
+        return sb.toString().trim();
+    }
+
+    /**
+     * 예측형이 반응형보다 <b>얼마나 더 뜨겁게</b> 도는지 한 줄로 덧붙인다 — 절감의 대가가
+     * 무엇인지 같은 화면에 보여야 판단할 수 있다. 두 방식을 함께 돌리지 않았으면 null.
+     */
+    private static String ptmTradeoffLine(List<Map<String, Object>> runs) {
+        if (runs == null) return null;
+        Map<String, Object> ptm = null, reactive = null;
+        for (Map<String, Object> r : runs) {
+            if ("predictive".equals(r.get("mode"))) ptm = r;
+            if ("reactive".equals(r.get("mode"))) reactive = r;
+        }
+        if (ptm == null || reactive == null) return null;
+        Double pPeak = num(ptm, "peakTempC"), rPeak = num(reactive, "peakTempC");
+        if (pPeak == null || rPeak == null || pPeak <= rPeak + TEMP_TIE_C) return null;
+        return String.format("→ 대가: 예측형은 허용된 여유를 끝까지 쓰므로 반응형보다 %s℃ 더 뜨겁게 돕니다(%s℃ vs %s℃) — "
+                + "에너지만 보고 고르지 말고 부품 수명 관점의 온도 진폭도 함께 볼 것.",
+                fmt(pPeak - rPeak), fmt(pPeak), fmt(rPeak));
+    }
+
+    /**
      * 최적점과 정격(PWM 100%)의 대조 한 줄. 정격 지점이 스윕에 없으면 붙이지 않는다(null).
      *
      * <p>정격이 <b>제약을 어겨 탈락한</b> 경우에도 비교를 적는다 — 그때는 "최대로 돌려도

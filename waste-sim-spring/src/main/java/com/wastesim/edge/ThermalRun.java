@@ -51,6 +51,7 @@ import java.util.List;
  *                         <b>가성비 판정의 분모</b>가 이 값이다 — 팬을 세게 돌려 온도를 낮춰도
  *                         여기가 커지면 손해다
  * @param fanReport        팬 배열 출력(개수·PWM·RPM 출처·전력·불확실성). 팬이 없으면 null
+ * @param controlReport    팬 제어기 요약(모드·평균/최대 듀티·변경 횟수). 제어를 쓰지 않았으면 null
  * @param series           시계열 샘플(다운샘플링됨)
  * @param notes            해석에 필요한 경고·주석
  */
@@ -81,6 +82,7 @@ public record ThermalRun(
         double fanEnergyJ,
         double totalEnergyJ,
         FanReport fanReport,
+        ControlReport controlReport,
         List<Sample> series,
         List<String> notes) {
 
@@ -102,7 +104,26 @@ public record ThermalRun(
      *                     (0x1 저전압, 0x2 클럭 제한, 0x4 스로틀링, 0x8 소프트 온도 제한)
      */
     public record Sample(double tSec, String phase, double socTempC, int clockMhz,
-                         double fps, double powerW, boolean throttled, String throttleBits) {}
+                         double fps, double powerW, boolean throttled, String throttleBits,
+                         Double fanDutyPercent) {
+
+        /** 팬 제어 없이 실행한 경우 — 듀티 열이 아예 없다(0%로 돌고 있는 것과 다르다). */
+        public Sample(double tSec, String phase, double socTempC, int clockMhz,
+                      double fps, double powerW, boolean throttled, String throttleBits) {
+            this(tSec, phase, socTempC, clockMhz, fps, powerW, throttled, throttleBits, null);
+        }
+    }
+
+    /**
+     * 팬 제어기 실행 요약({@link PtmController}). 제어를 쓰지 않았으면 null.
+     *
+     * <p>{@code meanDutyPercent}가 이 기능의 핵심 숫자다 — 전력은 회전수의 3승이라
+     * 평균 듀티가 곧 비용이고, "항상 최대"와의 차이가 PTM이 아낀 몫이다.
+     * {@code changeCount}는 팬이 얼마나 자주 회전수를 바꿨는지로, 소음·수명 관점의 부작용을 본다.
+     */
+    public record ControlReport(String mode, String modeLabel, double meanDutyPercent,
+                                double peakDutyPercent, int changeCount, Double targetTempC,
+                                Double horizonSec, Double controlIntervalSec) {}
 
     /** 스로틀링 에피소드 — 지속시간이 곧 TED(Throttling Episode Duration). */
     public record Episode(double startSec, Double endSec, Double durationSec, double peakTempC) {}

@@ -23,6 +23,27 @@ public final class EdgeToolSelector {
     public static final String TOOL_HEATSINK = "simulate_heatsink_layout";
     public static final String TOOL_CALIBRATE = "calibrate_edge_thermal_model";
     public static final String TOOL_SWEEP = "sweep_fan_rpm";
+    public static final String TOOL_PTM = "simulate_ptm_control";
+
+    /**
+     * <b>예측 냉각(PTM)</b> 요청 — 팬을 "언제" 돌릴지(제어 방식)를 묻는 질문이다.
+     *
+     * <p>스윕보다 먼저 검사한다. 두 도구의 어휘는 거의 겹치지만(팬·전력·최적) 답의 형태가
+     * 다르다 — 스윕은 <b>고정 회전수 하나</b>를 고르고, PTM은 <b>시간에 따라 바꾸는 방식</b>을
+     * 비교한다. "팬을 미리 돌리면 이득이야?"가 스윕으로 가면 고정 운전점 곡선이 돌아와,
+     * 정작 물어본 '미리'가 답에서 빠진다.
+     *
+     * <p>제어를 가리키는 말이 실제로 있을 때만 고른다 — "예측"·"미리"·"선제"·"제어"·"PTM".
+     * "팬 속도"·"가성비"처럼 스윕과 공유하는 어휘만으로는 오지 않는다.
+     */
+    private static final Pattern PTM = Pattern.compile(
+            "(ptm|예측\\s*(냉각|제어|쿨링)|프리딕티브|predictive"
+            + "|(미리|선제적?|앞서)\\s*.{0,6}(돌|켜|올려|냉각|식)"
+            + "|팬\\s*.{0,4}(제어|컨트롤)"
+            + "|제어\\s*(방식|방법|전략)"
+            + "|(항상|계속)\\s*.{0,4}(돌|켜).{0,10}(필요|이유)"
+            + ")",
+            Pattern.CASE_INSENSITIVE);
 
     /** 실측 데이터로 모델을 보정하려는 요청. */
     private static final Pattern CALIBRATE = Pattern.compile(
@@ -104,9 +125,12 @@ public final class EdgeToolSelector {
     static final Pattern MASS = Pattern.compile(
             "\\d+(?:\\.\\d+)?\\s*(?:kg|g(?![a-z])|그램|그람)", Pattern.CASE_INSENSITIVE);
 
-    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 넷 중 하나를 반환한다(기본은 발열 시뮬레이션). */
+    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 다섯 중 하나를 반환한다(기본은 발열 시뮬레이션). */
     public static String select(String text) {
         if (text == null) return TOOL_THROTTLING;
+        // 검사 순서: PTM(제어 방식) → 스윕(고정 운전점) → 캘리브레이션 → 배치 → 발열.
+        // 앞의 둘은 어휘가 겹치므로 더 구체적인 쪽(제어를 명시한 문장)을 먼저 본다.
+        if (PTM.matcher(text).find()) return TOOL_PTM;
         if (SWEEP.matcher(text).find()) return TOOL_SWEEP;
         if (CALIBRATE.matcher(text).find()) return TOOL_CALIBRATE;
         if (HEATSINK.matcher(text).find()) return TOOL_HEATSINK;

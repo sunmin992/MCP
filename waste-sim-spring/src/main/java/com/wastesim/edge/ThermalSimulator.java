@@ -87,7 +87,17 @@ public class ThermalSimulator {
     public record Spec(ThermalParams params, WorkloadMode mode, double targetFps,
                        double loadSec, RecoveryPolicy policy, double recoverySec,
                        double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
-                       AiLoadProfile aiLoad, HeatsinkMass heatsink, FanArraySpec fanArray) {
+                       AiLoadProfile aiLoad, HeatsinkMass heatsink, FanArraySpec fanArray,
+                       PtmController fanControl) {
+
+        /** 제어기 없이(팬 회전수 고정) 실행하는 형태 — 기존 호출부·테스트 하위호환. */
+        public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
+                    double loadSec, RecoveryPolicy policy, double recoverySec,
+                    double recoveryRJa, double dtSec, double sampleSec, boolean triggerOnThrottle,
+                    AiLoadProfile aiLoad, HeatsinkMass heatsink, FanArraySpec fanArray) {
+            this(params, mode, targetFps, loadSec, policy, recoverySec, recoveryRJa,
+                    dtSec, sampleSec, triggerOnThrottle, aiLoad, heatsink, fanArray, null);
+        }
 
         /** 단일 {@link FanSpec}으로 실행하는 하위호환 형태 — 팬 1개짜리 배열로 감싼다(§13). */
         public Spec(ThermalParams params, WorkloadMode mode, double targetFps,
@@ -226,7 +236,18 @@ public class ThermalSimulator {
             double step = Math.min(dt, endTime - t);
             boolean lastSample = step <= 1e-9;
 
-            double rJa = recovering ? spec.recoveryRJa() : p.rJaKPerW();
+            // ── 팬 제어(PTM) ──────────────────────────────────────────────
+            // 제어기가 있으면 팬 회전수가 시간에 따라 바뀌므로 열저항도 매 스텝 다시 정해진다.
+            // 회복 구간은 종전대로 recoveryRJa가 이긴다 — 회복 정책(R3=팬 최대)과 제어기가
+            // 같은 액추에이터를 두고 다투면 어느 쪽 효과인지 분리할 수 없어서다. 그래서 PTM
+            // 비교 실행은 회복 구간 없이 돌리는 것을 기본으로 한다(simulate_ptm_control).
+            PtmController control = spec.fanControl();
+            double fanDuty = -1.0;
+            if (control != null && !recovering) {
+                fanDuty = control.dutyAt(t, temp);
+            }
+            double rJa = recovering ? spec.recoveryRJa()
+                    : (fanDuty >= 0 ? control.rJaFor(fanDuty) : p.rJaKPerW());
             boolean workloadOn = !(recovering && spec.policy() == RecoveryPolicy.R1_STOP);
             // R2(저부하 유지)는 "요구하는 일의 양을 25%로 줄인다"는 정책이므로 운용 모드와
             // 무관하게 적용돼야 한다. 예전에는 목표 FPS만 줄여서 최대 처리량 모드에서는
@@ -355,12 +376,17 @@ public class ThermalSimulator {
             // 팬 전력은 모터에서 소비되고 공기로 흩어진다 — SoC 열 노드에 들어가지 않으므로
             // 위의 온도 적분에는 절대 더하지 않고 여기서 따로 집계한다. 합쳐서 적분하면
             // 팬을 켤수록 온도가 올라가는 거꾸로 된 결과가 나온다.
-            fanEnergyJ += spec.fanPowerW() * step;
+            // 제어기가 붙어 있으면 회전수가 매 순간 다르므로 그 순간의 전력을 쓴다 —
+            // 고정 운전의 전력을 쓰면 "필요할 때만 돌려 아낀 몫"이 집계에서 사라진다.
+            fanEnergyJ += (fanDuty >= 0 ? control.fanPowerWFor(fanDuty) : spec.fanPowerW()) * step;
+            if (control != null) control.accumulate(t, step);
 
             if (t >= nextSampleAt - 1e-9) {
                 series.add(new ThermalRun.Sample(round(t, 1), phase, round(temp, 2),
                         (int) Math.round(clockRatio * p.maxClockMhz()), round(fps, 2),
-                        round(powerW, 3), throttled, "0x" + Integer.toHexString(bits)));
+                        round(powerW, 3), throttled, "0x" + Integer.toHexString(bits),
+                        // 제어기가 없으면 null — "팬이 없다"와 "0%로 돌고 있다"를 구분한다.
+                        fanDuty >= 0 ? round(fanDuty * 100.0, 1) : null));
                 nextSampleAt += spec.sampleSec();
             }
 
@@ -536,6 +562,34 @@ public class ThermalSimulator {
                     fa.sourceStatus().name(), fa.verified(), fa.measurementScope().name());
         }
 
+        ThermalRun.ControlReport controlReport = null;
+        if (spec.fanControl() != null) {
+            PtmController c = spec.fanControl();
+            boolean predictive = c.mode() == PtmController.Mode.PREDICTIVE;
+            controlReport = new ThermalRun.ControlReport(
+                    c.mode().name(), c.mode().labelKo(),
+                    round(c.meanDuty() * 100.0, 1), round(c.peakDuty() * 100.0, 1),
+                    c.changeCount(),
+                    predictive ? round(c.targetTempC(), 1) : null,
+                    predictive ? round(c.horizonSec(), 0) : null,
+                    predictive ? round(c.controlIntervalSec(), 0) : null);
+            notes.add(String.format(
+                    "팬 제어 방식: %s — 평균 듀티 %.1f%%, 최대 %.1f%%, 회전수 변경 %d회. "
+                    + "전력은 회전수의 3승이므로 %s이 곧 비용이다(항상 최대와의 차이가 아낀 몫).",
+                    c.mode().labelKo(), c.meanDuty() * 100.0, c.peakDuty() * 100.0, c.changeCount(),
+                    "평균 듀티"));
+            if (predictive) {
+                notes.add(String.format(
+                        "예측 제어는 앞으로 %.0f초의 부하를 1노드 RC로 미리 적분해 목표 %.1f℃를 지키는 최소 듀티를 %.0f초마다 고른다. "
+                        + "예측은 스로틀링이 없다고 가정하므로 실제보다 뜨겁게 나온다 — 조금 이르게·세게 도는 쪽으로 틀리는 안전한 방향이다.",
+                        c.horizonSec(), c.targetTempC(), c.controlIntervalSec()));
+            }
+            if (spec.aiLoad() == null || spec.aiLoad().isConstant()) {
+                notes.add("이번 실행은 부하가 일정해서 예측이 반응형보다 유리할 여지가 거의 없다 — "
+                        + "PTM의 이득은 부하가 오르내릴 때 나오므로 aiLoadProfileId로 burst나 mixed를 지정해 비교할 것.");
+            }
+        }
+
         return new ThermalRun(
                 board.label(), p,
                 round(softEntry, 1), round(ttt, 1), round(tttFirst, 1), episodes, round(medianTed, 1),
@@ -549,7 +603,7 @@ public class ThermalSimulator {
                 // 평균을 되곱하면 스윕에서 지점끼리 비교할 때 오차가 남는다.
                 round(fpsIntegral, 1),
                 round(p.tauSeconds(), 1), round(energyJ, 1),
-                round(fanEnergyJ, 1), round(totalEnergyJ, 1), fanReport,
+                round(fanEnergyJ, 1), round(totalEnergyJ, 1), fanReport, controlReport,
                 series, notes);
     }
 

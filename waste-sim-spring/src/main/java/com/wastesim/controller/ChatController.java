@@ -488,6 +488,12 @@ public class ChatController {
             runEdgeFanSweep(provider, args, userText, history);
             return;
         }
+        // 제어 방식 비교(PTM)도 같은 이유로 비교 분기를 타지 않는다 — 제어 방식 자체가
+        // 이미 비교 축이라, 여기에 보드·재질 비교를 겹치면 표가 두 축이 되어 읽을 수 없다.
+        if (EdgeToolSelector.TOOL_PTM.equals(toolName)) {
+            runEdgePtmControl(provider, args, userText, history);
+            return;
+        }
 
         // 보드를 둘 다 언급했으면 비교 요청이다 — 한쪽만 골라 한 번 돌리면 사용자가
         // 물어본 것에 대한 답이 아니다. 나머지 조건을 그대로 둔 채 board만 바꿔 두 번
@@ -698,6 +704,48 @@ public class ChatController {
         history.add(Map.of("role", "user", "content", userText));
         history.add(Map.of("role", "assistant", "content", text));
         while (history.size() > 20) history.remove(0);
+    }
+
+    /**
+     * 예측 냉각(PTM) 비교 — 스윕과 같은 이유로 도구 한 번으로 끝난다. 제어 방식 여러 개를
+     * 돌리는 반복은 도구 안에 있으므로, 채팅으로 물으나 MCP로 부르나 같은 비교가 나온다.
+     *
+     * <p>부하 패턴을 지정하지 않았으면 <b>버스트를 채워 준다</b>. PTM은 "다가올 변화"를 쓰는
+     * 제어라 상수 부하에서는 예측할 것이 없어 반응형과 거의 같아지는데, 그 결과를 보고
+     * "예측은 효과 없다"고 읽으면 정반대의 결론을 얻는다. 무엇을 가정했는지는 답변에 남는다
+     * (회복 실험 기본값을 채울 때와 같은 처리 — 조용히 바꾸지 않는다).
+     */
+    private void runEdgePtmControl(McpToolProvider provider, ObjectNode args,
+                                   String userText, List<Map<String, String>> history) {
+        metrics.counter("waste.chat.edge_tool", "tool", "ptm_control").increment();
+
+        if (!args.has("board")) {
+            reply("어느 보드인지 알려주세요 — 라즈베리파이 4와 5는 발열 특성이 달라서 예측 제어의 이득도 달라집니다.",
+                    userText, history);
+            return;
+        }
+        boolean assumedLoad = false;
+        if (!args.hasNonNull("aiLoadProfileId")) {
+            args.put("aiLoadProfileId", "burst");
+            assumedLoad = true;
+        }
+        // 무냉각은 팬을 달 자리가 없어 도구가 거부한다(FR-96) — 제어 비교는 방열판이 전제다.
+        if (!args.hasNonNull("cooling")) args.put("cooling", "passive");
+
+        ToolResult tr = provider.call(args);
+        if (!tr.ready()) {
+            replyValidationErrors(tr, userText, history);
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> out = (Map<String, Object>) tr.result();
+
+        String text = EdgeChatFormatter.ptmControl(out);
+        if (assumedLoad) {
+            text = "예측 냉각의 이득은 부하가 오르내릴 때 나오므로, 부하 패턴을 버스트(2분 몰림/3분 한가)로 "
+                 + "가정하고 비교했습니다.\n\n" + text;
+        }
+        reply(text, userText, history);
     }
 
     /** 봇 답변 전송 + 대화 이력 갱신(엣지 경로 공통) — runChatScenario 말미와 같은 처리. */

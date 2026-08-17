@@ -521,12 +521,15 @@ record compact constructor에서 방어하면 모든 생성 경로에 동일한 
 4. ✅ W-05/W-06: 건물 수(≤26)와 확장 필드 검증 (`SimulationConfigValidator.validateExtendedFields` — 주기·공휴일·비율·시각·월별 가중치. setter의 조용한 보정 제거)
 5. ✅ A-01: MCP required 필드 서버 측 강제 (`McpController`가 공개 스키마의 `required`를 실행 전에 검사 — `McpToolCatalog.missingRequired`)
 
-### 3단계: 지표 의미와 모델 정책 정리
+### 3단계: 지표 의미와 모델 정책 정리 — 🔶 절반 완료
 
-1. E-04: 불완전한 throttle 측정 처리
-2. E-06: TRT_service 의미 분리
-3. E-07: `ThermalParams` 불변식 적용
-4. E-08: 극소 접촉률 계산 정책 결정
+1. ✅ E-04: 불완전한 throttle 측정 처리 (`ThermalCalibrator.ThrottleState`가 THROTTLED/CLEAR/**UNKNOWN** 3상태 — 결측을 "정상"으로 뭉개지 않는다. `ThrottleMissingDataTest`)
+2. E-06: TRT_service 의미 분리 — **결정 대기**(공개 MCP 응답 계약이 바뀌므로 클라이언트 하위호환 결정이 먼저)
+3. ✅ E-07: `ThermalParams` 불변식 적용 (compact constructor에 `rJa>0`·`cTh>0`·`0 < minClock ≤ softFloor ≤ maxClock`·`softLimit < hardLimit`·유한성. `ThermalParamsInvariantTest`)
+4. E-08: 극소 접촉률 계산 정책 결정 — **결정 대기**(계산용/보고용 coverage 분리냐 무효 배치 거부냐는 모델링 결정)
+
+A-02(비교 API의 빈 `times`)도 이 단계에서 함께 해소했다 — 빈 배열·null은 400 VALIDATION으로 거부하고,
+**미지정**만 종전대로 기본값 3종으로 실행한다(하위호환).
 
 ---
 
@@ -544,11 +547,11 @@ record compact constructor에서 방어하면 모든 생성 경로에 동일한 
 - [x] 상수 전력 × 실행시간과 energyJ 정확히 일치
 - [x] 팬 전력 × 실행시간과 fanEnergyJ 정확히 일치
 - [x] 소수 finCount 거부
-- [ ] 중간 null throttle 샘플 처리 (3단계 E-04)
+- [x] 중간 null throttle 샘플 처리 (3단계 E-04 — `ThrottleMissingDataTest`)
 - [x] CSV NaN/Infinity 거부
-- [ ] R1/R2/R3 회복 지표 의미 검증 (3단계 E-06)
-- [ ] 1노드와 2노드 모델의 정상상태 온도 일치
-- [ ] dt 변화에 따른 온도·에너지 수렴성 확인
+- [ ] R1/R2/R3 회복 지표 의미 검증 (3단계 E-06 — 결정 대기)
+- [x] 1노드와 2노드 모델의 정상상태 온도 일치 (`TwoNodeThermalModelTest.steadyStateMatchesOneNodeModel`)
+- [x] dt 변화에 따른 온도·에너지 수렴성 확인 (`ThermalSimulatorAccuracyTest`)
 
 ## 8. 테스트 실행 환경 메모
 
