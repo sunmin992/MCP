@@ -11,6 +11,23 @@
 
 let sideChart = null;
 
+/*
+ * 색은 app.css의 :root 토큰에서 읽는다 — 예전엔 여기에 '#5c73f2' 같은 값이 직접
+ * 박혀 있어서, CSS 팔레트를 바꿔도 차트와 막대만 옛 색으로 남았다. 색의 진실
+ * 원천을 CSS 한 곳으로 두면 그 어긋남이 구조적으로 생기지 않는다.
+ */
+const CSS = name => getComputedStyle(document.documentElement)
+        .getPropertyValue(name).trim() || '#8b9099';
+
+/** 토큰 색 + 알파(0~1) → rgba. 차트 채움처럼 반투명이 필요한 자리에 쓴다. */
+function CSSa(name, alpha) {
+  const hex = CSS(name);
+  const m = /^#([0-9a-f]{6})$/i.exec(hex);
+  if (!m) return hex;
+  const n = parseInt(m[1], 16);
+  return `rgba(${(n >> 16) & 255}, ${(n >> 8) & 255}, ${n & 255}, ${alpha})`;
+}
+
 function buildResultBubble(msg) {
   const r = msg.simulationResult;
   const cfg = msg.simulationConfig;
@@ -27,57 +44,38 @@ function buildResultBubble(msg) {
   bubble.appendChild(header);
 
   // 통계
+  //
+  // 색은 "필드"가 아니라 "값"에 붙인다. 예전엔 잔류량·미수거·교통 패널티 칸에
+  // color:var(--yellow)가 항상 걸려 있어서, 미수거가 0회인 정상 실행에서도 그 칸이
+  // 경고색으로 물들었다 — 지표 12개 중 6개가 상시 노란색이면 색이 신호가 아니라
+  // 배경이 되고, 정작 진짜로 0이 아닌 날에 눈이 가지 않는다.
   const stats = document.createElement('div');
   stats.className = 'result-stats';
-  stats.innerHTML = `
-    <div class="result-stat">
-      <div class="v">${r.meanComplaints?.toFixed(1) ?? '—'}</div>
-      <div class="l">평균 생활 민원</div>
-    </div>
-    <div class="result-stat">
-      <div class="v">${r.meanWasteOverflowComplaints?.toFixed(1) ?? '—'}</div>
-      <div class="l">적재 초과 민원</div>
-    </div>
-    <div class="result-stat">
-      <div class="v">${r.meanLandlordComplaints?.toFixed(1) ?? '—'}</div>
-      <div class="l">임대인 민원</div>
-    </div>
-    <div class="result-stat">
-      <div class="v">${r.collectedWasteKg?.toFixed(1) ?? '—'}kg</div>
-      <div class="l">평균 수거량</div>
-    </div>
-    <div class="result-stat">
-      <div class="v" style="color:var(--yellow)">${r.residualWasteKg?.toFixed(1) ?? '—'}kg</div>
-      <div class="l">평균 잔류량</div>
-    </div>
-    <div class="result-stat">
-      <div class="v">${r.truckUtilizationPercent?.toFixed(1) ?? '—'}%</div>
-      <div class="l">트럭 이용률</div>
-    </div>
-    <div class="result-stat">
-      <div class="v" style="color:var(--yellow)">${r.unservedPickupCount ?? '—'}</div>
-      <div class="l">미수거 방문(회)</div>
-    </div>
-    <div class="result-stat">
-      <div class="v" style="color:var(--yellow)">${r.uncollectedDemandKg?.toFixed(1) ?? '—'}kg</div>
-      <div class="l">용량부족 미수거</div>
-    </div>
-    <div class="result-stat">
-      <div class="v" style="color:var(--yellow)">${r.trafficPenalty?.toFixed(2) ?? '—'}</div>
-      <div class="l">교통 패널티</div>
-    </div>
-    <div class="result-stat">
-      <div class="v" style="color:var(--yellow)">±${r.stdComplaints?.toFixed(1) ?? '—'}</div>
-      <div class="l">표준편차</div>
-    </div>
-    <div class="result-stat">
-      <div class="v" style="color:var(--muted)">${cfg?.days ?? 30}일</div>
-      <div class="l">시뮬레이션 기간</div>
-    </div>
-    <div class="result-stat">
-      <div class="v" style="color:var(--muted)">${cfg?.seeds ?? 30}</div>
-      <div class="l">반복 시드</div>
-    </div>`;
+
+  /** 값이 실제로 0을 넘을 때만 경고색을 입힌다. 그 외에는 평범한 본문색. */
+  const warn = v => (Number(v) > 0 ? ' style="color:var(--warn)"' : '');
+  /** 실행 조건(기간·시드)은 계측값이 아니라 메타데이터라 항상 낮은 대비로 둔다. */
+  const meta = ' style="color:var(--muted)"';
+  const cell = (valueHtml, label) =>
+      `<div class="result-stat"><div class="v"${valueHtml.attr ?? ''}>${valueHtml.text}</div>` +
+      `<div class="l">${label}</div></div>`;
+  const num = (v, digits, suffix = '') =>
+      v == null ? '—' : Number(v).toFixed(digits) + suffix;
+
+  stats.innerHTML = [
+    cell({ text: num(r.meanComplaints, 1) }, '평균 생활 민원'),
+    cell({ text: num(r.meanWasteOverflowComplaints, 1) }, '적재 초과 민원'),
+    cell({ text: num(r.meanLandlordComplaints, 1) }, '임대인 민원'),
+    cell({ text: num(r.collectedWasteKg, 1, 'kg') }, '평균 수거량'),
+    cell({ text: num(r.residualWasteKg, 1, 'kg'), attr: warn(r.residualWasteKg) }, '평균 잔류량'),
+    cell({ text: num(r.truckUtilizationPercent, 1, '%') }, '트럭 이용률'),
+    cell({ text: r.unservedPickupCount ?? '—', attr: warn(r.unservedPickupCount) }, '미수거 방문(회)'),
+    cell({ text: num(r.uncollectedDemandKg, 1, 'kg'), attr: warn(r.uncollectedDemandKg) }, '용량부족 미수거'),
+    cell({ text: num(r.trafficPenalty, 2), attr: warn(r.trafficPenalty) }, '교통 패널티'),
+    cell({ text: '±' + num(r.stdComplaints, 1) }, '표준편차'),
+    cell({ text: (cfg?.days ?? 30) + '일', attr: meta }, '시뮬레이션 기간'),
+    cell({ text: String(cfg?.seeds ?? 30), attr: meta }, '반복 시드')
+  ].join('');
   bubble.appendChild(stats);
 
   // 직업별 바
@@ -85,7 +83,13 @@ function buildResultBubble(msg) {
   if (occSummary) {
     const maxVal = Math.max(...Object.values(occSummary));
     const labels = { BlueCollar: '생산직', Student: '학생', Housewife: '전업주부' };
-    const colors = { BlueCollar: '#5c73f2', Student: '#4ade80', Housewife: '#f87171' };
+    // 직업군은 서로 다른 "값"이지 좋고 나쁨이 아니다 — 안전색(액센트)을 여기 뿌리면
+    // 화면에서 주목해야 할 자리가 흐려진다. 그래서 명도만 다른 중성 계열로 구분한다.
+    const colors = {
+      BlueCollar: CSSa('--text', 0.90),
+      Student:    CSSa('--text', 0.62),
+      Housewife:  CSSa('--text', 0.36)
+    };
 
     const barsDiv = document.createElement('div');
     barsDiv.className = 'occ-bars';
@@ -97,7 +101,7 @@ function buildResultBubble(msg) {
         <div class="occ-row">
           <div class="occ-label">${labels[key] || key}</div>
           <div class="occ-bar-wrap">
-            <div class="occ-bar" style="width:${pct}%;background:${colors[key] || '#5c73f2'}"></div>
+            <div class="occ-bar" style="width:${pct}%;background:${colors[key] || CSS('--muted')}"></div>
           </div>
           <div class="occ-val">${Number(val).toFixed(1)}</div>
         </div>`;
@@ -115,17 +119,19 @@ function buildResultBubble(msg) {
       if ((t.partialPickupCount || 0) > 0) a.partial += 1;
       byTruck[t.truckId] = a;
     }
+    // 표 스타일은 .data-tbl 하나로 모았다 — 예전엔 style="" 인라인으로 흩어져 있어
+    // 엣지 쪽 표와 생김새가 달랐고, 팔레트를 바꿔도 여기만 옛 색으로 남았다.
+    // 부분수거는 실제로 발생했을 때만 경고색을 입힌다(위 통계 칸과 같은 규칙).
     const rows = Object.entries(byTruck).map(([id, a]) =>
-      `<tr><td>${id}</td><td style="text-align:right">${a.trips}</td>` +
-      `<td style="text-align:right">${a.collected.toFixed(1)}kg</td>` +
-      `<td style="text-align:right;color:var(--yellow)">${a.partial || '—'}</td></tr>`).join('');
+      `<tr><td>${id}</td><td>${a.trips}</td>` +
+      `<td>${a.collected.toFixed(1)}kg</td>` +
+      `<td${a.partial > 0 ? ' style="color:var(--warn)"' : ''}>${a.partial || '—'}</td></tr>`).join('');
     const tw = document.createElement('div');
-    tw.style.cssText = 'margin-top:12px;font-size:13px';
-    tw.innerHTML = `<div style="color:var(--muted);margin-bottom:4px">트럭별 운행</div>
-      <table style="width:100%;border-collapse:collapse">
-        <thead><tr style="color:var(--muted)">
-          <th style="text-align:left">트럭</th><th style="text-align:right">운행</th>
-          <th style="text-align:right">수거</th><th style="text-align:right">부분수거</th>
+    tw.className = 'data-block';
+    tw.innerHTML = `<div class="data-block-title">트럭별 운행</div>
+      <table class="data-tbl">
+        <thead><tr>
+          <th>트럭</th><th>운행</th><th>수거</th><th>부분수거</th>
         </tr></thead><tbody>${rows}</tbody></table>`;
     bubble.appendChild(tw);
   }
@@ -136,10 +142,10 @@ function buildResultBubble(msg) {
     const parts = Object.entries(r.residualByWasteType)
       .map(([k, v]) => `${typeLabel[k] || k} ${Number(v).toFixed(1)}kg`).join(' · ');
     const rd = document.createElement('div');
-    rd.style.cssText = 'margin-top:12px;font-size:13px';
-    let html = `<div style="color:var(--muted);margin-bottom:4px">유형별 잔류</div><div>${parts}</div>`;
+    rd.className = 'data-block';
+    let html = `<div class="data-block-title">유형별 잔류</div><div>${parts}</div>`;
     if (r.maxResidualBuilding && r.maxResidualBuildingKg > 0) {
-      html += `<div style="margin-top:4px;color:var(--yellow)">최대 잔류 건물: ${r.maxResidualBuilding} ${Number(r.maxResidualBuildingKg).toFixed(1)}kg</div>`;
+      html += `<div style="margin-top:5px;color:var(--warn)">최대 잔류 건물: ${r.maxResidualBuilding} ${Number(r.maxResidualBuildingKg).toFixed(1)}kg</div>`;
     }
     rd.innerHTML = html;
     bubble.appendChild(rd);
@@ -162,6 +168,15 @@ function buildResultBubble(msg) {
     bubble.appendChild(cWrap);
 
     setTimeout(() => {
+      // 막대는 무채색으로 두고 최댓값(=민원이 가장 많이 난 시드)만 경고색으로 짚는다.
+      // 이 히스토그램에서 읽어야 할 건 "평균이 얼마인가"가 아니라 "최악이 어디까지
+      // 갔는가"라서, 그 막대 하나만 색이 있으면 눈이 바로 거기로 간다. 전부 칠하면
+      // 색이 정보를 더하지 않고 배경만 된다.
+      //
+      // 동점이면 여러 막대가 함께 칠해진다 — 그게 사실이므로 임의로 하나만 고르지 않는다.
+      const maxTotal = Math.max(...r.allTotals);
+      const isPeak = v => v === maxTotal;
+
       new Chart(c, {
         type: 'bar',
         data: {
@@ -169,8 +184,10 @@ function buildResultBubble(msg) {
           datasets: [{
             label: '민원 수',
             data: r.allTotals,
-            backgroundColor: '#5c73f290',
-            borderColor: '#5c73f2',
+            backgroundColor: r.allTotals.map(v =>
+                isPeak(v) ? CSSa('--warn', 0.85) : CSSa('--muted', 0.55)),
+            borderColor: r.allTotals.map(v =>
+                isPeak(v) ? CSS('--warn') : CSS('--muted')),
             borderWidth: 1
           }]
         },
@@ -183,10 +200,10 @@ function buildResultBubble(msg) {
           },
           scales: {
             x: {
-              ticks: { color: '#8892aa', font: { size: 9 }, autoSkip: false, maxRotation: 90, minRotation: 90 },
+              ticks: { color: CSS('--muted'), font: { size: 10 }, autoSkip: false, maxRotation: 90, minRotation: 90 },
               grid: { display: false }
             },
-            y: { ticks: { color: '#8892aa', font: { size: 10 } }, grid: { color: '#2d3250' } }
+            y: { ticks: { color: CSS('--muted'), font: { size: 10 } }, grid: { color: CSS('--border') } }
           }
         }
       });
@@ -211,12 +228,18 @@ function updateSidePanel(msg) {
       type: 'line',
       data: {
         labels: r.allTotals.map((_, i) => i + 1),
+        // 결과 카드의 히스토그램과 같은 데이터라 짚는 지점도 같아야 한다 —
+        // 한쪽에서만 최댓값을 표시하면 두 그림이 서로 다른 얘기를 하는 것처럼 보인다.
         datasets: [{
           data: r.allTotals,
-          borderColor: '#5c73f2',
-          backgroundColor: '#5c73f215',
+          borderColor: CSS('--muted'),
+          backgroundColor: CSSa('--muted', 0.14),
           tension: 0.4,
-          pointRadius: 2,
+          pointRadius: r.allTotals.map(v => (v === Math.max(...r.allTotals) ? 4 : 2)),
+          pointBackgroundColor: r.allTotals.map(v =>
+              v === Math.max(...r.allTotals) ? CSS('--warn') : CSS('--muted')),
+          pointBorderColor: r.allTotals.map(v =>
+              v === Math.max(...r.allTotals) ? CSS('--warn') : CSS('--muted')),
           fill: true
         }]
       },
@@ -226,11 +249,31 @@ function updateSidePanel(msg) {
         plugins: { legend: { display: false } },
         scales: {
           x: { display: false },
-          y: { ticks: { color: '#8892aa', font: { size: 10 } }, grid: { color: '#2d325060' } }
+          y: { ticks: { color: CSS('--muted'), font: { size: 10 } }, grid: { color: CSSa('--border', 0.6) } }
         }
       }
     });
   }
+}
+
+/*
+ * 24시간 띠의 커서를 지금 고른 수거 시각에 맞춘다.
+ *
+ * 값이 "HH:MM"으로 파싱되지 않으면(직접 입력 도중의 미완성 문자열 등) 아무것도
+ * 하지 않는다 — 입력 중간 상태마다 커서가 0시로 튀면 오히려 읽기 어렵다.
+ */
+function syncHourBand() {
+  const band = document.getElementById('hourBand');
+  if (!band) return;
+  const sel = document.getElementById('pTime');
+  if (!sel) return;
+  const raw = sel.value === 'custom'
+    ? (document.getElementById('pTimeCustom')?.value ?? '')
+    : sel.value;
+  const m = /^\s*([01]?\d|2[0-3]):([0-5]\d)\s*$/.exec(raw);
+  if (!m) return;
+  const minutes = Number(m[1]) * 60 + Number(m[2]);
+  band.style.setProperty('--hour-pos', (minutes / 1440).toFixed(4));
 }
 
 // ── 빠른 실행 (사이드바) ─────────────────────────────────────────
@@ -336,8 +379,8 @@ function drawTrafficChart(canvas, p) {
   const datasets = [{
     label: '전역 평균',
     data: p.hourlyWeight,
-    borderColor: '#5c73f2',
-    backgroundColor: '#5c73f220',
+    borderColor: CSS('--muted'),
+    backgroundColor: CSSa('--muted', 0.14),
     borderWidth: 3,
     tension: 0.3,
     pointRadius: 2,
@@ -364,19 +407,19 @@ function drawTrafficChart(canvas, p) {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { display: true, labels: { color: '#e2e8f0', font: { size: 11 }, boxWidth: 14 } },
+        legend: { display: true, labels: { color: CSS('--text'), font: { size: 11 }, boxWidth: 14 } },
         tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}` } }
       },
       scales: {
         x: {
-          title: { display: true, text: '시각', color: '#8892aa', font: { size: 11 } },
-          ticks: { color: '#8892aa', font: { size: 9 } },
+          title: { display: true, text: '시각', color: CSS('--muted'), font: { size: 11 } },
+          ticks: { color: CSS('--muted'), font: { size: 10 } },
           grid: { display: false }
         },
         y: {
-          title: { display: true, text: '혼잡 가중치', color: '#8892aa', font: { size: 11 } },
-          ticks: { color: '#8892aa', font: { size: 10 } },
-          grid: { color: '#2d325060' },
+          title: { display: true, text: '혼잡 가중치', color: CSS('--muted'), font: { size: 11 } },
+          ticks: { color: CSS('--muted'), font: { size: 10 } },
+          grid: { color: CSSa('--border', 0.6) },
           beginAtZero: true
         }
       }
@@ -399,7 +442,9 @@ const SCENARIO_META = {
   'monthly-waste':   { title: '월별 배출량(1년·최다 달)',      chart: 'bar'  },
   'truck-route':     { title: '차종 × 방문 순서 탐색',         chart: 'bar'  }
 };
-const SCN_COLORS = ['#5c73f2', '#4ade80', '#f87171', '#facc15', '#7c5cf2', '#38bdf8'];
+// 계열 구분용 범주색 — 상황색과 같은 세계(현장·산업)에서 고르되, 명도가 겁치지
+// 않게 배열해 흑백으로 가도 구분된다. 첫 계열에만 안전색을 둔다 — 보통 그게 기준선이다.
+const SCN_COLORS = ['#7f9db8', '#c98a44', '#9aa0a8', '#b8635c', '#7fa05a', '#5f7d8c'];
 
 async function runScenario(type) {
   const meta = SCENARIO_META[type];
@@ -508,20 +553,20 @@ function drawScenarioChart(canvas, data, chartType) {
       plugins: {
         legend: {
           display: datasets.length > 1,
-          labels: { color: '#e2e8f0', font: { size: 11 }, boxWidth: 14 }
+          labels: { color: CSS('--text'), font: { size: 11 }, boxWidth: 14 }
         },
         tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}${data.yUnit || '건'}` } }
       },
       scales: {
         x: {
-          title: { display: true, text: data.xLabel, color: '#8892aa', font: { size: 11 } },
-          ticks: { color: '#8892aa', font: { size: 10 } },
+          title: { display: true, text: data.xLabel, color: CSS('--muted'), font: { size: 11 } },
+          ticks: { color: CSS('--muted'), font: { size: 10 } },
           grid: { display: false }
         },
         y: {
-          title: { display: true, text: data.yLabel, color: '#8892aa', font: { size: 11 } },
-          ticks: { color: '#8892aa', font: { size: 10 } },
-          grid: { color: '#2d325060' },
+          title: { display: true, text: data.yLabel, color: CSS('--muted'), font: { size: 11 } },
+          ticks: { color: CSS('--muted'), font: { size: 10 } },
+          grid: { color: CSSa('--border', 0.6) },
           beginAtZero: true
         }
       }
@@ -532,7 +577,7 @@ function drawScenarioChart(canvas, data, chartType) {
 // ── 도메인 등록 ───────────────────────────────────────────────────
 Domains.register({
   id: 'waste',
-  icon: '🗑️',
+  icon: 'WASTE',
   label: '장량동 생활쓰레기 수거',
   tagline: '수거 시각·트럭 편성·교통 정체를 바꿔가며 민원 발생을 예측합니다.',
   title: '장량동 생활쓰레기 시뮬레이션',
@@ -553,12 +598,16 @@ Domains.register({
   // 등록하던 리스너인데, 사이드바가 동적으로 마운트되면서 여기로 옮겼다.
   init() {
     const sel = document.getElementById('pTime');
+    const custom = document.getElementById('pTimeCustom');
     if (sel) {
       sel.addEventListener('change', function () {
         document.getElementById('customTimeRow').style.display =
           this.value === 'custom' ? 'flex' : 'none';
+        syncHourBand();
       });
     }
+    if (custom) custom.addEventListener('input', syncHourBand);
+    syncHourBand();
   },
 
   /** 장량동 고유 메시지 타입만 가로챈다. 처리하지 않으면 false → chat.js 기본 렌더러. */

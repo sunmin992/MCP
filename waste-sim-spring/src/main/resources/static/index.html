@@ -51,13 +51,13 @@
     <textarea id="msgInput" rows="1"
               placeholder="어떤 실험을 하고 싶은지 한 문장으로 적어 주세요..."
               onkeydown="handleKey(event)"></textarea>
-    <button id="sendBtn" onclick="send()" disabled>➤</button>
+    <button id="sendBtn" onclick="send()" disabled>전송</button>
   </div>
 </main>
 
 <!-- ── 사이드바 템플릿: 시작화면(도메인 미정) ───────────────────── -->
 <template id="tpl-sidebar-start">
-  <h1>시뮬레이션 허브</h1>
+  <h1><span>HUB</span>시뮬레이션 허브</h1>
   <p style="font-size:11px;color:var(--muted);line-height:1.5">
     이 서버는 성격이 다른 두 시뮬레이션 모델을 함께 들고 있습니다.<br>
     도메인을 고르면 그 모델 전용 설정 패널이 여기에 나타납니다.
@@ -76,7 +76,7 @@
 
 <!-- ── 사이드바 템플릿: 장량동 생활쓰레기 ───────────────────────── -->
 <template id="tpl-sidebar-waste">
-  <h1>쓰레기 시뮬레이터</h1>
+  <h1><span>WASTE</span>장량동 수거</h1>
   <p style="font-size:11px;color:var(--muted);line-height:1.5">
     포항 장량동 원룸촌 생활쓰레기 DEVS 시뮬레이션<br>
     채팅으로 파라미터를 자연어로 입력하거나<br>
@@ -87,6 +87,20 @@
 
   <div class="param-section">
     <h3>빠른 실행</h3>
+
+    <!--
+      24시간 띠. 이 연구의 독립변수는 수거 시각(0~1439분)이고 거의 모든 시나리오가
+      이 축을 훑는다 — 그래서 장식이 아니라 화면의 구조로 남겨 둔다. 어두운 양끝은
+      배출이 몰리지 않는 야간(00~06, 22~24)이고, 세로선이 지금 고른 수거 시각이다.
+      위치는 waste.js가 아래 선택값에 맞춰 갱신한다(--hour-pos).
+    -->
+    <div class="hour-band" id="hourBand">
+      <div class="hour-band-track"><div class="hour-band-cursor"></div></div>
+      <div class="hour-band-scale">
+        <span>00</span><span>06</span><span>12</span><span>18</span><span>24</span>
+      </div>
+    </div>
+
     <div class="param-row">
       <label>수거 시각</label>
       <select id="pTime">
@@ -112,12 +126,12 @@
       <label>외출 시각 분산 (분)</label>
       <input type="number" id="pLeaveSigma" value="30" min="0" max="180"/>
     </div>
-    <button class="btn btn-primary" onclick="quickRun()">▶ 실행</button>
+    <button class="btn btn-primary" onclick="quickRun()">실행</button>
     <button class="btn btn-secondary" style="margin-top:6px" onclick="compareRun()">
       10·12·14시 비교
     </button>
     <button class="btn btn-secondary" style="margin-top:6px" onclick="showTraffic()">
-      🚦 시간대별 교통량 확인
+      시간대별 교통량 확인
     </button>
   </div>
 
@@ -188,7 +202,7 @@
 
 <!-- ── 사이드바 템플릿: 라즈베리파이 엣지 발열 ──────────────────── -->
 <template id="tpl-sidebar-edge">
-  <h1>엣지 발열 시뮬레이터</h1>
+  <h1><span>EDGE</span>엣지 발열</h1>
   <p style="font-size:11px;color:var(--muted);line-height:1.5">
     라즈베리파이 고부하 AI 추론 환경의<br>
     발열·스로틀링·회복 동역학을 열 RC 모델로 예측합니다.
@@ -228,12 +242,12 @@
       <label>측정 시간 (분)</label>
       <input type="number" id="eMinutes" value="20" min="1" max="180"/>
     </div>
-    <button class="btn btn-primary" onclick="edgeRun()">▶ 발열 시뮬레이션</button>
+    <button class="btn btn-primary" onclick="edgeRun()">발열 시뮬레이션 실행</button>
     <button class="btn btn-secondary" style="margin-top:6px" onclick="edgeHeatsinkCompare()">
-      🧊 방열판 배치 비교
+      방열판 배치 비교
     </button>
     <button class="btn btn-secondary" style="margin-top:6px" onclick="edgeRecoveryCompare()">
-      ♻️ 회복 정책 비교 (R1·R2·R3)
+      회복 정책 비교 (R1·R2·R3)
     </button>
   </div>
 
