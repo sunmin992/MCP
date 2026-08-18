@@ -12,6 +12,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +34,9 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
 
     private static final Logger log = LoggerFactory.getLogger(PythonWasteSimAdapter.class);
     private static final ObjectMapper MAPPER = new ObjectMapper();
+
+    /** destroyForcibly() 뒤에 자식이 실제로 사라지기를 기다리는 상한(초). */
+    private static final long KILL_GRACE_SECONDS = 5;
 
     @Value("${waste-sim.python.executable}")
     private String pythonExecutable;
@@ -77,18 +82,42 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
                 .redirectErrorStream(false);
         try {
             Process p = pb.start();
+            // stdout·stderr를 각각 별도 스레드로 동시에 비운다. 예전엔 stdout을
+            // readAllBytes()로 끝까지 읽고 → stderr를 읽고 → 그제서야 waitFor(timeout)을
+            // 불렀는데, 그 순서 때문에 두 가지가 동시에 깨져 있었다.
+            //
+            // (1) 타임아웃이 아예 동작하지 않았다 — readAllBytes()는 블로킹이라 자식이
+            //     멈추면 거기서 무한 대기하고, 아래 waitFor(timeoutSeconds)에는 영영 도달하지
+            //     못한다. 설정된 180초는 사실상 아무 역할도 하지 않았다.
+            // (2) 파이프 데드락 — stdout을 다 읽을 때까지 stderr를 손대지 않으므로,
+            //     자식이 stderr 파이프 버퍼(OS 기본 수십 KB)를 채우면 자식은 stderr 쓰기에서
+            //     막히고 이쪽은 stdout 읽기에서 막혀 서로를 영원히 기다린다. 파이썬
+            //     트레이스백에 경고가 몇 줄만 겹쳐도 닿는 크기다.
+            //
+            // redirectErrorStream(true)로 둘을 합치는 방법은 쓸 수 없다 — mcp_bridge.py는
+            // stdout에 JSON 한 줄만 낸다는 계약이라, 경고 한 줄만 섞여도 아래의
+            // MAPPER.readTree가 깨진다.
+            StreamPump outPump = StreamPump.start("python-devs-stdout", p.getInputStream());
+            StreamPump errPump = StreamPump.start("python-devs-stderr", p.getErrorStream());
+
             try (var out = p.getOutputStream()) {
                 out.write(requestJson.getBytes(StandardCharsets.UTF_8));
             }
-            String stdout = new String(p.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
-            String stderr = new String(p.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
 
             if (!p.waitFor(timeoutSeconds, TimeUnit.SECONDS)) {
                 p.destroyForcibly();
+                // 죽은 것까지 확인해야 스트림이 닫혀 펌프 스레드가 EOF를 본다.
+                // 여기서도 무한 대기하지 않는다 — 이 메서드에는 경계 없는 블로킹이
+                // 하나도 남아 있으면 안 된다.
+                p.waitFor(KILL_GRACE_SECONDS, TimeUnit.SECONDS);
+                log.warn("python-devs 실행 타임아웃({}초) — stderr: {}",
+                        timeoutSeconds, errPump.awaitText().trim());
                 return ToolResult.rejected(new ValidationError(
                         ErrorCode.EXECUTION_ERROR, "python-devs",
                         "Python 엔진 실행이 " + timeoutSeconds + "초를 초과해 중단했습니다."));
             }
+            String stdout = outPump.awaitText();
+            String stderr = errPump.awaitText();
             if (p.exitValue() != 0) {
                 log.warn("python-devs 실행 실패(exit={}): {}", p.exitValue(), stderr.trim());
                 return ToolResult.rejected(new ValidationError(
@@ -137,5 +166,47 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
             node.put("routeTravelMinutes", cfg.getRouteTravelMinutes());
         }
         return MAPPER.writeValueAsString(node);
+    }
+
+    /**
+     * 서브프로세스의 출력 스트림 하나를 전용 스레드로 끝까지 읽어 두는 펌프.
+     *
+     * <p>stdout·stderr를 동시에 비워야 하는 이유는 {@link #run(SimulationConfig)}의
+     * 주석을 참고. 읽기 도중 오류가 나면 빈 문자열을 돌려준다 — 이 값은 진단용
+     * 텍스트이지 실행 결과 자체가 아니라, 부분 실패 때문에 성공한 실행을 실패로
+     * 바꿀 이유가 없다.
+     */
+    private static final class StreamPump {
+
+        /** 프로세스가 끝난 뒤 스레드가 EOF를 보고 정리될 때까지 기다리는 상한(ms). */
+        private static final long JOIN_TIMEOUT_MS = 5_000;
+
+        private final Thread thread;
+        /** 펌프 스레드가 쓰고 호출 스레드가 읽는다 — join()이 happens-before를 보장하지만,
+         *  join이 타임아웃으로 끝나는 경우까지 안전하려면 volatile이여야 한다. */
+        private volatile String text = "";
+
+        private StreamPump(String name, InputStream in) {
+            this.thread = new Thread(() -> {
+                try (InputStream s = in) {
+                    text = new String(s.readAllBytes(), StandardCharsets.UTF_8);
+                } catch (IOException e) {
+                    log.debug("{} 읽기 실패: {}", name, e.getMessage());
+                }
+            }, name);
+            this.thread.setDaemon(true);   // 서버 종료를 막지 않는다
+        }
+
+        static StreamPump start(String name, InputStream in) {
+            StreamPump pump = new StreamPump(name, in);
+            pump.thread.start();
+            return pump;
+        }
+
+        /** 읽기가 끝날 때까지(최대 {@link #JOIN_TIMEOUT_MS}) 기다린 뒤 내용을 돌려준다. */
+        String awaitText() throws InterruptedException {
+            thread.join(JOIN_TIMEOUT_MS);
+            return text;
+        }
     }
 }
