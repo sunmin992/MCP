@@ -5,7 +5,7 @@
 ## 문서
 
 - [문서 인덱스](docs/README.md)
-- [SRS·SDD·TDD 통합 명세서 (v1.9)](docs/specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md)
+- [SRS·SDD·TDD 통합 명세서 (v1.10)](docs/specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md)
 - [확인된 디버깅 항목](docs/reference/DEBUGGING_ISSUES.md)
 
 ## 실행

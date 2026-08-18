@@ -7,9 +7,9 @@
 | 항목 | 내용 |
 |---|---|
 | 문서명 | waste-sim-spring SRS / SDD / TDD 통합 명세서 |
-| 현행 버전 | **v1.9** (2026-08-08) |
+| 현행 버전 | **v1.10** (2026-08-17) |
 | 원본 형식 | Google Docs → Markdown 내보내기 |
-| 파일명 | [`docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md`](docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md) |
+| 파일명 | [`docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md`](docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md) (이전: [v1.9](docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md)) |
 
 ## v1.9부터 Markdown을 커밋한다
 
@@ -95,3 +95,19 @@ Maven 버전으로 회귀를 재현하려면 추가해야 한다 — 문서 오�
 ```bash
 mvn -B test
 ```
+
+## v1.10 반영 결과 (2026-08-17, 이 페이지 작성 직후)
+
+위 "코드에 추가한 것" 절의 truck-route 항목("해야 한다")을 v1.10에서 마무리했다.
+
+- **truck-route 시나리오 전건 문서화** — SDD 2.14.4 신설(후보를 지어내지 않는다 D-31·없는
+  우열을 만들지 않는다 D-32), FR-113 신설, TDD 3.3.1(UT-224~231)·3.9(IT-76) 추가, 부록 A.1/A.2/A.3 갱신.
+- **엣지 도메인 게이트 팬 어휘 결함(D-33)** — DomainIntentDetector의 EDGE 어휘에 rpm·pwm·회전수·
+  운전점이 빠져 있던 것을 SDD 2.3.3에 결함 수정 기록으로 남기고 UT-233으로 고정했다. "스윕"·"가성비"는
+  장량동과 겹치는 어휘라 의도적으로 제외한 이유도 함께 적었다.
+- **EdgeToolSelector 순서 회귀(FR-78)** — 코드는 이미 이 페이지 작성 이전에 수정됐고 SDD 2.15.9도
+  이미 정확했으므로, TDD에 회귀 테스트(UT-232)만 추가했다.
+- **부록 B.3 완성** — "다음 두 항목은 아직 테스트로 고정되지 않았다"에서 실제로는 한 항목(E-06)만
+  적혀 있고 나머지(E-08)가 비어 있던 것을 채웠다.
+
+E-06·E-08은 여전히 결정이 먼저 필요해 미해결로 남아 있다(부록 B.2). Maven Wrapper 부재도 그대로다.
