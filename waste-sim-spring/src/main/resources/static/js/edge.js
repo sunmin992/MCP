@@ -439,7 +439,7 @@ function edgeBuildSweepBubble(msg) {
 // ── 도메인 등록 ───────────────────────────────────────────────────
 Domains.register({
   id: 'edge',
-  icon: '🌡️',
+  icon: 'EDGE',
   label: '라즈베리파이 엣지 발열',
   tagline: '보드·워크로드·냉각 조건에 따른 발열과 스로틀링 시점을 예측합니다.',
   title: '라즈베리파이 엣지 발열 시뮬레이션',
