@@ -51,9 +51,20 @@ public final class EdgeChatFormatter {
 
         String policy = str(out, "recoveryPolicy");
         if (policy != null && !"none".equals(policy)) {
-            sb.append(String.format("- 회복(%s): 비트 해제 %s / 서비스 복원 %s / 완전 냉각 %s%n",
-                    policyKo(policy), sec(num(m, "trtStateSec")), sec(num(m, "trtServiceSec")),
-                    sec(num(m, "trtFullSec"))));
+            // "서비스 복원"이라고만 쓰면 잠재 처리능력 회복을 실제 서비스 회복으로 읽게 된다
+            // (E-06). 재는 대상을 문장에 그대로 적는다.
+            sb.append(String.format("- 회복(%s): 비트 해제 %s / 처리능력 복원 %s / 완전 냉각 %s%n",
+                    policyKo(policy), sec(num(m, "trtStateSec")),
+                    sec(num(m, "trtServiceCapacitySec")), sec(num(m, "trtFullSec"))));
+            // 실측 FPS 기준 회복은 회복 구간에도 부하가 유지되는 정책에서만 나온다.
+            // 값이 없는 것 자체가 결과이므로 왜 없는지를 적는다 — 빈칸으로 두지 않는다.
+            Double observed = num(m, "trtObservedServiceSec");
+            if (observed != null) {
+                sb.append(String.format("- 실측 FPS 복원 %s%n", sec(observed)));
+            } else {
+                sb.append("- 실측 FPS 복원: 이 정책은 회복 구간에 추론을 멈추거나 낮춰서 "
+                        + "실제 FPS로는 잴 수 없다(위 처리능력 복원이 대신 답한다).\n");
+            }
         }
         sb.append(String.format("- 가열 시정수 τ = %s초%n", fmt(num(m, "tauHeatingSec"))));
 

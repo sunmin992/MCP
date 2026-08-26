@@ -198,7 +198,13 @@ public class SimulateEdgeThrottlingTool implements McpToolProvider {
         m.put("episodeCount", run.episodes().size());
         m.put("medianTedSec", run.medianTedSec());
         m.put("trtStateSec", run.trtStateSec());
+        // E-06 — 세 필드의 관계: trtServiceSec은 trtServiceCapacitySec의 옛 이름이고 값이 같다
+        // (하위호환용, deprecated). 이름이 "서비스 회복"으로 읽히는데 실제로는 "낼 수 있게 된
+        // 시각"을 재는 것이 오독의 원인이었다. 실제 관측 FPS 기준 회복은 별도 필드로 나눴고,
+        // R1·R2처럼 회복 구간에 부하를 내리는 정책에서는 null이 정상이다.
         m.put("trtServiceSec", run.trtServiceSec());
+        m.put("trtServiceCapacitySec", run.trtServiceCapacitySec());
+        m.put("trtObservedServiceSec", run.trtObservedServiceSec());
         m.put("trtFullSec", run.trtFullSec());
         m.put("peakTempC", run.peakTempC());
         m.put("loadEndTempC", run.loadEndTempC());

@@ -7,16 +7,60 @@
 | 항목 | 내용 |
 |---|---|
 | 문서명 | waste-sim-spring SRS / SDD / TDD 통합 명세서 |
-| 현행 버전 | **v1.10** (2026-08-17) |
-| 원본 형식 | Google Docs → Markdown 내보내기 |
-| 파일명 | [`docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md`](docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md) (이전: [v1.9](docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md)) |
+| 현행 버전 | **v1.11** (2026-08-20) |
+| 기준 형식 | **Markdown** — `.docx`는 편집 원본일 뿐 기준이 아니다(아래 참조) |
+| 파일명 | [`docs_waste-sim-spring_SRS_SDD_TDD_v1_11.md`](docs_waste-sim-spring_SRS_SDD_TDD_v1_11.md) (이전: [v1.10](docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md)) |
 
-## v1.9부터 Markdown을 커밋한다
+## 기준 문서는 Markdown이다 — `.docx`는 편집 원본일 뿐이다
 
 v1.8까지는 `.docx`를 기준으로 삼았는데, 바이너리라 병합이 불가능해 세 대의 개발
 머신에서 충돌이 났고 "어느 문단이 언제 왜 바뀌었는지"를 git으로 되짚을 수 없었다.
-v1.9는 같은 문서를 Markdown으로 내보내 커밋하므로 diff·PR 리뷰·blame이 그대로 된다.
-v1.8 `.docx`는 이력 보존용으로 남겨 둔다.
+v1.9부터 같은 문서를 Markdown으로 내보내 커밋하므로 diff·PR 리뷰·blame이 그대로 된다.
+
+**어긋나면 저장소의 Markdown이 이긴다.** Word·Google Docs 파일은 사람이 문단을 쓰기
+편한 편집 원본이고, 저장소에 커밋되는 Markdown이 코드·테스트·파생 문서가 대조하는
+기준이다. `.docx`는 `.gitignore`에 있어 애초에 커밋되지 않는다 — 즉 "저장소에 있는
+명세"라고 하면 항상 Markdown 쪽을 가리킨다.
+
+개정 절차는 이렇다.
+
+1. `.docx`(또는 Google Docs)에서 문단을 고친다.
+2. `python scripts/docx_to_markdown.py <입력.docx> docs/specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_XX.md`
+3. 생성된 Markdown을 커밋하고, 이 페이지·[`docs/README.md`](../README.md)·[`README.md`](../../README.md)의
+   기준 링크를 새 버전으로 옮긴다. 직전 버전 Markdown은 지우지 않고 이력으로 남긴다.
+
+변환을 사람마다 다른 도구로 하면 diff가 개정 내용이 아니라 변환기 차이를 보여주므로,
+변환 경로를 [`scripts/docx_to_markdown.py`](../../scripts/docx_to_markdown.py)로 저장소에 고정했다
+(표준 라이브러리만 쓴다 — pandoc·python-docx 설치 불필요).
+
+> v1.11 반영 시점(2026-08-26)에 확인한 사실: v1.9·v1.10 Markdown은 위 규칙이 문서에만
+> 있고 실제로는 **한 번도 커밋된 적이 없었다.** `docs/README.md`와 최상위 `README.md`의
+> 기준 링크가 존재하지 않는 파일을 가리키고 있었고, 저장소에 실제로 있던 명세 파일은
+> 이 페이지 하나뿐이었다(`.docx`는 `.gitignore` 대상). v1.11을 반영하면서 v1.10도 같은
+> 스크립트로 변환해 함께 커밋했으므로, 지금은 두 버전이 저장소 안에 있다.
+
+## 버전 체계 — 문서 버전과 애플리케이션 버전은 다르다
+
+명세서는 `1.11`, `pom.xml`은 `1.1.1`이다. 비슷하게 생겨서 같은 값으로 읽기 쉽지만
+서로 다른 축이고, 통일하지 않는다 — 문서만 고치는 개정(v1.11이 그렇다)과 코드만 고치는
+핫픽스(1.1.1이 그렇다)가 실제로 따로 일어나기 때문에 한 숫자로 묶으면 둘 중 하나가
+거짓이 된다.
+
+| 축 | 값의 출처 | 언제 올라가는가 |
+|---|---|---|
+| 명세 버전 | `spec.version` (`application.properties`) | 통합 명세서를 개정할 때 |
+| 애플리케이션 버전 | `pom.xml`의 `<version>` | 코드를 릴리스할 때 |
+
+실행 중인 서버가 **어느 명세로 빌드된 것인지**는 `/actuator/info`가 두 값을 함께
+알려준다. 표기는 "명세 v1.11 / 앱 1.1.1"처럼 항상 둘을 붙여 쓴다.
+
+```bash
+curl -s http://localhost:8090/actuator/info
+```
+
+```json
+{ "app": { "version": "1.1.1" }, "spec": { "version": "1.11", "date": "2026-08-20" } }
+```
 
 ## 코드와의 정합 상태 (2026-08-17 재대조)
 
@@ -75,10 +119,11 @@ v1.8 `.docx`는 이력 보존용으로 남겨 둔다.
 | `docs/reference/DEBUGGING_ISSUES.md` §6 3단계 | 1(E-04)·3(E-07)이 미완료로 남아 있다 — 둘 다 코드·테스트로 해소됐다(`ThrottleMissingDataTest`·`ThermalParamsInvariantTest`) |
 | `docs/reference/DEBUGGING_ISSUES.md` §7 | 체크박스 3개가 비어 있다 — 중간 null throttle(`ThrottleMissingDataTest`), 1노드/2노드 정상상태 일치(`TwoNodeThermalModelTest.steadyStateMatchesOneNodeModel`), dt 수렴(`ThermalSimulatorAccuracyTest`) 전부 존재한다 |
 
-### 문서가 맞고 저장소가 따라가야 할 것
+### 문서가 맞고 저장소가 따라가야 할 것 — **2026-08-26 해소**
 
-TDD 3.15 환경 메모가 지적한 **Maven Wrapper(`mvnw`/`mvnw.cmd`)가 아직 없다.** 개발자와 CI가 같은
-Maven 버전으로 회귀를 재현하려면 추가해야 한다 — 문서 오류가 아니라 남은 작업이다.
+TDD 3.15 환경 메모가 지적한 **Maven Wrapper(`mvnw`/`mvnw.cmd`)가 없었다.** 개발자와 CI가 같은
+Maven 버전으로 회귀를 재현하려면 필요한 것이라, 문서 오류가 아니라 남은 작업이었다. v1.11 반영과
+함께 추가했다(아래 "v1.11 반영 결과" 참조).
 
 ### 남겨 둔 것
 
@@ -90,11 +135,16 @@ Maven 버전으로 회귀를 재현하려면 추가해야 한다 — 문서 오�
   "접촉 면적"에 다른 값을 쓴다. 계산용/보고용 coverage 분리와 무효 배치 거부 중 어느 쪽이
   물리적으로 옳은지가 모델링 결정이다.
 
+> 두 건 모두 **2026-08-26에 결정과 함께 해소했다**(D-37·D-38). 아래 "v1.11 반영 결과" 참조.
+
 ### 검증 스크립트
 
 ```bash
-mvn -B test
+./mvnw -B test
 ```
+
+(윈도우 PowerShell은 `.\mvnw.cmd -B test`. 2026-08-26 이전 기록의 `mvn -B test`는 래퍼가 없던
+시절의 명령이다 — 지금은 래퍼로 돌려야 개발 머신과 CI가 같은 Maven을 쓴다.)
 
 ## v1.10 반영 결과 (2026-08-17, 이 페이지 작성 직후)
 
@@ -111,3 +161,121 @@ mvn -B test
   적혀 있고 나머지(E-08)가 비어 있던 것을 채웠다.
 
 E-06·E-08은 여전히 결정이 먼저 필요해 미해결로 남아 있다(부록 B.2). Maven Wrapper 부재도 그대로다.
+
+## v1.11 반영 결과 (2026-08-26)
+
+`./mvnw -B test` **441건 통과·2건 스킵** 기준이다. 스킵 2건은 `PythonWasteSimAdapterTest`가
+`adev-master/waste_sim`(이 저장소 밖의 Python 참조 엔진) 유무를 `assumeTrue`로 보고 건너뛴 것이며,
+이 머신에 그 경로가 없어서다 — 실패가 아니다(TDD 3.14). 재대조 직전 기준선은 427건·2건 스킵이었고,
+이번에 추가한 회귀 테스트 14건이 늘어난 몫이다.
+
+### 1. v1.11을 저장소 기준 명세로 반영
+
+- `docs_waste-sim-spring_SRS_SDD_TDD_v1_11.md` 커밋, 최상위 `README.md`·`docs/README.md`·이 페이지의
+  기준 링크를 v1.11로 이동.
+- **v1.10도 함께 커밋했다.** 반영 과정에서 v1.9·v1.10 Markdown이 규칙에만 있고 실제로는 한 번도
+  커밋된 적이 없다는 것을 발견했기 때문이다(위 인용 참조). 같은 스크립트로 변환해 이력으로 남겼다.
+- `.docx`와 Markdown 중 어느 쪽이 기준인지를 "기준 문서는 Markdown이다" 절로 명시하고, 변환 경로를
+  `scripts/docx_to_markdown.py`로 고정했다.
+
+### 2. 빌드 재현성 — Maven Wrapper 추가
+
+`mvnw`·`mvnw.cmd`·`.mvn/wrapper/maven-wrapper.properties`를 추가하고 Maven **3.9.14**로 고정했다.
+`distributionType=only-script`라 래퍼 jar를 커밋하지 않는다 — 기존 `.gitignore`의
+`maven-wrapper.jar` 예외와도 맞는다. 기본 검증 명령은 `./mvnw -B test`이며 README에 적었다.
+
+### 3. 최신 회귀 재실행
+
+| 항목 | 결과 |
+|---|---|
+| 전체 Java 테스트 | 441건 통과·0 실패·2 스킵 |
+| 스킵 사유 | Python 참조 엔진(`adev-master/waste_sim`) 미설치 — `assumeTrue` 2건 |
+| 벤치마크 채점 ↔ `JailbreakFilter` | 정규식 4종·임계치 모두 일치 확인 |
+
+벤치마크 채점 정합성(NFR-16)은 v1.11까지 "방어 로직을 고칠 때 사람이 함께 확인한다"는 절차로만
+유지됐다. 절차는 잊히므로 `BenchmarkFilterParityTest`로 고정했다 — 두 파일의 정규식 원문과 임계치를
+대조하므로 한쪽만 고치면 테스트가 깨진다. 해석 규칙은 `docs/reference/LLM_BENCHMARK_GUIDE.md`로
+분리했다(명세 3.16이 이 경로를 참조하는데 파일이 없었다).
+
+`llm_benchmark.py` **실행 자체는 재현하지 않았다** — 로컬 Ollama와 모델 4종이 필요하고 CPU 추론으로
+수십 분이 걸린다. 명세 3.16의 수치는 2026-08-19 실행 기준 그대로이며, 3.16.5의 변동 지표 인용 규칙이
+그대로 적용된다.
+
+### 4. E-06 결정 — 회복 지표를 의미별로 나눔 (D-37)
+
+`trtServiceSec`은 이름이 "서비스 회복"으로 읽히지만 실제로는 *낼 수 있게 된* 시각을 잰다.
+
+| 필드 | 의미 | R1·R2 | R3 |
+|---|---|---|---|
+| `trtServiceSec` | **deprecated** — 아래 capacity와 같은 값(하위호환) | 값 있음 | 값 있음 |
+| `trtServiceCapacitySec` | 잠재 처리능력 회복 | 값 있음 | 값 있음 |
+| `trtObservedServiceSec` | 실측 FPS 회복 | **null** | 값 있음 |
+
+R1(추론 완전 중지)·R2(저부하 25%)에서 실측 지표가 null인 것은 결함이 아니라 정책의 성질이고, 그
+자리를 잠재 처리능력으로 채우지 않는다(D-26). 채팅 문구도 "서비스 복원"에서 "처리능력 복원"으로
+바꾸고, 실측 지표가 없을 때는 왜 없는지를 문장으로 알린다. 회귀 테스트 `RecoveryMetricSemanticsTest` 5건.
+
+### 5. E-08 결정 — coverage 분리, 거부하지 않음 (D-38)
+
+`reportedCoverage`(실제 겹침)와 `effectiveCoverage`(모델 유효 하한 1%)를 나누고 `rTim`·`rMisalign`·
+`rSpread`가 **전부** 후자를 참조하게 했다. 하한 위 구간에서는 두 값이 같으므로 기존 결과는 바뀌지 않는다.
+
+`INVALID_LAYOUT`으로 거부하지 않기로 한 이유는 이 배치가 **실제로 만들 수 있는** 형상이고, 거부하면
+"오프셋을 주면 얼마나 나빠지는가"라는 이 도구의 질문에 곡선 끝까지 답할 수 없기 때문이다. 하한을 적용한
+결과는 "방열판이 없는 것과 다름없다"로 수렴하며 그것이 이 구간의 옳은 답이다.
+
+구현 중에 **겹침이 정확히 0인 배치까지 하한에 걸려 무냉각보다 좋은 값이 나오는 회귀**가 났고, 기존
+`completelyMissedHeatsinkFallsBackToBare` 테스트가 잡았다. "아주 조금 닿았다"와 "아예 안 닿았다"는 다른
+상태라 겹침 0은 하한 대상에서 제외했다. 회귀 테스트 `HeatsinkCoverageFloorTest` 6건(그 구분 포함).
+
+### 6. 버전 체계 정리
+
+명세 버전(1.11)과 애플리케이션 버전(`pom.xml` 1.1.1)은 **통일하지 않고 별도 축으로 표기**하기로 했다 —
+문서만 고치는 개정과 코드만 고치는 핫픽스가 실제로 따로 일어나므로 한 숫자로 묶으면 둘 중 하나가
+거짓이 된다. 대신 `/actuator/info`가 두 값을 함께 내보내, 실행 중인 인스턴스가 어느 명세로 빌드됐는지
+답할 수 있게 했다(위 "버전 체계" 절). `pom.xml`에도 같은 취지의 주석을 달았다.
+
+### 7. 오래된 주석 정리
+
+| 위치 | 고친 내용 |
+|---|---|
+| `McpToolRegistry` | "구현체 없음(현재 기본 상태)" → 엣지 도구 **5종**을 이름까지 나열(SDD 2.7.1과 일치) |
+| `pom.xml` OkHttp | "Claude API 호출용" → OpenAI 호환 백엔드(OpenAI·Ollama·Gemini) 호출용. 전용 SDK 대신 HTTP를 쓰는 이유가 그 호환성이라는 점까지 적었다(SDD 2.17.4) |
+
+### 남은 것
+
+- **명세 원본(`.docx`)과의 동기화** — E-06·E-08 결정(D-37·D-38)은 기준인 Markdown에 직접 반영했다.
+  다음에 `.docx`에서 개정할 때는 이 내용을 먼저 원본에 옮긴 뒤 편집해야 한다.
+- **CI 파이프라인** — `.github/workflows`에 워크플로가 없다. 래퍼가 생겼으므로 CI에서도 `./mvnw -B test`
+  한 줄로 같은 Maven을 쓸 수 있지만, 워크플로 자체는 이번 범위 밖이라 추가하지 않았다.
+- **`llm_benchmark.py` 실측 재실행** — 위 3절 참조.
+
+### 8. E-09 — 냉각 부정 어휘 결함 (2026-08-26, 라이브 발견)
+
+v1.11 반영 작업 중 UI 라이브 실행에서 새 결함을 발견해 같은 날 수정했다.
+
+> 방열판, 냉각장치 없이 pi4로 주변 온도 28도로 3시간 돌리면 스로틀링 언제 발생해
+
+이 문장이 무냉각(bare)이 아니라 **방열판(passive)으로 실행됐다.** 목록형 부정을 잡는
+`BOTH_ABSENT` 어휘에 `팬`·`쿨러`·`fan`만 있고 **"냉각장치"가 없어서** 매칭이 끊겼고,
+남은 `PASSIVE`의 "방열판" 한 단어가 조건을 확정했다.
+
+결과가 틀린 것이 아니라 **묻지 않은 질문에 답한 것**이라 P1으로 뒀다. 63.7℃는 방열판을 단
+Pi4의 정확한 값이고 경고도 없어서 사용자는 자기 질문의 답으로 읽는다. 게다가 그 조건은
+소프트 제한(80℃)조차 닿지 않아 "스로틀링 언제 발생하냐"에 줄 시각이 아예 없었다.
+
+| 냉각 | 정상상태 | 소프트 제한 진입 | 하드 스로틀링 |
+|---|---|---|---|
+| passive(실제 실행) | 63.7℃ | 없음 | 없음 |
+| bare(질문한 것) | 84.5℃ | 219초 | 없음(84.5 < 85.0) |
+
+무냉각 28℃는 하드 한계보다 0.5℃ 낮은 경계이고, 30℃면 TTT 507초로 뒤집힌다(29℃까지 미발생).
+어휘 하나가 이 경계 전체를 가리고 있었다.
+
+수정은 `COOLER` 어휘 신설(냉각장치·냉각모듈·냉각기)이다. `장치`·`모듈`은 단독으로 쓰면
+"측정장치 없이"까지 걸리므로 **"냉각"이 앞에 올 때만** 인정한다(D-39). 단독 부정은 기존
+"팬 없이" 규칙대로 passive를 유지한다. 회귀 테스트 `CoolingNegationTest` 3건.
+
+**D-33과 같은 유형이다** — 로직·테스트가 모두 정상인데 사용자가 실제로 쓰는 단어가 목록에 없어
+오류 없이 다른 실험이 실행된다. 두 건 다 정적 검토가 아니라 라이브 실행에서만 드러났다.
+새 어휘를 넣을 때는 그 개념의 동의어까지 함께 넣었는지 확인한다(팬 → 쿨러 → 냉각장치 → 냉각모듈).

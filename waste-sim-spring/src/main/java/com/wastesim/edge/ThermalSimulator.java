@@ -183,7 +183,11 @@ public class ThermalSimulator {
         Double tttCandidate = null;  // 지속 판정 대기 중
         Double ttt = null;           // 확정 TTT
         Double trtState = null, trtService = null, trtFull = null;
-        Double stateClearCandidate = null, serviceCandidate = null;
+        // 실제로 관측된 FPS 기준 회복(E-06). 위 trtService가 "낼 수 있게 된 시각"이라면
+        // 이쪽은 "실제로 그만큼 내고 있는 시각"이다 — R1처럼 회복 구간에 추론을 멈추는
+        // 정책에서는 영영 도달하지 않으므로 null로 남고, 그 null 자체가 답이다.
+        Double trtObservedService = null;
+        Double stateClearCandidate = null, serviceCandidate = null, observedServiceCandidate = null;
 
         double peak = temp;
         double loadEndTemp = temp;
@@ -358,6 +362,8 @@ public class ThermalSimulator {
                 } else {
                     stateClearCandidate = null;
                 }
+                // 잠재 처리능력(TRT_service_capacity) — 클럭이 풀려 "낼 수 있게 된" 시각.
+                // 부하가 걸려 있는지와 무관하므로 회복 정책 R1~R3 전부에서 관측된다.
                 if (serviceDegraded && achievableFps >= SERVICE_RECOVERY_RATIO * serviceBaseline) {
                     if (serviceCandidate == null) serviceCandidate = t;
                     else if (trtService == null && t - serviceCandidate >= RECOVERY_CONFIRM_SEC) {
@@ -365,6 +371,20 @@ public class ThermalSimulator {
                     }
                 } else {
                     serviceCandidate = null;
+                }
+                // 실측 서비스(TRT_observed_service) — 실제로 내고 있는 FPS 기준. 같은 기준선·
+                // 같은 지속 확인 창을 쓰고 분자만 achievableFps → fps로 바꾼다. R1은 회복
+                // 구간에서 추론을 멈춰(workloadOn=false) fps가 0이므로 끝까지 null이고,
+                // R2는 저부하(25%)라 기준선의 90%에 닿지 못해 역시 null이 되는 것이 정상이다.
+                // 여기서 "대신 잠재 처리능력 값을 채워 넣는" 보정은 하지 않는다(D-26).
+                if (serviceDegraded && fps >= SERVICE_RECOVERY_RATIO * serviceBaseline) {
+                    if (observedServiceCandidate == null) observedServiceCandidate = t;
+                    else if (trtObservedService == null
+                            && t - observedServiceCandidate >= RECOVERY_CONFIRM_SEC) {
+                        trtObservedService = observedServiceCandidate - recoveryStart;
+                    }
+                } else {
+                    observedServiceCandidate = null;
                 }
                 if (trtFull == null && temp <= p.idleSteadyTempC() + FULL_RECOVERY_MARGIN_C) {
                     trtFull = t - recoveryStart;
@@ -593,7 +613,10 @@ public class ThermalSimulator {
         return new ThermalRun(
                 board.label(), p,
                 round(softEntry, 1), round(ttt, 1), round(tttFirst, 1), episodes, round(medianTed, 1),
-                round(trtState, 1), round(trtService, 1), round(trtFull, 1),
+                // trtServiceSec(구 이름)와 trtServiceCapacitySec은 같은 값이다 — 하위호환을
+                // 위해 두 자리에 같은 수를 넣는다(E-06).
+                round(trtState, 1), round(trtService, 1), round(trtService, 1),
+                round(trtObservedService, 1), round(trtFull, 1),
                 round(peak, 2), round(loadEndTemp, 2),
                 round(tempAmplitude, 2), round(settledMean, 2), round(steady, 2), expected,
                 round(recoveryStart > 0 ? throttledTime / recoveryStart : 0.0, 3),

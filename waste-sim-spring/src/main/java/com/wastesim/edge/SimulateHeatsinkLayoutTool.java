@@ -224,8 +224,15 @@ public class SimulateHeatsinkLayoutTool implements McpToolProvider {
         m.put("meanFpsDuringLoad", run.meanFpsLoad());
         m.put("marginToHardLimitC", ThermalSimulator.round(p.hardLimitC() - run.steadyStateTempC(), 2));
         if (r != null) {
+            // E-08 — coverage는 effectiveCoverage의 옛 이름이고 값이 같다(하위호환).
+            // reportedCoverage는 실제 겹침, effectiveCoverage는 세 저항 항이 공통으로 쓰는
+            // 계산값이다. 둘이 다르면(coverageFloorApplied=true) 결과는 하한선으로 읽는다.
             m.put("coverage", r.coverage());
+            m.put("reportedCoverage", r.reportedCoverage());
+            m.put("effectiveCoverage", r.effectiveCoverage());
+            m.put("coverageFloorApplied", r.coverageFloorApplied());
             m.put("contactAreaMm2", r.contactAreaMm2());
+            m.put("effectiveContactAreaMm2", r.effectiveContactAreaMm2());
             m.put("finSurfaceAreaCm2", r.finSurfaceAreaCm2());
             m.put("finEfficiency", r.finEfficiency());
             m.put("hEffWm2K", r.hEffWm2K());

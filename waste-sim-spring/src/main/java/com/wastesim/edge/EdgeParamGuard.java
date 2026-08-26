@@ -78,9 +78,15 @@ public final class EdgeParamGuard {
     private static final String CONN = "(?:이나|나|또는|하고|과|와|랑|,|·|도)?";  // 목록 연결(방열판'이나'/'도' 팬…)
     private static final String PART = "(?:이|가|은|는|을|를|도|만)?";              // 조사(팬'도'/'만' 없이)
     private static final String NEG = "(?:없|빼)";                                    // 없이 / 빼면
+    // 능동 냉각 부품을 가리키는 말. "팬"·"쿨러" 말고 <b>"냉각장치"</b>도 실제로 자주 쓴다 —
+    // 이 단어가 빠져 있어서 "방열판, 냉각장치 없이 pi4 돌리면"이 무냉각으로 잡히지 않고
+    // PASSIVE의 "방열판"에만 걸려 <b>방열판을 달고</b> 실행됐다(D-33과 같은 종류의 어휘 누락).
+    // "장치"·"모듈"은 단독으로 쓰면 너무 넓어서(측정장치 등) 반드시 "냉각"이 앞에 와야 한다.
+    private static final String COOLER =
+            "(?:(?:냉각\\s*)?(?:팬|쿨러|fan)|냉각\\s*(?:장치|모듈|기))";
     private static final String BOTH_ABSENT =
-            "방열판\\s*" + CONN + "\\s*(?:냉각\\s*)?(?:팬|쿨러|fan)\\s*" + PART + "\\s*" + NEG
-            + "|(?:냉각\\s*)?(?:팬|쿨러|fan)\\s*" + CONN + "\\s*(?:방열판|히트\\s*싱크|heatsink)\\s*" + PART + "\\s*" + NEG;
+            "방열판\\s*" + CONN + "\\s*" + COOLER + "\\s*" + PART + "\\s*" + NEG
+            + "|" + COOLER + "\\s*" + CONN + "\\s*(?:방열판|히트\\s*싱크|heatsink)\\s*" + PART + "\\s*" + NEG;
     private static final Pattern BARE = Pattern.compile(
             "(무냉각|냉각\\s*없|방열판\\s*없|맨\\s*보드|기본\\s*상태|아무것도\\s*안|bare|" + BOTH_ABSENT + ")",
             Pattern.CASE_INSENSITIVE);
@@ -178,8 +184,12 @@ public final class EdgeParamGuard {
      * 사라지는 것은 아니고, 팬 유무 비교(runEdgeFanComparison)도 양쪽을 방열판으로 고정하므로
      * 한 문장으로 물으나 두 문장으로 나눠 물으나 같은 조건이 된다.
      */
+    // "냉각장치"도 여기 포함한다 — 방열판 언급 없이 이 말만 나오면 "팬 없이"와 같은 뜻으로
+    // 보고 방열판은 유지한다(passive). 무냉각으로 내리려면 방열판까지 함께 부정해야 한다
+    // (그 경우는 BOTH_ABSENT가 잡는다).
     private static final Pattern FAN_ABSENT = Pattern.compile(
-            "(팬|쿨러|fan)[을를이가은는만도\\s]*(없|끄|빼|미장착|안\\s*달|off\\b)", Pattern.CASE_INSENSITIVE);
+            "(팬|쿨러|fan|냉각\\s*(?:장치|모듈|기))[을를이가은는만도\\s]*(없|끄|빼|미장착|안\\s*달|off\\b)",
+            Pattern.CASE_INSENSITIVE);
 
     /** 방열판을 빼겠다는 표현. */
     private static final Pattern HEATSINK_ABSENT = Pattern.compile(
