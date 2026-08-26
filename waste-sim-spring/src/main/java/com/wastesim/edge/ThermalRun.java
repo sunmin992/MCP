@@ -15,7 +15,20 @@ import java.util.List;
  * @param episodes         부하 유지 구간에서 관찰된 스로틀링 에피소드(각각의 지속시간이 TED)
  * @param medianTedSec     TED 중앙값(초). 에피소드가 없으면 null
  * @param trtStateSec      TRT_state — 회복 정책 적용 후 스로틀링 비트가 풀릴 때까지(초)
- * @param trtServiceSec    TRT_service — 달성 가능 FPS가 기준선의 90% 이상으로 복원될 때까지(초)
+ * @param trtServiceSec    <b>@deprecated</b> — {@code trtServiceCapacitySec}와 같은 값이다.
+ *                         이름이 "서비스가 회복된 시각"으로 읽히지만 실제로 재는 것은
+ *                         <i>낼 수 있게 된</i> 시각이라(E-06) 오독을 낳았다. 공개된 MCP 응답
+ *                         계약이라 하위호환을 위해 남겨 두되, 새 클라이언트는 아래 두 필드를 쓴다.
+ *                         제거 시점은 클라이언트 이전이 끝난 뒤 별도로 정한다
+ * @param trtServiceCapacitySec TRT_service_capacity — <b>잠재 처리능력</b>이 기준선의 90% 이상으로
+ *                         복원될 때까지(초). 클럭이 풀려 "이만큼 낼 수 있게 된" 시각이며 그 순간
+ *                         실제로 일을 하고 있는지는 묻지 않는다. 회복 정책 R1~R3 전부에서 관측된다
+ * @param trtObservedServiceSec TRT_observed_service — <b>실제 관측 FPS</b>가 기준선의 90% 이상으로
+ *                         복원될 때까지(초). 회복 구간에도 부하가 계속 걸려 있는 정책에서만
+ *                         의미가 있다 — R1(추론 완전 중지)은 FPS가 0이라, R2(저부하 25%)는
+ *                         기준선의 90%에 닿지 않아 <b>null</b>이 되고, 그 null이 곧 답이다
+ *                         ("이 정책으로는 서비스가 회복된 시각을 잴 수 없다"). 없는 값을
+ *                         잠재 처리능력으로 대신 채우지 않는다(D-26 조용한 보정 금지)
  * @param trtFullSec       TRT_full — 유휴 정상상태 온도 +2℃ 이내로 완전 냉각될 때까지(초)
  * @param peakTempC        관측 최고 온도
  * @param loadEndTempC     부하 종료(=회복 시작) 시점 온도
@@ -64,7 +77,9 @@ public record ThermalRun(
         List<Episode> episodes,
         Double medianTedSec,
         Double trtStateSec,
-        Double trtServiceSec,
+        @Deprecated Double trtServiceSec,
+        Double trtServiceCapacitySec,
+        Double trtObservedServiceSec,
         Double trtFullSec,
         double peakTempC,
         double loadEndTempC,
