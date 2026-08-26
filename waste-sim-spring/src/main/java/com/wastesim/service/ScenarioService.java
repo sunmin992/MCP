@@ -331,11 +331,13 @@ public class ScenarioService {
         cfg.setMonthlyWasteFactor(f);
 
         int seeds = Math.max(1, base.getSeeds());
-        double[] sum = new double[12];
-        for (int s = 1; s <= seeds; s++) {
-            SimulationResult r = sim.runSingle(cfg, s);
+        // 시드별 값을 그대로 들고 있는다 — 합계만 모으면 "이 차이가 계절성인지 잡음인지"를
+        // 나중에 되물을 수 없다. 아래 순위 판정이 이 분산을 쓴다.
+        double[][] vals = new double[12][seeds];
+        for (int s = 0; s < seeds; s++) {
+            SimulationResult r = sim.runSingle(cfg, s + 1);
             Map<Integer, Double> wm = r.getWasteByMonth();
-            if (wm != null) for (int m = 0; m < 12; m++) sum[m] += wm.getOrDefault(m, 0.0);
+            if (wm != null) for (int m = 0; m < 12; m++) vals[m][s] = wm.getOrDefault(m, 0.0);
         }
 
         ScenarioResponse resp = new ScenarioResponse(
@@ -344,20 +346,86 @@ public class ScenarioService {
         resp.setYUnit("kg");
         ScenarioResponse.Series series = resp.newSeries("월 배출량(kg)");
         List<String> cats = new ArrayList<>();
-        int bestM = 0, minM = 0;
-        double bestV = -1, minV = Double.MAX_VALUE;
+        double[] avg = new double[12];
+        double bestV = -Double.MAX_VALUE, minV = Double.MAX_VALUE;
         for (int m = 0; m < 12; m++) {
-            double avg = sum[m] / seeds;
-            series.add(Math.round(avg * 10) / 10.0, 0);
+            avg[m] = mean(vals[m]);
+            series.add(Math.round(avg[m] * 10) / 10.0, 0);
             cats.add((m + 1) + "월");
-            if (avg > bestV) { bestV = avg; bestM = m; }
-            if (avg < minV) { minV = avg; minM = m; }
+            bestV = Math.max(bestV, avg[m]);
+            minV = Math.min(minV, avg[m]);
         }
         resp.setXCategories(cats);
-        resp.addInsight("최다 배출 월", (bestM + 1) + "월 (" + Math.round(bestV) + " kg)");
-        resp.addInsight("최소 배출 월", (minM + 1) + "월 (" + Math.round(minV) + " kg)");
+
+        // 순위를 잡음 위에 세우지 않는다.
+        //
+        // 예전에는 `avg > bestV` 엄격 비교로 최댓값 하나를 골랐다. 그런데 이 시뮬레이션은
+        // 확률적이라 <b>가중치가 완전히 같은 달들도 매번 다른 값</b>이 나온다 — 12개월
+        // 가중치를 전부 1.0으로 두고 돌려도 "5월이 최다"처럼 특정 달이 뽑힌다. 그건 계절성이
+        // 아니라 난수가 정한 순위다. 동률(정확히 같은 값)만 찾아서는 이 문제가 잡히지 않는다.
+        //
+        // 그래서 시드 간 표준오차를 잡음 척도로 삼아, 그 안에 들어오는 달들은 <b>최댓값과
+        // 구별되지 않는다</b>고 보고 함께 적는다. 시드가 1개면 잡음을 추정할 방법이 없으므로
+        // 순위를 단정하지 않고 그 사실을 알린다(D-25·D-32 없는 우열을 만들지 않는다).
+        double noise = standardError(vals, seeds);
+        List<String> maxMonths = monthsWithin(avg, bestV, noise);
+        List<String> minMonths = monthsWithin(avg, minV, noise);
+
+        resp.addInsight("최다 배출 월", String.join("·", maxMonths) + " (" + Math.round(bestV) + " kg)");
+        resp.addInsight("최소 배출 월", String.join("·", minMonths) + " (" + Math.round(minV) + " kg)");
+
+        if (seeds < 2) {
+            resp.addInsight("순위 신뢰도", "시드 1개로는 월별 차이가 계절성인지 난수인지 가릴 수 없다 — "
+                    + "seeds를 늘려 다시 볼 것. 위 최다·최소 월은 이 한 번의 실현값 기준이다");
+        } else if (maxMonths.size() > 1 || minMonths.size() > 1) {
+            resp.addInsight("순위 신뢰도", String.format(
+                    "시드 간 표준오차 ±%.0fkg 안에서 서로 구별되지 않는 달들을 함께 적었다 — "
+                    + "하나를 대표로 고르지 않았다. 계절 축을 살리려면 monthlyFactor의 월별 차이를 "
+                    + "키우거나 seeds를 늘릴 것", noise));
+        }
+        if (maxMonths.size() == 12) {
+            resp.addInsight("주의", "12개월이 서로 구별되지 않는다 — 계절 가중치가 평탄하거나 "
+                    + "적용되지 않았다는 뜻이므로 이 실험에서는 계절성을 읽을 수 없다");
+        }
         resp.addInsight("주의", "계절 가중치는 명절·여름·연말 패턴을 가정한 값으로, 실측 데이터가 아닙니다");
         return resp;
+    }
+
+    private static double mean(double[] xs) {
+        double sum = 0;
+        for (double x : xs) sum += x;
+        return xs.length == 0 ? 0 : sum / xs.length;
+    }
+
+    /**
+     * 월 평균값의 <b>표준오차</b>(kg) — 각 달의 시드 간 분산을 통합(pooled)해 √seeds로 나눈다.
+     * 그래프에 찍히는 값이 얼마나 흔들리는지의 척도이므로, 이보다 작은 월 간 차이는
+     * 순위의 근거가 될 수 없다. 시드가 1개면 추정할 수 없어 0을 돌려준다(정확한 동률만 묶임).
+     */
+    private static double standardError(double[][] vals, int seeds) {
+        if (seeds < 2) return 0.0;
+        double pooledVar = 0;
+        for (double[] monthVals : vals) {
+            double mu = mean(monthVals);
+            double ss = 0;
+            for (double v : monthVals) ss += (v - mu) * (v - mu);
+            pooledVar += ss / (seeds - 1);
+        }
+        return Math.sqrt(pooledVar / vals.length) / Math.sqrt(seeds);
+    }
+
+    /**
+     * {@code target}과 잡음 범위 안에서 구별되지 않는 달 이름 목록. {@code noise}가 0이면
+     * 표시 자릿수(0.1kg) 기준의 정확한 동률만 묶는다 — 사용자에게 같은 숫자로 보이는 두 달을
+     * "다르다"고 판정하면 안내가 오히려 혼란스러워진다.
+     */
+    private static List<String> monthsWithin(double[] avg, double target, double noise) {
+        double tol = Math.max(noise, 0.05);
+        List<String> out = new ArrayList<>();
+        for (int m = 0; m < avg.length; m++) {
+            if (Math.abs(avg[m] - target) <= tol) out.add((m + 1) + "월");
+        }
+        return out;
     }
 
     // ── 12. 차종 × 방문 순서 탐색 ──────────────────────────────────────────
