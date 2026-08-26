@@ -4,11 +4,14 @@
 
 ## 기준 명세서
 
-- [waste-sim-spring SRS·SDD·TDD 통합 명세서 v1.10](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md) (이전 버전: [v1.9](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_9.md) · [v1.8](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_8.docx))
+- [waste-sim-spring SRS·SDD·TDD 통합 명세서 v1.11](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_11.md) (이전 버전: [v1.10](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md))
 - [정합 상태와 대조 결과](specifications/README.md) — 명세와 코드가 어긋나는 지점을 여기서 관리한다
 
 v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바이너리라 세 대의 개발 머신에서 병합이 불가능했고,
 그래서 v1.8까지는 저장소에 두더라도 어느 문단이 언제 바뀌었는지 diff로 확인할 수 없었다.
+**어긋나면 저장소의 Markdown이 이긴다** — `.docx`는 사람이 문단을 쓰기 편한 편집 원본일 뿐이고 `.gitignore` 대상이다.
+변환은 [`scripts/docx_to_markdown.py`](../scripts/docx_to_markdown.py)로 고정해 두었다(절차는
+[specifications/README.md](specifications/README.md) 참고).
 
 통합 명세서에는 다음 내용이 포함되어 있다.
 
@@ -29,8 +32,9 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 - [채팅 자연어 요청 카탈로그](reference/CHAT_REQUEST_CATALOG.md)
 - [디버깅 점검 목록](reference/DEBUGGING_ISSUES.md)
 - [팬 RPM 스윕·최적점 탐색 설계](reference/FAN_RPM_SWEEP_DESIGN.md)
+- [LLM 벤치마크 해석 규칙](reference/LLM_BENCHMARK_GUIDE.md)
 
-설계 결정 기록은 통합 명세서 v1.7 이후 코드와 함께 확정된 결정의 근거를 보존하므로 삭제하지 않는다. 디버깅 목록은 아직 명세서에 반영되지 않은 결함과 테스트 공백을 관리한다 — v1.8이 P1 4건(E-01, E-02, W-01, W-03), v1.9가 E-04와 P2 잔여분을 반영했고, v1.10이 새로 발견된 게이트 어휘 결함(D-33)을 반영했다. E-06·E-08은 결정이 필요해 목록에 남아 있다(부록 B.2·B.3).
+설계 결정 기록은 통합 명세서 v1.7 이후 코드와 함께 확정된 결정의 근거를 보존하므로 삭제하지 않는다. 디버깅 목록은 아직 명세서에 반영되지 않은 결함과 테스트 공백을 관리한다 — v1.8이 P1 4건(E-01, E-02, W-01, W-03), v1.9가 E-04와 P2 잔여분을 반영했고, v1.10이 새로 발견된 게이트 어휘 결함(D-33)을 반영했다. E-06·E-08은 2026-08-26에 결정(D-37·D-38)과 회귀 테스트로 해소되어 부록 B.2는 비었다.
 
 ## 문서 관리 규칙
 
@@ -41,6 +45,12 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 - 새 버전 명세서를 만들면 `specifications/`에 추가하고 이 인덱스의 기준 링크를 갱신한다.
 
 ## 검증 메모
+
+v1.11을 저장소 기준 명세로 반영했다(2026-08-26). 이 개정에서 **v1.9·v1.10 Markdown이 실제로는 한 번도
+커밋된 적이 없어 기준 링크가 존재하지 않는 파일을 가리키고 있었다는 사실**을 확인하고, v1.11과 v1.10을
+같은 변환 스크립트로 만들어 함께 커밋했다. 함께 반영: Maven Wrapper 추가(`./mvnw -B test`가 기본 검증 명령),
+부록 B.2에 남아 있던 E-06·E-08의 결정(D-37·D-38)과 회귀 테스트, 문서/애플리케이션 버전 체계 분리(`/actuator/info`).
+전체 테스트 **441건 통과·2건 스킵**(Python 참조 엔진 미설치 환경) 기준이다.
 
 v1.10은 truck-route 시나리오(FR-113, SDD 2.14.4)의 설계 근거·테스트를 전건 반영했다 — v1.9까지는 FR-07 숫자와
 2.14.1 목록에만 표면적으로 언급돼 있었다. 함께 반영: EdgeToolSelector 검사 순서 결함(FR-78, 이미 v1.9 재대조에서
