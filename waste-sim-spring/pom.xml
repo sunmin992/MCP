@@ -13,6 +13,11 @@
 
     <groupId>com.wastesim</groupId>
     <artifactId>waste-sim-spring</artifactId>
+    <!-- 애플리케이션 버전. 명세서 버전(v1.11)과는 별개 축이라 통일하지 않는다 —
+         문서만 고치는 개정과 코드만 고치는 핫픽스가 따로 일어나기 때문이다.
+         자세한 근거는 docs/specifications/README.md "버전 체계".
+         실행 중인 서버가 어느 명세로 빌드됐는지는 /actuator/info가 둘을 함께 알려준다
+         (application.properties의 info.spec.version). -->
     <version>1.1.1</version>
     <packaging>jar</packaging>
     <name>waste-sim-spring</name>
@@ -47,7 +52,10 @@
             <artifactId>jackson-databind</artifactId>
         </dependency>
 
-        <!-- OkHttp — Claude API 호출용 -->
+        <!-- OkHttp — OpenAI 호환 LLM 백엔드(OpenAI·Ollama·Gemini) 호출용.
+             프로바이더는 Spring 프로파일로 고른다(application-openai/ollama.properties).
+             전용 SDK를 쓰지 않고 HTTP로 직접 부르는 이유가 그 호환성이다 — 백엔드를
+             바꿔도 코드가 아니라 프로파일만 바뀐다(SDD 2.17.4). -->
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
             <artifactId>okhttp</artifactId>
