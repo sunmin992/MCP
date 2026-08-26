@@ -3,7 +3,9 @@ package com.wastesim.controller;
 import com.wastesim.model.ScenarioPreset;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.service.ScenarioService;
+import com.wastesim.tool.ErrorCode;
 import com.wastesim.tool.SimulationTool;
+import com.wastesim.tool.ValidationError;
 import com.wastesim.web.ApiError;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -168,6 +170,12 @@ public class ScenarioController {
         SimulationConfig base = baseConfig(b, 8);
         applyPreset(base, b);
         double[] monthlyFactor = doubleArr(b, "monthlyFactor");
+        // 검증 게이트가 보게 하려면 base에 실어야 한다. 예전에는 이 값을 base에 넣지 않고
+        // 시나리오 안에서 복사본에만 주입해서, validateMonthlyFactor가 항상 null을 보고
+        // 즉시 return했다 — 길이 12 강제·유한 양수 검사가 이 경로에서만 통째로 우회됐다.
+        // 그 결과 5개짜리 배열이 monthlyWasteFactor[month % length]로 조용히 순환 적용돼
+        // 1·6·11월이 같은 값이 되고도 아무 경고가 없었다(D-26 조용한 보정 금지 위반).
+        base.setMonthlyWasteFactor(monthlyFactor);
         return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.monthlyWaste(base, monthlyFactor)));
     }
 
@@ -250,13 +258,53 @@ public class ScenarioController {
         return v instanceof Number n ? n.doubleValue() : def;
     }
 
+    /**
+     * 축 배열 인자를 읽는다. 값이 없거나 빈 배열이면 null(=시나리오 기본 축).
+     *
+     * <p>원소가 숫자가 아니면 <b>구조화된 400</b>으로 떨어뜨린다. 예전에는
+     * {@code ((Number) list.get(i))}가 그대로 {@code ClassCastException}을 던졌고, 이 파싱이
+     * {@code runScenarioCustom}(검증 게이트) <b>바깥</b>에서 일어나므로 ApiError를 거치지 못해
+     * 500이 나갔다 — 사용자 입력 오류인데 서버 장애처럼 보였다. "잘못된 입력은 실행 전에
+     * 모두 거부한다"는 fail-closed 원칙은 축 배열에도 똑같이 적용돼야 한다.
+     */
     private static double[] doubleArr(Map<String, Object> b, String k) {
         Object v = b.get(k);
-        if (v instanceof List<?> list && !list.isEmpty()) {
-            double[] arr = new double[list.size()];
-            for (int i = 0; i < list.size(); i++) arr[i] = ((Number) list.get(i)).doubleValue();
-            return arr;
+        if (v == null) return null;
+        if (!(v instanceof List<?> list)) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.INVALID_ARGUMENTS, k,
+                    k + "은(는) 숫자 배열이어야 합니다. 받은 형식: " + v.getClass().getSimpleName()));
         }
-        return null;
+        if (list.isEmpty()) return null;
+        double[] arr = new double[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            Object e = list.get(i);
+            if (!(e instanceof Number n) || !Double.isFinite(n.doubleValue())) {
+                throw new ScenarioArgException(new ValidationError(ErrorCode.INVALID_ARGUMENTS, k,
+                        k + "의 " + (i + 1) + "번째 원소가 유한한 숫자가 아닙니다. 받은 값: " + e));
+            }
+            arr[i] = n.doubleValue();
+        }
+        return arr;
+    }
+
+    /** 축 배열 파싱 실패 — {@link #badScenarioArg}가 400 ApiError로 바꾼다. */
+    static class ScenarioArgException extends RuntimeException {
+        private final transient ValidationError error;
+        ScenarioArgException(ValidationError error) {
+            super(error.message());
+            this.error = error;
+        }
+        ValidationError error() { return error; }
+    }
+
+    /**
+     * 축 배열 파싱 오류를 검증 실패와 <b>같은 형태</b>로 내보낸다 — 사용자 입장에서
+     * "capacities에 문자열을 넣은 것"과 "capacity가 음수인 것"은 같은 종류의 실수이므로
+     * 응답 모양이 달라질 이유가 없다.
+     */
+    @ExceptionHandler(ScenarioArgException.class)
+    public ResponseEntity<?> badScenarioArg(ScenarioArgException e) {
+        return ResponseEntity.badRequest()
+                .body(ApiError.of("VALIDATION", "설정 검증 실패", List.of(e.error())));
     }
 }
