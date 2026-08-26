@@ -8,6 +8,7 @@ import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -253,12 +254,36 @@ public class SimulatePtmControlTool implements McpToolProvider {
                     + "주변 온도·부하가 이 냉각으로 감당할 수 없는 조건이다. 방열판을 키우거나 팬 사양을 올려야 한다.");
             return out;
         }
-        Map<String, Object> best = feasible.stream()
-                .min((x, y) -> Double.compare(energy(x), energy(y)))
+        // 에너지 동률 처리 — 팬 스윕(FanSweepResult.select)과 같은 규칙을 쓴다. 예전에는
+        // min(에너지) 하나뿐이라 동률이면 리스트에서 먼저 나온 방식(항상 최대)이 그냥
+        // 이겼다. 제어 방식은 서너 개뿐이라 수 J 차이로 순위가 갈리는 일이 잦은데,
+        // 그때 "왜 이게 이겼는가"에 답할 수 없는 승자가 나온다.
+        double bestEnergy = feasible.stream().mapToDouble(SimulatePtmControlTool::energy)
+                .min().orElseThrow();
+        // 동률 판정은 상대 오차로 한다 — 총에너지는 수만 J라 절대 오차로는 기준을 못 잡는다.
+        double tolerance = Math.abs(bestEnergy) * FanSweepResult.TIE_TOLERANCE;
+        List<Map<String, Object>> tied = feasible.stream()
+                .filter(r -> energy(r) <= bestEnergy + tolerance)
+                .toList();
+        // 에너지가 같다면 (1) 더 시원하고 (2) 팬을 덜 돌리고 (3) 회전수를 덜 바꾸는 쪽이 낫다.
+        // 온도는 여유(수명·안정성), 듀티와 변경 횟수는 기계적 마모·소음이다.
+        Map<String, Object> best = tied.stream()
+                .min(Comparator.<Map<String, Object>>comparingDouble(r -> num(r, "peakTempC"))
+                        .thenComparingDouble(r -> num(r, "meanFanDutyPercent"))
+                        .thenComparingDouble(r -> num(r, "fanSpeedChanges")))
                 .orElseThrow();
         out.put("status", "OK");
         out.put("best", best.get("mode"));
         out.put("bestLabel", best.get("modeLabel"));
+        // 동률이었다는 사실 자체가 결과다 — "PTM이 이겼다"와 "PTM이 반응형과 사실상
+        // 같은데 더 시원해서 이겼다"는 다른 결론이다(D-25 없는 우열을 만들지 않는다).
+        if (tied.size() > 1) {
+            out.put("energyTiedModes", tied.stream().map(r -> r.get("mode")).toList());
+            out.put("tieBreak", "에너지가 " + tied.size() + "개 방식에서 사실상 같아("
+                    + "상대 오차 " + FanSweepResult.TIE_TOLERANCE + " 이내) 최고 온도 → 평균 팬 듀티 → "
+                    + "회전수 변경 횟수 순으로 골랐다. 이 조건에서는 제어 방식 간 에너지 차이가 "
+                    + "의미 있는 결론이 되지 못한다.");
+        }
 
         // 절감률은 "항상 최대" 대비로 적는다 — 그것이 제어를 하지 않았을 때의 비용이다.
         Map<String, Object> alwaysMax = runs.stream()
@@ -271,7 +296,12 @@ public class SimulatePtmControlTool implements McpToolProvider {
     }
 
     private static double energy(Map<String, Object> m) {
-        Object v = m.get("totalEnergyJ");
+        return num(m, "totalEnergyJ");
+    }
+
+    /** 결과 맵의 수치 필드. 없거나 숫자가 아니면 "가장 나쁨"으로 둬서 승자가 되지 않게 한다. */
+    private static double num(Map<String, Object> m, String key) {
+        Object v = m.get(key);
         return v instanceof Number n ? n.doubleValue() : Double.MAX_VALUE;
     }
 }
