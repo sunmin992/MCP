@@ -50,15 +50,50 @@ public class HeatsinkThermalModel {
     static final double RPM_TO_MPS = 0.0008;
     /** 방열판이 덮지 못한 부수 발열칩의 대략적 열저항(K/W). */
     static final double UNCOVERED_HOTSPOT_R = 30.0;
+    /**
+     * 모델 유효 하한 덮임률(1%). 이 아래는 {@link #MISALIGN_K} 경험식과 Lee/Song 확산저항
+     * 근사가 모두 캘리브레이션 범위 밖이라 값을 그대로 믿을 수 없다(E-08).
+     *
+     * <p><b>결정: 거부하지 않고 하한을 적용해 계산하되, 하한을 적용했다는 사실을 결과에
+     * 남긴다.</b> 근거는 셋이다. (1) 방열판을 옆으로 밀어 붙인 배치는 <i>실제로 만들 수 있는</i>
+     * 형상이다 — "핀 두께 합이 베이스 폭보다 크다" 같은 존재 불가 형상과 달리 거부할 물리적
+     * 근거가 없다. (2) 이 도구의 질문 자체가 "오프셋을 주면 얼마나 나빠지는가"인데, 곡선의
+     * 끝을 거부하면 그 질문에 끝까지 답할 수 없다. (3) 하한을 적용한 결과는 "방열판이 없는
+     * 것과 다름없다"는 답으로 수렴하고, 그것이 이 구간에서 물리적으로 맞는 답이다.
+     *
+     * <p>대신 하한은 <b>세 저항 항 전부에</b> 같은 값으로 적용한다. 예전에는 R_misalign만
+     * 하한 1%를 쓰고 R_tim·R_spread는 실제 면적을 써서, 같은 "접촉 면적" 개념이 항마다 다른
+     * 값을 갖고 0.1% 구간에서 R_misalign은 멈춘 채 R_tim만 10배로 뛰었다.
+     *
+     * <p><b>겹침이 정확히 0인 배치에는 적용하지 않는다.</b> "아주 조금 닿았다"와 "아예 안
+     * 닿았다"는 다른 상태다 — 접촉이 없으면 방열판 경로 자체가 없어 R_ja가 무냉각과 같아야
+     * 하는데, 하한을 먹이면 없는 접촉면을 만들어 내 무냉각보다 좋은 값이 나온다.
+     */
+    static final double MIN_EFFECTIVE_COVERAGE = 0.01;
 
-    /** 계산 결과와 그 분해 — 학생이 "무엇 때문에 나빠졌는지" 볼 수 있게 항별로 전부 노출한다. */
+    /**
+     * 계산 결과와 그 분해 — 학생이 "무엇 때문에 나빠졌는지" 볼 수 있게 항별로 전부 노출한다.
+     *
+     * <p>덮임률은 <b>보고용과 계산용을 나눠</b> 싣는다(E-08). {@code reportedCoverage}는 실제로
+     * 겹친 넓이 그대로라 "얼마나 어긋났는가"를 답하고, {@code effectiveCoverage}는 모델 유효
+     * 하한({@link #MIN_EFFECTIVE_COVERAGE})을 적용한 값이라 R_tim·R_misalign·R_spread가 전부
+     * 이 하나를 쓴다. 두 값이 다르면 {@code coverageFloorApplied}가 참이고, 그때 R_ja는
+     * "이보다 나쁘지는 않다"는 하한선으로 읽어야 한다.
+     *
+     * @param coverage <b>@deprecated</b> — {@code effectiveCoverage}와 같은 값이다(기존 필드가
+     *                 하한 적용 후 값을 담고 있었으므로 그대로 뒀다). 새 코드는 두 필드를 나눠 쓴다
+     */
     public record Result(
             String name,
             double rJaKPerW,
             double rTopKPerW,
             Breakdown breakdown,
             double coverage,
+            double reportedCoverage,
+            double effectiveCoverage,
             double contactAreaMm2,
+            double effectiveContactAreaMm2,
+            boolean coverageFloorApplied,
             double finSurfaceAreaCm2,
             double finEfficiency,
             double hEffWm2K,
@@ -91,21 +126,43 @@ public class HeatsinkThermalModel {
         double overlapMm2 = rectOverlapMm2(dieSide, dieSide, hs.baseLengthMm(), hs.baseWidthMm(),
                 pl.offsetXMm(), pl.offsetYMm());
         double dieAreaMm2 = dieSide * dieSide;
-        double coverage = overlapMm2 / dieAreaMm2;
-        if (coverage <= 0.01) {
-            warnings.add("방열판이 SoC 패키지를 사실상 덮지 못한다(겹침 " + String.format("%.1f", coverage * 100)
-                    + "%) — 이 배치는 방열판이 없는 것과 다름없다.");
-            coverage = 0.01;
-        } else if (coverage < 0.9) {
+        // 보고용 덮임률은 실제 겹침 그대로다 — "얼마나 어긋났는가"를 답한다.
+        double reportedCoverage = overlapMm2 / dieAreaMm2;
+        // 계산용 덮임률에는 모델 유효 하한을 적용한다 — 아래 세 저항 항이 <b>전부</b> 이 하나를
+        // 쓴다(E-08). 하한 위 구간에서는 두 값이 같으므로 결과가 달라지지 않는다.
+        //
+        // 겹침이 <b>정확히 0</b>인 배치는 예외다. "아주 조금 닿았다"와 "아예 안 닿았다"는 다른
+        // 상태이고, 접촉이 없으면 방열판 경로 자체가 없어 R_ja는 무냉각과 같아야 한다. 여기에
+        // 하한을 먹이면 없는 접촉면을 만들어 내 무냉각보다 좋은 값이 나온다.
+        boolean noContact = overlapMm2 <= 0.0;
+        double effectiveCoverage = noContact
+                ? 0.0 : Math.max(reportedCoverage, MIN_EFFECTIVE_COVERAGE);
+        boolean coverageFloorApplied = effectiveCoverage > reportedCoverage;
+        if (noContact) {
+            warnings.add("방열판이 SoC 패키지와 전혀 겹치지 않는다 — 접촉 경로가 없으므로 무냉각(BARE)과 같다.");
+        } else if (coverageFloorApplied) {
+            warnings.add(String.format(
+                    "방열판이 SoC 패키지를 사실상 덮지 못한다(실제 겹침 %.2f%%) — 이 배치는 방열판이 없는 것과 "
+                    + "다름없다. 덮임률 %.0f%% 미만은 오정렬·확산저항 경험식의 유효 범위 밖이라 %.0f%%를 하한으로 "
+                    + "적용해 계산했다. 아래 R_ja는 '적어도 이만큼은 나쁘다'는 하한선으로 읽고, 절대값이 필요하면 "
+                    + "무냉각(BARE) 프리셋과 비교할 것.",
+                    reportedCoverage * 100, MIN_EFFECTIVE_COVERAGE * 100, MIN_EFFECTIVE_COVERAGE * 100));
+        } else if (reportedCoverage < 0.9) {
             warnings.add(String.format("SoC 덮임률 %.0f%% — 오프셋(%.1f, %.1f)mm 때문에 접촉면이 줄었다. 오프셋을 0에 가깝게 하면 개선된다.",
-                    coverage * 100, pl.offsetXMm(), pl.offsetYMm()));
+                    reportedCoverage * 100, pl.offsetXMm(), pl.offsetYMm()));
         }
-        double contactM2 = Math.max(overlapMm2, 1e-3) * 1e-6;
+        // 접촉 면적도 같은 덮임률에서 파생시킨다 — 예전에는 여기만 실제 겹침을 써서, 하한이
+        // 걸린 구간에서 R_misalign은 멈춘 채 R_tim·R_spread만 계속 커졌다. 접촉이 0이면
+        // 0으로 나누지 않도록 남겨 둔 절대 하한(1e-3mm²)이 R_tim을 사실상 무한대로 만들어
+        // 방열판 경로를 자연히 끊는다.
+        double effectiveContactMm2 = effectiveCoverage * dieAreaMm2;
+        double contactM2 = Math.max(effectiveContactMm2, 1e-3) * 1e-6;
 
         // ── 2. TIM · 오정렬 ─────────────────────────────────────────────
         double rTim = (layout.tim().thicknessMm() / 1000.0)
                 / (layout.tim().effectiveConductivity() * contactM2);
-        double rMisalign = MISALIGN_K * (1.0 / coverage - 1.0);
+        double rMisalign = MISALIGN_K
+                * (1.0 / Math.max(effectiveCoverage, MIN_EFFECTIVE_COVERAGE) - 1.0);
 
         // ── 3. 확산 · 베이스 전도 ────────────────────────────────────────
         double k = hs.material().conductivity();
@@ -202,8 +259,14 @@ public class HeatsinkThermalModel {
                         ThermalSimulator.round(rMisalign, 3), ThermalSimulator.round(rSpread, 3),
                         ThermalSimulator.round(rBase, 4), ThermalSimulator.round(rConv, 3),
                         ThermalSimulator.round(rRest, 3)),
-                ThermalSimulator.round(coverage, 3),
+                // coverage(구 이름)는 하한 적용 후 값을 담고 있었으므로 effectiveCoverage와
+                // 같은 값을 그대로 둔다 — 기존 클라이언트의 숫자가 바뀌지 않는다.
+                ThermalSimulator.round(effectiveCoverage, 3),
+                ThermalSimulator.round(reportedCoverage, 4),
+                ThermalSimulator.round(effectiveCoverage, 3),
                 ThermalSimulator.round(overlapMm2, 1),
+                ThermalSimulator.round(effectiveContactMm2, 1),
+                coverageFloorApplied,
                 ThermalSimulator.round((finAreaM2 + exposedBaseM2) * 1e4, 1),
                 ThermalSimulator.round(eta, 3),
                 ThermalSimulator.round(hEff, 1),
