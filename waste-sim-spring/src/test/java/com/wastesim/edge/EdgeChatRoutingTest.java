@@ -280,6 +280,49 @@ class EdgeChatRoutingTest {
         assertNotEquals(pi4.get("board"), pi5.get("board"), "보드만 달라야 한다");
     }
 
+    @Test
+    @DisplayName("팬 어휘와 배치 어휘가 함께 있으면 배치 랭킹으로 간다")
+    void routesFanPlacementQuestionsToLayoutRanking() {
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT,
+                EdgeToolSelector.select("팬 두 개를 어디에 달아야 제일 시원해?"));
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT,
+                EdgeToolSelector.select("흡기 배기 조합 중 뭐가 나아?"));
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT,
+                EdgeToolSelector.select("40mm 팬 2개 위치 조합 전부 비교해줘"));
+    }
+
+    @Test
+    @DisplayName("'최적 팬 배치'는 스윕이 아니라 배치 랭킹이다")
+    void optimalFanPlacementBeatsSweep() {
+        // SWEEP 패턴의 '최적...팬'이 이 문장을 먼저 잡으면 회전수 곡선이 돌아와
+        // 사용자가 물어본 '배치'가 답에서 통째로 빠진다.
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT,
+                EdgeToolSelector.select("최적 팬 배치 알려줘"));
+    }
+
+    @Test
+    @DisplayName("배치 어휘가 없는 팬 질문은 그대로 스윕으로 간다")
+    void fanSpeedQuestionsStayOnSweep() {
+        assertEquals(EdgeToolSelector.TOOL_SWEEP, EdgeToolSelector.select("최적 팬 rpm은?"));
+        assertEquals(EdgeToolSelector.TOOL_SWEEP, EdgeToolSelector.select("팬 몇 %가 가성비 좋아?"));
+    }
+
+    @Test
+    @DisplayName("팬 어휘가 없는 배치 질문은 그대로 방열판 도구로 간다")
+    void heatsinkPlacementIsUnaffected() {
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK,
+                EdgeToolSelector.select("방열판을 어디에 붙일까?"));
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK,
+                EdgeToolSelector.select("핀 방향을 어떻게 정렬해야 해?"));
+    }
+
+    @Test
+    @DisplayName("제어 방식 질문은 배치보다 PTM이 먼저다")
+    void ptmStillWinsOverLayout() {
+        assertEquals(EdgeToolSelector.TOOL_PTM,
+                EdgeToolSelector.select("팬을 미리 돌리면 이득이야?"));
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> run(String argsJson) throws Exception {
         ToolResult tr = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService()).call(om.readTree(argsJson));

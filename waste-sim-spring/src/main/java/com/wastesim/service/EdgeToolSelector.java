@@ -24,6 +24,7 @@ public final class EdgeToolSelector {
     public static final String TOOL_CALIBRATE = "calibrate_edge_thermal_model";
     public static final String TOOL_SWEEP = "sweep_fan_rpm";
     public static final String TOOL_PTM = "simulate_ptm_control";
+    public static final String TOOL_LAYOUT = "rank_fan_layouts";
 
     /**
      * <b>예측 냉각(PTM)</b> 요청 — 팬을 "언제" 돌릴지(제어 방식)를 묻는 질문이다.
@@ -44,6 +45,31 @@ public final class EdgeToolSelector {
             + "|(항상|계속)\\s*.{0,4}(돌|켜).{0,10}(필요|이유)"
             + ")",
             Pattern.CASE_INSENSITIVE);
+
+    /**
+     * <b>팬 배치</b> 요청 — 팬을 "어디에 어떤 방향으로" 달지 묻는 질문이다.
+     *
+     * <p>팬 어휘와 배치 어휘가 <b>둘 다</b> 있을 때만 고른다. 한쪽만으로 고르면 기존
+     * 두 도구를 망가뜨린다.
+     *
+     * <p>배치 어휘만 보면 {@link #HEATSINK}의 영역을 뺏는다 — "방열판을 어디에 붙일까"가
+     * 팬 배치 순위표로 새면, 이 파일에 이미 기록된 오라우팅(냉각 조건을 비교 대상으로
+     * 착각하는 유형)과 같은 결함이 하나 더 생긴다.
+     *
+     * <p>팬 어휘만 보면 {@link #SWEEP}의 영역을 뺏는다 — "최적 팬 rpm"이 배치 랭킹으로
+     * 새면 회전수 곡선이 사라진다.
+     *
+     * <p>반대로 <b>스윕보다는 먼저</b> 봐야 한다. SWEEP의 {@code 최적\s*(의\s*)?(…|팬|…)}가
+     * "최적 팬 배치"를 먼저 잡아 버리기 때문이다. 그 문장에서 사용자가 물은 것은
+     * 회전수가 아니라 배치다.
+     */
+    private static final Pattern FAN_LAYOUT = Pattern.compile(
+            "(?=.*(팬|fan|쿨러|흡기|배기|흡배기))"
+            + "(?=.*(배치|조합|어느\\s*(위치|자리)|위치"
+            + "|어디\\s*에?\\s*(달|붙|장착|부착)"
+            + "|(상단|하단|앞|뒤|좌우)\\s*.{0,4}(달|붙|장착|부착)"
+            + "))",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     /** 실측 데이터로 모델을 보정하려는 요청. */
     private static final Pattern CALIBRATE = Pattern.compile(
@@ -125,12 +151,14 @@ public final class EdgeToolSelector {
     static final Pattern MASS = Pattern.compile(
             "\\d+(?:\\.\\d+)?\\s*(?:kg|g(?![a-z])|그램|그람)", Pattern.CASE_INSENSITIVE);
 
-    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 다섯 중 하나를 반환한다(기본은 발열 시뮬레이션). */
+    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 여섯 중 하나를 반환한다(기본은 발열 시뮬레이션). */
     public static String select(String text) {
         if (text == null) return TOOL_THROTTLING;
-        // 검사 순서: PTM(제어 방식) → 스윕(고정 운전점) → 캘리브레이션 → 배치 → 발열.
-        // 앞의 둘은 어휘가 겹치므로 더 구체적인 쪽(제어를 명시한 문장)을 먼저 본다.
+        // 검사 순서: PTM(제어 방식) → 팬 배치 → 스윕(고정 운전점) → 캘리브레이션 → 방열판 배치 → 발열.
+        // 어휘가 겹치는 구간이 많아, 항상 더 구체적인 쪽을 먼저 본다. 팬 배치를 스윕보다
+        // 먼저 보는 이유는 FAN_LAYOUT 주석에 있다.
         if (PTM.matcher(text).find()) return TOOL_PTM;
+        if (FAN_LAYOUT.matcher(text).find()) return TOOL_LAYOUT;
         if (SWEEP.matcher(text).find()) return TOOL_SWEEP;
         if (CALIBRATE.matcher(text).find()) return TOOL_CALIBRATE;
         if (HEATSINK.matcher(text).find()) return TOOL_HEATSINK;
