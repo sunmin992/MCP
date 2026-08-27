@@ -1,5 +1,8 @@
 package com.wastesim.service;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -58,6 +61,38 @@ public final class KoreanTimeParser {
         hour = ((hour % 24) + 24) % 24;
         minute = Math.max(0, Math.min(59, minute));
         return hour * 60 + minute;
+    }
+
+    /** 텍스트에 나온 서로 다른 시각을 등장 순서대로 모두 변환한다. */
+    public static List<Integer> parseAllDistinct(String text) {
+        if (text == null) return List.of();
+        Matcher matcher = PATTERN.matcher(text);
+        LinkedHashSet<Integer> minutes = new LinkedHashSet<>();
+        while (matcher.find()) minutes.add(parseMatch(matcher));
+        return new ArrayList<>(minutes);
+    }
+
+    private static int parseMatch(Matcher m) {
+        String ampm = m.group(1);
+        String hourTok = m.group(2);
+        boolean half = m.group(3) != null;
+        String minTok = m.group(4);
+        String colonMinTok = m.group(5);
+
+        Integer korHour = KOR_NUM.get(hourTok);
+        int hour = korHour != null ? korHour : Integer.parseInt(hourTok);
+        int minute = half ? 30
+                : minTok != null ? Integer.parseInt(minTok)
+                : colonMinTok != null ? Integer.parseInt(colonMinTok)
+                : 0;
+
+        if (ampm != null) {
+            boolean pm = "오후".equals(ampm) || "저녁".equals(ampm) || "밤".equals(ampm) || "점심".equals(ampm) || "낮".equals(ampm);
+            boolean am = "오전".equals(ampm) || "아침".equals(ampm) || "새벽".equals(ampm);
+            if (pm && hour >= 1 && hour <= 11) hour += 12;
+            if (am && hour == 12) hour = 0;
+        }
+        return (((hour % 24) + 24) % 24) * 60 + Math.max(0, Math.min(59, minute));
     }
 
     /** 하루 중 분 → "HH:MM" 표기. */

@@ -2,7 +2,7 @@ package com.wastesim.model;
 
 public class ChatMessage {
 
-    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT, EDGE_SWEEP }
+    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT, EDGE_SWEEP, EDGE_LAYOUT }
 
     private MessageType type;
     private String content;
@@ -51,6 +51,8 @@ public class ChatMessage {
      * 여러 개면 비교, 어떤 키가 있으면 곡선"처럼 모양으로 추측해야 한다.
      */
     private java.util.Map<String, Object> edgeSweep;
+    /** EDGE_LAYOUT 전용 — 경험적 팬 배치 랭킹 원본. */
+    private java.util.Map<String, Object> edgeLayout;
 
     public ChatMessage() {}
 
@@ -85,4 +87,6 @@ public class ChatMessage {
 
     public java.util.Map<String, Object> getEdgeSweep() { return edgeSweep; }
     public void setEdgeSweep(java.util.Map<String, Object> s) { this.edgeSweep = s; }
+    public java.util.Map<String, Object> getEdgeLayout() { return edgeLayout; }
+    public void setEdgeLayout(java.util.Map<String, Object> m) { this.edgeLayout = m; }
 }

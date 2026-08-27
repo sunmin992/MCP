@@ -18,6 +18,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.wastesim.edge.EdgeChatFormatter;
 import com.wastesim.edge.EdgeParamGuard;
 import com.wastesim.edge.EdgeThermalProfileStore;
@@ -167,6 +168,17 @@ public class ChatController {
             }
             if (domain == DomainIntentDetector.Domain.EDGE_THERMAL) {
                 runEdgeTool(userText, history);
+                return;
+            }
+
+            // 명시된 복수 시각 비교는 단일 실행 게이트(timeCount == 1)로 보내면
+            // 일반 답변으로 탈락한다. "10시와 11시에 각각 수거"처럼 비교 의도가
+            // 분명한 경우에는 두 시각을 같은 기본 조건으로 직접 실행한다.
+            List<Integer> comparisonTimes = KoreanTimeParser.parseAllDistinct(userText);
+            if (comparisonTimes.size() >= 2
+                    && userText.matches("(?s).*수거.*")
+                    && userText.matches("(?s).*(각각|비교|대조|어느|차이).*")) {
+                runCollectionTimeComparison(comparisonTimes, history, userText);
                 return;
             }
 
@@ -494,6 +506,10 @@ public class ChatController {
             runEdgePtmControl(provider, args, userText, history);
             return;
         }
+        if (EdgeToolSelector.TOOL_LAYOUT.equals(toolName)) {
+            runEdgeFanLayout(provider, userText, history);
+            return;
+        }
 
         // 보드를 둘 다 언급했으면 비교 요청이다 — 한쪽만 골라 한 번 돌리면 사용자가
         // 물어본 것에 대한 답이 아니다. 나머지 조건을 그대로 둔 채 board만 바꿔 두 번
@@ -806,6 +822,53 @@ public class ChatController {
         while (history.size() > 20) history.remove(0);
     }
 
+    /** 경험적 팬 배치 랭킹은 열 시뮬레이션 인자를 섞지 않고 빈 입력으로 전수 평가한다. */
+    private void runEdgeFanLayout(McpToolProvider provider, String userText,
+                                  List<Map<String, String>> history) {
+        ToolResult tr = provider.call(JsonNodeFactory.instance.objectNode());
+        if (!tr.ready()) { replyValidationErrors(tr, userText, history); return; }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> out = (Map<String, Object>) tr.result();
+        String text = EdgeChatFormatter.fanLayout(out);
+        ChatMessage msg = new ChatMessage(ChatMessage.MessageType.EDGE_LAYOUT, text);
+        msg.setEdgeLayout(out); msg.setDomain("edge");
+        messaging.convertAndSend("/topic/messages", msg);
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", text));
+        while (history.size() > 20) history.remove(0);
+    }
+
+    private void runCollectionTimeComparison(List<Integer> times,
+                                             List<Map<String, String>> history,
+                                             String userText) {
+        String labels = times.stream().map(KoreanTimeParser::toHHMM)
+                .reduce((a, b) -> a + ", " + b).orElse("");
+        messaging.convertAndSend("/topic/messages", new ChatMessage(
+                ChatMessage.MessageType.SYSTEM, "수거 시각 비교 실행 중... (" + labels + ")"));
+
+        SimulationConfig base = new SimulationConfig();
+        base.setDays(30);
+        base.setSeeds(30);
+        ToolResult tr = tool.compareCollectionTimes(base, times);
+        String reply;
+        if (!tr.ready()) {
+            StringBuilder sb = new StringBuilder("수거 시각을 비교할 수 없습니다:\n");
+            appendBullets(sb, tr.errors());
+            reply = sb.toString().trim();
+            messaging.convertAndSend("/topic/messages", new ChatMessage(ChatMessage.MessageType.BOT, reply));
+        } else {
+            ScenarioResponse resp = (ScenarioResponse) tr.result();
+            reply = "[" + resp.getTitle() + "] 비교 결과입니다.";
+            ChatMessage msg = new ChatMessage(ChatMessage.MessageType.SCENARIO, reply);
+            msg.setScenarioResponse(resp);
+            msg.setScenarioType("collection-time-comparison");
+            messaging.convertAndSend("/topic/messages", msg);
+        }
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", reply));
+        while (history.size() > 20) history.remove(0);
+    }
+
     /**
      * 경로 소요시간 질의에 답한다 — 전체 시뮬레이션(SimulationTool.runSimulation)을
      * 거치지 않고 RouteDurationEstimator로 이동시간만 계산한다. 방문 순서가
@@ -856,6 +919,8 @@ public class ChatController {
         if (startMinute != null) {
             sb.append(String.format("출발(수거) 시각: %s, 차종: %s\n",
                     KoreanTimeParser.toHHMM(startMinute), truckType.labelKo));
+            sb.append(String.format("- %s: 수거 시작 %s\n",
+                    route.get(0), KoreanTimeParser.toHHMM(startMinute)));
         } else {
             sb.append(String.format("차종: %s (수거 시각 미지정 — 혼잡 가중치 미반영, 구간당 기준 이동시간만 적용)\n",
                     truckType.labelKo));
@@ -864,7 +929,11 @@ public class ChatController {
             String weightNote = est.trafficApplied
                     ? String.format(" (혼잡 가중치 ×%.2f%s)", h.congestionWeight, h.red ? ", 정체 심함" : "")
                     : "";
-            sb.append(String.format("- %s → %s: %d분%s\n", h.from, h.to, h.minutes, weightNote));
+            String arrivalNote = startMinute != null
+                    ? String.format(" · %s 도착 %s", h.to, KoreanTimeParser.toHHMM(h.arriveMinuteOfDay))
+                    : "";
+            sb.append(String.format("- %s → %s: %d분%s%s\n",
+                    h.from, h.to, h.minutes, arrivalNote, weightNote));
         }
         sb.append(String.format("총 이동시간: 약 %d분", est.totalMinutes));
         if (est.endMinuteOfDay != null) {

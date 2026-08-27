@@ -95,6 +95,36 @@ public class ScenarioService {
         return resp;
     }
 
+    /** 채팅에서 명시한 수거 시각들만 같은 조건으로 실행해 직접 비교한다. */
+    public ScenarioResponse collectionTimeComparison(SimulationConfig base, List<Integer> times) {
+        ScenarioResponse resp = new ScenarioResponse(
+                "COLLECTION_TIME_COMPARISON", "지정 수거 시각 비교", "수거 시각");
+        ScenarioResponse.Series s = resp.newSeries("월 평균 민원");
+        List<String> categories = new ArrayList<>();
+        double best = Double.MAX_VALUE;
+        String bestTime = null;
+        for (int minute : times) {
+            String time = SimulationConfig.minutesToHhmm(minute);
+            categories.add(time);
+            SimulationConfig cfg = base.copy();
+            cfg.setCollectionTimeLabel(time);
+            double[] ms = meanStd(cfg);
+            s.add(ms[0], ms[1]);
+            if (ms[0] < best) {
+                best = ms[0];
+                bestTime = time;
+            }
+        }
+        resp.setXCategories(categories);
+        resp.addInsight("민원이 가장 적은 수거 시각", bestTime + " (" + Math.round(best * 10) / 10.0 + "건)");
+        if (s.getValues().size() >= 2) {
+            double min = Collections.min(s.getValues());
+            double max = Collections.max(s.getValues());
+            resp.addInsight("최대 차이", Math.round((max - min) * 10) / 10.0 + "건");
+        }
+        return resp;
+    }
+
     // ── 3. 행동 변동: 외출분산 α × 배출변동 β ──────────────────────────────
     public ScenarioResponse behaviorGrid(SimulationConfig base,
                                          double[] alphas, double[] betas) {

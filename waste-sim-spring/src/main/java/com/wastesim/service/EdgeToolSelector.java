@@ -24,6 +24,7 @@ public final class EdgeToolSelector {
     public static final String TOOL_CALIBRATE = "calibrate_edge_thermal_model";
     public static final String TOOL_SWEEP = "sweep_fan_rpm";
     public static final String TOOL_PTM = "simulate_ptm_control";
+    public static final String TOOL_LAYOUT = "rank_fan_layouts";
 
     /**
      * <b>예측 냉각(PTM)</b> 요청 — 팬을 "언제" 돌릴지(제어 방식)를 묻는 질문이다.
@@ -44,6 +45,14 @@ public final class EdgeToolSelector {
             + "|(항상|계속)\\s*.{0,4}(돌|켜).{0,10}(필요|이유)"
             + ")",
             Pattern.CASE_INSENSITIVE);
+
+    /** 팬 어휘와 위치·배치 어휘가 함께 있을 때만 배치 랭킹으로 보낸다. */
+    private static final Pattern FAN_LAYOUT = Pattern.compile(
+            "(?=.*(팬|fan|쿨러|흡기|배기|흡배기))"
+            + "(?=.*(배치|조합|어느\\s*(위치|자리)|위치|방향"
+            + "|어디\\s*에?\\s*(달|붙|장착|부착)"
+            + "|(상단|하단|앞|뒤|좌우)\\s*.{0,4}(달|붙|장착|부착)))",
+            Pattern.CASE_INSENSITIVE | Pattern.DOTALL);
 
     /** 실측 데이터로 모델을 보정하려는 요청. */
     private static final Pattern CALIBRATE = Pattern.compile(
@@ -125,12 +134,13 @@ public final class EdgeToolSelector {
     static final Pattern MASS = Pattern.compile(
             "\\d+(?:\\.\\d+)?\\s*(?:kg|g(?![a-z])|그램|그람)", Pattern.CASE_INSENSITIVE);
 
-    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 다섯 중 하나를 반환한다(기본은 발열 시뮬레이션). */
+    /** @return 호출할 MCP 도구 이름. 엣지 도메인이면 항상 여섯 중 하나를 반환한다. */
     public static String select(String text) {
         if (text == null) return TOOL_THROTTLING;
         // 검사 순서: PTM(제어 방식) → 스윕(고정 운전점) → 캘리브레이션 → 배치 → 발열.
         // 앞의 둘은 어휘가 겹치므로 더 구체적인 쪽(제어를 명시한 문장)을 먼저 본다.
         if (PTM.matcher(text).find()) return TOOL_PTM;
+        if (FAN_LAYOUT.matcher(text).find()) return TOOL_LAYOUT;
         if (SWEEP.matcher(text).find()) return TOOL_SWEEP;
         if (CALIBRATE.matcher(text).find()) return TOOL_CALIBRATE;
         if (HEATSINK.matcher(text).find()) return TOOL_HEATSINK;

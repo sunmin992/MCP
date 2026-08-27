@@ -436,6 +436,21 @@ function edgeBuildSweepBubble(msg) {
   return div;
 }
 
+// ── 팬 배치 랭킹 (EDGE_LAYOUT) ─────────────────────────────────────
+const EDGE_LAYOUT_RISK_CLASS = { LOW: 'ok', MEDIUM: 'warn', HIGH: 'bad' };
+function edgeBuildLayoutBubble(msg) {
+  const layout = msg.edgeLayout;
+  const div = document.createElement('div'); div.className = 'msg bot edge-result';
+  if (!layout || !(layout.ranking || []).length) { div.textContent = msg.content; return div; }
+  const rows = layout.ranking;
+  const max = Math.max(...rows.map(r => r.coolingScore));
+  const bars = rows.map(r => `<div class="edge-layout-bar"><span>${r.rank}. ${r.id}</span><b><i style="width:${(r.coolingScore/max*100).toFixed(1)}%"></i></b><em>${r.coolingScore.toFixed(3)}</em></div>`).join('');
+  const table = rows.map(r => { const a=r.advisory||{}, risk=EDGE_LAYOUT_RISK_CLASS[r.stagnationRisk]||'warn'; return `<tr><td>${r.rank}</td><td>${r.id}</td><td>${r.fan1.positionKo} ${r.fan1.flowKo}<br>${r.fan2.positionKo} ${r.fan2.flowKo}</td><td>${r.flowTypeKo}</td><td>${r.coolingScore.toFixed(3)}</td><td class="edge-risk-${risk}">${r.stagnationRiskKo}</td><td>${a.peakTempC?.toFixed(1)??'-'} <small class="edge-advisory-badge">임시</small></td><td>${a.spreadC?.toFixed(1)??'-'}</td><td>${r.interpretation}</td></tr>`; }).join('');
+  const notes=(msg.content||'').replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]));
+  div.innerHTML=`<div class="edge-layout-banner"><b>실측 전 임시 예측</b> — ${layout.evaluatedCount}개 조합의 후보 선별 결과입니다. 예상 온도는 발열 시뮬레이터와 비교할 수 없습니다.</div><div class="edge-layout-chart-title">냉각점수 (클수록 좋음)</div>${bars}<div class="edge-table-wrap"><table class="edge-tbl"><thead><tr><th>순위</th><th>ID</th><th>배치</th><th>기류</th><th>점수</th><th>정체</th><th>예상 최고</th><th>편차</th><th>해석</th></tr></thead><tbody>${table}</tbody></table></div><details class="edge-notes"><summary>해석과 주의사항</summary><pre>${notes}</pre></details>`;
+  return div;
+}
+
 // ── 도메인 등록 ───────────────────────────────────────────────────
 Domains.register({
   id: 'edge',
@@ -457,6 +472,7 @@ Domains.register({
     { label: '회복 정책 비교', run: () => edgeRecoveryCompare() },
     { label: 'Pi4 vs Pi5', run: () => edgeBoardCompare() },
     { label: '최적 팬 속도', run: () => edgeFanSweep() },
+    { label: '팬 배치 조합', text: '팬 두 개를 어디에 어떤 방향으로 달아야 제일 시원해?' },
     { label: '실측 보정 방법', text: '실측 데이터로 열 모델을 보정하려면 어떻게 해?' }
   ],
   renderMessage(msg) {
@@ -466,6 +482,10 @@ Domains.register({
     }
     if (msg.type === 'EDGE_SWEEP') {
       document.getElementById('messages').appendChild(edgeBuildSweepBubble(msg));
+      return true;
+    }
+    if (msg.type === 'EDGE_LAYOUT') {
+      document.getElementById('messages').appendChild(edgeBuildLayoutBubble(msg));
       return true;
     }
     return false;

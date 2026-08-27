@@ -164,6 +164,11 @@ public class SimulationTool {
         }
     }
 
+    /** 채팅에 명시된 복수 수거 시각만 비교하는 검증 포함 진입점. */
+    public ToolResult compareCollectionTimes(SimulationConfig base, List<Integer> times) {
+        return runScenarioCustom(base, () -> scenarioService.collectionTimeComparison(base, times));
+    }
+
     /** 지원 시나리오 유형 목록(디스커버리용). */
     public List<String> scenarioTypes() {
         return List.of("occupation-mix", "collection-sweep", "behavior-grid", "infra-grid",

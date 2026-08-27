@@ -18,6 +18,35 @@ public final class EdgeChatFormatter {
 
     private EdgeChatFormatter() {}
 
+    /** 경험적 팬 배치 랭킹의 1위와 실측 전 한계를 먼저 알린다. */
+    @SuppressWarnings("unchecked")
+    public static String fanLayout(Map<String, Object> out) {
+        List<Map<String, Object>> ranking = (List<Map<String, Object>>) out.get("ranking");
+        if (ranking == null || ranking.isEmpty()) return "평가할 배치 후보가 없습니다.";
+        StringBuilder sb = new StringBuilder("팬 배치 ").append(out.get("evaluatedCount"))
+                .append("개 조합을 상대 비교했습니다.\n\n");
+        Map<String, Object> top = ranking.get(0);
+        Map<String, Object> f1 = (Map<String, Object>) top.get("fan1");
+        Map<String, Object> f2 = (Map<String, Object>) top.get("fan2");
+        sb.append("1위 ").append(top.get("id")).append(" — ")
+                .append(f1.get("positionKo")).append(' ').append(f1.get("flowKo")).append(" + ")
+                .append(f2.get("positionKo")).append(' ').append(f2.get("flowKo")).append('\n')
+                .append("냉각점수 ").append(top.get("coolingScore")).append(" · 기류 ")
+                .append(top.get("flowTypeKo")).append(" · 정체 위험 ").append(top.get("stagnationRiskKo"))
+                .append("\n").append(top.get("interpretation")).append("\n\n");
+        for (int i = 1; i < Math.min(3, ranking.size()); i++) {
+            Map<String, Object> r = ranking.get(i), a = (Map<String, Object>) r.get("fan1"), b = (Map<String, Object>) r.get("fan2");
+            sb.append(r.get("rank")).append("위 ").append(r.get("id")).append(" — ")
+                    .append(a.get("positionKo")).append(' ').append(a.get("flowKo")).append(" + ")
+                    .append(b.get("positionKo")).append(' ').append(b.get("flowKo"))
+                    .append(" (점수 ").append(r.get("coolingScore")).append(")\n");
+        }
+        sb.append("\n실측 전 임시 계수에 기댄 후보 선별 결과입니다. 예상 온도는 무팬 82℃ 앵커에서 환산한 임시값이며 발열 시뮬레이터 온도와 비교할 수 없습니다.\n권장 실측 순서: ");
+        List<String> steps = (List<String>) out.get("recommendedMeasurementSteps");
+        if (steps != null) sb.append(String.join(" → ", steps));
+        return sb.toString();
+    }
+
     /** {@code simulate_edge_throttling} 결과 요약. */
     @SuppressWarnings("unchecked")
     public static String throttling(Map<String, Object> out) {
