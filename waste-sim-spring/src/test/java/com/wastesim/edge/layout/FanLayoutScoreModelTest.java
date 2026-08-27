@@ -198,4 +198,58 @@ class FanLayoutScoreModelTest {
                     FanLayoutScoreModel.score(c).sourceStatus(), c.id());
         }
     }
+
+    @Test
+    @DisplayName("1위는 P02(하단 흡기 + 상단 배기)이고 점수 내림차순으로 정렬된다")
+    void bestLayoutIsBottomIntakeTopExhaust() {
+        List<FanLayoutRanking.Entry> ranked = FanLayoutRanking.rank(
+                FanLayoutScoreModel.enumerateAll(List.of(FanMountPosition.values())));
+
+        assertEquals(60, ranked.size());
+        assertEquals(1, ranked.get(0).rank());
+        assertEquals("P02", ranked.get(0).candidate().id());
+        for (int i = 1; i < ranked.size(); i++) {
+            assertTrue(ranked.get(i - 1).score().coolingScore() >= ranked.get(i).score().coolingScore(),
+                    "정렬이 깨졌다: " + ranked.get(i - 1).candidate().id());
+            assertEquals(i + 1, ranked.get(i).rank());
+        }
+    }
+
+    @Test
+    @DisplayName("좌우 대칭 동률은 조합 ID로 갈린다 — P10이 P18보다 앞선다")
+    void leftRightTieIsBrokenById() {
+        List<FanLayoutRanking.Entry> ranked = FanLayoutRanking.rank(
+                FanLayoutScoreModel.enumerateAll(List.of(FanMountPosition.values())));
+
+        int p10 = -1, p18 = -1;
+        for (int i = 0; i < ranked.size(); i++) {
+            if (ranked.get(i).candidate().id().equals("P10")) p10 = i;
+            if (ranked.get(i).candidate().id().equals("P18")) p18 = i;
+        }
+        assertTrue(p10 >= 0 && p18 >= 0);
+
+        // 좌·우 위치효율이 대칭이라 점수와 편차가 완전히 같다. 이 동률은 모델의 한계이지
+        // 계산 오차가 아니므로, 임의로 우열을 만들지 않고 ID 순서로 고정한다.
+        assertEquals(ranked.get(p10).score().coolingScore(),
+                     ranked.get(p18).score().coolingScore(), 1e-12);
+        assertEquals(ranked.get(p10).score().advisorySpreadC(),
+                     ranked.get(p18).score().advisorySpreadC(), 1e-12);
+        assertTrue(p10 < p18, "동률이면 ID가 작은 쪽이 앞선다");
+        assertEquals(2, ranked.get(p10).rank());
+    }
+
+    @Test
+    @DisplayName("점수가 같으면 예상 편차가 작은 쪽이 앞선다")
+    void tieOnScoreIsBrokenBySpread() {
+        // 같은 점수를 만들되 편차만 다르게 — 방향이 같은 조합은 편차에 +2가 붙는다.
+        List<FanLayoutRanking.Entry> ranked = FanLayoutRanking.rank(
+                FanLayoutScoreModel.enumerateAll(List.of(FanMountPosition.values())));
+        for (int i = 1; i < ranked.size(); i++) {
+            FanLayoutRanking.Entry prev = ranked.get(i - 1), cur = ranked.get(i);
+            if (Math.abs(prev.score().coolingScore() - cur.score().coolingScore()) < 1e-9) {
+                assertTrue(prev.score().advisorySpreadC() <= cur.score().advisorySpreadC() + 1e-9,
+                        "동률에서 편차 순서가 깨졌다: " + prev.candidate().id() + " vs " + cur.candidate().id());
+            }
+        }
+    }
 }
