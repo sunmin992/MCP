@@ -239,6 +239,37 @@ class FanLayoutScoreModelTest {
     }
 
     @Test
+    @DisplayName("입력 순서가 아니라 ID 동률 규칙이 P10-P18 순서를 결정한다")
+    void leftRightTieOrderSurvivesReversedInput() {
+        // enumerateAll은 이미 ID 오름차순(P01→P60)이라, 그대로 넣으면 안정 정렬 특성 때문에
+        // ID 비교 규칙을 지워도 우연히 같은 결과가 나온다 — 그래서는 이 규칙이 실제로
+        // 동작하는지 검증할 수 없다. 입력을 뒤집어(P60→P01) 삽입 순서와 ID 순서를
+        // 일부러 어긋나게 만들어야, ID 동률 규칙이 빠졌을 때 이 테스트가 실패한다.
+        List<FanLayoutCandidate> reversed = new ArrayList<>(
+                FanLayoutScoreModel.enumerateAll(List.of(FanMountPosition.values())));
+        Collections.reverse(reversed);
+
+        List<FanLayoutRanking.Entry> ranked = FanLayoutRanking.rank(reversed);
+
+        int p10 = -1, p18 = -1;
+        for (int i = 0; i < ranked.size(); i++) {
+            if (ranked.get(i).candidate().id().equals("P10")) p10 = i;
+            if (ranked.get(i).candidate().id().equals("P18")) p18 = i;
+        }
+        assertTrue(p10 >= 0 && p18 >= 0);
+
+        // 두 숫자 비교키(점수·편차)가 완전히 같음을 다시 확인 — 그래야 아래 순서가
+        // 숫자 키가 아니라 ID 규칙 때문임이 분명해진다.
+        assertEquals(ranked.get(p10).score().coolingScore(),
+                     ranked.get(p18).score().coolingScore(), 1e-12);
+        assertEquals(ranked.get(p10).score().advisorySpreadC(),
+                     ranked.get(p18).score().advisorySpreadC(), 1e-12);
+
+        assertEquals(p10 + 1, p18, "P10과 P18은 순위표에서 인접해야 한다");
+        assertTrue(p10 < p18, "입력을 뒤집어도 ID가 작은 P10이 앞서야 한다 — ID 동률 규칙이 결정한 것이다");
+    }
+
+    @Test
     @DisplayName("점수가 같으면 예상 편차가 작은 쪽이 앞선다")
     void tieOnScoreIsBrokenBySpread() {
         // 같은 점수를 만들되 편차만 다르게 — 방향이 같은 조합은 편차에 +2가 붙는다.
