@@ -28,6 +28,8 @@ class EdgeMcpToolsTest {
     private final SimulateHeatsinkLayoutTool layout = new SimulateHeatsinkLayoutTool(store, new AiLoadProfileService());
     private final CalibrateEdgeThermalModelTool calibrate = new CalibrateEdgeThermalModelTool(store);
     private final SweepFanRpmTool sweep = new SweepFanRpmTool(store, new AiLoadProfileService());
+    private final com.wastesim.edge.layout.RankFanLayoutsTool fanLayout =
+            new com.wastesim.edge.layout.RankFanLayoutsTool();
 
     private JsonNode json(String s) throws Exception { return om.readTree(s); }
 
@@ -38,10 +40,10 @@ class EdgeMcpToolsTest {
     }
 
     @Test
-    @DisplayName("네 도구가 레지스트리에 등록되고 스키마가 유효한 JSON이다")
+    @DisplayName("다섯 도구가 레지스트리에 등록되고 스키마가 유효한 JSON이다")
     void toolsRegisterWithValidSchemas() throws Exception {
-        var registry = new McpToolRegistry(List.of(throttling, layout, calibrate, sweep));
-        assertEquals(4, registry.all().size());
+        var registry = new McpToolRegistry(List.of(throttling, layout, calibrate, sweep, fanLayout));
+        assertEquals(5, registry.all().size());
         for (McpToolProvider p : registry.all()) {
             assertSame(p, registry.byToolName(p.toolName()));
             assertFalse(p.description().isBlank());
@@ -53,6 +55,10 @@ class EdgeMcpToolsTest {
         assertNotNull(registry.byToolName("simulate_heatsink_layout"));
         assertNotNull(registry.byToolName("calibrate_edge_thermal_model"));
         assertNotNull(registry.byToolName("sweep_fan_rpm"));
+
+        // 배치 랭킹 도구도 엣지 엔드포인트에 노출돼야 채팅·MCP 양쪽에서 부를 수 있다.
+        assertSame(fanLayout, registry.byToolName("rank_fan_layouts"));
+        assertEquals(com.wastesim.mcp.McpDomain.EDGE, fanLayout.domain());
     }
 
     @Test
