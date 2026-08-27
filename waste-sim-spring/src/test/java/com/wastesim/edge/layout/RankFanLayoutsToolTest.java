@@ -157,6 +157,40 @@ class RankFanLayoutsToolTest {
         assertEquals("P03", ranking.get(1).get("id"));
     }
 
+    /**
+     * 위치쌍은 무순서라 fan1·fan2 순서를 뒤집어도 같은 배치여야 한다. 정규화 키가
+     * ordinal로 정렬하지 않고 입력 순서를 그대로 쓰도록 "단순화"되면, 이 테스트가
+     * 아니면 그 퇴행이 조용히 통과한다 — canonicalEvaluateExplicitLayouts의 두
+     * 후보가 전부 정준 열거 순서(하단이 먼저)라 스왑 분기를 타지 않기 때문이다.
+     * 그래서 여기서는 일부러 fan1=상단/배기, fan2=하단/흡기로 <b>뒤집어</b> 넣는다.
+     */
+    @Test
+    @DisplayName("candidates에서 fan1·fan2 순서를 바꿔도 조합 ID가 같다")
+    @SuppressWarnings("unchecked")
+    void candidateFanOrderDoesNotChangeCombinationId() throws Exception {
+        Map<String, Object> canonicalOut = ok("""
+            {"candidates":[
+              {"fan1":{"position":"bottom","flow":"intake"},"fan2":{"position":"top","flow":"exhaust"}}
+            ]}""");
+        // 뒤집은 순서 — 정준 열거 순서(하단이 먼저)와 정반대로 상단이 먼저 온다.
+        Map<String, Object> reversedOut = ok("""
+            {"candidates":[
+              {"fan1":{"position":"top","flow":"exhaust"},"fan2":{"position":"bottom","flow":"intake"}}
+            ]}""");
+
+        List<Map<String, Object>> canonicalRanking =
+                (List<Map<String, Object>>) canonicalOut.get("ranking");
+        List<Map<String, Object>> reversedRanking =
+                (List<Map<String, Object>>) reversedOut.get("ranking");
+
+        assertEquals("P02", canonicalRanking.get(0).get("id"));
+        assertEquals("P02", reversedRanking.get(0).get("id"),
+                "fan1·fan2 순서를 뒤집어도 같은 물리적 배치이므로 같은 P-ID여야 한다");
+        assertEquals(1.075, (Double) canonicalRanking.get(0).get("coolingScore"), 1e-9);
+        assertEquals(1.075, (Double) reversedRanking.get(0).get("coolingScore"), 1e-9,
+                "순서를 뒤집어도 점수가 달라지면 안 된다");
+    }
+
     @Test
     @DisplayName("candidates와 positions를 함께 주면 거부한다")
     void rejectsCandidatesWithPositions() throws Exception {
