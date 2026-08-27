@@ -323,6 +323,41 @@ class EdgeChatRoutingTest {
                 EdgeToolSelector.select("팬을 미리 돌리면 이득이야?"));
     }
 
+    // ── 리뷰 라운드 1: 맨 '위치'·'방향'만으로는 배치가 아니다 ──────────────────
+    //
+    // 초판 FAN_LAYOUT은 배치 어휘에 맨 "위치"·"방향"을 단독으로 포함했다. 그래서
+    // "위치"가 캘리브레이션 데이터의 일부이거나 냉각 조건 설명일 뿐인 문장까지
+    // 배치 랭킹으로 새 버렸다 — 이 파일이 이미 기록한 "조건을 비교 대상으로 착각"하는
+    // 유형과 같은 결함이다. 아래 세 문장이 그 좁히기를 강제했으므로, 누군가 나중에
+    // 패턴을 다시 넓히면 여기서 먼저 깨져야 한다.
+
+    @Test
+    @DisplayName("CSV로 기록한 '위치' 데이터는 배치 랭킹이 아니라 캘리브레이션이다")
+    void fanPositionCsvGoesToCalibrationNotLayout() {
+        assertEquals(EdgeToolSelector.TOOL_CALIBRATE,
+                EdgeToolSelector.select("팬 흡기 위치 데이터를 CSV로 기록했는데 이걸로 모델 보정할 수 있어?"));
+    }
+
+    // "라즈베리파이 5 흡기 위치에 먼지가 쌓였는데 스로틀링 얼마나 심해질까?"는 FAN_LAYOUT
+    // 좁히기로는 고칠 수 없다 — FAN_LAYOUT을 통과한 뒤에도 HEATSINK 자체가 맨 "위치"를
+    // 단독 어휘로 갖고 있어(이번 라운드에서 손대지 않은 기존 패턴) simulate_heatsink_layout으로
+    // 간다. 이 라운드의 지시("다른 패턴은 건드리지 말 것")와 충돌해 테스트를 보류했다.
+    // 자세한 내용은 task-7-report.md의 "리뷰 라운드 1" 절 참고.
+
+    @Test
+    @DisplayName("'최적 팬 위치가 아니라 rpm'은 배치 랭킹이 아니라 스윕이다")
+    void explicitlyNotPositionQuestionGoesToSweep() {
+        assertEquals(EdgeToolSelector.TOOL_SWEEP,
+                EdgeToolSelector.select("최적 팬 위치가 아니라 그냥 최고 rpm이 궁금해"));
+    }
+
+    @Test
+    @DisplayName("'어디에 어떤 방향으로' 팬을 달지 묻는 문장은 배치 랭킹이다(사이드바 버튼 문구 고정)")
+    void fanWhereAndWhichDirectionPinsToLayout() {
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT,
+                EdgeToolSelector.select("팬 두 개를 어디에 어떤 방향으로 달아야 제일 시원해?"));
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> run(String argsJson) throws Exception {
         ToolResult tr = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService()).call(om.readTree(argsJson));
