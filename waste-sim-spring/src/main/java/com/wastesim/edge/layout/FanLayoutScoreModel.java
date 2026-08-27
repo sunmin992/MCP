@@ -1,5 +1,7 @@
 package com.wastesim.edge.layout;
 
+import com.wastesim.edge.FanArraySpec;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -51,5 +53,114 @@ public final class FanLayoutScoreModel {
             }
         }
         return out;
+    }
+
+    // ── 계수 (출처: 엑셀 "가정" 시트 + build_fan_layouts.mjs, 2026-08-27) ────────
+    // 전부 임시값이다. 실측이 들어오면 앵커와 환산계수부터 교체한다(설계 §4.3).
+
+    /** 무팬 상태의 기준 최고온도(℃) — 예상온도를 환산하는 앵커. */
+    public static final double BARE_PEAK_ANCHOR_C = 82.0;
+    /** 냉각점수 1.0당 내려가는 온도(℃). */
+    public static final double SCORE_TO_DELTA_C = 27.0;
+    /** 최고온도와 평균온도의 고정 간격(℃). */
+    public static final double MEAN_OFFSET_C = 5.2;
+
+    public static final double SPREAD_BASE = 3.0;
+    public static final double SPREAD_SLOPE = 10.0;
+    /** 두 팬 역할이 같으면 유로가 정해지지 않아 편차가 커진다. */
+    public static final double SAME_DIRECTION_SPREAD_PENALTY = 2.0;
+
+    public static final double SCORE_MIN = 0.25;
+    public static final double SCORE_MAX = 1.15;
+
+    public static final double INTAKE_PAIR_FACTOR = 0.78;
+    public static final double EXHAUST_PAIR_FACTOR = 0.82;
+    public static final double THROUGH_FLOW_FACTOR = 1.0;
+
+    /** 흡기가 배기보다 낮다 — 자연대류와 같은 방향이라 유리하다. */
+    public static final double NATURAL_CONVECTION_BONUS = 0.15;
+    /** 흡기가 배기보다 높다 — 자연대류를 거스른다. */
+    public static final double AGAINST_CONVECTION_PENALTY = -0.10;
+    /** 흡·배기가 같은 측면이라 공기가 보드를 지나지 않고 빠져나갈 수 있다. */
+    public static final double SHORT_CIRCUIT_PENALTY = -0.12;
+
+    public static final double RISK_LOW_THRESHOLD = 0.95;
+    public static final double RISK_MEDIUM_THRESHOLD = 0.78;
+
+    /**
+     * 배치 하나를 평가한다.
+     *
+     * <p>식은 엑셀 K~O열 수식을 그대로 옮긴 것이다.
+     * <pre>
+     * score = clamp(0.25, 1.15, (eff1 + eff2)/2 * pairFactor + flowBonus)
+     * peak  = 82 - score * 27
+     * </pre>
+     */
+    public static FanLayoutScore score(FanLayoutCandidate c) {
+        double pairFactor = pairFactor(c);
+        double rawBonus = 0.0;
+        String note;
+
+        if (!c.hasSameFlow()) {
+            // 관통류 — 흡기와 배기가 정해지므로 유로의 방향을 따질 수 있다.
+            FanMountPosition intake  = c.flow1() == FanFlowRole.INTAKE  ? c.position1() : c.position2();
+            FanMountPosition exhaust = c.flow1() == FanFlowRole.EXHAUST ? c.position1() : c.position2();
+
+            if (intake.level() < exhaust.level()) {
+                rawBonus += NATURAL_CONVECTION_BONUS;
+                note = "자연대류와 같은 아래→위 흐름";
+            } else if (intake.level() > exhaust.level()) {
+                rawBonus += AGAINST_CONVECTION_PENALTY;
+                note = "자연대류를 거스르는 위→아래 흐름";
+            } else {
+                note = "같은 높이의 횡류";
+            }
+            // 중앙은 함체 반대면이라 단락으로 보지 않는다 — 좌·우끼리 겹칠 때만 문제다.
+            if (intake.side() == exhaust.side() && intake.side() != FanMountPosition.Side.CENTER) {
+                rawBonus += SHORT_CIRCUIT_PENALTY;
+                note += "; 입출구 단락 가능";
+            }
+        } else {
+            // 둘 다 흡기이거나 둘 다 배기 — 유로가 팬이 아니라 함체 틈에 맡겨진다.
+            note = c.flow1() == FanFlowRole.INTAKE
+                    ? "출구 면적에 따라 내부 양압"
+                    : "흡기 틈 위치에 따라 내부 음압";
+        }
+
+        double meanEfficiency = (c.position1().efficiency() + c.position2().efficiency()) / 2.0;
+        double score = clampScore(meanEfficiency * pairFactor + rawBonus);
+
+        double peak = BARE_PEAK_ANCHOR_C - score * SCORE_TO_DELTA_C;
+        double spread = SPREAD_BASE + (1 - score) * SPREAD_SLOPE
+                + (c.hasSameFlow() ? SAME_DIRECTION_SPREAD_PENALTY : 0.0);
+
+        return new FanLayoutScore(
+                score, flowType(c), pairFactor, rawBonus,
+                peak, peak - MEAN_OFFSET_C, spread,
+                risk(score), note,
+                FanArraySpec.SourceStatus.PRELIMINARY_ESTIMATE);
+    }
+
+    /** 점수를 물리적으로 말이 되는 범위로 자른다. 표준 6위치에서는 걸리지 않는 가드다. */
+    public static double clampScore(double raw) {
+        return Math.max(SCORE_MIN, Math.min(SCORE_MAX, raw));
+    }
+
+    private static double pairFactor(FanLayoutCandidate c) {
+        if (!c.hasSameFlow()) return THROUGH_FLOW_FACTOR;
+        return c.flow1() == FanFlowRole.INTAKE ? INTAKE_PAIR_FACTOR : EXHAUST_PAIR_FACTOR;
+    }
+
+    private static FanLayoutScore.FlowType flowType(FanLayoutCandidate c) {
+        if (!c.hasSameFlow()) return FanLayoutScore.FlowType.FORCED_THROUGH_FLOW;
+        return c.flow1() == FanFlowRole.INTAKE
+                ? FanLayoutScore.FlowType.POSITIVE_PRESSURE
+                : FanLayoutScore.FlowType.NEGATIVE_PRESSURE;
+    }
+
+    private static FanLayoutScore.StagnationRisk risk(double score) {
+        if (score >= RISK_LOW_THRESHOLD) return FanLayoutScore.StagnationRisk.LOW;
+        if (score >= RISK_MEDIUM_THRESHOLD) return FanLayoutScore.StagnationRisk.MEDIUM;
+        return FanLayoutScore.StagnationRisk.HIGH;
     }
 }
