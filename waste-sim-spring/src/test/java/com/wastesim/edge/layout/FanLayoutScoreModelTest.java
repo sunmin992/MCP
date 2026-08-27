@@ -3,6 +3,8 @@ package com.wastesim.edge.layout;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.util.*;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -51,5 +53,57 @@ class FanLayoutScoreModelTest {
         assertEquals(FanFlowRole.EXHAUST, FanFlowRole.parse("배기"));
         assertNull(FanFlowRole.parse("순환"));
         assertNull(FanFlowRole.parse(null));
+    }
+
+    @Test
+    @DisplayName("6위치 전수 열거는 15쌍 × 4방향 = 60조합이고 ID가 P01~P60이다")
+    void enumeratesSixtyCombinations() {
+        List<FanLayoutCandidate> all =
+                FanLayoutScoreModel.enumerateAll(List.of(FanMountPosition.values()));
+
+        assertEquals(60, all.size());
+        assertEquals("P01", all.get(0).id());
+        assertEquals("P60", all.get(59).id());
+
+        // 위치쌍은 순서 없는 조합이라 같은 배치가 두 번 나오면 안 된다.
+        Set<String> shapes = new HashSet<>();
+        for (FanLayoutCandidate c : all) {
+            String a = c.position1().name() + ":" + c.flow1().name();
+            String b = c.position2().name() + ":" + c.flow2().name();
+            List<String> pair = new ArrayList<>(List.of(a, b));
+            Collections.sort(pair);
+            assertTrue(shapes.add(String.join("|", pair)), "중복 조합: " + c.id());
+        }
+    }
+
+    @Test
+    @DisplayName("열거 순서가 고정된다 — P02는 하단 흡기 + 상단 배기, P58은 우측 하단 흡기 + 우측 상단 배기")
+    void enumerationOrderIsStable() {
+        List<FanLayoutCandidate> all =
+                FanLayoutScoreModel.enumerateAll(List.of(FanMountPosition.values()));
+        Map<String, FanLayoutCandidate> byId = new LinkedHashMap<>();
+        for (FanLayoutCandidate c : all) byId.put(c.id(), c);
+
+        FanLayoutCandidate p02 = byId.get("P02");
+        assertEquals(FanMountPosition.BOTTOM, p02.position1());
+        assertEquals(FanFlowRole.INTAKE, p02.flow1());
+        assertEquals(FanMountPosition.TOP, p02.position2());
+        assertEquals(FanFlowRole.EXHAUST, p02.flow2());
+
+        FanLayoutCandidate p58 = byId.get("P58");
+        assertEquals(FanMountPosition.RIGHT_BOTTOM, p58.position1());
+        assertEquals(FanFlowRole.INTAKE, p58.flow1());
+        assertEquals(FanMountPosition.RIGHT_TOP, p58.position2());
+        assertEquals(FanFlowRole.EXHAUST, p58.flow2());
+    }
+
+    @Test
+    @DisplayName("위치를 2곳으로 줄이면 1쌍 × 4방향 = 4조합만 나온다")
+    void enumerationHonoursPositionSubset() {
+        List<FanLayoutCandidate> some = FanLayoutScoreModel.enumerateAll(
+                List.of(FanMountPosition.BOTTOM, FanMountPosition.TOP));
+        assertEquals(4, some.size());
+        assertEquals("P01", some.get(0).id());
+        assertEquals("P04", some.get(3).id());
     }
 }
