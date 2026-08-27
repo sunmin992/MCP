@@ -181,6 +181,54 @@ public final class EdgeChatFormatter {
     }
 
     /**
+     * 배치 랭킹 요약. 사용자가 표를 보기 전에 <b>무엇이 1위이고 왜인지</b>, 그리고
+     * <b>이 숫자를 어디까지 믿어도 되는지</b>를 먼저 읽게 한다.
+     */
+    @SuppressWarnings("unchecked")
+    public static String fanLayout(Map<String, Object> out) {
+        List<Map<String, Object>> ranking = (List<Map<String, Object>>) out.get("ranking");
+        if (ranking == null || ranking.isEmpty()) {
+            return "평가할 배치 후보가 없습니다.";
+        }
+        StringBuilder sb = new StringBuilder();
+        Object evaluated = out.get("evaluatedCount");
+        sb.append("팬 배치 ").append(evaluated).append("개 조합을 상대 비교했습니다.\n\n");
+
+        Map<String, Object> top = ranking.get(0);
+        Map<String, Object> f1 = (Map<String, Object>) top.get("fan1");
+        Map<String, Object> f2 = (Map<String, Object>) top.get("fan2");
+        sb.append("1위 ").append(top.get("id")).append(" — ")
+          .append(f1.get("positionKo")).append(' ').append(f1.get("flowKo"))
+          .append(" + ")
+          .append(f2.get("positionKo")).append(' ').append(f2.get("flowKo"))
+          .append('\n');
+        sb.append("  냉각점수 ").append(top.get("coolingScore"))
+          .append(" · 기류 ").append(top.get("flowTypeKo"))
+          .append(" · 정체 위험 ").append(top.get("stagnationRiskKo")).append('\n');
+        sb.append("  ").append(top.get("interpretation")).append("\n\n");
+
+        int shown = Math.min(3, ranking.size());
+        for (int i = 1; i < shown; i++) {
+            Map<String, Object> r = ranking.get(i);
+            Map<String, Object> a = (Map<String, Object>) r.get("fan1");
+            Map<String, Object> b = (Map<String, Object>) r.get("fan2");
+            sb.append(r.get("rank")).append("위 ").append(r.get("id")).append(" — ")
+              .append(a.get("positionKo")).append(' ').append(a.get("flowKo")).append(" + ")
+              .append(b.get("positionKo")).append(' ').append(b.get("flowKo"))
+              .append(" (점수 ").append(r.get("coolingScore")).append(")\n");
+        }
+
+        // 이 문단이 빠지면 임시 추정값이 시뮬레이션 결과처럼 읽힌다.
+        sb.append("\n이 결과는 통풍구 접근성과 예상 유로를 반영한 임시 계수에 기댄 상대 비교입니다. ")
+          .append("함께 표시되는 예상 온도는 무팬 82℃를 기준점으로 환산한 임시값이라, ")
+          .append("발열 시뮬레이션이 계산한 온도와 직접 비교할 수 없습니다.\n");
+        sb.append("권장 실측 순서: ");
+        List<String> steps = (List<String>) out.get("recommendedMeasurementSteps");
+        if (steps != null) sb.append(String.join(" → ", steps));
+        return sb.toString();
+    }
+
+    /**
      * {@code simulate_ptm_control} 결과 요약 — 제어 방식별 비교표.
      *
      * <p>에너지만 나열하지 않고 <b>피크 온도를 같은 줄에 놓는다.</b> PTM은 허용된 온도 여유를

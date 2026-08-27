@@ -2,7 +2,7 @@ package com.wastesim.model;
 
 public class ChatMessage {
 
-    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT, EDGE_SWEEP }
+    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT, EDGE_SWEEP, EDGE_LAYOUT }
 
     private MessageType type;
     private String content;
@@ -52,6 +52,16 @@ public class ChatMessage {
      */
     private java.util.Map<String, Object> edgeSweep;
 
+    /**
+     * EDGE_LAYOUT 전용 — {@code rank_fan_layouts}가 돌려준 결과 원본.
+     *
+     * <p>{@link #edgeSweep}과 따로 두는 이유는 같다. 배치 랭킹은 곡선이 아니라
+     * 순위표이고, 온도가 1급 지표가 아니라 {@code advisory} 블록에 격리돼 있다.
+     * 같은 필드에 담으면 클라이언트가 키 모양을 보고 어느 쪽인지 추측해야 하고,
+     * 그러다 임시 온도를 시뮬레이터 온도 자리에 그리게 된다.
+     */
+    private java.util.Map<String, Object> edgeLayout;
+
     public ChatMessage() {}
 
     public ChatMessage(MessageType type, String content) {
@@ -85,4 +95,7 @@ public class ChatMessage {
 
     public java.util.Map<String, Object> getEdgeSweep() { return edgeSweep; }
     public void setEdgeSweep(java.util.Map<String, Object> s) { this.edgeSweep = s; }
+
+    public java.util.Map<String, Object> getEdgeLayout() { return edgeLayout; }
+    public void setEdgeLayout(java.util.Map<String, Object> m) { this.edgeLayout = m; }
 }

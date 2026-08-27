@@ -17,6 +17,7 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.wastesim.edge.EdgeChatFormatter;
 import com.wastesim.edge.EdgeParamGuard;
@@ -494,6 +495,12 @@ public class ChatController {
             runEdgePtmControl(provider, args, userText, history);
             return;
         }
+        // 배치 랭킹도 비교 분기를 타지 않는다 — 배치 자체가 이미 비교 축이라,
+        // 여기에 보드·재질 비교를 겹치면 "1위 배치"가 여러 개인 표가 된다.
+        if (EdgeToolSelector.TOOL_LAYOUT.equals(toolName)) {
+            runEdgeFanLayout(provider, userText, history);
+            return;
+        }
 
         // 보드를 둘 다 언급했으면 비교 요청이다 — 한쪽만 골라 한 번 돌리면 사용자가
         // 물어본 것에 대한 답이 아니다. 나머지 조건을 그대로 둔 채 board만 바꿔 두 번
@@ -699,6 +706,35 @@ public class ChatController {
         String text = EdgeChatFormatter.fanSweep(out);
         ChatMessage msg = new ChatMessage(ChatMessage.MessageType.EDGE_SWEEP, text);
         msg.setEdgeSweep(out);
+        msg.setDomain("edge");
+        messaging.convertAndSend("/topic/messages", msg);
+        history.add(Map.of("role", "user", "content", userText));
+        history.add(Map.of("role", "assistant", "content", text));
+        while (history.size() > 20) history.remove(0);
+    }
+
+    /**
+     * 팬 배치 랭킹 — 스윕·PTM과 같은 이유로 도구 한 번으로 끝난다. 조합 반복은 도구
+     * 안에 있으므로 채팅으로 물으나 MCP로 부르나 같은 순위가 나온다.
+     *
+     * <p>{@code EdgeParamGuard}가 합쳐 준 {@code args}를 넘기지 않고 빈 객체로 부른다.
+     * 이 도구의 입력은 배치 후보와 topK뿐인데, {@code EdgeParamGuard}가 채워 주는 값은
+     * 보드·냉각·부하처럼 전부 열 시뮬레이션용이라 여기서는 의미가 없다. 넘기면
+     * 스키마에 없는 키가 섞여 들어간다.
+     */
+    private void runEdgeFanLayout(McpToolProvider provider,
+                                  String userText, List<Map<String, String>> history) {
+        ToolResult tr = provider.call(JsonNodeFactory.instance.objectNode());
+        if (!tr.ready()) {
+            replyValidationErrors(tr, userText, history);
+            return;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> out = (Map<String, Object>) tr.result();
+
+        String text = EdgeChatFormatter.fanLayout(out);
+        ChatMessage msg = new ChatMessage(ChatMessage.MessageType.EDGE_LAYOUT, text);
+        msg.setEdgeLayout(out);
         msg.setDomain("edge");
         messaging.convertAndSend("/topic/messages", msg);
         history.add(Map.of("role", "user", "content", userText));

@@ -358,6 +358,24 @@ class EdgeChatRoutingTest {
                 EdgeToolSelector.select("팬 두 개를 어디에 어떤 방향으로 달아야 제일 시원해?"));
     }
 
+    @Test
+    @DisplayName("배치 랭킹 요약에 1위 조합과 임시값 경고가 들어간다")
+    @SuppressWarnings("unchecked")
+    void fanLayoutSummaryNamesWinnerAndFlagsEstimate() throws Exception {
+        var tool = new com.wastesim.edge.layout.RankFanLayoutsTool();
+        ToolResult r = tool.call(om.readTree("{\"topK\":3}"));
+        assertTrue(r.ready());
+        String text = EdgeChatFormatter.fanLayout((Map<String, Object>) r.result());
+
+        assertTrue(text.contains("P02"), "1위 조합 ID가 있어야 한다");
+        assertTrue(text.contains("하단") && text.contains("상단"), "배치를 사람 말로 설명해야 한다");
+        assertTrue(text.contains("흡기") && text.contains("배기"));
+        // 임시 추정값을 확정값처럼 읽게 두지 않는다.
+        assertTrue(text.contains("임시") || text.contains("잠정"),
+                "예상 온도가 임시값임을 밝혀야 한다: " + text);
+        assertTrue(text.contains("60"), "평가한 조합 수를 밝혀야 한다");
+    }
+
     @SuppressWarnings("unchecked")
     private Map<String, Object> run(String argsJson) throws Exception {
         ToolResult tr = new SimulateEdgeThrottlingTool(store, new AiLoadProfileService()).call(om.readTree(argsJson));
