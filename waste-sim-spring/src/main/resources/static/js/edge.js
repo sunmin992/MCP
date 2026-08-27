@@ -436,6 +436,87 @@ function edgeBuildSweepBubble(msg) {
   return div;
 }
 
+// ── 팬 배치 랭킹 (EDGE_LAYOUT) ─────────────────────────────────────
+// 온도를 1급 지표로 그리지 않는다. 이 도구의 예상 온도는 무팬 82℃ 앵커에서 환산한
+// 임시값이라, 발열 시뮬레이션 결과와 같은 자리에 같은 모양으로 그리면 사용자가
+// 두 숫자를 비교하게 된다. 그래서 막대는 냉각점수로 그리고, 온도 칸에는 뱃지를 붙인다.
+
+const EDGE_LAYOUT_RISK_CLASS = { LOW: 'ok', MEDIUM: 'warn', HIGH: 'bad' };
+
+function edgeLayoutBanner(layout) {
+  return (
+    `<div class="edge-layout-banner">` +
+      `<b>실측 전 임시 예측</b> — 조합 ${layout.evaluatedCount}개를 상대 비교한 후보 선별 결과입니다. ` +
+      `예상 온도는 무팬 82℃를 기준점으로 환산한 값이라 발열 시뮬레이션 온도와 비교할 수 없습니다.` +
+    `</div>`
+  );
+}
+
+function edgeLayoutChart(layout) {
+  const rows = layout.ranking || [];
+  if (!rows.length) return '';
+  const max = Math.max(...rows.map(r => r.coolingScore));
+  const bars = rows.map(r => {
+    const pct = max > 0 ? (r.coolingScore / max) * 100 : 0;
+    return (
+      `<div class="edge-layout-bar">` +
+        `<span class="edge-layout-bar-label">${r.rank}. ${r.id}</span>` +
+        `<span class="edge-layout-bar-track">` +
+          `<i style="width:${pct.toFixed(1)}%"></i>` +
+        `</span>` +
+        `<span class="edge-layout-bar-value">${r.coolingScore.toFixed(3)}</span>` +
+      `</div>`
+    );
+  }).join('');
+  return `<div class="edge-layout-chart"><div class="edge-layout-chart-title">냉각점수 (클수록 좋음)</div>${bars}</div>`;
+}
+
+function edgeLayoutTable(layout) {
+  const rows = (layout.ranking || []).map(r => {
+    const risk = EDGE_LAYOUT_RISK_CLASS[r.stagnationRisk] || 'warn';
+    const adv = r.advisory || {};
+    return (
+      `<tr>` +
+        `<td>${r.rank}</td>` +
+        `<td>${r.id}</td>` +
+        `<td>${r.fan1.positionKo} ${r.fan1.flowKo}<br>${r.fan2.positionKo} ${r.fan2.flowKo}</td>` +
+        `<td>${r.flowTypeKo}</td>` +
+        `<td>${r.coolingScore.toFixed(3)}</td>` +
+        `<td class="edge-risk-${risk}">${r.stagnationRiskKo}</td>` +
+        `<td>${adv.peakTempC != null ? adv.peakTempC.toFixed(1) : '-'}` +
+          `<span class="edge-advisory-badge" title="무팬 82℃ 앵커 기준 임시 환산값 — 시뮬레이터 온도와 비교 불가">임시</span></td>` +
+        `<td>${adv.spreadC != null ? adv.spreadC.toFixed(1) : '-'}</td>` +
+        `<td class="edge-layout-note">${r.interpretation}</td>` +
+      `</tr>`
+    );
+  }).join('');
+  return (
+    `<div class="edge-table-wrap"><table class="edge-table edge-layout-table">` +
+      `<thead><tr>` +
+        `<th>순위</th><th>ID</th><th>배치</th><th>기류</th><th>냉각점수</th>` +
+        `<th>정체 위험</th><th>예상 최고(℃)</th><th>예상 편차(℃)</th><th>해석</th>` +
+      `</tr></thead><tbody>${rows}</tbody></table></div>`
+  );
+}
+
+function edgeBuildLayoutBubble(msg) {
+  const layout = msg.edgeLayout;
+  const div = document.createElement('div');
+  div.className = 'msg bot edge-result';
+  if (!layout || !(layout.ranking || []).length) {   // 원본이 없으면 텍스트만 — 안전한 폴백
+    div.textContent = msg.content;
+    return div;
+  }
+  div.innerHTML =
+    edgeLayoutBanner(layout) +
+    edgeLayoutChart(layout) +
+    edgeLayoutTable(layout) +
+    `<details class="edge-notes"><summary>해석과 주의사항</summary><pre>${
+        (msg.content || '').replace(/[<>&]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;' }[c]))
+    }</pre></details>`;
+  return div;
+}
+
 // ── 도메인 등록 ───────────────────────────────────────────────────
 Domains.register({
   id: 'edge',
@@ -457,6 +538,7 @@ Domains.register({
     { label: '회복 정책 비교', run: () => edgeRecoveryCompare() },
     { label: 'Pi4 vs Pi5', run: () => edgeBoardCompare() },
     { label: '최적 팬 속도', run: () => edgeFanSweep() },
+    { label: '팬 배치 조합', text: '팬 두 개를 어디에 어떤 방향으로 달아야 제일 시원해?' },
     { label: '실측 보정 방법', text: '실측 데이터로 열 모델을 보정하려면 어떻게 해?' }
   ],
   renderMessage(msg) {
@@ -466,6 +548,10 @@ Domains.register({
     }
     if (msg.type === 'EDGE_SWEEP') {
       document.getElementById('messages').appendChild(edgeBuildSweepBubble(msg));
+      return true;
+    }
+    if (msg.type === 'EDGE_LAYOUT') {
+      document.getElementById('messages').appendChild(edgeBuildLayoutBubble(msg));
       return true;
     }
     return false;

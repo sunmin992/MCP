@@ -588,3 +588,59 @@
     /* 최적 지점 행 — 표에서도 곡선의 ★와 같은 지점임이 한눈에 보여야 한다. */
     .edge-tbl tr.edge-opt td { color: var(--accent); font-weight: 600; }
     .edge-tbl tr.edge-bad td { opacity: 0.62; }
+
+    /* ── 팬 배치 랭킹 (EDGE_LAYOUT) ─────────────────────────────────
+       예상 온도는 무팬 82℃ 앵커에서 환산한 임시값이다 — 발열 시뮬레이션 온도와
+       같은 자리·같은 모양으로 그리면 비교 가능한 값처럼 보인다. 그래서 막대는
+       냉각점수로 그리고, 온도 칸에는 계속 눈에 띄는 뱃지를 붙여 둔다. */
+    .edge-layout-banner {
+      background: var(--yellow);
+      color: #3a2e05;
+      border-radius: 8px;
+      padding: 8px 10px;
+      margin-bottom: 10px;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .edge-layout-chart { margin-bottom: 12px; }
+    .edge-layout-chart-title { font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+    .edge-layout-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; font-size: 12px; }
+    .edge-layout-bar-label { width: 72px; flex: none; color: var(--text); }
+    .edge-layout-bar-track { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 3px; height: 12px; }
+    .edge-layout-bar-track > i { display: block; height: 100%; background: var(--accent); border-radius: 3px; }
+    .edge-layout-bar-value { width: 48px; flex: none; text-align: right; color: var(--text); font-variant-numeric: tabular-nums; }
+    .edge-advisory-badge {
+      display: inline-block;
+      margin-left: 4px;
+      padding: 0 4px;
+      border-radius: 3px;
+      background: var(--yellow);
+      color: #3a2e05;
+      font-size: 10px;
+      font-weight: 600;
+      vertical-align: middle;
+    }
+    .edge-layout-note { max-width: 220px; font-size: 11px; color: var(--muted); }
+
+    .edge-table-wrap { overflow-x: auto; }
+    .edge-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12.5px;
+      font-variant-numeric: tabular-nums;
+    }
+    .edge-table th, .edge-table td {
+      text-align: left;
+      padding: 5px 8px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text);
+      white-space: nowrap;
+    }
+    .edge-table td.edge-layout-note { white-space: normal; }
+    .edge-table th { color: var(--muted); font-weight: 500; font-size: 11.5px; }
+
+    /* 정체 위험 색상 — 위험도가 곧 이 랭킹의 핵심 위험 신호다.
+       .edge-table td보다 더 구체적으로 써야 기본 색이 이기지 못한다. */
+    .edge-table td.edge-risk-ok { color: var(--green); font-weight: 600; }
+    .edge-table td.edge-risk-warn { color: var(--yellow); font-weight: 600; }
+    .edge-table td.edge-risk-bad { color: var(--red); font-weight: 600; }
