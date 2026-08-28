@@ -15,7 +15,7 @@
 | 기술 스택 | Spring Boot 3.2.0, Java 21, Maven, MCP(JSON-RPC 2.0), STOMP/WebSocket, Actuator/Micrometer, OpenAI 호환 LLM(OpenAI·Ollama·Gemini), Python 3.10 서브프로세스 연동(pyevsim 참조 엔진 adev-master/waste_sim), 실측 로거(scripts/edge) |
 | 작성일 | 2026-08-27 |
 | 버전 | 1.12 |
-| 상태 | 개정(팬 2개 장착 위치·기류 60조합 랭킹 추가 · D-43 · FR-115~118 · UT-268~286) |
+| 상태 | 개정(팬 2개 장착 위치·기류 60조합 랭킹 추가 · D-43 · FR-115~118 · UT-272~290) |
 
 ## 개정 이력
 
@@ -1593,25 +1593,25 @@ UT-267(`bareDeviceWordDoesNotCount`)이 이 묶음의 핵심이다 — 어휘를
 
 | ID | 항목 | 검증 | 추적 |
 |---|---|---|---|
-| UT-268 | 위치 계수 | 6위치의 높이·측면·위치효율이 엑셀 가정 시트와 일치 | FR-115 |
-| UT-269 | 표기 수용 | 위치·방향이 영문 키와 한글 라벨을 모두 받고 모르는 값은 null | FR-115 |
-| UT-270 | 전수 열거 | 60조합, ID P01~P60, 중복 없음 | FR-115 |
-| UT-271 | 열거 순서 | P02·P58이 지정된 위치·방향과 일치 | FR-115 |
-| UT-272 | 범위 축소 | 위치 2곳이면 4조합 | FR-115 |
-| UT-273 | 골든 회귀 | 7개 조합의 점수·예상온도·편차가 엑셀과 1e-9 이내 일치 | FR-116 |
-| UT-274 | 관통류 보정 | 자연대류 방향 +0.15, 역방향 -0.10, 횡류 0 | FR-116 |
-| UT-275 | 단락 페널티 | 흡·배기가 같은 측면(중앙 제외)일 때만 -0.12 | FR-116 |
-| UT-276 | clamp 비활성 | 표준 6위치에서 clamp가 한 번도 걸리지 않음 | FR-116 |
-| UT-277 | 순위 | 1위 P02, 점수 내림차순 정렬 | FR-116 |
-| UT-278 | 좌우 대칭 동률 | P10·P18이 점수·편차 동일, ID로 갈려 P10이 2위 | FR-116 |
-| UT-279 | 온도 격리 | 온도가 1급 필드에 없고 `advisory.comparableWithSimulator=false` | FR-117 |
-| UT-280 | 경고 상시 | 경고 3종과 `sourceStatus=PRELIMINARY_ESTIMATE`가 항상 포함 | FR-117 |
-| UT-281 | 입력 거부 | 상충·중복·알 수 없는 enum·동일 위치·범위 밖·빈 후보를 거부 | FR-115 |
-| UT-282 | 격리 규칙 | layout 패키지가 열 스택 4개 타입을 참조하지 않고 `FanArraySpec.SourceStatus`만 사용 | D-43 |
-| UT-283 | 라우팅 | 팬+배치는 랭킹, 배치 없는 팬 질문은 스윕, 팬 없는 배치 질문은 방열판, PTM 우선 | FR-118 |
-| UT-284 | 동률 순서 보존 | 입력을 뒤집어(P60→P01) 넣어도 P10·P18 순서는 삽입 순서가 아니라 ID 동률 규칙이 결정 | FR-116 |
-| UT-285 | 후보 순서 무관 | candidates에서 fan1·fan2를 뒤집어 넣어도 같은 정준 P-ID(P02)와 점수가 나옴 | FR-115 |
-| UT-286 | 배치 어휘 좁히기 회귀 | 맨 '위치' 단독 문장은 배치 랭킹으로 새지 않고 캘리브레이션·스윕에 남음(CSV 위치 데이터 보정, '최적 위치가 아니라 rpm') | FR-118 |
+| UT-272 | 위치 계수 | 6위치의 높이·측면·위치효율이 엑셀 가정 시트와 일치 | FR-115 |
+| UT-273 | 표기 수용 | 위치·방향이 영문 키와 한글 라벨을 모두 받고 모르는 값은 null | FR-115 |
+| UT-274 | 전수 열거 | 60조합, ID P01~P60, 중복 없음 | FR-115 |
+| UT-275 | 열거 순서 | P02·P58이 지정된 위치·방향과 일치 | FR-115 |
+| UT-276 | 범위 축소 | 위치 2곳이면 4조합 | FR-115 |
+| UT-277 | 골든 회귀 | 7개 조합의 점수·예상온도·편차가 엑셀과 1e-9 이내 일치 | FR-116 |
+| UT-278 | 관통류 보정 | 자연대류 방향 +0.15, 역방향 -0.10, 횡류 0 | FR-116 |
+| UT-279 | 단락 페널티 | 흡·배기가 같은 측면(중앙 제외)일 때만 -0.12 | FR-116 |
+| UT-280 | clamp 비활성 | 표준 6위치에서 clamp가 한 번도 걸리지 않음 | FR-116 |
+| UT-281 | 순위 | 1위 P02, 점수 내림차순 정렬 | FR-116 |
+| UT-282 | 좌우 대칭 동률 | P10·P18이 점수·편차 동일, ID로 갈려 P10이 2위 | FR-116 |
+| UT-283 | 온도 격리 | 온도가 1급 필드에 없고 `advisory.comparableWithSimulator=false` | FR-117 |
+| UT-284 | 경고 상시 | 경고 3종과 `sourceStatus=PRELIMINARY_ESTIMATE`가 항상 포함 | FR-117 |
+| UT-285 | 입력 거부 | 상충·중복·알 수 없는 enum·동일 위치·범위 밖·빈 후보를 거부 | FR-115 |
+| UT-286 | 격리 규칙 | layout 패키지가 열 스택 4개 타입을 참조하지 않고 `FanArraySpec.SourceStatus`만 사용 | D-43 |
+| UT-287 | 라우팅 | 팬+배치는 랭킹, 배치 없는 팬 질문은 스윕, 팬 없는 배치 질문은 방열판, PTM 우선 | FR-118 |
+| UT-288 | 동률 순서 보존 | 입력을 뒤집어(P60→P01) 넣어도 P10·P18 순서는 삽입 순서가 아니라 ID 동률 규칙이 결정 | FR-116 |
+| UT-289 | 후보 순서 무관 | candidates에서 fan1·fan2를 뒤집어 넣어도 같은 정준 P-ID(P02)와 점수가 나옴 | FR-115 |
+| UT-290 | 배치 어휘 좁히기 회귀 | 맨 '위치' 단독 문장은 배치 랭킹으로 새지 않고 캘리브레이션·스윕에 남음(CSV 위치 데이터 보정, '최적 위치가 아니라 rpm') | FR-118 |
 
 ## 3.7 통합 테스트 — 엣지 MCP 도구 (신규, v1.7)
 
@@ -1797,8 +1797,8 @@ UT-267(`bareDeviceWordDoesNotCount`)이 이 묶음의 핵심이다 — 어휘를
 | **D-37 회복 지표 분리(v1.11 결정)** | **UT-254~258** |
 | **D-38 coverage 일관성(v1.11 결정)** | **UT-259~264** |
 | **D-39 냉각 부정 어휘(v1.11 결정)** | **UT-265~271** |
-| **FR-115~117 팬 배치 랭킹(v1.12)** | **UT-268~282, 284~285** |
-| **FR-118 배치 라우팅(v1.12)** | **UT-283, 286** |
+| **FR-115~117 팬 배치 랭킹(v1.12)** | **UT-272~286, 288~289** |
+| **FR-118 배치 라우팅(v1.12)** | **UT-287, 290** |
 
 ## 3.14 합격 기준
 
@@ -1998,7 +1998,7 @@ Ollama가 localhost:11434에 떠 있어야 한다. 필요한 모델: llama3.2:3b
 | 명세 절(v1.11) | SDD 2.17(운영·보안 설정) · TDD 3.16(LLM 벤치마크 실측 결과) |
 | **명세 절(v1.12)** | **SDD 2.14.5·2.14.6·2.15.12 · TDD 3.3.2·3.6.14·3.6.15·3.16.10** |
 | **테스트(v1.12 편입)** | **MonthlyWasteTieTest(UT-234~238), ScenarioAxisArgumentTest(UT-239~246), PtmVerdictTieBreakTest(UT-247~250), BenchmarkFilterParityTest(UT-251~253), RecoveryMetricSemanticsTest(UT-254~258), HeatsinkCoverageFloorTest(UT-259~264), CoolingNegationTest(UT-265~271)** |
-| **팬 배치 랭킹(v1.12)** | **`rank_fan_layouts`, FanLayoutScoreModelTest·RankFanLayoutsToolTest·FanLayoutIsolationTest·EdgeChatRoutingTest, 채팅 `EDGE_LAYOUT` 렌더러(UT-268~286)** |
+| **팬 배치 랭킹(v1.12)** | **`rank_fan_layouts`, FanLayoutScoreModelTest·RankFanLayoutsToolTest·FanLayoutIsolationTest·EdgeChatRoutingTest, 채팅 `EDGE_LAYOUT` 렌더러(UT-272~290)** |
 
 ## A.2 개정
 
