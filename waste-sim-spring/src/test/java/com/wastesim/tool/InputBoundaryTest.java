@@ -77,6 +77,15 @@ class InputBoundaryTest {
         assertFalse(a.hasErrors());
     }
 
+    @Test
+    @DisplayName("boolean 필드에 문자열을 주면 거부한다 — 문자열을 기본값으로 바꾸면 안 된다")
+    void booleanStringRejected() {
+        EdgeArgs a = args("{\"includeSeries\": \"false\"}");
+        a.bool("includeSeries", true);
+        assertTrue(a.hasErrors());
+        assertEquals("includeSeries", a.errors().getFirst().field());
+    }
+
     // ── E-05: NaN / Infinity ────────────────────────────────────────────
 
     /**

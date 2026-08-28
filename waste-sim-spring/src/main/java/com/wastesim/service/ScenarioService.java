@@ -71,6 +71,14 @@ public class ScenarioService {
     // ── 2. 수거시각 sweep (곡선) ──────────────────────────────────────────
     public ScenarioResponse collectionSweep(SimulationConfig base,
                                             int startMin, int endMin, int stepMin) {
+        // REST 컨트롤러 밖에서 직접 호출해도 0 간격 무한루프나 역방향 범위가 실행되지
+        // 않도록 계산 경계에서도 방어한다. 사용자용 구조화 오류는 컨트롤러가 만든다.
+        if (startMin < 0 || endMin > 1439 || startMin > endMin) {
+            throw new IllegalArgumentException("수거시각 스윕 범위는 0~1439분의 오름차순이어야 합니다.");
+        }
+        if (stepMin <= 0) {
+            throw new IllegalArgumentException("수거시각 스윕 간격은 1분 이상이어야 합니다.");
+        }
         ScenarioResponse resp = new ScenarioResponse(
                 "COLLECTION_SWEEP", "수거 시각 sweep (하루 중 최적 시각)", "수거 시각");
         ScenarioResponse.Series s = resp.newSeries("월 평균 민원");

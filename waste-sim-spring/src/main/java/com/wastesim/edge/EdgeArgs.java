@@ -103,7 +103,14 @@ public class EdgeArgs {
     }
 
     public boolean bool(String field, boolean def) {
-        return has(field) ? node.get(field).asBoolean(def) : def;
+        if (!has(field)) return def;
+        JsonNode v = node.get(field);
+        if (!v.isBoolean()) {
+            reject(ErrorCode.INVALID_ARGUMENTS, field,
+                    "boolean이어야 한다(받은 값: " + v.asText() + ")");
+            return def;
+        }
+        return v.booleanValue();
     }
 
     /** enum 파싱 — 파서가 null을 주면 INVALID_ENUM으로 거부한다. */

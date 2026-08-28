@@ -22,6 +22,9 @@ import java.util.*;
 @RequestMapping("/api/scenario")
 public class ScenarioController {
 
+    /** 한 번의 스윕에서 허용할 최대 후보 수 — 후보마다 다중 시드를 실행한다. */
+    static final int MAX_SWEEP_POINTS = 96;
+
     private final ScenarioService scenario;
     private final SimulationTool tool;
 
@@ -61,9 +64,10 @@ public class ScenarioController {
     public ResponseEntity<?> collectionSweep(@RequestBody(required = false) Map<String, Object> body) {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
-        int start = SimulationConfig.hhmmToMinutes(str(b, "start", "06:00"));
-        int end   = SimulationConfig.hhmmToMinutes(str(b, "end", "18:00"));
+        int start = sweepMinute(b, "start", "06:00");
+        int end   = sweepMinute(b, "end", "18:00");
         int step  = intVal(b, "stepMinutes", 60);
+        validateSweep(start, end, step);
         // 구성 프리셋을 적용하고 싶으면 mixPreset 지정
         applyPreset(base, b);
         return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.collectionSweep(base, start, end, step)));
@@ -248,14 +252,63 @@ public class ScenarioController {
         return v == null ? def : v.toString();
     }
 
+    private static int sweepMinute(Map<String, Object> b, String key, String defaultValue) {
+        String value = str(b, key, defaultValue);
+        try {
+            return SimulationConfig.hhmmToMinutes(value);
+        } catch (RuntimeException e) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.INVALID_ARGUMENTS, key,
+                    key + "는 HH:MM 형식이어야 합니다. 받은 값: " + value));
+        }
+    }
+
+    private static void validateSweep(int start, int end, int step) {
+        if (start < 0 || start > 1439 || end < 0 || end > 1439) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.OUT_OF_RANGE, "start/end",
+                    "수거시각 스윕 범위는 00:00~23:59여야 합니다."));
+        }
+        if (start > end) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "start/end",
+                    "스윕 시작 시각은 종료 시각보다 늦을 수 없습니다."));
+        }
+        if (step <= 0) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.OUT_OF_RANGE, "stepMinutes",
+                    "stepMinutes는 1분 이상이어야 합니다. 받은 값: " + step));
+        }
+        int points = ((end - start) / step) + 1;
+        if (points > MAX_SWEEP_POINTS) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.OUT_OF_RANGE, "stepMinutes",
+                    "스윕 후보는 " + MAX_SWEEP_POINTS + "개 이하여야 합니다. 현재 후보 수: " + points
+                    + " — stepMinutes를 늘려 주세요."));
+        }
+    }
+
     private static int intVal(Map<String, Object> b, String k, int def) {
         Object v = b.get(k);
-        return v instanceof Number n ? n.intValue() : def;
+        if (v == null) return def;
+        if (!(v instanceof Byte || v instanceof Short || v instanceof Integer || v instanceof Long)) {
+            throw invalidScalar(k, "정수", v);
+        }
+        long value = ((Number) v).longValue();
+        if (value < Integer.MIN_VALUE || value > Integer.MAX_VALUE) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.OUT_OF_RANGE, k,
+                    k + "가 정수 범위를 벗어났습니다. 받은 값: " + v));
+        }
+        return (int) value;
     }
 
     private static double dblVal(Map<String, Object> b, String k, double def) {
         Object v = b.get(k);
-        return v instanceof Number n ? n.doubleValue() : def;
+        if (v == null) return def;
+        if (!(v instanceof Number n) || !Double.isFinite(n.doubleValue())) {
+            throw invalidScalar(k, "유한한 숫자", v);
+        }
+        return n.doubleValue();
+    }
+
+    private static ScenarioArgException invalidScalar(String field, String expected, Object value) {
+        return new ScenarioArgException(new ValidationError(ErrorCode.INVALID_ARGUMENTS, field,
+                field + "은(는) " + expected + "여야 합니다. 받은 값: " + value));
     }
 
     /**

@@ -48,6 +48,15 @@ class PtmControlToolTest {
         assertTrue(tr.errors().stream().anyMatch(e -> e.field().contains("modes")));
     }
 
+    @Test
+    void recoveryPolicyCannotCompeteForTheSameFanActuator() {
+        ToolResult tr = tool.call(args(
+                "{\"board\":\"pi5\",\"recoveryPolicy\":\"r3_active_cooling\"}"));
+        assertFalse(tr.ready());
+        assertTrue(tr.errors().stream().anyMatch(e ->
+                e.field().equals("recoveryPolicy") && e.message().contains("같은 팬")));
+    }
+
     /** 기본 실행은 기준선 둘 + PTM 세 방식을 함께 돌린다 — 기준선 없는 제어 결과는 해석이 안 된다. */
     @Test
     @SuppressWarnings("unchecked")

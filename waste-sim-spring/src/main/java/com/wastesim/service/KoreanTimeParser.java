@@ -28,6 +28,17 @@ public final class KoreanTimeParser {
             "([01]?\\d|2[0-3]|열한|열두|한|두|세|네|다섯|여섯|일곱|여덟|아홉|열)\\s*" +
             "(?:시\\s*(반)|시\\s*([0-5]?\\d)\\s*분|시(?!간|드)|:([0-5]\\d))");
 
+    /**
+     * 정상 파서가 조용히 건너뛰면 위험한 시각 표기다. 예를 들어
+     * "25시와 11시 비교"에서 25시를 무시하면 유효한 11시 하나만 남아 단일 실행으로
+     * 오해할 수 있으므로, 실행 게이트보다 먼저 이 패턴을 확인한다.
+     */
+    private static final Pattern INVALID_TIME = Pattern.compile(
+            "(?<!\\d)(?:2[4-9]|[3-9]\\d)\\s*시"
+          + "|(?:오전|오후|아침|점심|저녁|밤|새벽|낮)\\s*(?:1[3-9]|2[0-3])\\s*시"
+          + "|(?<!\\d)(?:[01]?\\d|2[0-3])\\s*시\\s*(?:[6-9]\\d)\\s*분"
+          + "|(?<!\\d)(?:[01]?\\d|2[0-3]):(?:[6-9]\\d)(?!\\d)");
+
     private static final Map<String, Integer> KOR_NUM = Map.ofEntries(
             Map.entry("한", 1), Map.entry("두", 2), Map.entry("세", 3), Map.entry("네", 4),
             Map.entry("다섯", 5), Map.entry("여섯", 6), Map.entry("일곱", 7), Map.entry("여덟", 8),
@@ -70,6 +81,11 @@ public final class KoreanTimeParser {
         LinkedHashSet<Integer> minutes = new LinkedHashSet<>();
         while (matcher.find()) minutes.add(parseMatch(matcher));
         return new ArrayList<>(minutes);
+    }
+
+    /** 범위 밖 또는 오전·오후와 모순되는 시각 표현이 하나라도 있는지 반환한다. */
+    public static boolean hasInvalidTimeExpression(String text) {
+        return text != null && INVALID_TIME.matcher(text).find();
     }
 
     private static int parseMatch(Matcher m) {

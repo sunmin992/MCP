@@ -101,6 +101,15 @@ public class SimulatePtmControlTool implements McpToolProvider {
     @Override
     public ToolResult call(JsonNode args) {
         EdgeArgs a = new EdgeArgs(args);
+        // MCP 클라이언트가 일반 발열 도구의 recoveryPolicy를 그대로 섞어 보내는 경우를
+        // 조용히 무시하면 R3와 PTM을 병용했다고 오해한다. 둘은 같은 팬 액추에이터를
+        // 사용하므로 none 이외의 회복정책은 계산 전에 명시적으로 거부한다(PT-21).
+        if (args != null && args.hasNonNull("recoveryPolicy")
+                && !"none".equalsIgnoreCase(args.path("recoveryPolicy").asText())) {
+            a.reject(ErrorCode.INVALID_ARGUMENTS, "recoveryPolicy",
+                    "PTM 비교에서는 회복정책을 함께 사용할 수 없다 — R3와 제어기가 같은 팬을 제어한다. "
+                    + "recoveryPolicy=none으로 실행할 것.");
+        }
         BoardType board = a.enumVal("board", BoardType.PI5, BoardType::parse, EdgeToolSupport.BOARD_ENUM, true);
         CoolingPreset cooling = a.enumVal("cooling", CoolingPreset.PASSIVE, CoolingPreset::parse,
                 EdgeToolSupport.COOLING_ENUM, false);

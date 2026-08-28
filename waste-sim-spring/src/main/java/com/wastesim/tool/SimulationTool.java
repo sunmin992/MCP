@@ -27,6 +27,9 @@ import java.util.function.Supplier;
 @Component
 public class SimulationTool {
 
+    /** 채팅·API 한 요청에서 비교할 수거시각 상한 — 과도한 다중 시드 실행을 막는다. */
+    public static final int MAX_COLLECTION_COMPARISON_TIMES = 24;
+
     private final SimulationConfigValidator validator;
     private final SimulationModelRegistry models;
     private final ScenarioService scenarioService;
@@ -166,6 +169,26 @@ public class SimulationTool {
 
     /** 채팅에 명시된 복수 수거 시각만 비교하는 검증 포함 진입점. */
     public ToolResult compareCollectionTimes(SimulationConfig base, List<Integer> times) {
+        if (times == null || times.size() < 2) {
+            return ToolResult.rejected(new ValidationError(
+                    ErrorCode.OUT_OF_RANGE, "times", "비교할 서로 다른 수거 시각이 2개 이상 필요합니다."));
+        }
+        if (times.size() > MAX_COLLECTION_COMPARISON_TIMES) {
+            return ToolResult.rejected(new ValidationError(
+                    ErrorCode.OUT_OF_RANGE, "times", "수거 시각 비교 후보는 "
+                    + MAX_COLLECTION_COMPARISON_TIMES + "개 이하여야 합니다. 받은 개수: " + times.size()));
+        }
+        java.util.Set<Integer> seen = new java.util.LinkedHashSet<>();
+        for (Integer minute : times) {
+            if (minute == null || minute < 0 || minute > 1439) {
+                return ToolResult.rejected(new ValidationError(
+                        ErrorCode.OUT_OF_RANGE, "times", "수거 시각은 0~1439분 범위여야 합니다. 받은 값: " + minute));
+            }
+            if (!seen.add(minute)) {
+                return ToolResult.rejected(new ValidationError(
+                        ErrorCode.INVALID_ARGUMENTS, "times", "같은 수거 시각이 중복됐습니다: " + minute + "분"));
+            }
+        }
         return runScenarioCustom(base, () -> scenarioService.collectionTimeComparison(base, times));
     }
 

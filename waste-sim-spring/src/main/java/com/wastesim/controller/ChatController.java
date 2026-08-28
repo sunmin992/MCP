@@ -176,10 +176,20 @@ public class ChatController {
             // 일반 답변으로 탈락한다. "10시와 11시에 각각 수거"처럼 비교 의도가
             // 분명한 경우에는 두 시각을 같은 기본 조건으로 직접 실행한다.
             List<Integer> comparisonTimes = KoreanTimeParser.parseAllDistinct(userText);
-            if (comparisonTimes.size() >= 2
-                    && userText.matches("(?s).*수거.*")
-                    && userText.matches("(?s).*(각각|비교|대조|어느|차이).*")) {
-                runCollectionTimeComparison(comparisonTimes, history, userText);
+            boolean collectionComparisonIntent = userText.matches("(?s).*수거.*")
+                    && userText.matches("(?s).*(각각|비교|대조|어느|차이).*");
+            if (KoreanTimeParser.hasInvalidTimeExpression(userText)) {
+                reply("수거 시각 형식이 올바르지 않습니다. 00:00~23:59 범위에서 다시 입력해 주세요."
+                        + " 예: 10:00과 11:00 비교", userText, history);
+                return;
+            }
+            if (collectionComparisonIntent && TimeExpressionDetector.count(userText) >= 2) {
+                if (comparisonTimes.size() < 2) {
+                    reply("서로 다른 수거 시각을 두 개 이상 입력해 주세요. 같은 시각을 반복한 값은 비교할 수 없습니다.",
+                            userText, history);
+                } else {
+                    runCollectionTimeComparison(comparisonTimes, history, userText);
+                }
                 return;
             }
 

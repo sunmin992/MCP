@@ -12,6 +12,14 @@ import static org.junit.jupiter.api.Assertions.*;
 class RouteDurationEstimatorTest {
 
     @Test
+    void rejectsUnknownAndConsecutiveDuplicateNodes() {
+        assertThrows(IllegalArgumentException.class, () -> RouteDurationEstimator.estimate(
+                List.of("Node_A", "Node_Z"), 720, 15, null, null));
+        assertThrows(IllegalArgumentException.class, () -> RouteDurationEstimator.estimate(
+                List.of("Node_A", "Node_A", "Node_B"), 720, 15, null, null));
+    }
+
+    @Test
     void noProfileNoStartTimeUsesFlatBaseMinutes() {
         RouteDurationEstimator.Estimate est = RouteDurationEstimator.estimate(
                 List.of("Node_A", "Node_B", "Node_C"), null, 15, null, null);
