@@ -36,7 +36,7 @@ public final class RouteAwarenessDetector {
     // 경로로 흘러가 엉뚱하게 "수거 시각을 알려달라"고 되물었다. 밑줄 없이
     // 공백으로 띄우거나("node A") 아예 붙여 쓴("nodeA") 형태도 같이 받는다.
     private static final Pattern NODE_TOKEN =
-            Pattern.compile("(?i)node[\\s_-]*([A-Za-z])(?![A-Za-z])");
+            Pattern.compile("(?i)(?:node|노드)[\\s_-]*([A-Za-z])(?![A-Za-z])");
 
     // 위와 같은 회귀의 나머지 절반 — "node A,D,C,B"처럼 첫 노드에만 접두어를
     // 붙이고 나머지는 글자만 나열하는 표기. 접두어 없는 낱글자를 아무 데서나

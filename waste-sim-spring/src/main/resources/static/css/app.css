@@ -585,6 +585,15 @@
       margin-right: 4px;
       vertical-align: middle;
     }
+    .edge-layout-banner { background:#fef3c7; color:#92400e; border-radius:6px; padding:8px 10px; margin-bottom:10px; font-size:12px; line-height:1.5; }
+    .edge-layout-chart-title { font-size:12px; color:var(--muted); margin-bottom:6px; }
+    .edge-layout-bar { display:flex; align-items:center; gap:8px; margin:4px 0; font-size:12px; }
+    .edge-layout-bar > span { width:72px; flex:none; }
+    .edge-layout-bar > b { flex:1; background:var(--border); height:12px; border-radius:3px; overflow:hidden; }
+    .edge-layout-bar > b > i { display:block; height:100%; background:var(--accent); }
+    .edge-layout-bar > em { width:48px; text-align:right; font-style:normal; }
+    .edge-advisory-badge { padding:1px 4px; border-radius:3px; background:#fef3c7; color:#92400e; }
+    .edge-risk-ok { color:#16a34a; } .edge-risk-warn { color:#d97706; } .edge-risk-bad { color:#dc2626; }
     /* 최적 지점 행 — 표에서도 곡선의 ★와 같은 지점임이 한눈에 보여야 한다. */
     .edge-tbl tr.edge-opt td { color: var(--accent); font-weight: 600; }
     .edge-tbl tr.edge-bad td { opacity: 0.62; }

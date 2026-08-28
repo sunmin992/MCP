@@ -40,6 +40,13 @@ class RouteAwarenessDetectorTest {
                 RouteAwarenessDetector.extractRouteSequence("node a, b 순서로"));
     }
 
+    @Test
+    void extractsKoreanNodePrefixWithBareLetterList() {
+        assertEquals(List.of("Node_B", "Node_C", "Node_A", "Node_D"),
+                RouteAwarenessDetector.extractRouteSequence(
+                        "노드 b,c,a,d순서로 12시에 수거하면 얼마나 걸려?"));
+    }
+
     /** 낱글자 흡수는 노드 토큰 "바로 뒤"에 이어질 때만 — 문장 아무 데나 있는
      *  쉼표+한 글자를 주워오면 오탐이 된다. */
     @Test

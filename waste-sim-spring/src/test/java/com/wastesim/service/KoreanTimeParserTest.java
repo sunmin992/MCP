@@ -2,6 +2,8 @@ package com.wastesim.service;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 class KoreanTimeParserTest {
@@ -52,5 +54,17 @@ class KoreanTimeParserTest {
     @Test
     void wrapsPastMidnight() {
         assertEquals("00:30", KoreanTimeParser.toHHMM(1440 + 30));
+    }
+
+    @Test
+    void parsesDistinctTimesInMentionOrder() {
+        assertEquals(List.of(600, 660),
+                KoreanTimeParser.parseAllDistinct("10시와 11시에 각각 수거해줘"));
+    }
+
+    @Test
+    void normalizesAndDeduplicatesEquivalentTimes() {
+        assertEquals(List.of(810, 90),
+                KoreanTimeParser.parseAllDistinct("오후 1시 30분, 13:30, 새벽 1시 반 비교"));
     }
 }

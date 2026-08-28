@@ -5,6 +5,7 @@ import com.wastesim.mcp.McpToolRegistry;
 import com.wastesim.model.ChatMessage;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
+import com.wastesim.model.ScenarioResponse;
 import com.wastesim.service.OpenAiService;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.tool.SimulationTool;
@@ -27,6 +28,31 @@ import static org.mockito.Mockito.*;
  * pendingConfig가 세션 B에 안 보인다"는 격리 테스트로 교체한다.
  */
 class ChatControllerTest {
+
+    @Test
+    void comparesEachExplicitCollectionTimeInsteadOfFallingBackToPlainAnswer() {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+
+        ScenarioResponse response = new ScenarioResponse(
+                "COLLECTION_TIME_COMPARISON", "지정 수거 시각 비교", "수거 시각");
+        when(tool.compareCollectionTimes(any(), eq(List.of(600, 660))))
+                .thenReturn(ToolResult.ok(response));
+
+        controller.handleMessage(userMsg("10시와 11시에 각각 수거해줘"));
+
+        verify(tool).compareCollectionTimes(any(), eq(List.of(600, 660)));
+        verify(openAiService, never()).answerPlain(anyList(), anyString());
+        ArgumentCaptor<ChatMessage> captor = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(messaging, atLeastOnce()).convertAndSend(eq("/topic/messages"), captor.capture());
+        assertTrue(captor.getAllValues().stream().anyMatch(m ->
+                m.getType() == ChatMessage.MessageType.SCENARIO
+                        && "collection-time-comparison".equals(m.getScenarioType())));
+    }
 
     @Test
     void newConfirmRequestOverwritesPendingAndNotifiesDiscard() {
@@ -167,6 +193,35 @@ class ChatControllerTest {
         assertNotNull(botReply);
         assertTrue(botReply.contains("Node_A → Node_C → Node_B → Node_D"));
         assertTrue(botReply.contains("근사값"));
+    }
+
+    @Test
+    void koreanNodeListReturnsPerNodeTimesAndNoFullSimulation() {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+
+        controller.handleMessage(userMsg("노드 b,c,a,d순서로 12시에 수거하면 얼마나 걸려?"));
+
+        verify(openAiService, never()).extractParamsStrict(anyList(), anyString());
+        verify(tool, never()).runSimulation(any(), any(), anyBoolean());
+
+        ArgumentCaptor<ChatMessage> captor = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(messaging, atLeastOnce()).convertAndSend(eq("/topic/messages"), captor.capture());
+        String reply = captor.getAllValues().stream()
+                .filter(m -> m.getType() == ChatMessage.MessageType.BOT)
+                .map(ChatMessage::getContent)
+                .findFirst().orElseThrow();
+        assertTrue(reply.contains("Node_B → Node_C → Node_A → Node_D"));
+        assertTrue(reply.contains("출발(수거) 시각: 12:00"));
+        assertTrue(reply.contains("Node_B: 수거 시작 12:00"));
+        assertTrue(reply.contains("Node_C 도착"));
+        assertTrue(reply.contains("Node_A 도착"));
+        assertTrue(reply.contains("Node_D 도착"));
+        assertTrue(reply.contains("총 이동시간"));
     }
 
     /** 방문 순서나 수거 시각이 달라지면 답변(소요시간)도 그에 맞춰 달라져야 한다. */

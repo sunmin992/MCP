@@ -388,6 +388,7 @@ function drawTrafficChart(canvas, p) {
 const SCENARIO_META = {
   'occupation-mix':  { title: '거주민 구성별 최적 수거시각', chart: 'line' },
   'collection-sweep':{ title: '수거시각 sweep (06~18시)',   chart: 'line' },
+  'collection-time-comparison':{ title: '지정 수거 시각 비교', chart: 'bar' },
   'behavior-grid':   { title: '행동 변동 α×β 민감도',        chart: 'line' },
   'infra-grid':      { title: '인프라 용량×임계 트레이드오프', chart: 'line' },
   'density':         { title: '밀도: 빌라촌 vs 원룸촌',       chart: 'bar'  },

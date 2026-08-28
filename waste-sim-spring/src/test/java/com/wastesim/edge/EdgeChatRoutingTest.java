@@ -24,6 +24,27 @@ class EdgeChatRoutingTest {
     private final EdgeThermalProfileStore store = new EdgeThermalProfileStore();
 
     @Test
+    void fanLayoutRoutingDoesNotStealOtherTools() {
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT, EdgeToolSelector.select("팬 두 개를 어디에 달아야 제일 시원해?"));
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT, EdgeToolSelector.select("흡기 배기 조합 중 뭐가 나아?"));
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT, EdgeToolSelector.select("최적 팬 배치 알려줘"));
+        assertEquals(EdgeToolSelector.TOOL_LAYOUT, EdgeToolSelector.select("40mm 팬 2개 위치 조합 전부 비교해줘"));
+        assertEquals(EdgeToolSelector.TOOL_SWEEP, EdgeToolSelector.select("최적 팬 rpm은?"));
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK, EdgeToolSelector.select("방열판을 어디에 붙일까?"));
+        assertEquals(EdgeToolSelector.TOOL_PTM, EdgeToolSelector.select("팬을 미리 돌리면 이득이야?"));
+    }
+
+    @Test
+    @SuppressWarnings("unchecked")
+    void fanLayoutFormatterNamesWinnerAndEstimate() throws Exception {
+        ToolResult r = new com.wastesim.edge.layout.RankFanLayoutsTool().call(om.readTree("{\"topK\":3}"));
+        assertTrue(r.ready());
+        String text = EdgeChatFormatter.fanLayout((Map<String, Object>) r.result());
+        assertTrue(text.contains("P02")); assertTrue(text.contains("하단") && text.contains("상단"));
+        assertTrue(text.contains("임시")); assertTrue(text.contains("60"));
+    }
+
+    @Test
     @DisplayName("실험 조건을 좌우하는 값은 LLM 출력이 아니라 이번 메시지에서 확정한다")
     void guardOverridesLlmOnDecisiveFields() throws Exception {
         // LLM이 이전 턴에 낚여 pi4·방열판을 들고 왔다고 가정
