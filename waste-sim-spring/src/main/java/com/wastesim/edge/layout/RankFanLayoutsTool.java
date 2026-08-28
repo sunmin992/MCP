@@ -148,14 +148,23 @@ public class RankFanLayoutsTool implements McpToolProvider {
             if (!n.isNumber() || !n.isIntegralNumber()) {
                 return reject(ErrorCode.INVALID_ARGUMENTS, "topK", "topK는 정수여야 한다 (받은 값: " + n + ")");
             }
+            if (!n.canConvertToInt()) {
+                return reject(ErrorCode.OUT_OF_RANGE, "topK",
+                        "topK가 정수 범위를 벗어났다 (받은 값: " + n + ")");
+            }
             topK = n.asInt();
             if (topK < 1 || topK > MAX_COMBINATIONS) {
                 return reject(ErrorCode.OUT_OF_RANGE, "topK",
                         "topK는 1 이상 " + MAX_COMBINATIONS + " 이하여야 한다 (받은 값: " + topK + ")");
             }
         }
+        if (has(root, "includeAllCombinations") && !root.get("includeAllCombinations").isBoolean()) {
+            return reject(ErrorCode.INVALID_ARGUMENTS, "includeAllCombinations",
+                    "includeAllCombinations는 boolean이어야 한다 (받은 값: "
+                    + root.get("includeAllCombinations") + ")");
+        }
         boolean includeAll = has(root, "includeAllCombinations")
-                && root.get("includeAllCombinations").asBoolean(false);
+                && root.get("includeAllCombinations").booleanValue();
 
         List<FanLayoutRanking.Entry> ranked = FanLayoutRanking.rank(candidates);
         int limit = includeAll ? ranked.size() : Math.min(topK, ranked.size());

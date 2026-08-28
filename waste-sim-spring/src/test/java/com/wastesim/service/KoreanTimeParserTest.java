@@ -67,4 +67,13 @@ class KoreanTimeParserTest {
         assertEquals(List.of(810, 90),
                 KoreanTimeParser.parseAllDistinct("오후 1시 30분, 13:30, 새벽 1시 반 비교"));
     }
+
+    @Test
+    void detectsInvalidOrContradictoryTimeExpressions() {
+        assertTrue(KoreanTimeParser.hasInvalidTimeExpression("25시와 11시 비교"));
+        assertTrue(KoreanTimeParser.hasInvalidTimeExpression("오전 13시와 오후 2시 비교"));
+        assertTrue(KoreanTimeParser.hasInvalidTimeExpression("10시 75분에 수거"));
+        assertTrue(KoreanTimeParser.hasInvalidTimeExpression("10:99에 수거"));
+        assertFalse(KoreanTimeParser.hasInvalidTimeExpression("오후 1시와 23:59 비교"));
+    }
 }

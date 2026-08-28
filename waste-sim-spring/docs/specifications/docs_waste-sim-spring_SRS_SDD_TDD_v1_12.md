@@ -4,7 +4,7 @@
 
 개발팀
 
-버전 1.12 · 2026-08-27
+버전 1.12 · 2026-08-28
 
 ## 문서 정보
 
@@ -13,9 +13,9 @@
 | 문서명 | waste-sim-spring SRS / SDD / TDD 통합 명세서 |
 | 대상 시스템 | 다중 도메인 MCP 도구 서버 + 장량동 생활쓰레기 DEVS 시뮬레이션 + 라즈베리파이 엣지 발열·냉각 가성비 시뮬레이션(2노드 열모델·팬 전력·시변 부하) + 자연어 제어 + 다중 모델 어댑터 (waste-sim-spring v1.0.0) |
 | 기술 스택 | Spring Boot 3.2.0, Java 21, Maven, MCP(JSON-RPC 2.0), STOMP/WebSocket, Actuator/Micrometer, OpenAI 호환 LLM(OpenAI·Ollama·Gemini), Python 3.10 서브프로세스 연동(pyevsim 참조 엔진 adev-master/waste_sim), 실측 로거(scripts/edge) |
-| 작성일 | 2026-08-27 |
+| 작성일 | 2026-08-28 |
 | 버전 | 1.12 |
-| 상태 | 개정(팬 2개 장착 위치·기류 60조합 랭킹 추가 · D-43 · FR-115~118 · UT-272~294) |
+| 상태 | 개정(문서-코드 격차 해소 D-40~D-42 · 팬 2개 장착 위치·기류 60조합 랭킹 추가 D-43 · FR-114~118 · UT-234~294 · 2026-08-28 소스 수치 재대조) |
 
 ## 개정 이력
 
@@ -33,6 +33,7 @@
 | **1.9** | **2026-08-08** | **개발팀** | **(1) 2노드 열모델(HeatsinkMass) — 방열판을 독립된 열 덩어리로 분리. 정상상태는 1노드와 동일하고 과도응답만 달라져 “열저항이 나쁜 방열판이 피크 온도에서 이기는” 순위 역전을 표현할 수 있다(FR-85~87, SDD 2.15.2). — (2) 팬 전력 모델(FanSpec) — 전력 ∝ RPM³, 냉각 ∝ 풍속^0.8의 비대칭이 “적정 수준에서 멈추는 것이 낫다”의 물리적 근거다. 팬 전력은 온도 적분에서 제외하고 비용 집계에만 합산한다(FR-88~90, SDD 2.15.3). — (3) AI 시변 부하 패턴(AiLoadProfile) — steady·burst·mixed 3종. 구간 길이를 시정수 τ와 견주어 AVERAGED/SENSITIVE/QUASI_STATIC으로 판정해 실험 실패를 사전 경고한다(FR-91~93, SDD 2.15.4). — (4) 비교 판정 확장 — 재질·팬 유무 비교 감지, 정상상태가 같을 때 피크 온도로 판정 전환(FR-94, SDD 2.15.8). — (5) 한국어 조사 자동 선택으로 결과 문장 정합성 확보(FR-95). — (6) MCP required 필드를 서버가 실행 전 강제(FR-39). — (7) 검증 강화 — wasteTypes 내부 값·복수/주말 수거 시각·확장 필드·건물 수 26 상한·엄격 HH:MM 파서·정수 소수 거부·NaN/Infinity 차단(FR-32 확장). — (8) 엔진 수정 반영 — v1.8이 코드로 적용한 비수거일 차량·교통 이벤트 제거, R2+MAX_THROUGHPUT 저부하 적용, 종료 시각 초과 적분 제거를 SDD·TDD에 서술로 편입. — (9) 문서 체계 재편(docs/{specifications,guides,reference}). — (10)** 팬 배열·RPM 스윕** — MCP 도구 sweep_fan_rpm 신설(추가 시점 기준 EDGE 4종·전체 9종 — 최종 수는 아래 (14) 참조). 제약(피크온도·처리량손실·목표FPS)을 만족하는 지점 중 에너지 최소 운전점을 고른다(FR-97~103, SDD 2.15.5). — (11) **트럭 용량 모델** — 차종 정격용량 강제, 경로 배정용량·초기 적재량, 운행별 TripMetric(FR-48·49). — (12) **시간 가중 지표·결측 3상태 처리** — 지속 처리량 손실·온도 진폭 추가, throttled 결측을 UNKNOWN으로 분리해 E-04 해소. — (13) 설계 결정 D-21~D-30 추가, 테스트 UT-100~200 신설. — (14) **예측 냉각(PTM) 제어기** — 팬 회전수를 시간에 따라 바꾸는 PtmController와 MCP 도구 simulate_ptm_control 신설(EDGE 5종·전체 10종). 다가올 부하를 미리 적분해 목표 온도를 지키는 최소 듀티를 고르고, 항상최대·반응형 기준선과 함께 돌려 이득과 대가(더 뜨겁게 도는 것)를 같이 보고한다(FR-108~112, SDD 2.15.11, UT-210~223).** |
 | **1.10** | **2026-08-17** | **개발팀** | **(1) 트럭 경로 탐색(**`truck-route`**) 시나리오 전건 문서화 — v1.9는 FR-07·2.14.1·1.8.1·2.7.3에 “12종/트럭경로”라는 표면 언급만 남기고 설계 근거·테스트가 비어 있었다. 두 원칙을 SDD 2.14.4로 신설했다: 후보를 지어내지 않음(순열 ≤ 24면 전 차종×전 순서 전수, 초과하면 대표 후보 정방향·역방향만 돌고 전체 가능 수를 명시 — D-31), 없는 우열을 만들지 않음(전 조합이 동률이면 축 순위 대신 무엇을 올려야 축이 살아나는지 안내 — D-32). FR-113 신설, TDD 3.3.1(UT-224~231)·3.9(IT-76) 추가. — (2)** `EdgeToolSelector` **검사 순서 결함 수정 — 코드가 캘리브레이션→스윕 순으로 돌아 FR-78이 정한 스윕→캘리브레이션과 반대였다(“실측 프로파일 기준으로 최적 팬 rpm” 문장이 캘리브레이션으로 새서 응답이 아예 안 나옴). 순서를 FR-78에 맞추고 회귀 테스트로 고정(UT-232). — (3)** `DomainIntentDetector`**의 EDGE 어휘 누락 수정 — rpm·pwm·회전수·운전점 네 단어가 빠져 있어 “팬 rpm 몇이 가성비가 제일 좋아?” 같은 문장이 양쪽 점수 0으로 UNKNOWN 판정됐다(sweep_fan_rpm은 도구 선택기에는 어휘가 있었지만 그보다 먼저 도는 도메인 게이트에는 없었음). 스윕·가성비는 장량동과 겹치는 중립 어휘라 의도적으로 제외했다(D-33, UT-233, 225문장 회귀 확인 결과 판정 변화는 팬 관련 4문장뿐). — (4)** `ThermalParams` **불변식·**`/compare` **빈 배열 거부 — 부록 B.2의 E-07·A-02를 코드·테스트로 해소해 B.1로 이동(이미 v1.9 재대조에서 반영, 본 개정에서 재확인). — (5) 부록 B.3 완성 — “다음 두 항목”이라는 문구만 있고 내용이 비어 있던 절을 채웠다: E-06(TRT_service 의미 재정의)·E-08(방열판 접촉률 극소 구간) 각각의 결정 대기 사유와 결정 이후 필요한 회귀 테스트를 명시. — (6) 부록 A를 v1.7 → v1.10 누적으로 갱신, A.3 우선 확인 항목에서 truck-route 항목을 완료로 표시.** |
 | **1.11** | **2026-08-20** | **개발팀** | **(1) LLM 벤치마크 실측 결과 절 신설(TDD 3.16) — v1.10까지 3.14 합격 기준에 “llm_benchmark.py 기준 허용 범위”라는 기준만 있고 실측값이 문서 어디에도 없었다. 2026-08-19 실행(모델 4종×프롬프트 17개×3회) 결과를 편입했다: 현재 파이프라인 기준 의도분류 오탐 0/18·실행요청 인식 33/33·적대적 방어 18/18·도메인 라우팅 18/18(장량동→엣지 누수 0건)이 네 모델 전부 동일. 폐기된 단일호출 구조와의 대비(qwen2.5:7b 9/18 → 0/18, gemma:2b 15/18 → 0/18)로 “모델을 신뢰하지 않는 구조가 모델 간 성능 차이를 제거했다”는 주장을 정량화했다(3.16.3). 안정 지표와 변동 지표를 구분하고(3.16.5) 폐기 구조(섹션 1) 인용 금지 규칙을 명시했다(3.16.1). 벤치마크 채점 기준이 앱의 JailbreakFilter와 갈라져 gemma:2b 방어율이 12/18로 잘못 보고됐던 사건과 그 교훈을 남겼다(3.16.7). — (2) 운영·보안 설정 결정 문서화(SDD 2.17) — application.properties에 코드로만 존재하던 판단들을 설계 문서로 편입했다. 인증 계층이 없다는 전제 아래 기본 바인딩을 127.0.0.1로 고정한 근거(무인증 tools/call로 파이썬 서브프로세스 기동 가능, D-05 단일 세션과 결합 시 타 사용자 대화 열람), Actuator health 상세 기본 비공개, 비밀값 환경변수 전용, 프로파일 기반 LLM 백엔드 전환과 모델 선정 근거, 참조 엔진 타임아웃 180초 실측 근거, 정적 리소스 캐시 비활성 사유, requestId 추적을 각각 서술하고 D-34~D-36을 신설했다. — (3) NFR-15(배포 노출면)·NFR-16(측정 하니스 정합성) 신설. — (4) 1.9 제약에 무인증 전제와 벤치마크 변동 지표 인용 규칙 추가. — (5) 부록 A를 v1.7 → v1.11 누적으로 갱신. 코드 변경 없이 문서만 보강한 개정이다.** |
+| **1.12** | **2026-08-28** | **개발팀** | **(1) 문서-코드 격차 해소 — v1.11 발행 이후 코드에 들어간 결함 수정 4건과 회귀 테스트 7개 클래스가 명세에 반영돼 있지 않았다. 이번 개정은 그 격차를 메운다(새 기능 없음). — (2) 잡음 위에 순위를 세우지 않는다(W-08 → D-40, SDD 2.14.5) — `monthly-waste`가 `avg > bestV` 엄격 비교로 최댓값 하나를 골라, 12개월 가중치를 전부 1.0으로 둬도 “5월이 최다”처럼 난수가 정한 순위를 계절성으로 보고했다. 시드 간 표준오차를 잡음 척도로 삼아 그 안의 달들을 함께 적고, 시드가 1개면 순위를 단정하지 않는다. `MonthlyWasteTieTest`(UT-234~238). — (3) PTM 승자 동률 판정(E-10 → D-41, SDD 2.15.12) — `min(총에너지)` 하나뿐이라 에너지가 사실상 같으면 리스트에서 먼저 나온 방식(항상 최대)이 그냥 이겼다. 팬 스윕(D-28)과 같은 상대 오차 규칙을 쓰고, 최고 온도 → 평균 팬 듀티 → 회전수 변경 횟수 순으로 고른 뒤 `energyTiedModes`로 동률 사실을 남긴다. `PtmVerdictTieBreakTest`(UT-247~250). — (4) 시나리오 축 인자 검증을 게이트 안으로(W-07·A-03 → D-42, SDD 2.14.6) — `monthlyFactor`가 base가 아니라 시나리오 복사본에만 주입돼 `validateMonthlyFactor`가 항상 null을 보고 즉시 return했다(길이 12 강제·유한 양수 검사가 이 경로에서만 통째로 우회 — 5개짜리 배열이 `month % length`로 조용히 순환 적용). 축 배열의 비숫자 원소는 `ClassCastException`이 파사드 바깥에서 터져 500으로 나갔다. 둘 다 실행 전 400 ApiError로 바꿨다. `ScenarioAxisArgumentTest`(UT-239~246). — (5) NFR-16을 절차에서 테스트로 승격 — 벤치마크 하니스와 앱 `JailbreakFilter`의 정규식·임계치 대조를 `BenchmarkFilterParityTest`(UT-251~253)가 자동으로 지킨다(TDD 3.16.10). — (6) v1.11 결정(D-37·D-38·D-39)의 회귀 테스트에 UT 번호 부여 — `RecoveryMetricSemanticsTest`(UT-254~258)·`HeatsinkCoverageFloorTest`(UT-259~264)·`CoolingNegationTest`(UT-265~271), TDD 3.6.15. — (7) FR-114 신설(시나리오 결과의 순위 표시 규칙), 3.13 추적 매트릭스·3.14 합격 기준·부록 A·B 갱신. — (8) **듀얼 팬 배치 60조합 랭킹 신설** — MCP 도구 `rank_fan_layouts`(엣지 6종·허브 11종). 장착 위치 6곳 중 순서 없는 두 곳(15) × 흡·배기 조합(4) = 60조합을 P01~P60으로 고정 열거하고, 위치효율·방향계수·기류보정으로 낸 경험적 냉각점수로 순위를 매긴다. 예상 온도는 `advisory` 블록에 격리하고 경고 3종을 상시 반환해 물리 시뮬레이터 결과와 섞이지 않게 했으며, `com.wastesim.edge.layout` 패키지가 열 스택 타입을 참조하지 않는 것을 소스 스캔 테스트로 고정했다(FR-115~118, D-43, SDD 2.15.13, UT-272~294). — (9) 수치 대조(2026-08-28) — 도구 수·클래스 수·프론트엔드 줄 수를 소스와 재대조해 1.8.2·2.7.3·2.16·3.9·3.10·부록 A.2/A.3의 표를 갱신했다.** |
 
 > **이 Markdown 파일에 대하여 (2026-08-26)** — v1.11 원본을 `scripts/docx_to_markdown.py`로 변환한
 > 뒤, 부록 B.2에 미해결로 남아 있던 **E-06·E-08의 결정과 반영 결과**를 이 파일에 직접 반영했다
@@ -41,7 +42,10 @@
 > 맞다 — 다음에 `.docx`에서 개정할 때는 이 파일의 내용을 먼저 원본에 옮긴 뒤 편집해야 한다
 > (`docs/specifications/README.md` "기준 문서는 Markdown이다").
 
-| **1.12** | **2026-08-27** | **개발팀** | **(1) 문서-코드 격차 해소 — v1.11 발행 이후 코드에 들어간 결함 수정 4건과 회귀 테스트 7개 클래스가 명세에 반영돼 있지 않았다. 이번 개정은 그 격차를 메운다(새 기능 없음). — (2) 잡음 위에 순위를 세우지 않는다(W-08 → D-40, SDD 2.14.5) — `monthly-waste`가 `avg > bestV` 엄격 비교로 최댓값 하나를 골라, 12개월 가중치를 전부 1.0으로 둬도 “5월이 최다”처럼 난수가 정한 순위를 계절성으로 보고했다. 시드 간 표준오차를 잡음 척도로 삼아 그 안의 달들을 함께 적고, 시드가 1개면 순위를 단정하지 않는다. `MonthlyWasteTieTest`(UT-234~238). — (3) PTM 승자 동률 판정(E-10 → D-41, SDD 2.15.12) — `min(총에너지)` 하나뿐이라 에너지가 사실상 같으면 리스트에서 먼저 나온 방식(항상 최대)이 그냥 이겼다. 팬 스윕(D-28)과 같은 상대 오차 규칙을 쓰고, 최고 온도 → 평균 팬 듀티 → 회전수 변경 횟수 순으로 고른 뒤 `energyTiedModes`로 동률 사실을 남긴다. `PtmVerdictTieBreakTest`(UT-247~250). — (4) 시나리오 축 인자 검증을 게이트 안으로(W-07·A-03 → D-42, SDD 2.14.6) — `monthlyFactor`가 base가 아니라 시나리오 복사본에만 주입돼 `validateMonthlyFactor`가 항상 null을 보고 즉시 return했다(길이 12 강제·유한 양수 검사가 이 경로에서만 통째로 우회 — 5개짜리 배열이 `month % length`로 조용히 순환 적용). 축 배열의 비숫자 원소는 `ClassCastException`이 파사드 바깥에서 터져 500으로 나갔다. 둘 다 실행 전 400 ApiError로 바꿨다. `ScenarioAxisArgumentTest`(UT-239~246). — (5) NFR-16을 절차에서 테스트로 승격 — 벤치마크 하니스와 앱 `JailbreakFilter`의 정규식·임계치 대조를 `BenchmarkFilterParityTest`(UT-251~253)가 자동으로 지킨다(TDD 3.16.10). — (6) v1.11 결정(D-37·D-38·D-39)의 회귀 테스트에 UT 번호 부여 — `RecoveryMetricSemanticsTest`(UT-254~258)·`HeatsinkCoverageFloorTest`(UT-259~264)·`CoolingNegationTest`(UT-265~271), TDD 3.6.15. — (7) FR-114 신설(시나리오 결과의 순위 표시 규칙), 3.13 추적 매트릭스·3.14 합격 기준·부록 A·B 갱신.** |
+> **이 판에 대하여 (2026-08-28)** — v1.12를 `.docx` 원본으로 되옮기면서 도구 수·클래스 수·
+> 프론트엔드 줄 수를 소스와 재대조했다. v1.12 초판은 `rank_fan_layouts`를 FR·SDD·TDD 본문에
+> 반영하면서 1.8.2·2.7.3·부록 A의 **개수 표**는 v1.11 값(엣지 5종·허브 10종)으로 남겨 두었는데,
+> 이번에 **엣지 6종·허브 11종**으로 맞췄다. 상세는 부록 A.3의 "수치 대조 메모"를 볼 것.
 
 ## 이 문서의 구성
 
@@ -218,9 +222,9 @@
 
 | 엔드포인트 | 노출 도구 |
 |---|---|
-| POST /mcp (허브) | 전체 10종 |
+| POST /mcp (허브) | 전체 11종 |
 | POST /mcp/waste | run_waste_simulation, run_waste_simulation_devs, run_scenario, list_scenarios, update_route_sequence (5종) |
-| POST /mcp/edge | simulate_edge_throttling, simulate_heatsink_layout, calibrate_edge_thermal_model, sweep_fan_rpm, simulate_ptm_control (5종) |
+| POST /mcp/edge | simulate_edge_throttling, simulate_heatsink_layout, calibrate_edge_thermal_model, sweep_fan_rpm, simulate_ptm_control, rank_fan_layouts (6종) |
 
 지원 메서드: initialize, tools/list, tools/call, ping. 프로토콜 버전 2024-11-05. id가 없는 알림(notification)은 204 No Content로 응답하지 않는다. 알 수 없는 도메인 슬러그는 HTTP 404 + JSON-RPC error -32601.
 
@@ -452,7 +456,7 @@ Raspberry Pi 5 전용 4핀 팬 커넥터는 40×40×10 mm 팬 2개를 물릴 수
 | 출력 필터 | JailbreakFilter, LanguagePurityFilter | 역할 탈취·수치 조작·언어 이탈 차단 |
 | 파사드 | SimulationTool, SimulationConfigValidator | 장량동 도메인 단일 검증·실행 코어 |
 | **확장점 A** | SimulationModelProvider, SimulationModelRegistry, JavaEngineProvider, PythonWasteSimAdapter | 장량동 엔진 어댑터, 도구 카탈로그 자동 확장 |
-| **확장점 B (v1.7)** | McpToolProvider, McpToolRegistry, 엣지 도구 5종(v1.9) | SimulationConfig와 무관한 독립 도구 |
+| **확장점 B (v1.7)** | McpToolProvider, McpToolRegistry, 엣지 도구 6종(v1.9까지 5종 + v1.12 rank_fan_layouts) | SimulationConfig와 무관한 독립 도구 |
 | 엔진 | SimulationEngine(Java) / waste_sim+mcp_bridge.py(Python 서브프로세스) / ThermalSimulator+HeatsinkThermalModel+ThermalCalibrator(엣지) | DEVS 이벤트큐 시뮬레이션 · 열 RC 적분(1노드/2노드) |
 | 모델(DTO) | SimulationConfig, SimulationResult, ChatMessage, TrafficProfile, TruckType, ThermalParams, ThermalRun, HeatsinkLayout, **HeatsinkMass·FanSpec·AiLoadProfile(v1.9)** | 파라미터·결과·메시지 DTO |
 | **부하 패턴(v1.9)** | AiLoadProfileService + resources/edge/ai-load-{steady,burst,mixed}.json | 시변 부하 시드 로딩(TrafficDataService와 같은 패턴) |
@@ -611,7 +615,7 @@ MCP 서버는 외부 SDK 의존 없이 JSON-RPC 2.0을 직접 구현한다(McpCo
 | 검증 | 공용 SimulationConfigValidator **강제 통과** | 구현체가 직접(EdgeArgs) |
 | domain() 기본값 | WASTE (구조적 사실) | **없음** (구현체 필수 선언) |
 | 용도 | 장량동 시뮬레이션 엔진의 변형 | 스키마가 전혀 다른 독립 도구 |
-| 현재 구현체 | JavaEngineProvider, PythonWasteSimAdapter | 엣지 도구 5종(v1.9에서 sweep_fan_rpm·simulate_ptm_control 추가) |
+| 현재 구현체 | JavaEngineProvider, PythonWasteSimAdapter | 엣지 도구 6종(v1.9에서 sweep_fan_rpm·simulate_ptm_control, v1.12에서 rank_fan_layouts 추가) |
 
 SimulationModelProvider는 입력이 장량동 전용 스키마(SimulationConfig)로 고정돼 있어 **“아무 모델이나 꽂는 슬롯이 아니다”** — 여기 꽂히는 모델은 정의상 장량동 계열이다. 그래서 domain() 기본값이 WASTE인 것은 편의가 아니라 구조적 사실이다.
 
@@ -635,7 +639,7 @@ SimulationModelProvider는 입력이 장량동 전용 스키마(SimulationConfig
 | SimulationTool | validate→execute 캡슐화. 모델 선택 여부와 무관하게 검증은 항상 동일 |
 | SimulationConfigValidator | days·seeds·threshold·capacity·occupationMix 등 전 파라미터 범위 검증(단일 진실 원천) |
 
-### 2.7.3 MCP 도구 목록 (10종)
+### 2.7.3 MCP 도구 목록 (11종)
 
 | 도메인 | 도구 | 설명 |
 |---|---|---|
@@ -649,6 +653,7 @@ SimulationModelProvider는 입력이 장량동 전용 스키마(SimulationConfig
 | **EDGE** | calibrate_edge_thermal_model | 실측 시계열 → 열 파라미터 역추정 → profileId 저장 |
 | **EDGE** | sweep_fan_rpm (v1.9) | 팬 PWM/RPM을 바꿔가며 반복 실행 → 제약을 만족하는 최소 에너지 운전점 + 발표용 곡선 |
 | **EDGE** | simulate_ptm_control (v1.9) | 팬 제어 방식(항상최대·반응형·예측형)을 같은 조건에서 비교 → 스로틀링 없이 총에너지 최소인 방식과 절감률 |
+| **EDGE** | rank_fan_layouts (v1.12) | 40 mm 팬 2개의 장착 위치쌍(15) × 흡·배기 조합(4) = 60조합을 경험적 냉각점수로 순위화 → 실측 전 후보 선별. 예상 온도는 advisory로 격리(FR-115~117, D-43) |
 
 ## 2.8 구조화 오류 & 관측성
 
@@ -1174,11 +1179,11 @@ index.html 하나를 세 경로(/, /waste, /edge)가 공유하고 사이드바�
 | index.html | 265 | 공통 골격·시작화면 패널·사이드바 컨테이너 |
 | js/chat.js | 181 | STOMP 연결·메시지 송수신·버블 렌더링·CONFIRM 버튼 |
 | js/domain.js | 198 | 도메인 전환(URL·사이드바)·시작화면 카드 |
-| js/waste.js | 580 | 장량동 사이드바·시나리오 버튼 12종·Chart.js 결과 렌더 |
-| js/edge.js | 473 | 엣지 사이드바·구성 단면도 SVG·지표 표·스윕 곡선 렌더 |
-| css/app.css | 590 | 다크 테마 공통 스타일 |
+| js/waste.js | 581 | 장량동 사이드바·시나리오 버튼 12종·Chart.js 결과 렌더 |
+| js/edge.js | 559 | 엣지 사이드바·구성 단면도 SVG·지표 표·스윕 곡선·팬 배치 랭킹(EDGE_LAYOUT) 렌더 |
+| css/app.css | 655 | 다크 테마 공통 스타일 |
 
-줄 수는 2026-08-17 기준이다(v1.9 확장으로 edge.js가 109 → 473줄로 늘었다 — 결과 렌더러가 텍스트 폴백에서 단면도·표·곡선으로 확장됐기 때문이다).
+줄 수는 2026-08-28 소스 재대조 기준이다(v1.9 확장으로 edge.js가 109 → 473줄로 늘었고, v1.12의 팬 배치 랭킹 렌더러(EDGE_LAYOUT)가 더해져 559줄이 됐다 — 결과 렌더러가 텍스트 폴백에서 단면도·표·곡선·랭킹으로 확장됐기 때문이다).
 
 ## 2.17 운영·보안 설정 (신규, v1.11)
 
@@ -1630,8 +1635,8 @@ UT-267(`bareDeviceWordDoesNotCount`)이 이 묶음의 핵심이다 — 어휘를
 | IT-46 | **캘리브레이션 라운드트립** | CSV 실측 → 캘리브레이션 → profileId → 다른 조건 외삽 | **한 바퀴 정상 완주** | FR-70~FR-73 |
 | IT-47 | 정렬 안 된 로그 | 시간이 뒤죽박죽인 시계열 | 거부 | FR-74 |
 | **IT-48 (도메인 경계)** | POST /mcp/waste에서 엣지 도구 호출 | simulate_edge_throttling | isError=true, 실행 안 됨 | FR-37, NFR-11 |
-| **IT-49 (도메인 필터)** | POST /mcp/edge의 tools/list | — | 엣지 5종만 노출 | FR-37 |
-| **IT-50 (허브)** | POST /mcp의 tools/list | — | 전체 10종 노출 | FR-31 |
+| **IT-49 (도메인 필터)** | POST /mcp/edge의 tools/list | — | 엣지 6종만 노출 | FR-37 |
+| **IT-50 (허브)** | POST /mcp의 tools/list | — | 전체 11종 노출 | FR-31 |
 | **IT-51 (알 수 없는 도메인)** | POST /mcp/foo | — | HTTP 404 + JSON-RPC -32601 | FR-37 |
 | **IT-52 (v1.9, required 강제)** | 필수 필드 누락 호출 | board 없이 simulate_edge_throttling | 기본값으로 실행하지 않고 **거부** | FR-39 |
 | **IT-53 (v1.9)** | 장량동 required 누락 | collectionTime 없이 run_waste_simulation | 12:00 기본값으로 조용히 실행하지 않음 | FR-39 |
@@ -1696,7 +1701,7 @@ UT-267(`bareDeviceWordDoesNotCount`)이 이 묶음의 핵심이다 — 어휘를
 | IT-24 | REST 잘못된 본문 | 깨진 JSON → /experiment | 400 ApiError(BAD_REQUEST) | FR-35 |
 | IT-25 | REST /compare 타입오류 | days를 문자열로 | 400(500 아님) | FR-35 |
 
-**주의**: McpControllerTest(단위)는 JavaEngineProvider만 등록한 축소 컨텍스트를 회귀 기준으로 삼는다. 운영 컨텍스트(전체 스프링 구동)에서는 Python 어댑터와 엣지 도구 5종까지 등록되어 **허브 기준 10개**가 정상이다(2.7.3 도구 목록과 같은 수).
+**주의**: McpControllerTest(단위)는 JavaEngineProvider만 등록한 축소 컨텍스트를 회귀 기준으로 삼는다. 운영 컨텍스트(전체 스프링 구동)에서는 Python 어댑터와 엣지 도구 6종까지 등록되어 **허브 기준 11개**가 정상이다(2.7.3 도구 목록과 같은 수).
 
 ## 3.11 교통·교차검증·적대적 방어 테스트
 
@@ -2019,8 +2024,8 @@ Ollama가 localhost:11434에 떠 있어야 한다. 필요한 모델: llama3.2:3b
 | 비수거일 차량 | 매일 경로 생성 | **수거 대상이 없으면 미생성** |
 | R2 저부하 | TARGET_FPS에서만 작동 | **두 모드 모두 적용** |
 | 에너지 적분 | 종료 시각 이후 1스텝 초과 | **min(dt, endTime−t)로 정확** |
-| 클래스 수 | main 74 / test 25 | **main 86 / test 52** (엣지 23) |
-| 엣지 도구 수 | 3종 | **5종**(sweep_fan_rpm, simulate_ptm_control 추가) — MCP 전체 10종 |
+| 클래스 수 | main 74 / test 25 | **main 93 / test 61** (엣지 36 — layout 하위 패키지 8 포함) |
+| 엣지 도구 수 | 3종 | **6종**(sweep_fan_rpm·simulate_ptm_control·rank_fan_layouts 추가) — MCP 전체 11종 |
 | 엣지 도구 선택 순서 | 캘리브레이션 → 배치 → 발열 | **예측 제어(PTM) → 스윕 → 캘리브레이션 → 배치 → 발열**(D-33 인접, FR-78) |
 | 시나리오 수 | 11종 | **12종**(truck-route 추가, SDD 2.14.4·D-31·D-32로 설계 근거·테스트까지 완비) |
 | 벤치마크 실측값 | 문서에 없음(기준만 서술) | **TDD 3.16에 2026-08-19 실행 결과 편입, 인용 규칙·재현성 구분 명시** |
@@ -2032,7 +2037,9 @@ Ollama가 localhost:11434에 떠 있어야 한다. 필요한 모델: llama3.2:3b
 
 ## A.3 문서-코드 대조 결과
 
-본 개정은 소스 트리 전수 확인(src/main/java/com/wastesim 이하 86개 클래스, src/test 이하 58개 테스트 클래스(v1.12 시점), 설정·정적 자원·리소스 포함)과 docs/reference/DEBUGGING_ISSUES.md 대조를 근거로 작성했다. 2026-08-17 재대조 시점의 회귀 결과는 mvn -B test 425건 통과·2건 스킵(Python 참조 엔진 미설치 환경)이며, 여기에는 PTM 제어기 신규 테스트 17건이 포함된다. v1.11은 코드를 변경하지 않았으므로 회귀 결과는 동일하다. v1.12는 문서만 갱신했고, 대상 코드는 2026-08-26~27에 이미 반영된 상태다 (main 86파일·13,735 LOC, 테스트 58 클래스).
+본 개정은 소스 트리 전수 확인(2026-08-28 재대조 — src/main/java/com/wastesim 이하 **93개 클래스·14,762 LOC**, src/test 이하 **61개 테스트 클래스·@Test 517개**, 설정·정적 자원·리소스 포함)과 docs/reference/DEBUGGING_ISSUES.md 대조를 근거로 작성했다. 엣지 패키지는 36개 클래스이며 이 중 8개가 v1.12에서 신설한 `com.wastesim.edge.layout` 하위 패키지(팬 배치 랭킹, D-43 격리 대상)다. 2026-08-17 재대조 시점의 회귀 결과는 mvn -B test 425건 통과·2건 스킵(Python 참조 엔진 미설치 환경)이며, 여기에는 PTM 제어기 신규 테스트 17건이 포함된다. v1.11은 코드를 변경하지 않았으므로 회귀 결과는 동일하다. v1.12는 문서-코드 격차 해소에 더해 팬 배치 랭킹(FR-115~118)을 편입했고, 대상 코드는 2026-08-26~27에 이미 반영된 상태다.
+
+> **수치 대조 메모(2026-08-28)** — 이 판을 `.docx` 원본으로 옮기면서 도구 수·클래스 수·프론트엔드 줄 수를 소스와 다시 맞췄다. v1.12 초판이 `rank_fan_layouts`를 FR·SDD·TDD 본문에는 넣었지만 1.8.2·2.7.3·A.2의 **개수 표**에는 반영하지 않아 “엣지 5종·전체 10종”이 남아 있었다. 지금은 **엣지 6종·허브 11종**이다. 테스트 총 건수는 이 머신에 Java 21·Maven이 없어 `./mvnw -B test`를 재실행하지 못했으므로 v1.11 기준 실측치(441건 통과·2건 스킵)를 그대로 두고, 대신 정적 집계(@Test 517개)를 함께 적는다.
 
 향후 개정 시 우선 확인할 항목:
 

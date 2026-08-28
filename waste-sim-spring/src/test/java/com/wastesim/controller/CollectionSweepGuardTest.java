@@ -57,7 +57,16 @@ class CollectionSweepGuardTest {
         });
     }
 
-    private static ApiError rejectionOf(ResponseEntity<?> resp) {
+    /**
+     * 컨트롤러는 잘못된 스윕 인자를 {@code ScenarioArgException}으로 던지고,
+     * 같은 클래스의 {@code @ExceptionHandler}가 400 ApiError로 바꾼다. 테스트는
+     * 스프링 없이 컨트롤러를 직접 부르므로 그 두 단계를 여기서 이어 준다 —
+     * 예외만 확인하고 끝내면 "사용자에게 400으로 나가는가"는 검증되지 않는다.
+     */
+    private ApiError rejectionOf(Runnable call) {
+        ScenarioController.ScenarioArgException e =
+                assertThrows(ScenarioController.ScenarioArgException.class, call::run);
+        ResponseEntity<?> resp = controller.badScenarioArg(e);
         assertEquals(400, resp.getStatusCode().value(), "사용자 입력 오류는 400이어야 한다");
         assertInstanceOf(ApiError.class, resp.getBody());
         return (ApiError) resp.getBody();
@@ -77,7 +86,7 @@ class CollectionSweepGuardTest {
 
         // 가드가 사라지면 이 호출은 실패가 아니라 영원히 돌아오지 않는다.
         assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
-            ApiError err = rejectionOf(controller.collectionSweep(Map.of("stepMinutes", 0)));
+            ApiError err = rejectionOf(() -> controller.collectionSweep(Map.of("stepMinutes", 0)));
             assertBlames(err, "stepMinutes");
         });
         verify(sim, never()).runExperiment(any(SimulationConfig.class));
@@ -89,7 +98,7 @@ class CollectionSweepGuardTest {
         engineAlwaysReturns(10.0);
 
         assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
-            ApiError err = rejectionOf(controller.collectionSweep(Map.of("stepMinutes", -15)));
+            ApiError err = rejectionOf(() -> controller.collectionSweep(Map.of("stepMinutes", -15)));
             assertBlames(err, "stepMinutes");
         });
         verify(sim, never()).runExperiment(any(SimulationConfig.class));
@@ -100,10 +109,10 @@ class CollectionSweepGuardTest {
     void invertedRangeIsRejected() {
         engineAlwaysReturns(10.0);
 
-        ApiError err = rejectionOf(controller.collectionSweep(
+        ApiError err = rejectionOf(() -> controller.collectionSweep(
                 Map.of("start", "18:00", "end", "06:00")));
 
-        assertBlames(err, "start");
+        assertBlames(err, "start/end");
         verify(sim, never()).runExperiment(any(SimulationConfig.class));
     }
 
@@ -112,7 +121,7 @@ class CollectionSweepGuardTest {
     void tooManyCandidatesAreRejected() {
         engineAlwaysReturns(10.0);
 
-        ApiError err = rejectionOf(controller.collectionSweep(
+        ApiError err = rejectionOf(() -> controller.collectionSweep(
                 Map.of("start", "00:00", "end", "23:59", "stepMinutes", 1)));
 
         assertBlames(err, "stepMinutes");

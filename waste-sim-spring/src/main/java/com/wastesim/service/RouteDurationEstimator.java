@@ -7,6 +7,7 @@ import com.wastesim.simulation.TravelTimeCalculator;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 방문 순서(routeSequence)와(선택) 출발(수거) 시각만으로 경로 이동시간
@@ -31,6 +32,7 @@ public final class RouteDurationEstimator {
     private RouteDurationEstimator() {}
 
     public static final int DEFAULT_ROUTE_TRAVEL_MINUTES = TravelTimeCalculator.DEFAULT_ROUTE_TRAVEL_MINUTES;
+    private static final Set<String> SUPPORTED_NODES = Set.of("Node_A", "Node_B", "Node_C", "Node_D");
 
     /** 한 구간(hop)의 계산 결과. */
     public static final class Hop {
@@ -82,6 +84,16 @@ public final class RouteDurationEstimator {
                                      int routeTravelMinutes, TruckType truckType, TrafficProfile profile) {
         if (routeSequence == null || routeSequence.size() < 2) {
             throw new IllegalArgumentException("routeSequence는 최소 2개 노드가 필요합니다.");
+        }
+        for (int i = 0; i < routeSequence.size(); i++) {
+            String node = routeSequence.get(i);
+            if (!SUPPORTED_NODES.contains(node)) {
+                throw new IllegalArgumentException("지원하지 않는 경로 노드입니다: " + node
+                        + " (허용: Node_A, Node_B, Node_C, Node_D)");
+            }
+            if (i > 0 && node.equals(routeSequence.get(i - 1))) {
+                throw new IllegalArgumentException("같은 노드를 연속 방문할 수 없습니다: " + node);
+            }
         }
         int base = routeTravelMinutes > 0 ? routeTravelMinutes : DEFAULT_ROUTE_TRAVEL_MINUTES;
         TruckType tt = truckType == null ? TruckType.LARGE_5TON : truckType;

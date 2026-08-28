@@ -123,6 +123,14 @@ class RankFanLayoutsToolTest {
     }
 
     @Test
+    @DisplayName("includeAllCombinations가 boolean이 아니면 조용히 false로 보정하지 않는다")
+    void rejectsNonBooleanIncludeAll() throws Exception {
+        ToolResult r = rejected("{\"includeAllCombinations\":\"yes\"}");
+        assertEquals(ErrorCode.INVALID_ARGUMENTS, r.errors().getFirst().code());
+        assertEquals("includeAllCombinations", r.errors().getFirst().field());
+    }
+
+    @Test
     @DisplayName("positions로 열거 범위를 줄일 수 있다")
     @SuppressWarnings("unchecked")
     void positionsNarrowsEnumeration() throws Exception {
@@ -272,5 +280,12 @@ class RankFanLayoutsToolTest {
     void rejectsNonIntegralTopK() throws Exception {
         ToolResult r = rejected("{\"topK\":3.7}");
         assertEquals(ErrorCode.INVALID_ARGUMENTS, r.errors().get(0).code());
+    }
+
+    @Test
+    @DisplayName("topK가 int 범위를 넘으면 잘라내지 않고 거부한다")
+    void rejectsOverflowingTopK() throws Exception {
+        ToolResult r = rejected("{\"topK\":4294967297}");
+        assertEquals(ErrorCode.OUT_OF_RANGE, r.errors().get(0).code());
     }
 }

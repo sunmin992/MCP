@@ -97,13 +97,17 @@ public class ScenarioService {
     }
 
     /**
-     * 스윕 후보 수 상한 — 24시간을 10분 간격으로 훑은 개수(1440/10 + 1).
+     * 스윕 후보 수 상한 — 24시간을 15분 간격으로 훑은 개수에 해당한다.
      *
      * <p>후보 하나가 곧 다중 시드 시뮬레이션 한 벌이라, 이 값이 커지면 요청 하나가
      * 서버 스레드를 오래 붙잡는다. 사용자가 실수로 1분 간격을 넣으면 1441회를 돌게 되는데,
      * 그건 요청자가 의도한 분석이 아니라 사고다 — 조용히 오래 도는 대신 거부한다.
+     *
+     * <p><b>이 상수가 유일한 기준이다.</b> 컨트롤러와 파사드가 각자 상한을 들고 있으면
+     * 한쪽만 바뀌었을 때 "REST로는 거부되는데 직접 호출하면 통과하는" 구간이 생긴다 —
+     * 실제로 96과 145로 갈라져 있던 것을 여기로 합쳤다.
      */
-    public static final int MAX_SWEEP_POINTS = 145;
+    public static final int MAX_SWEEP_POINTS = 96;
 
     /**
      * 스윕 범위를 <b>루프에 들어가기 전에</b> 검사한다.
@@ -122,6 +126,13 @@ public class ScenarioService {
         if (stepMin <= 0) {
             throw new IllegalArgumentException(
                     "스윕 간격(stepMinutes)은 1분 이상이어야 합니다 (받은 값: " + stepMin + ").");
+        }
+        // 하루 밖 값은 여기서 먼저 막는다 — 아래 메시지가 minutesToHhmm를 쓰는데,
+        // 그 함수는 0~1439 밖에서 스스로 던져 "범위가 뒤집혔다"는 진짜 원인을 가린다.
+        if (startMin < 0 || endMin > 1439) {
+            throw new IllegalArgumentException(
+                    "스윕 범위는 0~1439분(하루) 안이어야 합니다 (받은 값: "
+                            + startMin + "~" + endMin + ").");
         }
         if (startMin > endMin) {
             throw new IllegalArgumentException(

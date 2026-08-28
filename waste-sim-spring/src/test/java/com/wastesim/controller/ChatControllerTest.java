@@ -55,6 +55,42 @@ class ChatControllerTest {
     }
 
     @Test
+    void rejectsInvalidTimeBeforeItCanCollapseIntoSingleExecution() {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+
+        controller.handleMessage(userMsg("25시와 11시 수거를 비교해줘"));
+
+        verifyNoInteractions(openAiService, tool);
+        ArgumentCaptor<ChatMessage> messages = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(messaging, atLeastOnce()).convertAndSend(eq("/topic/messages"), messages.capture());
+        assertTrue(messages.getAllValues().stream().anyMatch(m ->
+                m.getType() == ChatMessage.MessageType.BOT && m.getContent().contains("00:00~23:59")));
+    }
+
+    @Test
+    void asksForTwoDistinctTimesWhenComparisonRepeatsSameTime() {
+        SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
+        OpenAiService openAiService = mock(OpenAiService.class);
+        SimulationTool tool = mock(SimulationTool.class);
+        ChatController controller = new ChatController(
+                messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
+                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+
+        controller.handleMessage(userMsg("10시와 오전 10시 수거를 비교해줘"));
+
+        verifyNoInteractions(openAiService, tool);
+        ArgumentCaptor<ChatMessage> messages = ArgumentCaptor.forClass(ChatMessage.class);
+        verify(messaging, atLeastOnce()).convertAndSend(eq("/topic/messages"), messages.capture());
+        assertTrue(messages.getAllValues().stream().anyMatch(m ->
+                m.getType() == ChatMessage.MessageType.BOT && m.getContent().contains("서로 다른")));
+    }
+
+    @Test
     void newConfirmRequestOverwritesPendingAndNotifiesDiscard() {
         SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
         OpenAiService openAiService = mock(OpenAiService.class);

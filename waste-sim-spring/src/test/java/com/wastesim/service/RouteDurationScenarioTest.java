@@ -71,21 +71,24 @@ class RouteDurationScenarioTest {
     @Test
     @DisplayName("RT-16 뒤쪽 구간은 앞 구간이 걸린 만큼 늦은 시각의 혼잡도를 받는다")
     void laterHopsUseLaterClock() {
-        // Node_X는 8시대 1.0, 9시대 3.0. 08:40 출발이면
-        //   1구간: 08:40 진입 → 8시대 가중치 1.0 → 30분 → 09:10 도착
-        //   2구간: 09:10 진입 → 9시대 가중치 3.0 → 90분
+        // 두 도착 노드에 똑같이 "9시대만 3.0"을 걸어 둔다. 그러면 두 구간의 차이는
+        // 노드가 아니라 오직 "몇 시에 그 구간에 들어갔는가"에서만 나온다.
+        //   1구간: 08:40 진입 → Node_C의 8시대 1.0 → 30분 → 09:10 도착
+        //   2구간: 09:10 진입 → Node_D의 9시대 3.0 → 90분
         TrafficProfile profile = new TrafficProfile();
         profile.setId("rt-16");
         double[] flat = new double[24];
         Arrays.fill(flat, 1.0);
         profile.setHourlyWeight(flat);
-        double[] xWeights = flat.clone();
-        xWeights[9] = 3.0;
-        profile.setNodeHourlyWeight(Map.of("Node_X", xWeights));
+        double[] nineAmHeavy = flat.clone();
+        nineAmHeavy[9] = 3.0;
+        profile.setNodeHourlyWeight(Map.of(
+                "Node_C", nineAmHeavy.clone(),
+                "Node_D", nineAmHeavy.clone()));
         profile.setCongestionThresholdRed(2.5);
 
         RouteDurationEstimator.Estimate est = RouteDurationEstimator.estimate(
-                List.of("Node_S", "Node_X", "Node_X"), 8 * 60 + 40, 30, TruckType.LARGE_5TON, profile);
+                List.of("Node_A", "Node_C", "Node_D"), 8 * 60 + 40, 30, TruckType.LARGE_5TON, profile);
 
         assertTrue(est.trafficApplied);
         assertEquals(30, est.hops.get(0).minutes, "1구간은 8시대라 가중치 1.0");
@@ -104,11 +107,11 @@ class RouteDurationScenarioTest {
         profile.setHourlyWeight(flat);
         double[] jam = flat.clone();
         jam[8] = 2.5;
-        profile.setNodeHourlyWeight(Map.of("Node_JAM", jam));
+        profile.setNodeHourlyWeight(Map.of("Node_D", jam));
         profile.setCongestionThresholdRed(2.0);
 
         RouteDurationEstimator.Estimate est = RouteDurationEstimator.estimate(
-                List.of("Node_A", "Node_JAM"), 8 * 60, 10, TruckType.LARGE_5TON, profile);
+                List.of("Node_A", "Node_D"), 8 * 60, 10, TruckType.LARGE_5TON, profile);
 
         assertTrue(est.hops.get(0).red, "가중치 2.5가 임계 2.0을 넘으면 혼잡 구간으로 표시된다");
         assertEquals(2.5, est.hops.get(0).congestionWeight, 1e-9);
@@ -159,6 +162,29 @@ class RouteDurationScenarioTest {
                 () -> RouteDurationEstimator.estimate(List.of(), 9 * 60, 15, null, null));
         assertThrows(IllegalArgumentException.class,
                 () -> RouteDurationEstimator.estimate(null, 9 * 60, 15, null, null));
+    }
+
+    @Test
+    @DisplayName("RT-07 같은 노드를 연속으로 방문하는 경로는 거부한다")
+    void consecutiveDuplicateNodeIsRejected() {
+        // 0분짜리 구간을 그럴듯하게 계산해 내보내면 사용자는 그것을 실제 경로로 읽는다.
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> RouteDurationEstimator.estimate(
+                        List.of("Node_A", "Node_B", "Node_B"), 9 * 60, 15, TruckType.LARGE_5TON, null));
+
+        assertTrue(e.getMessage().contains("Node_B"), e.getMessage());
+    }
+
+    @Test
+    @DisplayName("RT-08 존재하지 않는 노드는 계산하지 않고 허용 목록과 함께 거부한다")
+    void unknownNodeIsRejected() {
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> RouteDurationEstimator.estimate(
+                        List.of("Node_A", "Node_ZZZ"), 9 * 60, 15, TruckType.LARGE_5TON, null));
+
+        // 어떤 노드가 있는지 알려 주지 않으면 사용자는 오타를 고칠 수 없다.
+        assertTrue(e.getMessage().contains("Node_ZZZ"), e.getMessage());
+        assertTrue(e.getMessage().contains("Node_A"), "허용 노드 목록을 함께 알려야 한다: " + e.getMessage());
     }
 
     @Test
