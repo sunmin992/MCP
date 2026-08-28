@@ -55,3 +55,9 @@ waste-sim-spring/benchmark_report.md
 application-local.properties
 # Claude Code 머신별 권한 허용목록(윈도우 경로·PowerShell 명령이 들어가 맥과 다르다)
 .claude/settings.local.json
+
+# --- 에이전트 도구가 저장소 안에 푸는 실행 파일 ---
+# gh CLI 등을 저장소 하위에 설치하면 그 산출물이 커밋 후보로 올라온다. 도구 바이너리는
+# 머신마다 다르고 버전도 각자 관리하므로 저장소가 들고 있을 이유가 없다.
+# (실제로 .tools/github-cli/.../LICENSE 한 개가 이렇게 커밋된 적이 있다.)
+.tools/
