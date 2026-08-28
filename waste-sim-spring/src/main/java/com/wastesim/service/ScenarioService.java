@@ -71,6 +71,7 @@ public class ScenarioService {
     // ── 2. 수거시각 sweep (곡선) ──────────────────────────────────────────
     public ScenarioResponse collectionSweep(SimulationConfig base,
                                             int startMin, int endMin, int stepMin) {
+        checkSweepRange(startMin, endMin, stepMin);
         ScenarioResponse resp = new ScenarioResponse(
                 "COLLECTION_SWEEP", "수거 시각 sweep (하루 중 최적 시각)", "수거 시각");
         ScenarioResponse.Series s = resp.newSeries("월 평균 민원");
@@ -93,6 +94,47 @@ public class ScenarioService {
         resp.addInsight("최악 수거시각", worstTime + " (" + Math.round(worstMean * 10) / 10.0 + "건)");
         resp.addInsight("개선 폭", Math.round((worstMean - bestMean) * 10) / 10.0 + "건");
         return resp;
+    }
+
+    /**
+     * 스윕 후보 수 상한 — 24시간을 10분 간격으로 훑은 개수(1440/10 + 1).
+     *
+     * <p>후보 하나가 곧 다중 시드 시뮬레이션 한 벌이라, 이 값이 커지면 요청 하나가
+     * 서버 스레드를 오래 붙잡는다. 사용자가 실수로 1분 간격을 넣으면 1441회를 돌게 되는데,
+     * 그건 요청자가 의도한 분석이 아니라 사고다 — 조용히 오래 도는 대신 거부한다.
+     */
+    public static final int MAX_SWEEP_POINTS = 145;
+
+    /**
+     * 스윕 범위를 <b>루프에 들어가기 전에</b> 검사한다.
+     *
+     * <p>{@code stepMin <= 0}이면 {@code m += stepMin}이 전진하지 않아 루프가 끝나지
+     * 않는다. 그 안에서 매 회 실제 시뮬레이션까지 돌리므로, 잘못된 값 하나로 워커 스레드가
+     * 영구히 묶인다. 검증을 호출측에만 두면 새 호출 경로가 생길 때마다 같은 구멍이 다시
+     * 열리므로, 불변식은 루프를 가진 이 자리에서 지킨다.
+     *
+     * <p>시작이 종료보다 늦은 경우도 여기서 막는다. 예전에는 후보 0개로 조용히 지나갔는데,
+     * 그러면 {@code bestTime}이 null, {@code bestMean}이 {@code Double.MAX_VALUE}로 남아
+     * "최적 수거시각: null (9.2E17건)" 같은 값이 그대로 사용자에게 나갔다 — 빈 결과보다
+     * 나쁜, <b>그럴듯해 보이는 쓰레기</b>다.
+     */
+    static void checkSweepRange(int startMin, int endMin, int stepMin) {
+        if (stepMin <= 0) {
+            throw new IllegalArgumentException(
+                    "스윕 간격(stepMinutes)은 1분 이상이어야 합니다 (받은 값: " + stepMin + ").");
+        }
+        if (startMin > endMin) {
+            throw new IllegalArgumentException(
+                    "스윕 시작 시각이 종료 시각보다 늦습니다 (시작 "
+                            + SimulationConfig.minutesToHhmm(startMin)
+                            + ", 종료 " + SimulationConfig.minutesToHhmm(endMin) + ").");
+        }
+        long points = (long) (endMin - startMin) / stepMin + 1;
+        if (points > MAX_SWEEP_POINTS) {
+            throw new IllegalArgumentException(
+                    "스윕 후보가 " + points + "개로 상한 " + MAX_SWEEP_POINTS
+                            + "개를 넘습니다. 간격을 넓히거나 범위를 좁혀 주세요.");
+        }
     }
 
     /** 채팅에서 명시한 수거 시각들만 같은 조건으로 실행해 직접 비교한다. */

@@ -169,6 +169,39 @@ public class SimulationTool {
         return runScenarioCustom(base, () -> scenarioService.collectionTimeComparison(base, times));
     }
 
+    /**
+     * 수거 시각 스윕의 검증 포함 진입점.
+     *
+     * <p>스윕 인자(범위·간격)는 {@code SimulationConfig}가 아니라 별도 파라미터라
+     * {@link #runScenarioCustom}의 설정 검증 게이트가 보지 못한다. 그대로 두면 잘못된
+     * 간격이 루프까지 도달하는데, 그 루프는 간격이 0 이하일 때 끝나지 않는다.
+     *
+     * <p>{@link ScenarioService#collectionSweep}도 같은 불변식을 스스로 지키지만
+     * 거기서 던지는 예외는 {@code runScenarioCustom}이 {@code EXECUTION_ERROR}로
+     * 감싼다 — 사용자 입력 오류가 실행 장애처럼 보인다. 그래서 어느 필드가 왜 틀렸는지
+     * 가리키는 코드를 여기서 먼저 붙인다(D-42와 같은 이유: 검증은 게이트 안에서, 그러나
+     * 코드는 원인에 맞게).
+     */
+    public ToolResult runCollectionSweep(SimulationConfig base, int startMin, int endMin, int stepMin) {
+        if (stepMin <= 0) {
+            return ToolResult.rejected(new ValidationError(ErrorCode.OUT_OF_RANGE, "stepMinutes",
+                    "스윕 간격은 1분 이상이어야 합니다 (받은 값: " + stepMin + ")."));
+        }
+        if (startMin > endMin) {
+            return ToolResult.rejected(new ValidationError(ErrorCode.OUT_OF_RANGE, "start",
+                    "스윕 시작 시각이 종료 시각보다 늦습니다 (시작 "
+                            + SimulationConfig.minutesToHhmm(startMin)
+                            + ", 종료 " + SimulationConfig.minutesToHhmm(endMin) + ")."));
+        }
+        long points = (long) (endMin - startMin) / stepMin + 1;
+        if (points > ScenarioService.MAX_SWEEP_POINTS) {
+            return ToolResult.rejected(new ValidationError(ErrorCode.OUT_OF_RANGE, "stepMinutes",
+                    "스윕 후보가 " + points + "개로 상한 " + ScenarioService.MAX_SWEEP_POINTS
+                            + "개를 넘습니다. 간격을 넓히거나 범위를 좁혀 주세요."));
+        }
+        return runScenarioCustom(base, () -> scenarioService.collectionSweep(base, startMin, endMin, stepMin));
+    }
+
     /** 지원 시나리오 유형 목록(디스커버리용). */
     public List<String> scenarioTypes() {
         return List.of("occupation-mix", "collection-sweep", "behavior-grid", "infra-grid",

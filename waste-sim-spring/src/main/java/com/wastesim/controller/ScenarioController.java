@@ -66,7 +66,7 @@ public class ScenarioController {
         int step  = intVal(b, "stepMinutes", 60);
         // 구성 프리셋을 적용하고 싶으면 mixPreset 지정
         applyPreset(base, b);
-        return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.collectionSweep(base, start, end, step)));
+        return ApiError.respond(tool.runCollectionSweep(base, start, end, step));
     }
 
     /** 3. 행동 변동: α × β */

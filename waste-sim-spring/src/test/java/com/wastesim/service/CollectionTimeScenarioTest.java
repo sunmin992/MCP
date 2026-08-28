@@ -6,6 +6,7 @@ import com.wastesim.model.SimulationResult;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -161,16 +162,64 @@ class CollectionTimeScenarioTest {
     }
 
     @Test
-    @DisplayName("WS-05 시작이 종료보다 늦으면 후보를 하나도 만들지 않는다")
-    void sweepWithInvertedRangeProducesNoCandidates() {
+    @DisplayName("WS-05 시작이 종료보다 늦으면 실행 전에 거부한다")
+    void sweepWithInvertedRangeIsRejected() {
         engineReturns(t -> 10.0);
 
-        ScenarioResponse resp = scenario.collectionSweep(new SimulationConfig(), 18 * 60, 6 * 60, 60);
+        // 예전에는 후보 0개로 조용히 지나가면서 bestTime=null·bestMean=Double.MAX_VALUE가
+        // 그대로 남아 "최적 수거시각: null (9.2E17건)"이 사용자에게 나갔다.
+        // 빈 결과보다 나쁜, 그럴듯해 보이는 쓰레기다.
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> scenario.collectionSweep(new SimulationConfig(), 18 * 60, 6 * 60, 60));
 
-        // 현재 구현은 거부가 아니라 빈 결과다. 빈 표를 그대로 내보내지 않도록
-        // 호출측이 이 상태를 구분할 수 있어야 하므로 계약으로 고정한다.
-        assertTrue(resp.getXCategories().isEmpty());
+        assertTrue(e.getMessage().contains("18:00") && e.getMessage().contains("06:00"),
+                "어느 범위가 잘못됐는지 메시지에 드러나야 한다: " + e.getMessage());
         verify(sim, never()).runExperiment(any(SimulationConfig.class));
+    }
+
+    // ── WS-07·08·10: 무한 루프와 과도한 작업량 차단 ───────────────────────
+
+    @Test
+    @DisplayName("WS-07·08 간격이 0이거나 음수면 루프에 들어가기 전에 거부한다")
+    void nonPositiveStepIsRejectedBeforeLooping() {
+        engineReturns(t -> 10.0);
+
+        // stepMin <= 0이면 `m += stepMin`이 전진하지 않아 루프가 끝나지 않는다.
+        // 가드가 사라지면 이 테스트는 실패가 아니라 '영원히 멈춤'이 되므로 시간 제한을 건다.
+        assertTimeoutPreemptively(Duration.ofSeconds(5), () -> {
+            assertThrows(IllegalArgumentException.class,
+                    () -> scenario.collectionSweep(new SimulationConfig(), 6 * 60, 18 * 60, 0));
+            assertThrows(IllegalArgumentException.class,
+                    () -> scenario.collectionSweep(new SimulationConfig(), 6 * 60, 18 * 60, -30));
+        });
+
+        verify(sim, never()).runExperiment(any(SimulationConfig.class));
+    }
+
+    @Test
+    @DisplayName("WS-10 후보 수가 상한을 넘으면 간격을 넓히라고 안내하며 거부한다")
+    void tooManyCandidatesAreRejected() {
+        engineReturns(t -> 10.0);
+
+        // 하루 전체를 1분 간격으로 = 1441개. 후보 하나가 다중 시드 시뮬레이션 한 벌이다.
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class,
+                () -> scenario.collectionSweep(new SimulationConfig(), 0, 1439, 1));
+
+        assertTrue(e.getMessage().contains(String.valueOf(ScenarioService.MAX_SWEEP_POINTS)),
+                "상한값을 알려 줘야 사용자가 간격을 얼마로 넓힐지 정할 수 있다: " + e.getMessage());
+        verify(sim, never()).runExperiment(any(SimulationConfig.class));
+    }
+
+    @Test
+    @DisplayName("WS-10 상한과 같은 후보 수는 통과한다(경계에서 한 칸 어긋나지 않는다)")
+    void exactlyMaxCandidatesStillRuns() {
+        engineReturns(t -> 10.0);
+
+        // 00:00부터 1분 간격이면 마지막 후보가 (MAX-1)분 = 02:24로, 딱 상한에 닿는다.
+        int lastMinute = ScenarioService.MAX_SWEEP_POINTS - 1;
+        ScenarioResponse resp = scenario.collectionSweep(new SimulationConfig(), 0, lastMinute, 1);
+
+        assertEquals(ScenarioService.MAX_SWEEP_POINTS, resp.getXCategories().size());
     }
 
     @Test
