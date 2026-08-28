@@ -358,6 +358,47 @@ class EdgeChatRoutingTest {
                 EdgeToolSelector.select("팬 두 개를 어디에 어떤 방향으로 달아야 제일 시원해?"));
     }
 
+    // ── 최종 리뷰: 배치 어휘가 다른 도구의 주제를 훔친다 ─────────────────────
+    //
+    // "배치"·"조합"에 부정 가드가 없어서, 문장에 다른 도구의 주제 어휘가 함께 있어도
+    // FAN_LAYOUT이 먼저 걸려 버렸다. 아래 다섯 문장이 그 결함의 재현이었다 — 누군가
+    // 나중에 가드를 없애거나 좁히면 여기서 먼저 깨져야 한다.
+
+    @Test
+    @DisplayName("'팬 rpm 조합을 스윕해줘'는 배치 랭킹이 아니라 스윕이다")
+    void fanRpmComboSweepGoesToSweepNotLayout() {
+        assertEquals(EdgeToolSelector.TOOL_SWEEP,
+                EdgeToolSelector.select("팬 rpm 조합을 스윕해줘"));
+    }
+
+    @Test
+    @DisplayName("'팬 속도와 전력 조합 중 가성비' 질문은 배치 랭킹이 아니라 스윕이다")
+    void fanSpeedPowerComboGoesToSweepNotLayout() {
+        assertEquals(EdgeToolSelector.TOOL_SWEEP,
+                EdgeToolSelector.select("팬 속도와 전력 조합 중 가성비가 제일 좋은 건?"));
+    }
+
+    @Test
+    @DisplayName("'팬 달린 상태에서 방열판 배치 비교'는 배치 랭킹이 아니라 방열판 도구다")
+    void fanConditionWithHeatsinkPlacementGoesToHeatsinkNotLayout() {
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK,
+                EdgeToolSelector.select("팬 달린 상태에서 방열판 배치 비교해줘"));
+    }
+
+    @Test
+    @DisplayName("'쿨러 달았을 때 방열판 배치 비교'는 배치 랭킹이 아니라 방열판 도구다")
+    void coolerConditionWithHeatsinkPlacementGoesToHeatsinkNotLayout() {
+        assertEquals(EdgeToolSelector.TOOL_HEATSINK,
+                EdgeToolSelector.select("쿨러 달았을 때 방열판 배치 비교해줘"));
+    }
+
+    @Test
+    @DisplayName("'팬 흡기 배치 데이터를 CSV로 기록' 후 모델 보정 질문은 배치 랭킹이 아니라 캘리브레이션이다")
+    void fanPlacementCsvCalibrationGoesToCalibrateNotLayout() {
+        assertEquals(EdgeToolSelector.TOOL_CALIBRATE,
+                EdgeToolSelector.select("팬 흡기 배치 데이터를 CSV로 기록했는데 모델 보정할 수 있어?"));
+    }
+
     @Test
     @DisplayName("배치 랭킹 요약에 1위 조합과 임시값 경고가 들어간다")
     @SuppressWarnings("unchecked")

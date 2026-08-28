@@ -247,4 +247,30 @@ class RankFanLayoutsToolTest {
     void rejectsEmptyCandidates() throws Exception {
         assertEquals(ErrorCode.OUT_OF_RANGE, rejected("{\"candidates\":[]}").errors().get(0).code());
     }
+
+    /**
+     * 같은 배치가 candidates 배열에 두 번 들어오면(예: 둘 다 P02로 정규화되는 서로
+     * 다른 표기) 순위표에 같은 id가 서로 다른 순위(1위·2위)로 두 번 나온다 —
+     * 사용자가 보기에 결과가 모순된다. positions 쪽은 이미 같은 위치 중복을
+     * 거부하므로, candidates 쪽도 같은 기준으로 fail-closed여야 한다.
+     */
+    @Test
+    @DisplayName("candidates에 같은 배치가 두 번 들어오면 거부한다")
+    void rejectsDuplicateCandidateLayouts() throws Exception {
+        ToolResult r = rejected("""
+            {"candidates":[
+              {"fan1":{"position":"bottom","flow":"intake"},"fan2":{"position":"top","flow":"exhaust"}},
+              {"fan1":{"position":"top","flow":"exhaust"},"fan2":{"position":"bottom","flow":"intake"}}
+            ]}""");
+        assertEquals(ErrorCode.INVALID_ARGUMENTS, r.errors().get(0).code());
+        assertTrue(r.errors().get(0).message().contains("P02"),
+                "중복된 조합 id(P02)를 메시지에 이름으로 밝혀야 한다: " + r.errors().get(0).message());
+    }
+
+    @Test
+    @DisplayName("topK가 정수가 아니면 거부한다 — 소수는 조용히 잘라내지 않는다")
+    void rejectsNonIntegralTopK() throws Exception {
+        ToolResult r = rejected("{\"topK\":3.7}");
+        assertEquals(ErrorCode.INVALID_ARGUMENTS, r.errors().get(0).code());
+    }
 }

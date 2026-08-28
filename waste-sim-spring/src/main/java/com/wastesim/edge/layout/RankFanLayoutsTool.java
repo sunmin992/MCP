@@ -145,8 +145,8 @@ public class RankFanLayoutsTool implements McpToolProvider {
         int topK = DEFAULT_TOP_K;
         if (has(root, "topK")) {
             JsonNode n = root.get("topK");
-            if (!n.isNumber()) {
-                return reject(ErrorCode.INVALID_ARGUMENTS, "topK", "topK는 정수여야 한다");
+            if (!n.isNumber() || !n.isIntegralNumber()) {
+                return reject(ErrorCode.INVALID_ARGUMENTS, "topK", "topK는 정수여야 한다 (받은 값: " + n + ")");
             }
             topK = n.asInt();
             if (topK < 1 || topK > MAX_COMBINATIONS) {
@@ -264,6 +264,7 @@ public class RankFanLayoutsTool implements McpToolProvider {
                     "배치 후보는 " + MAX_COMBINATIONS + "개 이하여야 한다 (받은 개수: " + node.size() + ")");
         }
         List<FanLayoutCandidate> out = new ArrayList<>();
+        LinkedHashSet<String> seenCanonicalIds = new LinkedHashSet<>();
         int index = 0;
         for (JsonNode n : node) {
             String field = "candidates[" + index + "]";
@@ -295,6 +296,13 @@ public class RankFanLayoutsTool implements McpToolProvider {
             if (canonicalId == null) {
                 return new ValidationError(ErrorCode.INVALID_ARGUMENTS, field,
                         "이 배치를 표준 60조합 중 하나로 식별할 수 없다 — 위치·방향을 다시 확인할 것");
+            }
+            // 같은 배치가 두 번 들어오면 순위표에 같은 id가 서로 다른 순위로 두 번
+            // 나온다 — 사용자가 보기에 결과가 모순돼 보이므로 조용히 중복 순위를
+            // 매기지 않고 거부한다(fail-closed).
+            if (!seenCanonicalIds.add(canonicalId)) {
+                return new ValidationError(ErrorCode.INVALID_ARGUMENTS, field,
+                        "같은 배치가 중복됐다: " + canonicalId);
             }
             out.add(new FanLayoutCandidate(canonicalId, p1, f1, p2, f2));
         }

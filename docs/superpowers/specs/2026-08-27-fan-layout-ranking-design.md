@@ -260,7 +260,7 @@ flowType = 방향이 다르면 FORCED_THROUGH_FLOW
       "comparableWithSimulator": false
     }
   }],
-  "tieBreak": "coolingScore 동률이면 advisorySpreadC가 작은 쪽",
+  "tieBreak": "coolingScore 동률이면 advisorySpreadC가 작은 쪽, 그래도 같으면 조합 ID 오름차순",
   "warnings": ["FAN_SPEC_NOT_VERIFIED",
                "ADVISORY_TEMP_ANCHORED_ESTIMATE",
                "ADVISORY_TEMP_NOT_COMPARABLE_WITH_SIMULATOR"],
@@ -355,10 +355,21 @@ PTM → FAN_LAYOUT(신규) → SWEEP → CALIBRATE → HEATSINK → THROTTLING
 
 ### 8.3 `FAN_LAYOUT` 패턴 규칙
 
-팬 어휘와 배치 어휘가 **함께** 있을 때만 매칭한다. 한쪽만으로는 오지 않는다.
+팬 어휘와 배치 어휘가 **함께** 있을 때만 매칭하고, 다른 도구의 주제 어휘가 함께 있으면
+물러난다(리뷰 두 라운드를 거쳐 좁혀진 최종 형태 — 아래 8.4의 회귀 케이스가 이 좁히기를
+강제한다).
 
 - 팬 축: `팬 | fan | 쿨러 | 흡기 | 배기 | 흡배기`
-- 배치 축: `배치 | 위치 | 조합 | 방향 | 상단 | 하단 | 어디\s*에?\s*(달|붙|장착|부착)`
+- 배치 축: `배치 | 조합 | 어디\s*에?\s*(달|붙|장착|부착) | 어느\s*(위치|자리|쪽) |
+  어떤\s*(방향|위치|자리) | (위치|방향)\s*(조합|비교|추천|고르|정하)`
+  — 맨 `위치`·`방향`은 단독으로 넣지 않는다(리뷰 라운드 1: CSV 실측 데이터의
+  "위치"나 냉각 조건 설명의 "방향"이 배치 랭킹으로 새던 결함). 비교·배치를 실제로
+  요청하는 동사·명사와 붙어 있을 때만 본다.
+- **부정 가드**(리뷰 라운드 2, 최종 리뷰): 팬 축·배치 축이 모두 매칭돼도 다음 어휘가
+  문장에 함께 있으면 FAN_LAYOUT은 매칭하지 않고 원래 검사 순서(SWEEP → CALIBRATE →
+  HEATSINK)로 넘긴다 — `스윕|sweep|rpm|알피엠|pwm|회전수|속도|가성비|전력|보정|캘리브|
+  calibrat|csv|실측|방열판|히트싱크`. `최적`은 가드에 넣지 않는다 — "최적 팬 배치"가
+  SWEEP의 `최적...팬`에게 도로 뺏기기 때문이다(8.1 참고).
 
 `EdgeToolSelector`에 `TOOL_LAYOUT = "rank_fan_layouts"` 상수를 추가한다.
 `select()`의 반환 후보가 다섯에서 여섯으로 늘어난다.
@@ -367,13 +378,19 @@ PTM → FAN_LAYOUT(신규) → SWEEP → CALIBRATE → HEATSINK → THROTTLING
 
 | 입력 | 기대 도구 | 이유 |
 |---|---|---|
-| "팬 두 개를 어디에 달아야 제일 시원해?" | `rank_fan_layouts` | 팬 + 배치 |
-| "흡기 배기 조합 중 뭐가 나아?" | `rank_fan_layouts` | 팬 + 배치 |
-| "최적 팬 배치 알려줘" | `rank_fan_layouts` | SWEEP보다 먼저 검사 |
-| "40mm 팬 2개 위치 조합 전부 비교해줘" | `rank_fan_layouts` | 팬 + 배치 |
+| "팬 두 개를 어디에 달아야 제일 시원해?" | `rank_fan_layouts` | 팬 + 배치, 가드 어휘 없음 |
+| "흡기 배기 조합 중 뭐가 나아?" | `rank_fan_layouts` | 팬 + 배치, 가드 어휘 없음 |
+| "최적 팬 배치 알려줘" | `rank_fan_layouts` | SWEEP보다 먼저 검사, "최적"은 가드 대상 아님 |
+| "40mm 팬 2개 위치 조합 전부 비교해줘" | `rank_fan_layouts` | 팬 + 배치, 가드 어휘 없음 |
+| "팬 두 개를 어디에 어떤 방향으로 달아야 제일 시원해?" | `rank_fan_layouts` | 팬 + 배치, 가드 어휘 없음 |
 | "최적 팬 rpm은?" | `sweep_fan_rpm` | 배치 어휘 없음 |
 | "팬 몇 %가 가성비 좋아?" | `sweep_fan_rpm` | 배치 어휘 없음 |
+| "팬 rpm 조합을 스윕해줘" | `sweep_fan_rpm` | 팬+조합이 매칭돼도 `스윕`·`rpm`이 가드에 걸려 물러남 |
+| "팬 속도와 전력 조합 중 가성비가 제일 좋은 건?" | `sweep_fan_rpm` | `속도`·`전력`·`가성비`가 가드에 걸려 물러남 |
+| "팬 흡기 배치 데이터를 CSV로 기록했는데 모델 보정할 수 있어?" | `calibrate_edge_thermal_model` | `csv`·`보정`이 가드에 걸려 물러남 |
 | "방열판을 어디에 붙일까?" | `simulate_heatsink_layout` | 팬 어휘 없음 |
+| "팬 달린 상태에서 방열판 배치 비교해줘" | `simulate_heatsink_layout` | `방열판`이 가드에 걸려 물러남 |
+| "쿨러 달았을 때 방열판 배치 비교해줘" | `simulate_heatsink_layout` | `방열판`이 가드에 걸려 물러남 |
 | "팬을 미리 돌리면 이득이야?" | `simulate_ptm_control` | PTM이 먼저 |
 
 ---

@@ -35,7 +35,9 @@ class FanLayoutIsolationTest {
         assertTrue(Files.isDirectory(dir), "패키지 디렉터리를 찾을 수 없다: " + dir.toAbsolutePath());
 
         List<String> violations = new ArrayList<>();
-        try (Stream<Path> files = Files.list(dir)) {
+        // Files.walk — 재귀적으로 훑는다. Files.list는 바로 아래 계층만 봐서, 이 패키지
+        // 아래 하위 패키지가 생기면 그 파일들이 스캔에서 조용히 빠진다.
+        try (Stream<Path> files = Files.walk(dir)) {
             for (Path f : files.filter(p -> p.toString().endsWith(".java")).toList()) {
                 String src = Files.readString(f);
                 // javadoc의 {@code ...} 언급은 의존성이 아니므로 코드에서만 본다.
@@ -55,7 +57,9 @@ class FanLayoutIsolationTest {
     @DisplayName("FanArraySpec은 SourceStatus enum만 쓴다")
     void onlySourceStatusIsBorrowedFromFanArraySpec() throws IOException {
         Path dir = Path.of("src", "main", "java", "com", "wastesim", "edge", "layout");
-        try (Stream<Path> files = Files.list(dir)) {
+        // Files.walk — 재귀적으로 훑는다. Files.list는 바로 아래 계층만 봐서, 이 패키지
+        // 아래 하위 패키지가 생기면 그 파일들이 스캔에서 조용히 빠진다.
+        try (Stream<Path> files = Files.walk(dir)) {
             for (Path f : files.filter(p -> p.toString().endsWith(".java")).toList()) {
                 String stripped = stripComments(Files.readString(f));
                 int at = stripped.indexOf("FanArraySpec");
