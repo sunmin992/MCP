@@ -50,6 +50,10 @@ public class OsrmRouteService {
     }
 
     public OsrmRouteService(boolean enabled, String baseUrl, OkHttpClient http, double maxSnapMeters) {
+        if (HttpUrl.parse(baseUrl) == null) throw new IllegalArgumentException("유효하지 않은 OSRM base URL입니다.");
+        if (!Double.isFinite(maxSnapMeters) || maxSnapMeters <= 0) {
+            throw new IllegalArgumentException("osrm.max-snap-meters는 0보다 큰 유한한 값이어야 합니다.");
+        }
         this.enabled = enabled;
         this.baseUrl = baseUrl;
         this.http = http;
@@ -102,11 +106,25 @@ public class OsrmRouteService {
             for (int i = 0; i < legsNode.size(); i++) {
                 JsonNode leg = legsNode.get(i);
                 legs.add(new Leg(waypoints.get(i).id(), waypoints.get(i + 1).id(),
-                        leg.path("distance").asDouble(), leg.path("duration").asDouble()));
+                        nonNegativeFinite(leg, "distance", "legs[" + i + "]"),
+                        nonNegativeFinite(leg, "duration", "legs[" + i + "]")));
             }
-            return new RouteResult(route.path("distance").asDouble(),
-                    route.path("duration").asDouble(), List.copyOf(legs));
+            return new RouteResult(nonNegativeFinite(route, "distance", "routes[0]"),
+                    nonNegativeFinite(route, "duration", "routes[0]"), List.copyOf(legs));
         }
+    }
+
+    private static double nonNegativeFinite(JsonNode parent, String field, String location) throws IOException {
+        JsonNode value = parent.get(field);
+        if (value == null || !value.isNumber()) {
+            throw new IOException("OSRM 응답의 " + location + "." + field + "가 숫자가 아닙니다.");
+        }
+        double parsed = value.doubleValue();
+        if (!Double.isFinite(parsed) || parsed < 0) {
+            throw new IOException("OSRM 응답의 " + location + "." + field
+                    + "가 0 이상의 유한한 숫자가 아닙니다: " + value);
+        }
+        return parsed;
     }
 
     /**
@@ -138,7 +156,7 @@ public class OsrmRouteService {
         }
         for (int i = 0; i < waypointsNode.size(); i++) {
             double snap = waypointsNode.get(i).path("distance").asDouble(Double.NaN);
-            if (!Double.isFinite(snap)) {
+            if (!Double.isFinite(snap) || snap < 0) {
                 throw new IOException(requested.get(i).id() + "의 스냅 거리를 읽을 수 없습니다.");
             }
             if (snap > maxSnapMeters) {

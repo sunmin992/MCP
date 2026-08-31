@@ -193,4 +193,18 @@ class McpControllerTest {
                 + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2}}}");
         assertFalse(b.path("result").path("isError").asBoolean());
     }
+
+    @Test
+    void schemaTypesAreEnforcedBeforeJacksonCanCoerceValues() throws Exception {
+        for (String arguments : List.of(
+                "{\"collectionTime\":\"08:00\",\"days\":2.7}",
+                "{\"collectionTime\":\"08:00\",\"days\":\"2\"}",
+                "{\"collectionTime\":\"08:00\",\"trafficEnabled\":\"true\"}",
+                "{\"collectionTime\":\"08:00\",\"routeSequence\":[\"Node_A\",3]}")) {
+            JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":40,\"method\":\"tools/call\","
+                    + "\"params\":{\"name\":\"run_waste_simulation\",\"arguments\":" + arguments + "}}");
+            assertTrue(b.path("result").path("isError").asBoolean(), arguments);
+            assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("타입"));
+        }
+    }
 }

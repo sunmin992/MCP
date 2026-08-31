@@ -179,6 +179,61 @@ public class McpToolCatalog {
         return missing;
     }
 
+    /** 공개 JSON Schema의 기본 타입 계약을 실행 시점에도 강제한다. */
+    public static java.util.List<String> invalidArgumentTypes(JsonNode schema, JsonNode args) {
+        java.util.List<String> errors = new java.util.ArrayList<>();
+        if (schema == null || args == null || args.isMissingNode() || args.isNull()) return errors;
+        if ("object".equals(schema.path("type").asText()) && !args.isObject()) {
+            errors.add("arguments는 object여야 합니다.");
+            return errors;
+        }
+        JsonNode properties = schema.path("properties");
+        if (!properties.isObject()) return errors;
+        properties.fields().forEachRemaining(entry -> {
+            String field = entry.getKey();
+            if (!args.hasNonNull(field)) return;
+            JsonNode value = args.get(field);
+            JsonNode rule = entry.getValue();
+            String expected = rule.path("type").asText("");
+            if (!matchesType(expected, value)) {
+                errors.add(field + "은(는) " + expected + " 타입이어야 합니다(받은 값: " + value + ").");
+                return;
+            }
+            JsonNode allowed = rule.path("enum");
+            if (allowed.isArray() && !contains(allowed, value)) {
+                errors.add(field + "에 허용되지 않은 값이 들어왔습니다: " + value);
+            }
+            if (value.isArray()) {
+                String itemType = rule.path("items").path("type").asText("");
+                for (int i = 0; i < value.size(); i++) {
+                    if (!matchesType(itemType, value.get(i))) {
+                        errors.add(field + "[" + i + "]은(는) " + itemType
+                                + " 타입이어야 합니다(받은 값: " + value.get(i) + ").");
+                    }
+                }
+            }
+        });
+        return errors;
+    }
+
+    private static boolean matchesType(String expected, JsonNode value) {
+        return switch (expected) {
+            case "" -> true;
+            case "string" -> value.isTextual();
+            case "boolean" -> value.isBoolean();
+            case "integer" -> value.isIntegralNumber() && value.canConvertToInt();
+            case "number" -> value.isNumber() && Double.isFinite(value.doubleValue());
+            case "array" -> value.isArray();
+            case "object" -> value.isObject();
+            default -> true;
+        };
+    }
+
+    private static boolean contains(JsonNode array, JsonNode value) {
+        for (JsonNode candidate : array) if (candidate.equals(value)) return true;
+        return false;
+    }
+
     /** list_scenarios 도구 호출 결과(CallToolResult content). */
     public String scenarioListText() {
         return "지원 시나리오 유형: " + String.join(", ", tool.scenarioTypes())

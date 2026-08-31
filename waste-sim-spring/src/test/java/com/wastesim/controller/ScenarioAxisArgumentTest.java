@@ -163,4 +163,20 @@ class ScenarioAxisArgumentTest {
                 "빈 배열은 축을 지정하지 않은 것과 같게 다룬다(기존 동작 유지)");
     }
 
+    @Test
+    @DisplayName("정수 시나리오 축은 소수·문자열을 조용히 변환하지 않는다")
+    void integerScenarioAxesRejectFractionsAndMalformedPairs() {
+        assertThrows(ScenarioController.ScenarioArgException.class,
+                () -> controller.multiTruck(Map.of("truckCounts", List.of(1, 2.7, 4))));
+        assertThrows(ScenarioController.ScenarioArgException.class,
+                () -> controller.density(Map.of("densities", List.of(List.of(4, "25")))));
+        assertThrows(ScenarioController.ScenarioArgException.class,
+                () -> controller.truckRoute(Map.of("routeTravelMinutes", 15.5)));
+        assertThrows(ScenarioController.ScenarioArgException.class,
+                () -> controller.multiTruck(Map.of("truckCounts", List.of(0, 2))));
+        assertThrows(ScenarioController.ScenarioArgException.class,
+                () -> controller.density(Map.of("densities", List.of(List.of(-1, 25)))));
+        verify(tool, never()).runScenarioCustom(any(), any());
+    }
+
 }

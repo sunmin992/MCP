@@ -152,6 +152,26 @@ class OsrmTestControllerTest {
         assertEquals(3500.0, body.get("totalDistanceMeters"));
     }
 
+    @Test
+    void rejectsOsrmResponseWithMissingOrNegativeMetrics() throws Exception {
+        server.start();
+        server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody("""
+                {"code":"Ok","waypoints":[{"distance":5.0},{"distance":8.0}],
+                 "routes":[{"distance":3500.0,"legs":[{"distance":-1.0,"duration":20.0}]}]}
+                """));
+        ResponseEntity<?> response = routeTwoNodes(server.url("/").toString());
+        assertEquals(502, response.getStatusCode().value(),
+                "누락된 총 duration과 음수 구간 거리를 0으로 바꿔 정상 응답하면 안 된다");
+    }
+
+    @Test
+    void rejectsInvalidSnapThresholdConfiguration() {
+        assertThrows(IllegalArgumentException.class,
+                () -> new OsrmRouteService(true, "https://example.com", new OkHttpClient(), Double.NaN));
+        assertThrows(IllegalArgumentException.class,
+                () -> new OsrmRouteService(true, "https://example.com", new OkHttpClient(), 0));
+    }
+
     private ResponseEntity<?> routeTwoNodes(String baseUrl) {
         OsrmRouteService service = new OsrmRouteService(true, baseUrl, new OkHttpClient());
         return new OsrmTestController(service).route(new OsrmTestController.RouteRequest(

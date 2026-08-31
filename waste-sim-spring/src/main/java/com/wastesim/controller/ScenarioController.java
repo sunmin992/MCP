@@ -108,14 +108,19 @@ public class ScenarioController {
         applyPreset(base, b);
         List<int[]> densities = null;
         Object raw = b.get("densities");
+        if (raw != null && !(raw instanceof List<?>)) {
+            throw invalidScalar("densities", "[건물 수, 동당 인원] 배열", raw);
+        }
         if (raw instanceof List<?> list && !list.isEmpty()) {
             densities = new ArrayList<>();
-            for (Object o : list) {
-                if (o instanceof List<?> pair && pair.size() >= 2) {
-                    densities.add(new int[]{
-                            ((Number) pair.get(0)).intValue(),
-                            ((Number) pair.get(1)).intValue()});
+            for (int i = 0; i < list.size(); i++) {
+                Object o = list.get(i);
+                if (!(o instanceof List<?> pair) || pair.size() != 2) {
+                    throw invalidScalar("densities[" + i + "]", "정수 2개 배열", o);
                 }
+                densities.add(new int[]{
+                        requiredIntInRange("densities[" + i + "][0]", pair.get(0), 1, 26),
+                        requiredIntInRange("densities[" + i + "][1]", pair.get(1), 1, 500)});
             }
         }
         List<int[]> finalDensities = densities;
@@ -137,9 +142,7 @@ public class ScenarioController {
         Map<String, Object> b = body == null ? Map.of() : body;
         SimulationConfig base = baseConfig(b, 10);
         applyPreset(base, b);
-        double[] tc = doubleArr(b, "truckCounts");
-        int[] counts = null;
-        if (tc != null) { counts = new int[tc.length]; for (int i = 0; i < tc.length; i++) counts[i] = (int) tc[i]; }
+        int[] counts = intArr(b, "truckCounts");
         int[] finalCounts = counts;
         return ApiError.respond(tool.runScenarioCustom(base, () -> scenario.multiTruck(base, finalCounts)));
     }
@@ -196,7 +199,9 @@ public class ScenarioController {
         applyPreset(base, b);
         // 이동시간을 명시하면 그대로 쓴다 — 지정하지 않으면 시나리오가 기본값을 채우고
         // 무엇을 가정했는지 결과에 밝힌다(조용히 바꾸지 않는다).
-        if (b.get("routeTravelMinutes") instanceof Number n) base.setRouteTravelMinutes(n.intValue());
+        if (b.containsKey("routeTravelMinutes")) {
+            base.setRouteTravelMinutes(intVal(b, "routeTravelMinutes", 0));
+        }
         List<List<String>> routes = routeSequences(b);
         List<String> truckTypes = stringList(b, "truckTypes");
         return ApiError.respond(tool.runScenarioCustom(base,
@@ -300,6 +305,39 @@ public class ScenarioController {
                     k + "가 정수 범위를 벗어났습니다. 받은 값: " + v));
         }
         return (int) value;
+    }
+
+    private static int requiredInt(String field, Object value) {
+        if (!(value instanceof Byte || value instanceof Short || value instanceof Integer || value instanceof Long)) {
+            throw invalidScalar(field, "정수", value);
+        }
+        long parsed = ((Number) value).longValue();
+        if (parsed < Integer.MIN_VALUE || parsed > Integer.MAX_VALUE) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.OUT_OF_RANGE, field,
+                    field + "가 정수 범위를 벗어났습니다. 받은 값: " + value));
+        }
+        return (int) parsed;
+    }
+
+    private static int requiredIntInRange(String field, Object value, int min, int max) {
+        int parsed = requiredInt(field, value);
+        if (parsed < min || parsed > max) {
+            throw new ScenarioArgException(new ValidationError(ErrorCode.OUT_OF_RANGE, field,
+                    field + "는 " + min + "~" + max + " 범위여야 합니다. 받은 값: " + value));
+        }
+        return parsed;
+    }
+
+    private static int[] intArr(Map<String, Object> b, String field) {
+        Object value = b.get(field);
+        if (value == null) return null;
+        if (!(value instanceof List<?> list)) throw invalidScalar(field, "정수 배열", value);
+        if (list.isEmpty()) return null;
+        int[] out = new int[list.size()];
+        for (int i = 0; i < list.size(); i++) {
+            out[i] = requiredIntInRange(field + "[" + i + "]", list.get(i), 1, 26);
+        }
+        return out;
     }
 
     private static double dblVal(Map<String, Object> b, String k, double def) {

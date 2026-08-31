@@ -106,10 +106,15 @@ public class McpController {
         // 없으면 collectionTime 없이 부른 요청이 조용히 기본값 12:00으로 돌아가, 클라이언트는
         // 자기 요청이 불완전했다는 사실조차 모른 채 엉뚱한 실험 결과를 받는다. 스키마가
         // 진실 원천이므로 별도 목록을 만들지 않고 스키마의 required를 그대로 재사용한다.
-        List<String> missing = McpToolCatalog.missingRequired(catalog.inputSchemaFor(mapper, name), args);
+        JsonNode schema = catalog.inputSchemaFor(mapper, name);
+        List<String> missing = McpToolCatalog.missingRequired(schema, args);
         if (!missing.isEmpty()) {
             return textResult("필수 인자 누락: " + String.join(", ", missing)
                     + " (도구 " + name + "의 스키마에 required로 선언된 필드입니다)", true);
+        }
+        List<String> invalidTypes = McpToolCatalog.invalidArgumentTypes(schema, args);
+        if (!invalidTypes.isEmpty()) {
+            return textResult("인자 타입 검증 실패: " + String.join(" ", invalidTypes), true);
         }
 
         // 모델 어댑터(run_waste_simulation, run_waste_simulation_devs, ...)는
