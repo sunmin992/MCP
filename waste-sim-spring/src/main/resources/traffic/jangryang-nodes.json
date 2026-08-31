@@ -1,0 +1,190 @@
+{
+  "id": "jangryang-nodes",
+  "version": 1,
+  "coordinateHash": "83d12ae3019fe9cb77ab707b73a289640d12950fcb53022b7b819b33ffbc5dd0",
+  "coordinateSystem": "WGS84 (EPSG:4326), [경도, 위도]",
+  "rule": "노드 좌표 = 그 노드에 귀속된 실측 링크들의 공통 종점. 공통 종점이 없으면 구간 중간점.",
+  "source": "response_filtered.csv (공공데이터포털, 포항 장량동 인근 실측 교통량) 15개 링크. 노드 귀속 규칙은 scripts/preprocess_response_filtered.py의 NODE_KEYWORDS와 동일하며, jangryang-weekday.json의 혼잡 가중치도 같은 귀속으로 만들어졌다.",
+  "purpose": "교통 가중치와 거리가 같은 장소를 가리키도록 노드 위치를 고정한다. 이 파일은 아직 어떤 프로덕션 코드도 읽지 않는다 — 좌표를 근거와 함께 못박고 테스트로 잠그는 것이 목적이다.",
+  "snapThresholdMeters": 300,
+  "snapVerifiedWith": "OSRM /nearest/v1/driving (router.project-osrm.org). osrm.max-snap-meters=300 기준 전부 통과.",
+  "nodes": {
+    "Node_A": {
+      "longitude": 129.37185,
+      "latitude": 36.06962,
+      "landmark": "장성초등학교",
+      "endpointRole": "4개 링크 전부가 접하는 공통 종점",
+      "geocodeSource": "OSM/Nominatim 검색 '포항 장성초등학교'",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 61.5,
+      "snapRoad": "새천년대로1123번길",
+      "links": [
+        {
+          "begin": "장성초등학교",
+          "end": "창포사거리"
+        },
+        {
+          "begin": "창포사거리",
+          "end": "장성초등학교"
+        },
+        {
+          "begin": "장성초등학교",
+          "end": "두산위브"
+        },
+        {
+          "begin": "두산위브",
+          "end": "장성초등학교"
+        }
+      ],
+      "linkCount": 4
+    },
+    "Node_B": {
+      "longitude": 129.39554,
+      "latitude": 36.07622,
+      "landmark": "양덕교차로",
+      "endpointRole": "4개 링크 전부의 도착 종점",
+      "geocodeSource": "OSM/Nominatim 검색 '포항 양덕사거리' — CSV의 '양덕교차로'는 OSM에 그 이름으로 없어 동일 지점의 통용 명칭으로 조회",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 17.6,
+      "snapRoad": "새천년대로",
+      "links": [
+        {
+          "begin": "천마로사거리",
+          "end": "양덕교차로"
+        },
+        {
+          "begin": "죽천",
+          "end": "양덕교차로"
+        },
+        {
+          "begin": "청소년수련관",
+          "end": "양덕교차로"
+        },
+        {
+          "begin": "두산위브",
+          "end": "양덕교차로"
+        }
+      ],
+      "linkCount": 4
+    },
+    "Node_C": {
+      "longitude": 129.37235,
+      "latitude": 36.06898,
+      "landmark": "장성초등사거리",
+      "endpointRole": "5개 링크 중 4개의 도착 종점",
+      "geocodeSource": "OSM에 이 이름의 지점이 없어 도로 기하로 확정 — Overpass로 새천년대로와 다른 명명 도로가 공유하는 노드를 뽑고, 이 노드에 링크를 보내는 3개 지점(장성초등학교 84m·창포우체국 179m·현진에버빌 291m)에 동시에 가장 가까운 교차점을 택함. 새천년대로 × 대곡로 × 새천년대로1123번길이 만나는 사거리이며, 현진에버빌이 대곡로에 접한다는 점이 이 링크의 경로와 일치한다",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 0.3,
+      "snapRoad": "대곡로",
+      "links": [
+        {
+          "begin": "장성초등",
+          "end": "창포아이파크사거리"
+        },
+        {
+          "begin": "두산위브",
+          "end": "장성초등사거리"
+        },
+        {
+          "begin": "현진에버빌",
+          "end": "장성초등사거리"
+        },
+        {
+          "begin": "창포우체국",
+          "end": "장성초등사거리"
+        },
+        {
+          "begin": "장성초등",
+          "end": "장성초등사거리"
+        }
+      ],
+      "linkCount": 5
+    },
+    "Node_D": {
+      "longitude": 129.38066,
+      "latitude": 36.08027,
+      "landmark": "두산위브↔포항온천 구간 중간점",
+      "endpointRole": "공통 종점 없음(2개 링크가 서로 역방향 쌍) → 구간 중간점",
+      "geocodeSource": "OSM/Nominatim '포항 두산위브'(129.38052, 36.07677)와 '포항 포항온천'(129.38080, 36.08377)의 중간점. 두 지점 간 직선거리 약 780m",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 7.1,
+      "snapRoad": "",
+      "links": [
+        {
+          "begin": "포항온천",
+          "end": "두산위브"
+        },
+        {
+          "begin": "두산위브",
+          "end": "포항온천"
+        }
+      ],
+      "linkCount": 2
+    }
+  },
+  "measuredOsrm": {
+    "profile": "driving",
+    "host": "router.project-osrm.org",
+    "unit": [
+      "distanceMeters",
+      "durationSeconds"
+    ],
+    "note": "각 순서쌍을 단독 조회한 값. OSRM은 경로 안의 구간을 진입 방향을 이어받아 계산하므로, 이 행렬을 구간별로 합친 값은 전체 경로 조회와 다를 수 있다.",
+    "pairs": {
+      "Node_A->Node_B": [
+        2403.5,
+        162.0
+      ],
+      "Node_A->Node_C": [
+        57.8,
+        10.2
+      ],
+      "Node_A->Node_D": [
+        1796.7,
+        163.8
+      ],
+      "Node_B->Node_A": [
+        2690.6,
+        186.6
+      ],
+      "Node_B->Node_C": [
+        2633.4,
+        180.6
+      ],
+      "Node_B->Node_D": [
+        2175.7,
+        190.8
+      ],
+      "Node_C->Node_A": [
+        57.8,
+        10.2
+      ],
+      "Node_C->Node_B": [
+        2345.7,
+        151.8
+      ],
+      "Node_C->Node_D": [
+        1738.9,
+        153.6
+      ],
+      "Node_D->Node_A": [
+        1788.4,
+        157.2
+      ],
+      "Node_D->Node_B": [
+        1900.2,
+        167.4
+      ],
+      "Node_D->Node_C": [
+        1731.2,
+        151.2
+      ]
+    }
+  },
+  "knownIssues": [
+    "Node_A와 Node_C는 도로 거리 57.8m(직선 84m)로 사실상 같은 장소다. 실측 CSV가 '장성초등학교'와 '장성초등사거리'를 별개 키워드로 나눠 귀속한 결과이며, 기존 엔진은 이 구간에도 15분을 부과한다(함의 속도 0.23km/h, 88배 과대).",
+    "Node_C의 '창포' 키워드로 귀속된 링크의 지점(창포사거리·창포아이파크사거리·창포우체국)은 우창동·두호동으로 장량동 밖이다. 확정된 Node_C 좌표 자체는 장량동 안에 있다.",
+    "alleyNodeIds=[Node_C, Node_D]는 5톤 진입 불가를 뜻하지만 Node_C는 사거리, Node_D는 삼흥로변이다. 좌표와 무관한 별개 결함으로, jangryang-weekday.json 쪽에서 다뤄야 한다.",
+    "CSV의 '죽천'은 지오코딩이 엉뚱한 지점(장흥초등학교)으로 매칭된다. Node_B의 좌표는 공통 종점(양덕교차로)으로 정해지므로 이 실패는 영향이 없다."
+  ]
+}
