@@ -9,7 +9,6 @@ import static com.wastesim.util.Round.round1;
 import static com.wastesim.util.Round.round2;
 
 import java.util.*;
-import java.util.stream.IntStream;
 
 @Service
 public class SimulationService {

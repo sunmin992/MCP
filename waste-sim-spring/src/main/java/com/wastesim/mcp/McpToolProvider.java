@@ -23,7 +23,7 @@ import com.wastesim.tool.ToolResult;
  */
 public interface McpToolProvider {
 
-    /** MCP tools/list·tools/call에 노출되는 도구 이름. 예: "predict_edge_throttling". */
+    /** MCP tools/list·tools/call에 노출되는 도구 이름. 예: "get_jangnyang_fixed_subtasks". */
     String toolName();
 
     /** MCP tools/list에 노출되는 설명. */
@@ -40,15 +40,4 @@ public interface McpToolProvider {
      */
     ToolResult call(JsonNode args);
 
-    /**
-     * 이 도구가 속한 도메인 — {@code POST /mcp/{slug}} 엔드포인트와 tools/list
-     * 필터링에 쓰인다({@link McpDomain}).
-     *
-     * <p>{@link SimulationModelProvider#domain()}과 달리 <b>기본 구현을 두지 않는다</b>.
-     * 이 확장점은 입력 스키마가 고정돼 있지 않아 "어느 도메인인지"를 인터페이스가
-     * 추론할 근거가 없기 때문이다 — 기본값을 두면 새 도구가 조용히 엉뚱한
-     * 엔드포인트에 노출된다. 구현체가 명시적으로 선언하게 해서, 도메인을 빠뜨리면
-     * 런타임이 아니라 컴파일 시점에 드러나게 한다.
-     */
-    McpDomain domain();
 }

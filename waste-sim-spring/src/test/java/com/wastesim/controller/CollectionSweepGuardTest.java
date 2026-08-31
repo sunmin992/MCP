@@ -8,7 +8,6 @@ import com.wastesim.service.SimulationService;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.tool.SimulationConfigValidator;
 import com.wastesim.tool.SimulationTool;
-import com.wastesim.tool.ToolResult;
 import com.wastesim.tool.ValidationError;
 import com.wastesim.web.ApiError;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;

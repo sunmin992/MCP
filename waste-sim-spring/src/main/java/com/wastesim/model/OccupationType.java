@@ -27,11 +27,6 @@ public enum OccupationType {
         return Arrays.asList(BlueCollar, Student, Housewife);
     }
 
-    public static OccupationType fromIndex(int i) {
-        OccupationType[] vals = values();
-        return vals[i % vals.length];
-    }
-
     /** 직업명 문자열 → enum (대소문자 무관, 별칭 허용) */
     public static OccupationType fromName(String name) {
         if (name == null) return null;

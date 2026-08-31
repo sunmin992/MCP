@@ -74,6 +74,16 @@
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+        <!-- MockWebServer — LLM 백엔드 응답을 고정 주입해 "LLM이 무엇을 돌려주든 서버의
+             판단은 그대로"임을 검증한다(TDD 3.17.5, UT-328~332). 실제 모델을 띄우면
+             그 검증이 모델의 그날 컨디션에 좌우된다 — 여기서 보는 것은 모델의 품질이
+             아니라 <b>경계</b>다. 버전은 okhttp와 함께 스프링 부트 부모 POM이 관리한다. -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>

@@ -12,10 +12,9 @@ import java.util.Map;
  * 같은 패턴이다. 스프링이 {@code List<McpToolProvider>}를 모든 구현체 빈으로
  * 자동 채워 주입하므로, 새 독립 도구를 추가해도 이 클래스는 손댈 필요가 없다.
  *
- * <p>현재 구현체는 엣지 도메인 도구 5종이다 — {@code simulate_edge_throttling},
- * {@code simulate_heatsink_layout}, {@code calibrate_edge_thermal_model},
- * {@code sweep_fan_rpm}, {@code simulate_ptm_control}(SDD 2.7.1). 구현체가 하나도
- * 없어도 빈 리스트로 주입되어 아무 영향이 없다는 성질은 그대로다.
+ * <p>현재 구현체는 서브태스크 구성 도구 3종이다 — {@code get_jangnyang_fixed_subtasks},
+ * {@code validate_jangnyang_subtask_answers}, {@code build_jangnyang_scenario}. 구현체가
+ * 하나도 없어도 빈 리스트로 주입되어 아무 영향이 없다는 성질은 그대로다.
  */
 @Component
 public class McpToolRegistry {

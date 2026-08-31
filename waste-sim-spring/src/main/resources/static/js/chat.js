@@ -48,13 +48,6 @@ function stripMarkdown(s) {
 function appendMessage(msg) {
   const container = document.getElementById('messages');
 
-  // 서버가 도메인을 확정해 보내왔으면 화면을 먼저 맞춘다. 시작화면에서 첫
-  // 메시지를 자연어로 친 경우가 여기 해당한다 — 답변 버블보다 먼저 처리해야
-  // 사용자가 "엣지 답변이 장량동 화면에 그려지는" 순간을 보지 않는다.
-  if (msg.domain && Domains.currentId() !== msg.domain) {
-    Domains.activate(msg.domain);
-  }
-
   // 도메인 고유 메시지 타입(장량동 RESULT/SCENARIO 등)은 해당 도메인이 그린다.
   const domain = Domains.current();
   if (domain && typeof domain.renderMessage === 'function' && domain.renderMessage(msg)) {
@@ -137,10 +130,9 @@ function send() {
   const text = input.value.trim();
   if (!text || !stompClient) return;
 
-  // 현재 화면의 도메인을 같이 보낸다. 서버는 이 값이 있으면 키워드 추측보다
-  // 우선한다(ChatController#resolveDomain) — 사용자가 이미 고른 도메인을
-  // 문장 어휘로 뒤집지 않기 위해서다. 시작화면에서는 null이 가고, 그때만
-  // 서버가 키워드로 판정한다.
+  // 현재 화면의 도메인을 같이 보낸다. 도메인이 하나뿐이라 서버가 이 값으로
+  // 무엇을 판정하지는 않지만, 메시지 계약을 그대로 두어 클라이언트·서버 양쪽의
+  // 형식이 어긋나지 않게 한다.
   stompClient.send('/app/chat.send', {}, JSON.stringify({
     type: 'USER',
     content: text,
@@ -148,15 +140,6 @@ function send() {
   }));
   input.value = '';
   input.style.height = 'auto';
-  // 시작화면은 여기서 숨기지 않는다 — 도메인이 실제로 확정됐을 때만
-  // Domains.activate()가 숨긴다. 보내자마자 숨기면, 서버가 "어느 쪽을
-  // 도와드릴까요?"라고 되묻는 경우(UNKNOWN) 사용자가 방금 답을 고르는 데
-  // 필요한 카드가 사라져 버린다.
-}
-
-function sendChip(text) {
-  document.getElementById('msgInput').value = text;
-  send();
 }
 
 function handleKey(e) {
@@ -175,7 +158,7 @@ function clearChat() {
 }
 
 // ── 초기화 ────────────────────────────────────────────────────────
-// 도메인 화면을 먼저 세운 뒤 연결한다 — 반대로 하면 연결 직후 도착한 메시지가
+// 화면을 먼저 세운 뒤 연결한다 — 반대로 하면 연결 직후 도착한 메시지가
 // 아직 없는 사이드바를 참조할 수 있다.
 Domains.boot();
 connect();

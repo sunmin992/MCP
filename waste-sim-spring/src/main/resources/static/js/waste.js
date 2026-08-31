@@ -1,12 +1,18 @@
 /*
- * 장량동 생활쓰레기 수거 도메인 — 사이드바 동작과 도메인 고유 결과 렌더링.
+ * 장량동 생활쓰레기 수거 도메인 — 도메인 고유 메시지 렌더링.
  *
- * 도메인 분리 이전 index.html에 있던 코드를 그대로 옮긴 것이라 계산·차트 로직은
- * 동일하다. 달라진 점은 두 가지다.
- *   1. 최상단 즉시 실행 코드(#pTime 리스너)를 init()으로 옮겼다 — 사이드바가
- *      <template>에서 DOM에 붙은 뒤에야 존재하는 요소이기 때문이다.
- *   2. RESULT/SCENARIO 메시지 처리를 renderMessage()로 노출해 chat.js가 도메인
- *      이름을 몰라도 위임할 수 있게 했다.
+ * RESULT/SCENARIO/SUBTASK/PREVIEW 처리를 renderMessage()로 노출해 chat.js가 도메인
+ * 이름을 몰라도 위임할 수 있게 한다.
+ *
+ * <실행 입구는 채팅 하나다>
+ * 사이드바의 빠른 실행·시나리오 실험 버튼과 예시 질문 칩은 제거했다. 그 버튼들은
+ * REST(/api/simulate, /api/scenario/*)를 직접 불러 채팅 게이트와 v1.13 수집 계층을
+ * <b>둘 다</b> 건너뛰었다 — 수집 도중에 눌리면 세션은 답을 기다리는 채로 남고 화면에는
+ * 엉뚱한 결과가 그려진다. 실행 입구가 하나여야 "준비되지 않은 실행은 엔진에 도달하지
+ * 않는다"(D-52)가 화면에서도 성립한다.
+ *
+ * REST 엔드포인트 자체는 그대로 살아 있다 — MCP 클라이언트와 스크립트가 쓰는 계약이고,
+ * 없앤 것은 그것을 부르던 화면의 버튼이다.
  */
 
 let sideChart = null;
@@ -234,156 +240,6 @@ function updateSidePanel(msg) {
 }
 
 // ── 빠른 실행 (사이드바) ─────────────────────────────────────────
-function getQuickConfig() {
-  const tSel = document.getElementById('pTime').value;
-  const time = tSel === 'custom' ? document.getElementById('pTimeCustom').value : tSel;
-  return {
-    collectionTimeLabel: time,
-    days: parseInt(document.getElementById('pDays').value),
-    seeds: parseInt(document.getElementById('pSeeds').value),
-    leaveSigma: parseFloat(document.getElementById('pLeaveSigma').value),
-    wasteSigma: 0.3,
-    threshold: 0.8,
-    capacity: 30.0,
-    numBuildings: 4,
-    residentsPerBuilding: 25
-  };
-}
-
-function quickRun() {
-  const cfg = getQuickConfig();
-  const msg = `수거 시각 ${cfg.collectionTimeLabel}, ${cfg.days}일, ${cfg.seeds}시드로 시뮬레이션을 실행해줘. 외출 분산은 ${cfg.leaveSigma}분이야.`;
-  document.getElementById('msgInput').value = msg;
-  send();
-}
-
-// 채팅 파이프라인은 collectionTime을 1개만 추출/실행할 수 있어 자연어로
-// "여러 시각 비교"를 보내면 실행되지 않는다(의도분류 규칙상 시각 2개 이상은
-// 순간값 조회로 간주해 거부). 그래서 이 버튼은 채팅이 아니라 이미 검증된
-// /api/scenario/collection-sweep을 10:00~14:00·2시간 간격으로 직접 호출해
-// 진짜 3지점 비교를 실행한다(사이드바 "시나리오 실험" 버튼들과 동일 패턴).
-async function compareRun() {
-  const cfg = getQuickConfig();
-  appendLocalMessage('system', ' [수거시각 비교] 10:00·12:00·14:00 비교 실행 중... (시드 ' + cfg.seeds + '회, ' + cfg.days + '일)');
-  try {
-    const res = await fetch('/api/scenario/collection-sweep', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        days: cfg.days, seeds: cfg.seeds, leaveSigma: cfg.leaveSigma,
-        start: '10:00', end: '14:00', stepMinutes: 120
-      })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    renderScenario(data, 'line');
-  } catch (e) {
-    appendLocalMessage('system', ' 비교 실행 실패: ' + e.message);
-  }
-}
-
-// ── 교통량 확인 ──────────────────────────────────────────────────
-const TRAFFIC_NODE_LABELS = {
-  Node_A: '장성초등학교(A)', Node_B: '양덕(B)',
-  Node_C: '장성초등사거리(C)', Node_D: '두산위브·포항온천(D)'
-};
-
-async function showTraffic() {
-  appendLocalMessage('system', ' 교통량 데이터를 불러오는 중...');
-  try {
-    const res = await fetch('/api/traffic/default');
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    renderTraffic(data);
-  } catch (e) {
-    appendLocalMessage('system', ' 교통량 조회 실패: ' + e.message);
-  }
-}
-
-function renderTraffic(p) {
-  const container = document.getElementById('messages');
-  const div = document.createElement('div');
-  div.className = 'msg result';
-  const bubble = document.createElement('div');
-  bubble.className = 'bubble';
-
-  const header = document.createElement('div');
-  header.className = 'result-header';
-  header.textContent = ` 시간대별 교통 혼잡도 — ${p.id}`;
-  bubble.appendChild(header);
-
-  const note = document.createElement('div');
-  note.style.cssText = 'font-size:12px;color:var(--muted);margin-bottom:8px';
-  note.textContent = `혼잡 가중치가 ${p.congestionThresholdRed} 이상이면 정체(RED)로 판정되어 트럭 이동시간과 별도 교통 패널티가 증가합니다. 생활쓰레기 민원에는 합산하지 않습니다. 실측 포항 교통량 기반 데이터입니다.`;
-  bubble.appendChild(note);
-
-  const cWrap = document.createElement('div');
-  cWrap.style.cssText = 'position:relative;height:260px;width:100%;margin:6px 0 12px';
-  const canvas = document.createElement('canvas');
-  canvas.style.cssText = 'max-height:260px';
-  cWrap.appendChild(canvas);
-  bubble.appendChild(cWrap);
-
-  div.appendChild(bubble);
-  container.appendChild(div);
-  container.scrollTop = container.scrollHeight;
-
-  setTimeout(() => drawTrafficChart(canvas, p), 80);
-}
-
-function drawTrafficChart(canvas, p) {
-  const labels = Array.from({ length: 24 }, (_, h) => h + '시');
-  const datasets = [{
-    label: '전역 평균',
-    data: p.hourlyWeight,
-    borderColor: '#5c73f2',
-    backgroundColor: '#5c73f220',
-    borderWidth: 3,
-    tension: 0.3,
-    pointRadius: 2,
-    fill: true
-  }];
-  if (p.nodeHourlyWeight) {
-    Object.entries(p.nodeHourlyWeight).forEach(([node, arr], i) => {
-      datasets.push({
-        label: TRAFFIC_NODE_LABELS[node] || node,
-        data: arr,
-        borderColor: SCN_COLORS[(i + 1) % SCN_COLORS.length],
-        borderWidth: 1.5,
-        tension: 0.3,
-        pointRadius: 0,
-        fill: false
-      });
-    });
-  }
-
-  new Chart(canvas, {
-    type: 'line',
-    data: { labels, datasets },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { display: true, labels: { color: '#e2e8f0', font: { size: 11 }, boxWidth: 14 } },
-        tooltip: { callbacks: { label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y}` } }
-      },
-      scales: {
-        x: {
-          title: { display: true, text: '시각', color: '#8892aa', font: { size: 11 } },
-          ticks: { color: '#8892aa', font: { size: 9 } },
-          grid: { display: false }
-        },
-        y: {
-          title: { display: true, text: '혼잡 가중치', color: '#8892aa', font: { size: 11 } },
-          ticks: { color: '#8892aa', font: { size: 10 } },
-          grid: { color: '#2d325060' },
-          beginAtZero: true
-        }
-      }
-    }
-  });
-}
-
 // ── 시나리오 실험 ─────────────────────────────────────────────────
 const SCENARIO_META = {
   'occupation-mix':  { title: '거주민 구성별 최적 수거시각', chart: 'line' },
@@ -401,34 +257,6 @@ const SCENARIO_META = {
   'truck-route':     { title: '차종 × 방문 순서 탐색',         chart: 'bar'  }
 };
 const SCN_COLORS = ['#5c73f2', '#4ade80', '#f87171', '#facc15', '#7c5cf2', '#38bdf8'];
-
-async function runScenario(type) {
-  const meta = SCENARIO_META[type];
-  // 공통 base 설정은 사이드바 값에서 가져오기 (days/seeds 등)
-  const days = parseInt(document.getElementById('pDays').value) || 30;
-  const seeds = Math.min(parseInt(document.getElementById('pSeeds').value) || 10, 15);
-  const leaveSigma = parseFloat(document.getElementById('pLeaveSigma').value) || 30;
-
-  // 버튼 로딩 표시
-  const btns = document.querySelectorAll('.scenario-btn');
-  btns.forEach(b => b.disabled = true);
-  appendLocalMessage('system', ` [${meta.title}] 시나리오 실행 중... (시드 ${seeds}회, ${days}일)`);
-
-  try {
-    const res = await fetch('/api/scenario/' + type, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ days, seeds, leaveSigma })
-    });
-    if (!res.ok) throw new Error('HTTP ' + res.status);
-    const data = await res.json();
-    renderScenario(data, meta.chart);
-  } catch (e) {
-    appendLocalMessage('system', ' 시나리오 실행 실패: ' + e.message);
-  } finally {
-    btns.forEach(b => b.disabled = false);
-  }
-}
 
 function renderScenario(data, chartType) {
   const container = document.getElementById('messages');
@@ -531,6 +359,296 @@ function drawScenarioChart(canvas, data, chartType) {
 }
 
 // ── 도메인 등록 ───────────────────────────────────────────────────
+/* ── v1.13 고정 서브태스크 수집 패널 (SDD 2.18.10) ─────────────────────────
+ *
+ * 질문을 텍스트 버블로만 찍지 않는 이유는, 자료형에 맞는 입력 위젯을 띄워야 하기
+ * 때문이다 — 시각은 시간 입력, 차종·엔진은 선택지, 경로는 목록 입력이다. 서버가
+ * inputSchema를 함께 내려보내므로 클라이언트가 문구를 파싱해 추측하지 않아도 된다.
+ *
+ * 위젯이 만드는 값도 결국 같은 /app/chat.send로 간다 — 별도 제출 경로를 만들면
+ * 그 경로만 서버의 정규화·검증 순서를 건너뛸 수 있다.
+ */
+
+/**
+ * 서버가 준 inputSchema로 이 질문에 맞는 입력 요소를 만든다.
+ *
+ * <p>자료형이 위젯을 정한다 — 허용 값 목록이 있다고 무조건 드롭다운을 띄우면 안 된다.
+ * 비율 맵(NUMBER_MAP)과 다중 선택(ENUM_LIST)도 허용 값 목록을 갖는데, 그 둘에 단일
+ * 선택 드롭다운을 씌우면 사용자가 답을 <b>넣을 수가 없다</b>(실측으로 막힌 지점이다).
+ */
+function buildSubtaskInput(schema) {
+  const type = schema.answerType;
+  const range = schema.allowedRange || {};
+  const values = Array.isArray(range.values) ? range.values : [];
+
+  // 단일 선택 — 값이 정확히 하나인 항목만.
+  if (type === 'ENUM' && values.length > 0) {
+    const sel = document.createElement('select');
+    sel.className = 'subtask-input';
+    const blank = document.createElement('option');
+    blank.value = '';
+    blank.textContent = '선택하세요';
+    sel.appendChild(blank);
+    values.forEach((v) => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
+    });
+    return sel;
+  }
+
+  // 다중 선택 — 여러 개를 고르는 항목. 고른 값을 쉼표로 이어 보낸다.
+  if (type === 'ENUM_LIST' && values.length > 0) {
+    const sel = document.createElement('select');
+    sel.className = 'subtask-input subtask-multi';
+    sel.multiple = true;
+    sel.size = Math.min(values.length, 5);
+    values.forEach((v) => {
+      const opt = document.createElement('option');
+      opt.value = v;
+      opt.textContent = v;
+      sel.appendChild(opt);
+    });
+    // .value는 다중 선택에서 첫 값만 준다 — 전부 모아서 돌려주도록 덮어쓴다.
+    Object.defineProperty(sel, 'value', {
+      get() {
+        return Array.from(this.selectedOptions).map((o) => o.value).join(', ');
+      },
+      set(v) {
+        const want = String(v).split(/\s*,\s*/);
+        Array.from(this.options).forEach((o) => { o.selected = want.includes(o.value); });
+      }
+    });
+    return sel;
+  }
+
+  const input = document.createElement('input');
+  input.className = 'subtask-input';
+  if (type === 'TIME') {
+    input.type = 'time';
+  } else if (type === 'INTEGER' || type === 'NUMBER') {
+    input.type = 'number';
+    if (range.min !== undefined) input.min = range.min;
+    if (range.max !== undefined) input.max = range.max;
+    if (type === 'NUMBER') input.step = 'any';
+  } else {
+    input.type = 'text';
+    if (type === 'INTEGER_MAP' || type === 'NUMBER_MAP') {
+      input.placeholder = values.length
+        ? `${values[0]}=0.5, ${values[1] || '항목'}=0.5`
+        : '항목=값, 항목=값';
+    } else if (type === 'TIME_LIST') {
+      input.placeholder = '09:00, 18:00 (없으면 해당 없음)';
+    } else if (type === 'STRING_LIST') {
+      input.placeholder = '쉼표로 구분해 입력 (예: Node_A, Node_B)';
+    } else {
+      input.placeholder = range.description || '';
+    }
+  }
+  return input;
+}
+
+function buildSubtaskBubble(msg) {
+  const div = document.createElement('div');
+  div.className = 'msg subtask';
+  // ST 번호는 화면에 <b>글자로는</b> 나오지 않지만, 답변을 되돌려 보낼 때와 디버깅에는
+  // 필요하다. data 속성에 두면 사용자에게는 보이지 않고 도구는 찾을 수 있다.
+  div.dataset.stid = msg.currentSubtaskId || '';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble subtask-bubble';
+
+  // 사용자에게는 ST 번호를 보이지 않는다 — 보이는 것은 "3/8 · 단계 이름"과 그 안에서의
+  // "질문 2"뿐이다. currentSubtaskId는 답변을 되돌려 보낼 때만 쓰는 내부 식별자다.
+  const head = document.createElement('div');
+  head.className = 'subtask-head';
+  head.textContent = `현재 단계 ${msg.groupOrder} / ${msg.groupTotal}`;
+  bubble.appendChild(head);
+
+  const stepName = document.createElement('div');
+  stepName.className = 'subtask-step';
+  stepName.textContent = msg.groupName || '';
+  bubble.appendChild(stepName);
+
+  if (msg.groupDescription) {
+    const stepDesc = document.createElement('div');
+    stepDesc.className = 'subtask-step-desc';
+    stepDesc.textContent = msg.groupDescription;
+    bubble.appendChild(stepDesc);
+  }
+
+  const bar = document.createElement('div');
+  bar.className = 'subtask-progress';
+  const fill = document.createElement('div');
+  fill.className = 'subtask-progress-fill';
+  fill.style.width = Math.round((msg.progress || 0) * 100) + '%';
+  bar.appendChild(fill);
+  bubble.appendChild(bar);
+
+  // 오류가 있으면 먼저 보인다 — 왜 같은 질문이 다시 왔는지 알아야 하기 때문이다.
+  (msg.validationErrors || []).forEach((e) => {
+    const err = document.createElement('div');
+    err.className = 'subtask-error';
+    err.textContent = e.reason;
+    bubble.appendChild(err);
+  });
+
+  // 질문 문장은 서버가 준 것을 그대로 찍는다 — 클라이언트도 문장을 고치지 않는다(D-44).
+  const q = document.createElement('div');
+  q.className = 'subtask-question';
+  // 단계 안에서의 순번만 붙인다. 전체 50개 중 몇 번째인지는 사용자에게 의미가 없다.
+  const n = msg.questionInGroup;
+  q.textContent = n ? `질문 ${n}. ${msg.question}` : msg.question;
+  bubble.appendChild(q);
+
+  const schema = msg.inputSchema || {};
+  if (schema.allowedRange && schema.allowedRange.description) {
+    const hint = document.createElement('div');
+    hint.className = 'subtask-hint';
+    hint.textContent = '허용 범위: ' + schema.allowedRange.description;
+    bubble.appendChild(hint);
+  }
+
+  const row = document.createElement('div');
+  row.className = 'subtask-actions';
+  const input = buildSubtaskInput(schema);
+  const submit = document.createElement('button');
+  submit.className = 'btn btn-primary';
+  submit.textContent = '답변';
+  const submitAnswer = () => {
+    const value = input.value.trim();
+    if (!value) return;
+    input.disabled = true;
+    submit.disabled = true;
+    if (skip) skip.disabled = true;
+    cancel.disabled = true;
+    // 위젯 입력도 일반 메시지와 같은 경로로 보낸다 — 서버의 정규화·검증 순서를
+    // 건너뛰는 두 번째 문을 만들지 않는다. 화면 echo도 서버가 돌려주는 USER 메시지에
+    // 맡긴다(여기서 따로 그리면 같은 답이 두 번 보인다).
+    //
+    // currentSubtaskId를 함께 돌려보내는 것이 중요하다: 이 답이 <b>어느 질문에 대한
+    // 것인지</b>를 서버가 도착 순서로 추측하지 않게 한다. STOMP 인바운드는 순서를
+    // 보장하지 않으므로, 이것이 없으면 답변이 옆 칸에 들어갈 수 있다.
+    stompClient.send('/app/chat.send', {}, JSON.stringify({
+      type: 'USER', content: value, domain: 'waste',
+      currentSubtaskId: msg.currentSubtaskId
+    }));
+  };
+  submit.onclick = submitAnswer;
+  input.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); submitAnswer(); } };
+
+  // "해당 없음" 버튼 — 숫자·시각 입력칸에는 그 문구를 <b>타이핑할 수 없기</b> 때문이다
+  // (input type=number는 비숫자 값을 버린다). 고정 세트는 관련 없는 항목도 생략하지 않고
+  // 묻기로 했으므로, 빠져나갈 문이 자료형과 무관하게 있어야 한다.
+  let skip = null;
+  if (schema.allowsNotApplicable) {
+    skip = document.createElement('button');
+    skip.className = 'btn btn-secondary subtask-skip';
+    skip.textContent = '해당 없음';
+    skip.onclick = () => {
+      input.disabled = true;
+      submit.disabled = true;
+      skip.disabled = true;
+      cancel.disabled = true;
+      stompClient.send('/app/chat.send', {}, JSON.stringify({
+        type: 'USER', content: '해당 없음', domain: 'waste',
+        currentSubtaskId: msg.currentSubtaskId
+      }));
+    };
+  }
+
+  const cancel = document.createElement('button');
+  cancel.className = 'btn btn-secondary';
+  cancel.textContent = '구성 취소';
+  cancel.onclick = () => {
+    input.disabled = true;
+    submit.disabled = true;
+    cancel.disabled = true;
+    stompClient.send('/app/chat.subtaskCancel', {}, '{}');
+  };
+
+  row.appendChild(input);
+  row.appendChild(submit);
+  if (skip) row.appendChild(skip);
+  row.appendChild(cancel);
+  bubble.appendChild(row);
+
+  div.appendChild(bubble);
+  return div;
+}
+
+function buildPreviewBubble(msg) {
+  const div = document.createElement('div');
+  div.className = 'msg preview';
+
+  const bubble = document.createElement('div');
+  bubble.className = 'bubble preview-bubble';
+  const p = msg.scenarioPreview || {};
+
+  const title = document.createElement('div');
+  title.className = 'preview-title';
+  title.textContent = '구성된 시나리오';
+  bubble.appendChild(title);
+
+  const meta = document.createElement('div');
+  meta.className = 'preview-meta';
+  meta.textContent = `${p.scenarioType} · ${p.toolName} · ${p.engineId}`;
+  bubble.appendChild(meta);
+
+  const section = (label, rows) => {
+    if (!rows || rows.length === 0) return;
+    const h = document.createElement('div');
+    h.className = 'preview-section';
+    h.textContent = label;
+    bubble.appendChild(h);
+    const ul = document.createElement('ul');
+    ul.className = 'preview-list';
+    rows.forEach((text) => {
+      const li = document.createElement('li');
+      li.textContent = text;
+      ul.appendChild(li);
+    });
+    bubble.appendChild(ul);
+  };
+
+  // display를 쓴다 — 시각의 구조화 값은 자정 기준 분(510)이라 그대로 찍으면
+  // "조건을 확인하는" 화면에서 확인이 되지 않는다.
+  section('내가 답한 값', Object.values(p.answers || {}).map(
+    (a) => `${a.field}: ${a.display !== undefined ? a.display : a.value}`));
+  // 서버가 채운 값과 가정은 반드시 보인다 — 조용히 채우고 결과만 내면 사용자는
+  // 자기 실험의 조건을 모른 채 숫자를 읽는다(D-53).
+  section('서버가 채운 값', (p.appliedDefaults || []).map(
+    (d) => `${d.field} = ${d.value} — ${d.reason}`));
+  section('가정', p.assumptions || []);
+
+  const row = document.createElement('div');
+  row.className = 'confirm-actions';
+  const run = document.createElement('button');
+  run.className = 'btn btn-primary';
+  run.textContent = '이 조건으로 실행';
+  const cancel = document.createElement('button');
+  cancel.className = 'btn btn-secondary';
+  cancel.textContent = '취소';
+  run.onclick = () => {
+    run.disabled = true;
+    cancel.disabled = true;
+    run.textContent = '실행 중...';
+    stompClient.send('/app/chat.subtaskRun', {}, '{}');
+  };
+  cancel.onclick = () => {
+    run.disabled = true;
+    cancel.disabled = true;
+    stompClient.send('/app/chat.subtaskCancel', {}, '{}');
+  };
+  row.appendChild(run);
+  row.appendChild(cancel);
+  bubble.appendChild(row);
+
+  div.appendChild(bubble);
+  return div;
+}
+
 Domains.register({
   id: 'waste',
   icon: '🗑️',
@@ -541,29 +659,18 @@ Domains.register({
   greeting:
     '장량동 생활쓰레기 시뮬레이션입니다.\n\n' +
     '수거 시각·거주민 특성이 민원 발생에 어떤 영향을 미치는지 DEVS(이산사건시스템) 모델로 분석합니다.\n\n' +
-    '아래 예시 질문을 눌러보거나, 직접 원하는 조건을 입력해주세요.',
-  chips: [
-    { label: '12시 수거 실행', text: '수거 시각을 12시로 설정하고 시뮬레이션 실행해줘' },
-    { label: '수거시각 비교', run: () => compareRun() },
-    { label: '분산 σ=90 실험', text: '외출 시각 분산이 σ=90분일 때 12시 수거로 실행해줘' },
-    { label: '모델 설명', text: '이 시뮬레이션 모델에 대해 설명해줘' },
-    { label: '직업별 차이', text: '직업별로 민원이 왜 다른지 설명해줘' }
-  ],
-
-  // 사이드바가 DOM에 붙은 직후 호출된다. 이전에는 <script> 최상단에서 바로
-  // 등록하던 리스너인데, 사이드바가 동적으로 마운트되면서 여기로 옮겼다.
-  init() {
-    const sel = document.getElementById('pTime');
-    if (sel) {
-      sel.addEventListener('change', function () {
-        document.getElementById('customTimeRow').style.display =
-          this.value === 'custom' ? 'flex' : 'none';
-      });
-    }
-  },
-
+    '원하는 조건을 한 문장으로 적어주세요. 무엇이 필요한지 모르겠다면 ' +
+    '"시뮬레이터 만들어 줘"라고 하시면 필요한 값을 순서대로 여쭤봅니다.',
   /** 장량동 고유 메시지 타입만 가로챈다. 처리하지 않으면 false → chat.js 기본 렌더러. */
   renderMessage(msg) {
+    if (msg.type === 'SUBTASK') {
+      document.getElementById('messages').appendChild(buildSubtaskBubble(msg));
+      return true;
+    }
+    if (msg.type === 'PREVIEW') {
+      document.getElementById('messages').appendChild(buildPreviewBubble(msg));
+      return true;
+    }
     if (msg.type === 'RESULT') {
       document.getElementById('messages').appendChild(buildResultBubble(msg));
       updateSidePanel(msg);

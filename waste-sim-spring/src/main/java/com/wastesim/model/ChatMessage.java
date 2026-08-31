@@ -2,7 +2,11 @@ package com.wastesim.model;
 
 public class ChatMessage {
 
-    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, EDGE_RESULT, EDGE_SWEEP, EDGE_LAYOUT }
+    /**
+     * {@code SUBTASK}·{@code PREVIEW}는 v1.13의 구성 계층이 쓴다(SDD 2.18.10).
+     * {@code SUBTASK}는 질문·재질문, {@code PREVIEW}는 시나리오 미리보기다.
+     */
+    public enum MessageType { USER, BOT, SYSTEM, RESULT, CONFIRM, SCENARIO, SUBTASK, PREVIEW }
 
     private MessageType type;
     private String content;
@@ -13,54 +17,59 @@ public class ChatMessage {
     private ScenarioResponse scenarioResponse;
     private String scenarioType;
     /**
-     * 이 메시지가 속한 시뮬레이션 도메인 슬러그({@code "waste"} / {@code "edge"}).
+     * 이 메시지가 속한 도메인 슬러그 — 이 서버에서는 항상 {@code "waste"}다.
      *
-     * <p><b>클라이언트→서버</b>: 사용자가 시작화면에서 도메인을 골랐거나 이미
-     * {@code /waste}·{@code /edge} 화면에 들어와 있으면 그 값을 실어 보낸다. 서버는
-     * 이 값이 있으면 키워드 추측({@code DomainIntentDetector})보다 <b>우선</b>한다 —
-     * 사용자가 명시적으로 고른 도메인을 서버가 문장 어휘로 뒤집으면, 엣지 화면에서
-     * "트럭 몇 대 굴릴 때 발열" 같은 문장을 쳤을 때 화면과 다른 도메인의 답이 와서
-     * 사용자가 방금 한 선택이 무시된 것처럼 보인다.
-     *
-     * <p><b>서버→클라이언트</b>: 시작화면에서 첫 메시지의 키워드로 도메인이 확정되면
-     * 그 결과를 실어 보낸다. 클라이언트는 이 값을 받아 사이드바를 바꾸고 URL을
-     * {@code /waste}·{@code /edge}로 전환한다.
-     *
-     * <p>{@code null}이면 "아직 도메인 미정" — 시작화면의 첫 메시지가 여기 해당한다.
+     * <p>도메인이 하나뿐이라 판별할 것이 없지만 필드는 남겼다. 프런트엔드가 이 값으로
+     * 사이드바를 세우고, 값이 오지 않으면 화면을 세울 근거가 사라지기 때문이다.
+     * 라즈베리파이 엣지 도메인이 함께 있던 시절에는 이 값이 서버·클라이언트 양방향
+     * 협상 결과였다(클라이언트가 고른 도메인이 서버의 키워드 추측을 이겼다).
      */
     private String domain;
 
-    /**
-     * EDGE_RESULT 전용 — 엣지 도구가 돌려준 결과 원본(들).
-     *
-     * <p>서버가 이미 {@code content}에 사람이 읽는 텍스트를 만들어 넣지만, 화면에
-     * 보드·방열판·팬 구성을 그리고 지표를 표로 정리하려면 <b>구조화된 값</b>이 필요하다.
-     * 텍스트를 클라이언트에서 다시 파싱하는 방식은 포매터 문구가 바뀔 때마다 조용히
-     * 깨지므로 원본을 그대로 함께 보낸다.
-     *
-     * <p>비교 실행(보드·재질·팬 유무)은 결과가 둘이므로 항상 목록으로 담는다 —
-     * 하나짜리 실행도 원소 1개 목록이라 클라이언트 분기가 하나로 끝난다.
-     */
-    private java.util.List<java.util.Map<String, Object>> edgeRuns;
+    // ── SUBTASK·PREVIEW 전용 (v1.13, SDD 2.18.10) ────────────────────────────
+    //
+    // 질문을 그대로 버블에 찍지 않고 구조화 필드로 내려보내는 이유는, 프런트엔드가
+    // <b>입력 자료형에 맞는 입력 위젯</b>을 띄워야 하기 때문이다 — 시각은 시간 입력,
+    // 차종은 선택지, 경로는 순서 편집이다. 질문을 자유 텍스트로만 주면 클라이언트는
+    // 그 판단을 할 수 없고, 결국 문구를 파싱해 추측하게 된다.
 
-    /**
-     * EDGE_SWEEP 전용 — {@code sweep_fan_rpm}이 돌려준 결과 원본.
-     *
-     * <p>{@link #edgeRuns}와 따로 두는 이유: 스윕 결과는 실행 <b>목록</b>이 아니라 곡선
-     * 하나와 그 위에서 고른 운전점이다. 같은 필드에 억지로 담으면 클라이언트가 "원소가
-     * 여러 개면 비교, 어떤 키가 있으면 곡선"처럼 모양으로 추측해야 한다.
-     */
-    private java.util.Map<String, Object> edgeSweep;
+    /** 진행 중인 서브태스크 세트 ID. */
+    private String subtaskSetId;
+    /** 세트 버전 — 답변을 되돌려 보낼 때 이 값이 대조된다(FR-138). */
+    private Integer subtaskVersion;
+    /** 지금 답해야 할 서브태스크 ID. 미리보기 단계면 null. */
+    private String currentSubtaskId;
+    /** 이번 실험 계획에서 몇 번째 질문인가(1부터). */
+    private Integer subtaskOrder;
+    /** 이번 실험에서 실제로 물을 질문 개수 — 세트 전체 개수가 아니다(FR-130). */
+    private Integer subtaskTotal;
+    /** 카탈로그의 질문 문장 그대로. 서버가 소유하며 LLM이 만들지 않는다(D-44). */
+    private String question;
+    /** 입력 위젯을 고르기 위한 스키마 — 자료형·허용 범위·필수 여부. */
+    private java.util.Map<String, Object> inputSchema;
+    /** 직전 검증에서 남은 오류 항목(서브태스크 ID·사유·재질문 문장). */
+    private java.util.List<java.util.Map<String, Object>> validationErrors;
+    /** 0.0~1.0. */
+    private Double progress;
 
-    /**
-     * EDGE_LAYOUT 전용 — {@code rank_fan_layouts}가 돌려준 결과 원본.
-     *
-     * <p>{@link #edgeSweep}과 따로 두는 이유는 같다. 배치 랭킹은 곡선이 아니라
-     * 순위표이고, 온도가 1급 지표가 아니라 {@code advisory} 블록에 격리돼 있다.
-     * 같은 필드에 담으면 클라이언트가 키 모양을 보고 어느 쪽인지 추측해야 하고,
-     * 그러다 임시 온도를 시뮬레이터 온도 자리에 그리게 된다.
-     */
-    private java.util.Map<String, Object> edgeLayout;
+    // 사용자에게는 ST 번호가 아니라 <b>단계</b>가 보인다. "3/8 · 쓰레기 배출량과 수거장
+    // 조건 설정"과 그 안에서의 "질문 2"가 화면의 전부이고, currentSubtaskId는 답변을
+    // 되돌려 보낼 때만 쓰는 내부 식별자다.
+
+    /** 현재 단계 번호(1~8). */
+    private Integer groupOrder;
+    /** 전체 단계 수. */
+    private Integer groupTotal;
+    /** 현재 단계 이름. */
+    private String groupName;
+    /** 현재 단계가 무엇을 입력하는 단계인지 한 줄 설명. */
+    private String groupDescription;
+    /** 이 단계 안에서 몇 번째 질문인가(1부터). */
+    private Integer questionInGroup;
+    /** 이 단계의 질문 수. */
+    private Integer questionsInGroup;
+    /** PREVIEW 전용 — 시나리오·기본값·가정의 구조화 사본(FR-133·D-53). */
+    private java.util.Map<String, Object> scenarioPreview;
 
     public ChatMessage() {}
 
@@ -90,12 +99,51 @@ public class ChatMessage {
     public String getDomain() { return domain; }
     public void setDomain(String d) { this.domain = d; }
 
-    public java.util.List<java.util.Map<String, Object>> getEdgeRuns() { return edgeRuns; }
-    public void setEdgeRuns(java.util.List<java.util.Map<String, Object>> r) { this.edgeRuns = r; }
+    public String getSubtaskSetId() { return subtaskSetId; }
+    public void setSubtaskSetId(String v) { this.subtaskSetId = v; }
 
-    public java.util.Map<String, Object> getEdgeSweep() { return edgeSweep; }
-    public void setEdgeSweep(java.util.Map<String, Object> s) { this.edgeSweep = s; }
+    public Integer getSubtaskVersion() { return subtaskVersion; }
+    public void setSubtaskVersion(Integer v) { this.subtaskVersion = v; }
 
-    public java.util.Map<String, Object> getEdgeLayout() { return edgeLayout; }
-    public void setEdgeLayout(java.util.Map<String, Object> m) { this.edgeLayout = m; }
+    public String getCurrentSubtaskId() { return currentSubtaskId; }
+    public void setCurrentSubtaskId(String v) { this.currentSubtaskId = v; }
+
+    public Integer getSubtaskOrder() { return subtaskOrder; }
+    public void setSubtaskOrder(Integer v) { this.subtaskOrder = v; }
+
+    public Integer getSubtaskTotal() { return subtaskTotal; }
+    public void setSubtaskTotal(Integer v) { this.subtaskTotal = v; }
+
+    public String getQuestion() { return question; }
+    public void setQuestion(String v) { this.question = v; }
+
+    public java.util.Map<String, Object> getInputSchema() { return inputSchema; }
+    public void setInputSchema(java.util.Map<String, Object> v) { this.inputSchema = v; }
+
+    public java.util.List<java.util.Map<String, Object>> getValidationErrors() { return validationErrors; }
+    public void setValidationErrors(java.util.List<java.util.Map<String, Object>> v) { this.validationErrors = v; }
+
+    public Double getProgress() { return progress; }
+    public void setProgress(Double v) { this.progress = v; }
+
+    public Integer getGroupOrder() { return groupOrder; }
+    public void setGroupOrder(Integer v) { this.groupOrder = v; }
+
+    public Integer getGroupTotal() { return groupTotal; }
+    public void setGroupTotal(Integer v) { this.groupTotal = v; }
+
+    public String getGroupName() { return groupName; }
+    public void setGroupName(String v) { this.groupName = v; }
+
+    public String getGroupDescription() { return groupDescription; }
+    public void setGroupDescription(String v) { this.groupDescription = v; }
+
+    public Integer getQuestionInGroup() { return questionInGroup; }
+    public void setQuestionInGroup(Integer v) { this.questionInGroup = v; }
+
+    public Integer getQuestionsInGroup() { return questionsInGroup; }
+    public void setQuestionsInGroup(Integer v) { this.questionsInGroup = v; }
+
+    public java.util.Map<String, Object> getScenarioPreview() { return scenarioPreview; }
+    public void setScenarioPreview(java.util.Map<String, Object> v) { this.scenarioPreview = v; }
 }

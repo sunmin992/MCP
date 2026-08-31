@@ -12,12 +12,12 @@
 <body>
 
 <!--
-  이 문서 하나가 세 화면을 모두 담당한다 — 루트(도메인 중립 시작화면), /waste, /edge.
-  서버가 세 경로를 전부 이 파일로 포워딩하고(WebRoutingConfig), 어느 화면을 띄울지는
-  js/domain.js가 URL을 보고 정한다.
+  이 서버는 장량동 하나만 다루므로 화면도 하나다 — 루트(/)가 이 문서를 돌려준다.
 
-  사이드바는 아래 <template>에서 골라 #sidebar에 마운트한다. 비활성 도메인의
-  마크업이 DOM에 남지 않으므로 도메인 간 id 충돌(#pDays 같은 것)이 생기지 않는다.
+  사이드바는 아래 <template>에서 #sidebar에 마운트한다. 라즈베리파이 엣지 도메인이
+  함께 있던 시절에는 도메인마다 <template>을 두고 골라 끼웠고, 그래서 비활성 도메인의
+  마크업이 DOM에 남지 않아 id 충돌이 생기지 않았다. 도메인이 하나가 된 지금도 구조는
+  그대로 두었다 — 사이드바 마크업을 본문과 분리해 두는 것 자체가 이득이다.
 -->
 
 <!-- ── 사이드바 (도메인별로 교체됨) ──────────────────────────────── -->
@@ -34,18 +34,7 @@
   </div>
 
   <div class="messages" id="messages">
-    <!-- 도메인 중립 시작화면. 도메인이 확정되면 .hidden이 붙어 사라진다. -->
-    <div class="start-screen" id="startScreen">
-      <h2>어떤 시뮬레이션을 돌려볼까요?</h2>
-      <p class="start-sub">
-        아래에서 고르거나, 하고 싶은 실험을 그냥 입력창에 적어도 됩니다 —
-        문장을 보고 알아서 맞는 모델로 연결합니다.
-      </p>
-      <div class="domain-cards" id="domainCards"></div>
-    </div>
   </div>
-
-  <div class="chips" id="chips"></div>
 
   <div class="input-area">
     <textarea id="msgInput" rows="1"
@@ -55,117 +44,15 @@
   </div>
 </main>
 
-<!-- ── 사이드바 템플릿: 시작화면(도메인 미정) ───────────────────── -->
-<template id="tpl-sidebar-start">
-  <h1>시뮬레이션 허브</h1>
-  <p style="font-size:11px;color:var(--muted);line-height:1.5">
-    이 서버는 성격이 다른 두 시뮬레이션 모델을 함께 들고 있습니다.<br>
-    도메인을 고르면 그 모델 전용 설정 패널이 여기에 나타납니다.
-  </p>
-  <div class="divider"></div>
-  <div class="param-section">
-    <h3>MCP 엔드포인트</h3>
-    <p style="font-size:11px;color:var(--muted);line-height:1.7">
-      외부 MCP 클라이언트는 도메인별 주소로 붙을 수 있습니다.<br>
-      <code>POST /mcp</code> — 전체(허브)<br>
-      <code>POST /mcp/waste</code> — 장량동 도구만<br>
-      <code>POST /mcp/edge</code> — 엣지 발열 도구만
-    </p>
-  </div>
-</template>
-
 <!-- ── 사이드바 템플릿: 장량동 생활쓰레기 ───────────────────────── -->
 <template id="tpl-sidebar-waste">
   <h1>쓰레기 시뮬레이터</h1>
   <p style="font-size:11px;color:var(--muted);line-height:1.5">
     포항 장량동 원룸촌 생활쓰레기 DEVS 시뮬레이션<br>
-    채팅으로 파라미터를 자연어로 입력하거나<br>
-    아래 패널에서 직접 설정하세요.
+    채팅으로 조건을 자연어로 입력하세요.<br>
+    "시뮬레이터 만들어 줘"라고 하면 필요한 값을<br>
+    순서대로 여쭤봅니다.
   </p>
-
-  <div class="divider"></div>
-
-  <div class="param-section">
-    <h3>빠른 실행</h3>
-    <div class="param-row">
-      <label>수거 시각</label>
-      <select id="pTime">
-        <option value="10:00">10:00</option>
-        <option value="12:00" selected>12:00</option>
-        <option value="14:00">14:00</option>
-        <option value="custom">직접 입력...</option>
-      </select>
-    </div>
-    <div class="param-row" id="customTimeRow" style="display:none">
-      <label>직접 입력 (HH:MM)</label>
-      <input type="text" id="pTimeCustom" placeholder="예: 11:30" value="11:30"/>
-    </div>
-    <div class="param-row">
-      <label>시뮬레이션 기간 (일)</label>
-      <input type="number" id="pDays" value="30" min="1" max="365"/>
-    </div>
-    <div class="param-row">
-      <label>반복 시드 수</label>
-      <input type="number" id="pSeeds" value="30" min="1" max="100"/>
-    </div>
-    <div class="param-row">
-      <label>외출 시각 분산 (분)</label>
-      <input type="number" id="pLeaveSigma" value="30" min="0" max="180"/>
-    </div>
-    <button class="btn btn-primary" onclick="quickRun()">▶ 실행</button>
-    <button class="btn btn-secondary" style="margin-top:6px" onclick="compareRun()">
-      10·12·14시 비교
-    </button>
-    <button class="btn btn-secondary" style="margin-top:6px" onclick="showTraffic()">
-      🚦 시간대별 교통량 확인
-    </button>
-  </div>
-
-  <div class="divider"></div>
-
-  <!-- 시나리오 실험 -->
-  <div class="param-section">
-    <h3>시나리오 실험</h3>
-    <p style="font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:10px">
-      지역 성격·정책·인프라를 바꿔가며 민원을 비교합니다. (시드 10회 기본)
-    </p>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('occupation-mix')">
-      거주민 구성별 최적 수거시각
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('collection-sweep')">
-      수거시각 sweep (06~18시)
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('behavior-grid')">
-      행동 변동 α×β 민감도
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('infra-grid')">
-      인프라 용량×임계 트레이드오프
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('density')">
-      밀도: 빌라촌 vs 원룸촌
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('collection-schedule')">
-      수거 스케줄(다회·격일·주말)
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('multi-truck')">
-      다중 트럭·구역 분할
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('waste-separation')">
-      분리배출(일반·음식물·재활용)
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('new-occupations')">
-      확장 거주민(야간·1인직장인)
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('coupling-variants')">
-      결합모델 변형(귀가·임대인)
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('monthly-waste')">
-      월별 배출량(1년·최다 달)
-    </button>
-    <button class="btn btn-secondary scenario-btn" onclick="runScenario('truck-route')">
-      차종 × 방문 순서 탐색
-    </button>
-  </div>
 
   <div class="divider"></div>
 
@@ -186,72 +73,6 @@
   </div>
 </template>
 
-<!-- ── 사이드바 템플릿: 라즈베리파이 엣지 발열 ──────────────────── -->
-<template id="tpl-sidebar-edge">
-  <h1>엣지 발열 시뮬레이터</h1>
-  <p style="font-size:11px;color:var(--muted);line-height:1.5">
-    라즈베리파이 고부하 AI 추론 환경의<br>
-    발열·스로틀링·회복 동역학을 열 RC 모델로 예측합니다.
-  </p>
-
-  <div class="divider"></div>
-
-  <div class="param-section">
-    <h3>실험 조건</h3>
-    <div class="param-row">
-      <label>대상 보드</label>
-      <select id="eBoard">
-        <option value="pi5" selected>Raspberry Pi 5 (BCM2712)</option>
-        <option value="pi4">Raspberry Pi 4B (BCM2711)</option>
-      </select>
-    </div>
-    <div class="param-row">
-      <label>냉각 조건</label>
-      <select id="eCooling">
-        <option value="bare" selected>무냉각 (bare)</option>
-        <option value="passive">방열판 (passive)</option>
-        <option value="active">팬 냉각 (active)</option>
-      </select>
-    </div>
-    <div class="param-row">
-      <label>워크로드 모드</label>
-      <select id="eWorkload">
-        <option value="max_throughput" selected>최대 처리량</option>
-        <option value="target_fps">목표 FPS 고정</option>
-      </select>
-    </div>
-    <div class="param-row">
-      <label>주변 온도 (℃)</label>
-      <input type="number" id="eAmbient" value="25" min="-10" max="50" step="0.5"/>
-    </div>
-    <div class="param-row">
-      <label>측정 시간 (분)</label>
-      <input type="number" id="eMinutes" value="20" min="1" max="180"/>
-    </div>
-    <button class="btn btn-primary" onclick="edgeRun()">▶ 발열 시뮬레이션</button>
-    <button class="btn btn-secondary" style="margin-top:6px" onclick="edgeHeatsinkCompare()">
-      🧊 방열판 배치 비교
-    </button>
-    <button class="btn btn-secondary" style="margin-top:6px" onclick="edgeRecoveryCompare()">
-      ♻️ 회복 정책 비교 (R1·R2·R3)
-    </button>
-  </div>
-
-  <div class="divider"></div>
-
-  <div class="param-section">
-    <h3>실측 보정</h3>
-    <p style="font-size:11px;color:var(--muted);line-height:1.6">
-      기본 열 파라미터는 데이터시트 기반 <b>추정치</b>입니다.
-      실측 CSV(시간·SoC온도·전력·클럭·FPS)를 넣어 보정하면 훨씬 정확해집니다.
-    </p>
-    <button class="btn btn-secondary" style="margin-top:8px"
-            onclick="sendChip('실측 데이터로 열 모델을 보정하려면 어떻게 해?')">
-      보정 방법 보기
-    </button>
-  </div>
-</template>
-
 <!--
   로드 순서가 중요하다.
   domain.js(레지스트리) → 각 도메인 모듈(자기 자신을 등록) → chat.js(마지막에 부팅).
@@ -259,7 +80,6 @@
 -->
 <script src="/js/domain.js"></script>
 <script src="/js/waste.js"></script>
-<script src="/js/edge.js"></script>
 <script src="/js/chat.js"></script>
 </body>
 </html>

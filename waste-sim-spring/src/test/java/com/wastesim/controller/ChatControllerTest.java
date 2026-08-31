@@ -1,7 +1,5 @@
 package com.wastesim.controller;
 
-import com.wastesim.edge.EdgeThermalProfileStore;
-import com.wastesim.mcp.McpToolRegistry;
 import com.wastesim.model.ChatMessage;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
@@ -29,6 +27,29 @@ import static org.mockito.Mockito.*;
  */
 class ChatControllerTest {
 
+    /**
+     * v1.13 수집 계층을 실제 구현으로 물려 준다(모킹하지 않는다).
+     *
+     * <p>모킹하면 "생성 요청이 아닌 문장은 수집 계층을 건드리지 않는다"는 성질을 이
+     * 테스트들이 더 이상 검증하지 못한다 — 아래 테스트들은 전부 즉시 실행 경로를
+     * 고정하는 것이고, 그 경로가 새 게이트에 걸리지 않는다는 사실이 지금 가장 중요한
+     * 회귀 지점이다.
+     */
+    static com.wastesim.subtask.SubtaskSessionService subtaskService() {
+        TrafficDataService traffic = new TrafficDataService();
+        com.wastesim.subtask.JangnyangSubtaskCatalog catalog =
+                new com.wastesim.subtask.JangnyangSubtaskCatalog();
+        com.wastesim.subtask.JangnyangCompletenessChecker checker =
+                new com.wastesim.subtask.JangnyangCompletenessChecker();
+        return new com.wastesim.subtask.SubtaskSessionService(
+                catalog,
+                new com.wastesim.subtask.JangnyangSubtaskValidator(),
+                checker,
+                new com.wastesim.subtask.JangnyangScenarioBuilder(
+                        checker, new com.wastesim.tool.SimulationConfigValidator(traffic), traffic),
+                new com.wastesim.subtask.InMemorySubtaskSessionStore());
+    }
+
     @Test
     void comparesEachExplicitCollectionTimeInsteadOfFallingBackToPlainAnswer() {
         SimpMessagingTemplate messaging = mock(SimpMessagingTemplate.class);
@@ -36,7 +57,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         ScenarioResponse response = new ScenarioResponse(
                 "COLLECTION_TIME_COMPARISON", "지정 수거 시각 비교", "수거 시각");
@@ -61,7 +82,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         controller.handleMessage(userMsg("25시와 11시 수거를 비교해줘"));
 
@@ -79,7 +100,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         controller.handleMessage(userMsg("10시와 오전 10시 수거를 비교해줘"));
 
@@ -99,7 +120,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         // SimulationConfig.getCollectionTimeLabel()은 collectionTimeMinutes를
         // 매번 "%02d:%02d"로 재포맷하므로("8:30"→setter가 파싱 후 getter가
@@ -158,7 +179,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -183,7 +204,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -212,7 +233,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         controller.handleMessage(userMsg("Node_A, Node_C, Node_B, Node_D 순서로 방문하면 얼마나 걸려?"));
 
@@ -238,7 +259,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         controller.handleMessage(userMsg("노드 b,c,a,d순서로 12시에 수거하면 얼마나 걸려?"));
 
@@ -279,7 +300,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                new McpToolRegistry(List.of()), new EdgeThermalProfileStore());
+                subtaskService());
 
         controller.handleMessage(userMsg(userText));
 
