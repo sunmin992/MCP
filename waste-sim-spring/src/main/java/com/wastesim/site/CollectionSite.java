@@ -11,6 +11,18 @@ package com.wastesim.site;
  * 수거 대상 건물인가"라는 질문에 코드 안에서 답이 나오지 않았다. 답은 둘 다이며 서로 다른
  * 것이었다.
  *
+ * <h2>원본 모델에서의 정의</h2>
+ * 참조 구현({@code waste_sim/MODEL_SPECIFICATION.md})은 수거 지점을 이렇게 정의한다 —
+ * {@code Building[b] = { ResidentGenerator × N, GarbageCan × 1 }}. 즉 <b>수거 지점은
+ * {@code GarbageCan}이고 건물마다 정확히 하나다.</b> 트럭 경로는 건물 인덱스의 나열이고,
+ * 트럭은 {@code target == building_id}인 통만 비운다. 민원이 발생하는 자리도 이 통이다
+ * ({@code fill / capacity ≥ θ}).
+ *
+ * <p>그래서 이 레코드의 id는 건물과 1:1이다. 좌표는 원본 모델에 없는 것을 여기서 더하는
+ * 것이며, 통의 용량·청결 임계({@code capacity}·{@code threshold})는 모델상 통의 속성이지만
+ * 두 구현 모두 아직 전역 값 하나를 모든 통에 쓴다({@code SimulationConfig}). 지점별로
+ * 달리하게 되면 그 값들이 올 자리가 이 레코드다.
+ *
  * @param id            지점 id. {@code Node_A}~{@code Node_Z} — 엔진이 건물 인덱스에 붙이는
  *                      라벨, 서브태스크 ST-005가 사용자에게 받는 이름과 같은 체계다.
  * @param longitude     경도(WGS84)

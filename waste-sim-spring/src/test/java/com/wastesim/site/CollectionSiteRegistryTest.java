@@ -82,8 +82,12 @@ class CollectionSiteRegistryTest {
     }
 
     /**
-     * 결정된 방침 — 서로 다른 지점 id가 같은 좌표를 갖는 것은 <b>허용</b>한다. 한 건물에
-     * 배출구가 둘일 수 있다. 금지되는 것은 같은 id의 중복뿐이고, 그건 JSON 객체 키가 막는다.
+     * 결정된 방침 — 서로 다른 지점 id가 같은 좌표를 갖는 것은 <b>허용</b>한다.
+     *
+     * <p>근거는 “한 지점에 배출구가 둘”이 아니다. 원본 모델에서 수거 지점은 건물과 1:1이라
+     * 그런 경우가 없다. 실제로 일어나는 것은 <b>서로 다른 건물이 사실상 같은 자리에
+     * 배출하는 것</b>이다 — 붙어 있는 원룸 두 동이 같은 골목 어귀를 쓰는 경우.
+     * 금지되는 것은 같은 id의 중복뿐이고, 그건 JSON 객체 키가 막는다.
      */
     @Test
     void twoSitesMaySharePreciselyTheSameCoordinate() throws Exception {
