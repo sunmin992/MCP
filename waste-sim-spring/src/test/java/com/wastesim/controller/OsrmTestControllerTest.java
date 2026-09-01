@@ -172,6 +172,92 @@ class OsrmTestControllerTest {
                 () -> new OsrmRouteService(true, "https://example.com", new OkHttpClient(), 0));
     }
 
+    /**
+     * 아래 네 테스트는 <b>응답을 읽기도 전에, 또는 읽는 도중에</b> 끊어야 하는 갈래들이다.
+     * 이 갈래들은 지금까지 한 번도 실행되지 않았다 — 목 응답 여섯 개가 전부
+     * {@code code:"Ok"}에 정상 형식이었기 때문이다. 어느 하나라도 조용히 통과하면
+     * 그 값은 요청한 경로의 이동시간이 아닌 채로 사용자에게 나간다.
+     */
+    @Test
+    void rejectsNonOkOsrmCode() throws Exception {
+        server.start();
+        server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody("""
+                {"code":"NoRoute","message":"Impossible route between points"}
+                """));
+        ResponseEntity<?> response = routeTwoNodes(server.url("/").toString());
+
+        assertEquals(502, response.getStatusCode().value());
+        @SuppressWarnings("unchecked") Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertNotNull(body);
+        assertEquals("OSRM_UNAVAILABLE", body.get("error"));
+        // 어떤 코드였는지 없으면 좌표 문제인지 서버 문제인지 가릴 수 없다.
+        assertTrue(String.valueOf(body.get("message")).contains("NoRoute"),
+                "message=" + body.get("message"));
+    }
+
+    @Test
+    void rejectsNonSuccessfulHttpStatus() throws Exception {
+        server.start();
+        // 본문은 그럴듯한 정상 응답이다 — 상태 코드만 보고 끊는지 확인한다.
+        server.enqueue(new MockResponse().setResponseCode(500)
+                .setHeader("Content-Type", "application/json").setBody("""
+                {"code":"Ok","waypoints":[{"distance":5.0},{"distance":8.0}],
+                 "routes":[{"distance":3500.0,"duration":420.0,"legs":[
+                  {"distance":3500.0,"duration":420.0}]}]}
+                """));
+        ResponseEntity<?> response = routeTwoNodes(server.url("/").toString());
+
+        assertEquals(502, response.getStatusCode().value());
+        @SuppressWarnings("unchecked") Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertNotNull(body);
+        assertTrue(String.valueOf(body.get("message")).contains("500"),
+                "message=" + body.get("message"));
+    }
+
+    /**
+     * 상태 코드만 보면 이 테스트는 {@code routes[0]} 검사를 지워도 통과한다 — 구간 수
+     * 검사가 뒤에서 같은 502를 내기 때문이다. 그래서 <b>어느 검사가 발동했는지</b>까지
+     * 단언한다. 그러지 않으면 이 갈래가 사라져도 테스트가 조용히 계속 통과한다.
+     */
+    @Test
+    void rejectsResponseWithoutAnyRoute() throws Exception {
+        server.start();
+        server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody("""
+                {"code":"Ok","waypoints":[{"distance":5.0},{"distance":8.0}],"routes":[]}
+                """));
+        ResponseEntity<?> response = routeTwoNodes(server.url("/").toString());
+
+        assertEquals(502, response.getStatusCode().value());
+        @SuppressWarnings("unchecked") Map<String, Object> body = (Map<String, Object>) response.getBody();
+        assertNotNull(body);
+        assertTrue(String.valueOf(body.get("message")).contains("경로가 없습니다"),
+                "구간 수 검사가 아니라 경로 부재 검사가 걸려야 한다. message=" + body.get("message"));
+    }
+
+    /**
+     * 좌표 2개면 구간은 1개여야 한다. 구간 수가 어긋난 응답을 그대로 받으면
+     * {@code legs.get(i)}가 요청한 노드 쌍과 다른 구간을 가리키게 되어,
+     * 각 구간의 from/to 라벨이 실제 계산된 구간과 어긋난 채로 나간다.
+     *
+     * <p>스냅 검사가 이 검사보다 앞서므로, 이 목의 {@code waypoints}는 요청 수와 같고
+     * 스냅 거리도 정상이어야 한다 — 그래야 구간 수 검사에 도달한다.
+     */
+    @Test
+    void rejectsWhenLegCountDoesNotMatchRequestedHops() throws Exception {
+        server.start();
+        server.enqueue(new MockResponse().setHeader("Content-Type", "application/json").setBody("""
+                {"code":"Ok","waypoints":[{"distance":5.0},{"distance":8.0}],
+                 "routes":[{"distance":3500.0,"duration":420.0,"legs":[
+                  {"distance":1200.0,"duration":150.0},
+                  {"distance":2300.0,"duration":270.0}
+                ]}]}
+                """));
+        ResponseEntity<?> response = routeTwoNodes(server.url("/").toString());
+
+        assertEquals(502, response.getStatusCode().value(),
+                "좌표 2개인데 구간이 2개로 온 응답을 통과시키면 안 된다");
+    }
+
     private ResponseEntity<?> routeTwoNodes(String baseUrl) {
         OsrmRouteService service = new OsrmRouteService(true, baseUrl, new OkHttpClient());
         return new OsrmTestController(service).route(new OsrmTestController.RouteRequest(
