@@ -1,0 +1,18 @@
+{
+  "id": "jangnyang-collection-sites",
+  "version": 1,
+  "coordinateSystem": "WGS84 (EPSG:4326), [경도, 위도]",
+  "purpose": "수거 지점 id → 실제 좌표. 등록된 지점에만 실제 도로 기반 이동시간을 쓸 수 있다.",
+  "semantics": "이 파일은 선택적 바인딩이다. 등록되지 않은 지점은 오류가 아니라 '좌표 없음'이며, 호출부는 기존 이동시간 모델로 돌아간다. 비어 있어도 시스템은 지금과 똑같이 동작한다.",
+  "notAnchors": "교통 앵커(traffic/jangryang-nodes.json)와 다른 것이다. 앵커는 실측 교통량 링크의 귀속점이고, 여기 있는 것은 쓰레기를 배출하는 수거 대상이다. 하나의 앵커를 여러 수거 지점이 공유할 수 있다.",
+  "idFormat": "Node_A ~ Node_Z. SimulationEngine.nodeId(buildingIndex)가 붙이는 라벨과 같은 체계이며, 서브태스크 ST-005가 사용자에게 받는 이름도 이 형식이다.",
+  "duplicateCoordinates": "서로 다른 지점 id가 같거나 가까운 좌표를 갖는 것은 허용한다 — 한 건물에 배출구가 둘일 수 있다. 금지되는 것은 같은 id의 중복이다.",
+  "snapThresholdMeters": 300,
+  "admissionCriteria": [
+    "좌표가 유한하고 장량동 인근 경계 안일 것",
+    "행정동이 장량동일 것",
+    "OSRM /nearest 스냅 거리가 300m 이하이고 그 값을 snapMeters에 기록할 것",
+    "source에 좌표의 출처를 남길 것 — 무엇을 보고 이 좌표를 정했는지"
+  ],
+  "sites": {}
+}
