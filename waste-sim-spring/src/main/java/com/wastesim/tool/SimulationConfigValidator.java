@@ -6,7 +6,9 @@ import com.wastesim.model.TrafficProfile;
 import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
 import com.wastesim.service.TrafficDataService;
+import com.wastesim.model.TravelTimeMode;
 import com.wastesim.site.CollectionSiteRegistry;
+import com.wastesim.traffic.TravelTimeMatrix;
 import com.wastesim.simulation.SimulationEngine;
 import org.springframework.stereotype.Component;
 
@@ -28,11 +30,18 @@ public class SimulationConfigValidator {
 
     private final TrafficDataService trafficData;
     private final CollectionSiteRegistry sites;
+    private final TravelTimeMatrix travelTimes;
 
     @org.springframework.beans.factory.annotation.Autowired
-    public SimulationConfigValidator(TrafficDataService trafficData, CollectionSiteRegistry sites) {
+    public SimulationConfigValidator(TrafficDataService trafficData, CollectionSiteRegistry sites,
+                                      TravelTimeMatrix travelTimes) {
         this.trafficData = trafficData;
         this.sites = sites;
+        this.travelTimes = travelTimes;
+    }
+
+    public SimulationConfigValidator(TrafficDataService trafficData, CollectionSiteRegistry sites) {
+        this(trafficData, sites, TravelTimeMatrix.ofDefault());
     }
 
     /**
@@ -41,14 +50,10 @@ public class SimulationConfigValidator {
      * 호출부를 위한 것이다.
      */
     public SimulationConfigValidator(TrafficDataService trafficData) {
-        this(trafficData, emptyRegistry());
+        this(trafficData, CollectionSiteRegistry.empty());
     }
 
-    private static CollectionSiteRegistry emptyRegistry() {
-        CollectionSiteRegistry r = new CollectionSiteRegistry("/collection/empty-sites.json");
-        r.load();
-        return r;
-    }
+
 
     public ValidationResult validate(SimulationConfig c) {
         List<ValidationError> errs = new ArrayList<>();
@@ -109,6 +114,8 @@ public class SimulationConfigValidator {
                 }
             }
         }
+
+        validateTravelTimeMode(c, errs);
 
         List<ValidationError> warns = new ArrayList<>();
         validateTraffic(c, errs, warns);
@@ -300,6 +307,43 @@ public class SimulationConfigValidator {
     }
 
     // ── 교통·폐기물 교차 검증 (TRAFFIC_EXTENSION_DESIGN.md §5.2) ──────────────
+
+    /**
+     * V-T6: 이동시간 모드와 그 모드가 요구하는 데이터가 맞는지.
+     *
+     * <p>혼합 모드를 골랐는데 자유주행시간이 없으면 <b>막는다.</b> 조용히 상수 모드로
+     * 되돌리면 두 모드의 결과가 구별되지 않아, 나온 숫자가 무엇으로 계산된 것인지 알 수
+     * 없게 된다 — 모드를 고른 이유 자체가 사라진다.
+     */
+    private void validateTravelTimeMode(SimulationConfig c, List<ValidationError> errs) {
+        TravelTimeMode mode;
+        try {
+            mode = c.resolveTravelTimeMode();
+        } catch (IllegalArgumentException ex) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ENUM, "travelTimeMode",
+                    "알 수 없는 이동시간 모드: " + c.getTravelTimeMode()
+                            + " (허용: LEGACY_CONSTANT, OSRM_HYBRID)"));
+            return;
+        }
+        if (c.getServiceMinutesPerSite() < 0) {
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "serviceMinutesPerSite",
+                    "지점 정차시간은 0 이상이어야 합니다. 받은 값: " + c.getServiceMinutesPerSite()));
+        }
+        if (mode != TravelTimeMode.OSRM_HYBRID) return;
+
+        List<String> route = c.getRouteSequence();
+        if (route == null || route.isEmpty()) {
+            route = new ArrayList<>(allNodeIds(c.getNumBuildings()));
+        }
+        List<String> missing = travelTimes.missingHops(route);
+        if (!missing.isEmpty()) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "travelTimeMode",
+                    "OSRM_HYBRID로 계산할 자유주행시간이 없는 구간이 있습니다: "
+                            + String.join(", ", missing)
+                            + ". traffic/jangryang-travel-times.json에 실측값을 채우거나 "
+                            + "LEGACY_CONSTANT로 실행하세요."));
+        }
+    }
 
     private void validateTraffic(SimulationConfig c, List<ValidationError> errs, List<ValidationError> warns) {
         // V-T1: 운행 대수 0 이하 → 수거 불가 (시나리오 4 차단)

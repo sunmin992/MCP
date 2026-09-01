@@ -1,0 +1,19 @@
+{
+  "id": "test-travel-times",
+  "unit": "freeFlowSeconds",
+  "purpose": "OSRM_HYBRID 테스트용. 값은 2026-09-01 장량동 확정 좌표 실측(router.project-osrm.org)에서 가져왔다.",
+  "pairs": {
+    "Node_A->Node_B": 162.0,
+    "Node_A->Node_C": 10.2,
+    "Node_A->Node_D": 163.8,
+    "Node_B->Node_A": 186.6,
+    "Node_B->Node_C": 180.6,
+    "Node_B->Node_D": 190.8,
+    "Node_C->Node_A": 10.2,
+    "Node_C->Node_B": 151.8,
+    "Node_C->Node_D": 153.6,
+    "Node_D->Node_A": 157.2,
+    "Node_D->Node_B": 167.4,
+    "Node_D->Node_C": 151.2
+  }
+}

@@ -53,6 +53,21 @@ public class SimulationConfig {
     /** 순회 이동시간(분/건물). >0이면 경로 후반 건물일수록 수거가 늦어짐(구역 분할 효과) */
     private int routeTravelMinutes = 0;
 
+    /**
+     * 구간 이동시간을 무엇으로 계산할지. 기본은 상수 모드이며 기존 결과를 그대로 낸다.
+     * 값은 {@link TravelTimeMode#fromName(String)}이 해석한다.
+     */
+    private String travelTimeMode = TravelTimeMode.LEGACY_CONSTANT.name();
+
+    /**
+     * 지점 하나에서의 정차·상차 시간(분). 혼합 모드에서만 쓴다.
+     *
+     * <p>기본이 0인 이유는 상수 모드의 기본값 15분이 이미 정차분을 떠맡고 있을 수 있어서다 —
+     * 둘을 함께 세면 이중 계산이 된다. 혼합 모드로 갈 때 이 값을 명시적으로 정하는 것이
+     * "이동시간과 정차시간을 분리한다"의 실제 내용이다.
+     */
+    private int serviceMinutesPerSite = 0;
+
     // ── 분리배출 ────────────────────────────────────────────────────────────
     /** 쓰레기 종류별 수거장. null이면 통합 단일 수거장(cfg.capacity/threshold/interval) */
     private List<WasteType> wasteTypes = null;
@@ -153,6 +168,15 @@ public class SimulationConfig {
      * 운행 중단" 차단이 무력화됨). 엔진은 자체적으로 Math.max(1,..)로 방어한다.
      */
     public void setNumTrucks(int v) { this.numTrucks = v; }
+
+    public String getTravelTimeMode() { return travelTimeMode; }
+    public void setTravelTimeMode(String v) { this.travelTimeMode = v; }
+
+    /** 해석된 모드. 값이 없으면 상수 모드. 알 수 없는 값이면 예외(검증기가 잡는다). */
+    public TravelTimeMode resolveTravelTimeMode() { return TravelTimeMode.fromName(travelTimeMode); }
+
+    public int getServiceMinutesPerSite() { return serviceMinutesPerSite; }
+    public void setServiceMinutesPerSite(int v) { this.serviceMinutesPerSite = v; }
 
     public int getRouteTravelMinutes() { return routeTravelMinutes; }
     /** 보정하지 않는다 — 이유는 {@link #setCollectionIntervalDays(int)} 참고. */
@@ -264,6 +288,8 @@ public class SimulationConfig {
         c.holidays = (holidays == null) ? null : new ArrayList<>(holidays);
         c.numTrucks = numTrucks;
         c.routeTravelMinutes = routeTravelMinutes;
+        c.travelTimeMode = travelTimeMode;
+        c.serviceMinutesPerSite = serviceMinutesPerSite;
         c.wasteTypes = (wasteTypes == null) ? null : new ArrayList<>(wasteTypes);
         c.returnDischarge = returnDischarge;
         c.returnFraction = returnFraction;

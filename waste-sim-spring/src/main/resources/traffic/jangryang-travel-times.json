@@ -1,0 +1,12 @@
+{
+  "id": "jangryang-travel-times",
+  "version": 1,
+  "unit": "freeFlowSeconds — 정차·상차를 뺀 순수 주행시간(초)",
+  "purpose": "OSRM_HYBRID 모드가 읽는 수거 지점 간 자유주행시간 행렬.",
+  "whyPrecomputed": "시뮬레이션 도중 OSRM을 부르지 않는다. 같은 시드·같은 파라미터가 같은 결과를 내야 하는데(NFR-02 재현성), 외부 서비스 호출은 그 보장을 깨고 결과를 네트워크 가용성에 묶는다. 그래서 미리 재서 여기 적어 둔다.",
+  "keyFormat": "\"Node_A->Node_B\" — 출발 지점 id와 도착 지점 id. 방향이 있다: OSRM은 일방통행과 중앙분리대를 반영하므로 A->B와 B->A가 다를 수 있다.",
+  "notZonePairs": "여기 쓰이는 id는 수거 지점 id다. 교통 구역(traffic/jangryang-traffic-zones.json)의 measuredOsrm과는 다른 대상을 잰 값이다 — 그쪽은 관측 지점 사이의 거리다.",
+  "howToMeasure": "osrm.enabled=true로 띄운 뒤 POST /api/traffic/osrm/route로 각 순서쌍을 조회한다. 300m 스냅 방어를 통과한 좌표만 유효하다.",
+  "coverageRule": "경로의 모든 구간이 여기 있어야 OSRM_HYBRID를 쓸 수 있다. 하나라도 없으면 실행을 막는다 — 조용히 상수 모드로 되돌리면 무엇으로 계산한 값인지 구별할 수 없다.",
+  "pairs": {}
+}

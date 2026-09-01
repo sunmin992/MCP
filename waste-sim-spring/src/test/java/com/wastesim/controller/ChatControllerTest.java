@@ -57,7 +57,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         ScenarioResponse response = new ScenarioResponse(
                 "COLLECTION_TIME_COMPARISON", "지정 수거 시각 비교", "수거 시각");
@@ -82,7 +82,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         controller.handleMessage(userMsg("25시와 11시 수거를 비교해줘"));
 
@@ -100,7 +100,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         controller.handleMessage(userMsg("10시와 오전 10시 수거를 비교해줘"));
 
@@ -120,7 +120,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         // SimulationConfig.getCollectionTimeLabel()은 collectionTimeMinutes를
         // 매번 "%02d:%02d"로 재포맷하므로("8:30"→setter가 파싱 후 getter가
@@ -179,7 +179,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -204,7 +204,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         SimulationConfig cfg = new SimulationConfig();
         cfg.setCollectionTimeLabel("12:00");
@@ -233,7 +233,7 @@ class ChatControllerTest {
 
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         controller.handleMessage(userMsg("Node_A, Node_C, Node_B, Node_D 순서로 방문하면 얼마나 걸려?"));
 
@@ -259,7 +259,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), new TrafficDataService(),
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         controller.handleMessage(userMsg("노드 b,c,a,d순서로 12시에 수거하면 얼마나 걸려?"));
 
@@ -300,7 +300,7 @@ class ChatControllerTest {
         SimulationTool tool = mock(SimulationTool.class);
         ChatController controller = new ChatController(
                 messaging, openAiService, tool, new SimpleMeterRegistry(), trafficData,
-                subtaskService());
+                subtaskService(), com.wastesim.site.CollectionSiteRegistry.empty());
 
         controller.handleMessage(userMsg(userText));
 

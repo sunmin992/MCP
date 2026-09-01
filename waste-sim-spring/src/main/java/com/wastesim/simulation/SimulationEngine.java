@@ -9,7 +9,10 @@ import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
 
 import static com.wastesim.util.Round.round2;
+import com.wastesim.model.TravelTimeMode;
 import com.wastesim.service.TrafficDataService;
+import com.wastesim.site.CollectionSiteRegistry;
+import com.wastesim.traffic.TravelTimeMatrix;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -38,14 +41,49 @@ public class SimulationEngine {
     static final double EPS = 1e-9;
 
     private final TrafficDataService trafficData;
+    private final CollectionSiteRegistry sites;
+    private final TravelTimeMatrix travelTimes;
 
-    public SimulationEngine(TrafficDataService trafficData) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public SimulationEngine(TrafficDataService trafficData, CollectionSiteRegistry sites,
+                            TravelTimeMatrix travelTimes) {
         this.trafficData = trafficData;
+        this.sites = sites;
+        this.travelTimes = travelTimes;
+    }
+
+    /**
+     * 수거 지점 정보와 자유주행시간 없이 만드는 엔진. 상수 모드로만 돌 수 있고, 교통 구역은
+     * 지점 id를 그대로 쓴다 — 즉 이 엔진의 결과는 v1.12까지와 완전히 같다.
+     */
+    public SimulationEngine(TrafficDataService trafficData) {
+        this(trafficData, CollectionSiteRegistry.empty(), TravelTimeMatrix.empty());
     }
 
     /** 건물 인덱스 → 노드 id(예: 0→"Node_A"). 최대 26개 건물까지 지원. */
     public static String nodeId(int buildingIndex) {
         return "Node_" + (char) ('A' + buildingIndex);
+    }
+
+    /**
+     * 이 구간에 걸리는 분. 모드에 따라 갈린다.
+     *
+     * <p>혼합 모드인데 자유주행시간이 없으면 상수로 되돌리지 않고 예외를 던진다 — 검증기가
+     * 이미 막았어야 하는 상태이고(V-T6), 여기서 조용히 되돌리면 무엇으로 계산한 결과인지
+     * 구별할 수 없게 된다.
+     */
+    private int hopMinutes(SimulationConfig cfg, String from, String to,
+                           int baseMinutes, double mobilityFactor, double congestionWeight) {
+        if (cfg.resolveTravelTimeMode() != TravelTimeMode.OSRM_HYBRID) {
+            return TravelTimeCalculator.hopMinutes(baseMinutes, mobilityFactor, congestionWeight);
+        }
+        java.util.OptionalDouble ff = travelTimes.freeFlowSeconds(from, to);
+        if (ff.isEmpty()) {
+            throw new IllegalStateException("OSRM_HYBRID인데 " + from + "->" + to
+                    + " 구간의 자유주행시간이 없습니다. 검증에서 걸러졌어야 하는 상태입니다.");
+        }
+        return TravelTimeCalculator.hopMinutesFromFreeFlow(ff.getAsDouble(), mobilityFactor,
+                congestionWeight, cfg.getServiceMinutesPerSite());
     }
 
     /** 노드 id → 건물 인덱스. 형식이 잘못됐으면 -1. */
@@ -178,18 +216,23 @@ public class SimulationEngine {
                     for (int pos = 0; pos < route.size(); pos++) {
                         int b = route.get(pos);
                         if (pos > 0) {
+                            String site = nodeId(b);
                             double congestionWeight = 1.0;
                             if (trafficProfile != null) {
-                                String node = nodeId(b);
+                                // 혼잡은 "그 지점이 속한 교통 구역"의 값이다. 매핑이 없으면
+                                // 지점 id를 그대로 구역 id로 본다 — 두 이름공간이 겹쳐 있던
+                                // 시절의 동작이며, 매핑을 채우기 전까지 결과를 그대로 유지한다.
+                                String zone = sites.trafficZoneOf(site).orElse(site);
                                 int minuteOfDay = arrival % DAY;
-                                congestionWeight = trafficProfile.weightAt(minuteOfDay, node);
-                                if (trafficProfile.isRed(minuteOfDay, node)) {
+                                congestionWeight = trafficProfile.weightAt(minuteOfDay, zone);
+                                if (trafficProfile.isRed(minuteOfDay, zone)) {
                                     trafficComplaintAccum += cfg.getTrafficComplaintWeight();
                                 }
                             }
                             // 공식은 TravelTimeCalculator에 고정 — RouteDurationEstimator(경로
                             // 소요시간 단독 질의)와 동일 공식을 공유해 드리프트를 막는다.
-                            arrival += TravelTimeCalculator.hopMinutes(travel, truckType.mobilityFactor, congestionWeight);
+                            arrival += hopMinutes(cfg, nodeId(route.get(pos - 1)), site,
+                                    travel, truckType.mobilityFactor, congestionWeight);
                         }
                         if (arrival <= totalMinutes) pq.offer(new CollectEvt(arrival, b, d, tripId, pos));
                     }

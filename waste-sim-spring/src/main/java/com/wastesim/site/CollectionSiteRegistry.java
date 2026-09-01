@@ -60,6 +60,13 @@ public class CollectionSiteRegistry {
         this(RESOURCE, zones);
     }
 
+    /** 지점이 하나도 없는 레지스트리 — 좌표를 쓰지 않는 호출부를 위한 것이다. */
+    public static CollectionSiteRegistry empty() {
+        CollectionSiteRegistry r = new CollectionSiteRegistry("/collection/empty-sites.json");
+        r.load();
+        return r;
+    }
+
     /** 테스트 또는 별도 구성에서 다른 지점 목록을 물릴 때 쓰는 생성자. */
     public CollectionSiteRegistry(String resourcePath) {
         this(resourcePath, TrafficZoneRegistry.ofDefault());

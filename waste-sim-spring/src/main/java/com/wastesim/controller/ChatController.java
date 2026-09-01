@@ -63,6 +63,8 @@ public class ChatController {
     private final TrafficDataService trafficData;
     /** v1.13 고정 서브태스크 수집 계층(SDD 2.18.9). 세션·검증·조립은 전부 이 서비스가 소유한다. */
     private final SubtaskSessionService subtasks;
+    /** 혼잡 가중치를 "그 지점이 속한 교통 구역"으로 찾기 위한 매핑(SimulationEngine과 같은 기준). */
+    private final com.wastesim.site.CollectionSiteRegistry sites;
 
     // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록).
     //
@@ -93,13 +95,15 @@ public class ChatController {
                           SimulationTool tool,
                           MeterRegistry metrics,
                           TrafficDataService trafficData,
-                          SubtaskSessionService subtasks) {
+                          SubtaskSessionService subtasks,
+                          com.wastesim.site.CollectionSiteRegistry sites) {
         this.messaging = messaging;
         this.openAiService = openAiService;
         this.tool = tool;
         this.metrics = metrics;
         this.trafficData = trafficData;
         this.subtasks = subtasks;
+        this.sites = sites;
     }
 
     @MessageMapping("/chat.send")
@@ -782,7 +786,7 @@ public class ChatController {
         try {
             RouteDurationEstimator.Estimate est = RouteDurationEstimator.estimate(
                     routeSequence, startMinute, RouteDurationEstimator.DEFAULT_ROUTE_TRAVEL_MINUTES,
-                    truckType, profile);
+                    truckType, profile, sites);
             reply = formatRouteDuration(routeSequence, startMinute, truckType, est);
         } catch (IllegalArgumentException e) {
             reply = "방문 순서를 인식하지 못했습니다: " + e.getMessage();

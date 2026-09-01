@@ -57,7 +57,7 @@ class SubtaskChatFlowTest {
                 new ScenarioService(sim), new SimpleMeterRegistry());
         sessions = TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
         controller = new ChatController(messaging, llm, tool, new SimpleMeterRegistry(),
-                traffic, sessions);
+                traffic, sessions, com.wastesim.site.CollectionSiteRegistry.empty());
     }
 
     private void send(String text) {
@@ -300,7 +300,7 @@ class SubtaskChatFlowTest {
         SimpMessagingTemplate bus = mock(SimpMessagingTemplate.class);
         SubtaskSessionService svc = TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
         ChatController c = new ChatController(bus, provider, tool, new SimpleMeterRegistry(),
-                new TrafficDataService(), svc);
+                new TrafficDataService(), svc, com.wastesim.site.CollectionSiteRegistry.empty());
 
         ChatMessage start = new ChatMessage(ChatMessage.MessageType.USER, "장량동 시뮬레이터 만들어 줘");
         start.setDomain("waste");
@@ -324,7 +324,7 @@ class SubtaskChatFlowTest {
     private SimulationConfig buildConfigWith(OpenAiService provider) {
         SubtaskSessionService svc = TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
         ChatController c = new ChatController(mock(SimpMessagingTemplate.class), provider, tool,
-                new SimpleMeterRegistry(), new TrafficDataService(), svc);
+                new SimpleMeterRegistry(), new TrafficDataService(), svc, com.wastesim.site.CollectionSiteRegistry.empty());
         ChatMessage start = new ChatMessage(ChatMessage.MessageType.USER, "장량동 시뮬레이터 만들어 줘");
         start.setDomain("waste");
         c.handleMessage(start);

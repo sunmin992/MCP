@@ -2,6 +2,7 @@ package com.wastesim.service;
 
 import com.wastesim.model.TrafficProfile;
 import com.wastesim.model.TruckType;
+import com.wastesim.site.CollectionSiteRegistry;
 import com.wastesim.simulation.TravelTimeCalculator;
 
 import java.util.ArrayList;
@@ -82,6 +83,24 @@ public final class RouteDurationEstimator {
      */
     public static Estimate estimate(List<String> routeSequence, Integer startMinuteOfDay,
                                      int routeTravelMinutes, TruckType truckType, TrafficProfile profile) {
+        return estimate(routeSequence, startMinuteOfDay, routeTravelMinutes, truckType, profile, null);
+    }
+
+    /**
+     * 위와 같지만 수거 지점 ↔ 교통 구역 매핑을 함께 받는다.
+     *
+     * <p>혼잡 가중치는 "그 지점이 속한 교통 구역"의 값이다. {@code sites}가 {@code null}이거나
+     * 매핑이 없으면 <b>지점 id를 그대로 구역 id로 본다</b> — 두 이름공간이 겹쳐 있던 시절의
+     * 동작이며, 매핑을 채우기 전까지 결과를 그대로 유지하기 위한 것이다.
+     *
+     * <p>이 계산기는 상수 모드만 다룬다. 혼합 모드는 자유주행시간 행렬이 필요하고, 그건
+     * 전체 시뮬레이션 경로({@code SimulationEngine})에서만 쓴다 — 이쪽은 "이 순서·이 시각이면
+     * 몇 분?"이라는 가벼운 단일 질의라서, 답이 모드에 따라 달라지면 같은 질문에 두 답이 생긴다.
+     * 모드를 여기까지 넓힐지는 실측 대조 뒤에 정한다.
+     */
+    public static Estimate estimate(List<String> routeSequence, Integer startMinuteOfDay,
+                                     int routeTravelMinutes, TruckType truckType, TrafficProfile profile,
+                                     CollectionSiteRegistry sites) {
         if (routeSequence == null || routeSequence.size() < 2) {
             throw new IllegalArgumentException("routeSequence는 최소 2개 노드가 필요합니다.");
         }
@@ -109,9 +128,10 @@ public final class RouteDurationEstimator {
             double weight = 1.0;
             boolean red = false;
             if (trafficApplied) {
+                String zone = sites == null ? to : sites.trafficZoneOf(to).orElse(to);
                 int minuteOfDay = ((clock % 1440) + 1440) % 1440;
-                weight = profile.weightAt(minuteOfDay, to);
-                red = profile.isRed(minuteOfDay, to);
+                weight = profile.weightAt(minuteOfDay, zone);
+                red = profile.isRed(minuteOfDay, zone);
             }
 
             int mins = TravelTimeCalculator.hopMinutes(base, tt.mobilityFactor, weight);
