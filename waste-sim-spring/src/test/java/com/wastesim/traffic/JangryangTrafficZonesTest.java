@@ -252,6 +252,47 @@ class JangryangTrafficZonesTest {
                 "Node_D=" + roads.path("Node_D"));
     }
 
+    /**
+     * 수용한 한계가 기록에 남아 있는지 고정한다.
+     *
+     * <p>이 값들은 고칠 수 있지만 고치면 시뮬레이션 결과가 바뀌고, 어느 값이 옳은지 판단할
+     * 근거(구역별 실측 통행속도)가 없어서 <b>한계로 수용</b>했다. 그런 결정은 기록이 사라지는
+     * 순간 "아무도 몰랐던 것"으로 바뀐다 — 다음 사람은 가중치를 혼잡도로, `weekday`를 평일
+     * 평균으로 읽게 된다. 그래서 기록의 존재 자체를 단언한다.
+     *
+     * <p>한계가 실제로 해소되면 해당 항목을 {@code [해소됨]}으로 바꾸고 이 단언도 함께 고친다
+     * (alleyNodeIds가 그렇게 처리됐다).
+     */
+    @Test
+    void acceptedDataLimitationsStayOnTheRecord() {
+        List<String> issues = new ArrayList<>();
+        for (JsonNode n : doc.path("knownIssues")) issues.add(n.asText());
+        assertFalse(issues.isEmpty(), "knownIssues가 비었습니다.");
+
+        // (2) Node_C가 편차 큰 링크를 단순 평균한다
+        assertTrue(issues.stream().anyMatch(t -> t.contains("15.2배") && t.contains("Node_C")),
+                "Node_C 링크 편차가 기록돼 있어야 합니다.");
+        // (3) 창포 키워드가 장량동 밖을 끌어온다
+        assertTrue(issues.stream().anyMatch(t -> t.contains("창포") && t.contains("장량동 밖")),
+                "창포 키워드의 구역 이탈이 기록돼 있어야 합니다.");
+        // (1) 통행량 지수이지 혼잡도가 아니다
+        assertTrue(issues.stream().anyMatch(t -> t.contains("통행량 지수")),
+                "가중치가 혼잡도가 아니라는 점이 기록돼 있어야 합니다.");
+        // (4) weekday에 근거가 없다 — 단어가 아니라 주장을 단언한다. 단어만 보면
+        //     "std_dt가 채워진 추출본이 생기면"처럼 다른 문맥의 등장으로도 통과한다.
+        assertTrue(issues.stream().anyMatch(t -> t.contains("weekday")
+                        && t.contains("뒷받침하지 않는") && t.contains("단일 스냅샷")),
+                "weekday가 데이터로 뒷받침되지 않고 단일 스냅샷이라는 점이 기록돼 있어야 합니다.");
+
+        // 넷 다 "수용한 결정"으로 표시돼야 한다 — 미처리 TODO와 구별된다.
+        long accepted = issues.stream().filter(t -> t.startsWith("[한계로 수용")).count();
+        assertEquals(4, accepted,
+                "수용한 한계 4건이 [한계로 수용] 표시를 달고 있어야 합니다. 실제: " + accepted);
+
+        assertTrue(doc.path("howToReadResults").asText("").contains("절대값보다 경향"),
+                "결과를 어떻게 읽어야 하는지가 기록돼 있어야 합니다.");
+    }
+
     private static String sha256(String s) {
         try {
             byte[] d = MessageDigest.getInstance("SHA-256").digest(s.getBytes(StandardCharsets.UTF_8));
