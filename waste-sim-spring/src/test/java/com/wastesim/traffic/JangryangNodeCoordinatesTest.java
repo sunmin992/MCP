@@ -221,6 +221,32 @@ class JangryangNodeCoordinatesTest {
         assertTrue(documented, "Node_A/Node_C 근접 문제가 knownIssues에 적혀 있어야 합니다.");
     }
 
+    /**
+     * 확정 좌표가 드러낸 두 번째 사실 — {@code alleyNodeIds=[Node_C, Node_D]}는 5톤 진입
+     * 불가를 뜻하는데, 그 두 노드의 실제 도로는 4차로 간선 교차로와 6차로 도로변이다.
+     *
+     * <p>값을 바꾸지 않은 이유는 V-T3 발동 조건과 5톤 차량의 실행 가능 경로가 함께
+     * 바뀌기 때문이다. 대신 여기서 <b>어긋남이 기록돼 있다는 사실</b>을 고정한다 —
+     * 기록이 사라지면 다음 사람은 이 값을 실측으로 읽는다.
+     */
+    @Test
+    void documentsThatAlleyFlagsContradictTheConfirmedRoadClasses() {
+        boolean documented = false;
+        for (JsonNode issue : doc.path("knownIssues")) {
+            String t = issue.asText();
+            if (t.contains("alleyNodeIds") && t.contains("Node_C") && t.contains("Node_D")) documented = true;
+        }
+        assertTrue(documented, "alleyNodeIds 모순이 knownIssues에 적혀 있어야 합니다.");
+
+        JsonNode roads = doc.path("roadClassAtCoordinate").path("nodes");
+        assertEquals(NODES.size(), roads.size(), "네 노드의 도로 등급이 모두 기록돼야 합니다.");
+        // 골목으로 표시된 두 노드가 실제로는 간선에 접한다는 것이 이 항목의 요점이다.
+        assertTrue(roads.path("Node_C").toString().contains("primary"),
+                "Node_C=" + roads.path("Node_C"));
+        assertTrue(roads.path("Node_D").toString().contains("secondary"),
+                "Node_D=" + roads.path("Node_D"));
+    }
+
     private static String sha256(String s) {
         try {
             byte[] d = MessageDigest.getInstance("SHA-256").digest(s.getBytes(StandardCharsets.UTF_8));

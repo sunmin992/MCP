@@ -184,7 +184,30 @@
   "knownIssues": [
     "Node_A와 Node_C는 도로 거리 57.8m(직선 84m)로 사실상 같은 장소다. 실측 CSV가 '장성초등학교'와 '장성초등사거리'를 별개 키워드로 나눠 귀속한 결과이며, 기존 엔진은 이 구간에도 15분을 부과한다(함의 속도 0.23km/h, 88배 과대).",
     "Node_C의 '창포' 키워드로 귀속된 링크의 지점(창포사거리·창포아이파크사거리·창포우체국)은 우창동·두호동으로 장량동 밖이다. 확정된 Node_C 좌표 자체는 장량동 안에 있다.",
-    "alleyNodeIds=[Node_C, Node_D]는 5톤 진입 불가를 뜻하지만 Node_C는 사거리, Node_D는 삼흥로변이다. 좌표와 무관한 별개 결함으로, jangryang-weekday.json 쪽에서 다뤄야 한다.",
+    "alleyNodeIds=[Node_C, Node_D]는 5톤 진입 불가(골목)를 뜻하지만, 확정 좌표의 실제 도로는 Node_C가 4차로 새천년대로(primary) × 대곡로(residential) 교차로이고 Node_D는 6차로 삼흥로(secondary)변이다. 둘 다 골목이 아니다. 이 값은 교통량 CSV에서 나온 것이 아니라 모델링 가정이며(jangryang-weekday.json에 함께 들어 있어 실측처럼 보인다), 값을 바꾸면 V-T3 발동 조건과 5톤 차량의 실행 가능 경로가 함께 바뀌므로 그대로 두었다. 자세한 근거는 docs/guides/CONNECT_TRAFFIC_CSV.md §3.1.",
     "CSV의 '죽천'은 지오코딩이 엉뚱한 지점(장흥초등학교)으로 매칭된다. Node_B의 좌표는 공통 종점(양덕교차로)으로 정해지므로 이 실패는 영향이 없다."
-  ]
+  ],
+  "roadClassAtCoordinate": {
+    "measuredAt": "2026-09-01",
+    "source": "OSM Overpass — 좌표 반경 40m 안의 highway 태그",
+    "note": "alleyNodeIds가 실제 도로 등급과 어긋나는지 확인하려고 재 봤다. residential/service/living_street이면 이면도로, primary/secondary/trunk면 간선이다.",
+    "nodes": {
+      "Node_A": [
+        "residential 새천년대로1123번길(스냅 61.5m, 반경 40m 안에는 도로 없음)"
+      ],
+      "Node_B": [
+        "primary 새천년대로"
+      ],
+      "Node_C": [
+        "primary 새천년대로(4차로)",
+        "residential 대곡로",
+        "residential 새천년대로1123번길"
+      ],
+      "Node_D": [
+        "secondary 삼흥로(6차로)",
+        "residential 법원로63번길",
+        "residential (이름 없음)"
+      ]
+    }
+  }
 }

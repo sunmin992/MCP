@@ -22,6 +22,14 @@ public class TrafficProfile {
      * 설계서에 이 데이터의 출처가 명시되지 않아, TrafficProfile이 지역의 정적
      * 공간 정보(혼잡도와 마찬가지로 지역 고유 데이터)도 함께 갖는 것으로 간주해
      * 이 필드를 추가했다 — 시드 JSON의 alleyNodeIds로 채운다.
+     *
+     * <p><b>같은 파일에 있지만 실측이 아니다.</b> {@code hourlyWeight}·
+     * {@code nodeHourlyWeight}는 공공데이터 교통량에서 나온 값이고, 이 필드는
+     * 모델링 가정이다. 그리고 지금 그 가정은 확정된 노드 좌표와 어긋난다 —
+     * {@code traffic/jangryang-nodes.json}이 위치를 못박은 뒤 확인하니 Node_C는
+     * 4차로 새천년대로와 만나는 교차로, Node_D는 6차로 삼흥로변으로 둘 다 골목이
+     * 아니다. 값을 바꾸면 V-T3 발동 조건과 시뮬레이션 실행 가능성이 함께 바뀌므로
+     * 그대로 두었고, 어긋난 사실은 {@code jangryang-nodes.json}의 knownIssues에 있다.
      */
     private Set<String> alleyNodeIds = Collections.emptySet();
 

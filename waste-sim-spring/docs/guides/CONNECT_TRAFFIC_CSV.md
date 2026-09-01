@@ -19,7 +19,7 @@
 | 최혼잡 노드 | **Node_A(장성초등학교)**, 12~13시 2.20 — RED |
 | 비교적 한산 | Node_B(양덕사거리), 최대 1.46 |
 | 08:30 시각 | 전역 1.54로 RED 아님(과거 가정 시나리오의 "출근 피크"와 다름) |
-| `alleyNodeIds` | `["Node_C","Node_D"]` 고정(데이터와 무관한 물리적 속성 — 골목 진입 가능 여부) |
+| `alleyNodeIds` | `["Node_C","Node_D"]` 고정. **이 CSV에서 나온 값이 아니다** — 골목 진입 가능 여부는 모델링 가정이다. 노드 좌표를 확정한 뒤 확인하니 실제 도로와 어긋난다(§3.1) |
 | 프로파일 id 구성 | `jangryang-weekday` 단일. 과거 가정용 시나리오와 병행하던 `jangryang-weekday-real.json`은 삭제, `SEED_IDS`도 단일 항목 |
 
 관련 테스트(`SimulationConfigValidatorTest.redPeakTimeWarnsButDoesNotBlock` 등)는
@@ -52,6 +52,26 @@
 | `Node_A` (장성초등학교) | `장성초등학교` | 4 | **2.20 @ 12시 (RED)** |
 | `Node_C` (장성초등사거리/창포) | `장성초등사거리`, `창포` | 5 | 1.72 @ 13시 |
 | `Node_D` (두산위브/포항온천) | `두산위브`, `포항온천` | 2 | 1.81 @ 17시 |
+
+## 3.1 alleyNodeIds가 좌표와 어긋난다 (2026-09-01)
+
+`traffic/jangryang-nodes.json`이 네 노드의 위치를 못박은 뒤 OSM으로 대조한 결과다.
+
+| 노드 | 확정 좌표의 실제 도로 | 현재 표시 |
+|---|---|---|
+| Node_A (장성초등학교) | `residential` 새천년대로1123번길 | 골목 아님 |
+| Node_B (양덕교차로) | **`primary` 새천년대로** | 골목 아님 |
+| Node_C (장성초등사거리) | **`primary` 새천년대로(4차로)** × `residential` 대곡로 | **골목** |
+| Node_D (두산위브↔포항온천) | **`secondary` 삼흥로(6차로)** | **골목** |
+
+6차로 도로변인 Node_D를 "5톤 차량 진입 불가"로 두고 있다. Node_C도 4차로 간선과
+만나는 교차로다.
+
+**값은 바꾸지 않았다.** 비우면 V-T3가 영영 발동하지 않고, 이 값에 의존하는 테스트
+세 곳(`SimulationConfigValidatorTest`·`TruckRouteSearchTest`·`JangnyangScenarioBuilderTest`)과
+5톤 차량의 실행 가능 경로가 함께 바뀐다. 실측이 아니라 가정이라는 사실만 분명히 하고,
+바꿀지는 별도 결정으로 남긴다. 결정하려면 먼저 답해야 할 것은 **노드가 "교통 관측
+지점"인가 "수거 대상 건물"인가**다 — 좌표를 확정할 때와 같은 질문이다.
 
 ## 4. 변환 스크립트
 
