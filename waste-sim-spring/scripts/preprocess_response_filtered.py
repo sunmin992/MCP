@@ -19,8 +19,13 @@ args = [a for a in sys.argv[1:] if not a.startswith("--")]
 opts = {sys.argv[i]: sys.argv[i + 1] for i in range(1, len(sys.argv) - 1) if sys.argv[i].startswith("--")}
 
 SRC = args[0] if args else "response_filtered.csv"
-PROFILE_ID = opts.get("--id", "jangryang-weekday-real")
-OUT = opts.get("--out", "src/main/resources/traffic/jangryang-weekday-real.json")
+# 기본값은 TrafficDataService.SEED_IDS가 실제로 로드하는 프로파일이어야 한다.
+# 한동안 기본값이 "-real"이었는데, 그 파일은 SEED_IDS에 없어서 로드되지 않는다 —
+# 갱신 절차를 그대로 따라도 "WROTE ..."가 찍히고 테스트도 통과하면서 운영 프로파일은
+# 그대로 남았다. 아무 경고 없이 "갱신했다고 믿는" 상태가 되는 것이 문제였다.
+# ScriptOutputTargetTest가 이 기본값과 SEED_IDS의 일치를 고정한다.
+PROFILE_ID = opts.get("--id", "jangryang-weekday")
+OUT = opts.get("--out", "src/main/resources/traffic/jangryang-weekday.json")
 K = 1.2                               # 피크 지연 강도(글로벌 최대 대비). 1+K = 최대 가중치
 # alleyNodeIds는 이 프로파일에서 제거됐다(2026-09-01). 대형 차량 진입 가능 여부는 교통량이
 # 아니라 수거 지점의 물리적 성질이라 collection/jangnyang-collection-sites.json의
@@ -73,7 +78,11 @@ def main():
         "nodeHourlyWeight": node_hourly,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(profile, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    # 마지막 개행을 붙인다 — 없으면 같은 CSV로 다시 돌려도 파일이 dirty해져서
+    # "데이터가 실제로 바뀐 것"과 구별되지 않는다.
+    with open(OUT, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(profile, f, ensure_ascii=False, indent=2)
+        f.write("\n")
     print("WROTE", OUT, "| id:", PROFILE_ID, "| 매핑:", {n: cnt[n] for n in NODE_KEYWORDS}, "| 미매핑:", unmapped)
 
 

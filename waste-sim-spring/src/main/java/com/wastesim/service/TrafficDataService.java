@@ -28,6 +28,15 @@ public class TrafficDataService {
     private static final Logger log = LoggerFactory.getLogger(TrafficDataService.class);
     private static final String[] SEED_IDS = {"jangryang-weekday"};
 
+    /**
+     * 기동 시 읽는 프로파일 id들. 전처리 스크립트의 기본 출력 대상이 이 목록 안에 있어야
+     * 한다 — 어긋나면 갱신 절차를 따라도 반영되지 않고, 그 사실이 아무 데도 드러나지 않는다
+     * (실제로 그런 상태였다. {@code ScriptOutputTargetTest}가 고정한다).
+     */
+    public static java.util.List<String> seedIds() {
+        return java.util.List.of(SEED_IDS);
+    }
+
     private final Map<String, TrafficProfile> profiles = new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
 

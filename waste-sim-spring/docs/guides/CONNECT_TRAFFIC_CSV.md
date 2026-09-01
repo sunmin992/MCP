@@ -135,74 +135,38 @@
 
 ## 4. 변환 스크립트
 
-**파일:** `scripts/preprocess_response_filtered.py`
+**파일:** `scripts/preprocess_response_filtered.py` — 이 문서는 코드를 복사해 싣지 않는다.
+전에는 전문을 실어 뒀는데, 진실 원천이 둘이 되어 한쪽만 낡았다(기본 출력 대상이 실제
+스크립트와 달라졌고, 그래서 갱신 절차가 조용히 아무 일도 하지 않았다).
+
 **실행:** `python scripts/preprocess_response_filtered.py [response_filtered.csv]`
-표준 라이브러리만 사용(pandas 불필요).
+표준 라이브러리만 쓴다(pandas 불필요).
 
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""response_filtered.csv(장량동 인근 교통량) → TrafficProfile JSON.
-link_id가 비어 있어 지점명(begin/end) 키워드로 4개 시뮬 노드에 귀속한다.
-"""
-import sys, json, os, csv
+| 항목 | 기본값 | 바꾸는 방법 |
+|---|---|---|
+| 입력 CSV | `response_filtered.csv` | 첫 번째 인자 |
+| 출력 파일 | `src/main/resources/traffic/jangryang-weekday.json` | `--out <경로>` |
+| 프로파일 id | `jangryang-weekday` | `--id <id>` |
 
-SRC = sys.argv[1] if len(sys.argv) > 1 else "response_filtered.csv"
-OUT = "src/main/resources/traffic/jangryang-weekday.json"
-K = 1.2                              # 피크 지연 강도(글로벌 최대 대비). 1+K = 최대 가중치
-ALLEY = ["Node_C", "Node_D"]        # 시뮬레이션상 골목(테스트 보존)
+출력 기본값은 `TrafficDataService.SEED_IDS`가 실제로 로드하는 프로파일과 같아야 한다 —
+다르면 갱신했는데 반영되지 않고, 그 사실이 아무 데도 드러나지 않는다.
+`ScriptOutputTargetTest`가 이 일치를 고정한다.
 
-# 지점명 키워드 → 시뮬 노드. begin/end 노드명에 키워드가 있으면 귀속.
-NODE_KEYWORDS = {
-    "Node_B": ["양덕"],
-    "Node_A": ["장성초등학교"],
-    "Node_C": ["장성초등사거리", "창포"],
-    "Node_D": ["두산위브", "포항온천"],
-}
-HOURS = ["hour_%02d" % h for h in range(24)]   # hour_00..hour_23 → index 0..23
+**계산 방식** — `link_id`가 비어 있어 지점명(`begin_node_nm`/`end_node_nm`) 키워드로 링크를
+노드에 귀속시키고(§3), 노드별 시간대 평균을 낸 뒤 전역 최대로 정규화한다:
 
-def classify(begin, end):
-    text = (begin or "") + " " + (end or "")
-    for node, kws in NODE_KEYWORDS.items():
-        if any(k in text for k in kws):
-            return node
-    return None
-
-def main():
-    rows = list(csv.DictReader(open(SRC, encoding="utf-8-sig")))
-    agg = {n: [0.0] * 24 for n in NODE_KEYWORDS}
-    cnt = {n: 0 for n in NODE_KEYWORDS}
-    unmapped = 0
-    for r in rows:
-        node = classify(r.get("begin_node_nm"), r.get("end_node_nm"))
-        if node is None:
-            unmapped += 1
-            continue
-        cnt[node] += 1
-        for h in range(24):
-            try:
-                agg[node][h] += float(r.get(HOURS[h]) or 0)
-            except ValueError:
-                pass
-    node_vol = {n: [agg[n][h] / cnt[n] if cnt[n] else 0.0 for h in range(24)] for n in NODE_KEYWORDS}
-    vmax = max((v for arr in node_vol.values() for v in arr), default=1.0) or 1.0
-    node_hourly = {n: [round(1.0 + K * (node_vol[n][h] / vmax), 2) for h in range(24)] for n in NODE_KEYWORDS}
-    global_hourly = [round(sum(node_hourly[n][h] for n in NODE_KEYWORDS) / len(NODE_KEYWORDS), 2) for h in range(24)]
-
-    profile = {
-        "id": "jangryang-weekday",
-        "congestionThresholdRed": 1.7,
-        "hourlyWeight": global_hourly,
-        "nodeHourlyWeight": node_hourly,
-        "alleyNodeIds": ALLEY,
-    }
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(profile, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    print("WROTE", OUT, "| 매핑:", {n: cnt[n] for n in NODE_KEYWORDS}, "| 미매핑:", unmapped)
-
-if __name__ == "__main__":
-    main()
 ```
+가중치[노드][시] = 1 + K × (그 노드의 시간평균[시] / 전역 최대 시간평균)
+K = 1.2  →  최대 가중치 2.2
+```
+
+키워드는 순서가 곧 우선순위이고 **첫 일치가 이긴다** — 예를 들어 `장성초등학교→두산위브`는
+두 노드의 키워드에 모두 걸리지만 Node_A로 간다.
+
+> **이 가중치는 통행량 지수이지 혼잡도가 아니다.** 공식에 도로 용량 항이 없어서, 차선이
+> 많아 통행량이 많은 간선이 높은 값을 받는다 — Node_A가 2.20을 받는 이유는 4차로
+> 새천년대로의 1,357대/시인데, 차선당 340대는 정체라 보기 어렵다. 반대로 1차선 골목의
+> 300대/시는 정체다. 이동시간에 곱하는 값으로 쓸 때 이 한계를 감안해야 한다.
 
 ## 5. 새 CSV로 갱신하는 절차(재사용)
 
