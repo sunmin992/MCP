@@ -6,24 +6,44 @@
   "snapThresholdMeters": 300,
   "sites": {
     "Node_A": {
-      "longitude": 129.37185, "latitude": 36.06962, "name": "가상 지점 A(간선)",
-      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
-      "largeTruckAllowed": true
+      "longitude": 129.37185,
+      "latitude": 36.06962,
+      "name": "가상 지점 A(간선)",
+      "adminDivision": "행정동 장량동",
+      "source": "테스트 전용 가상 데이터",
+      "snapMeters": 0.0,
+      "largeTruckAllowed": true,
+      "trafficZone": "Node_A"
     },
     "Node_B": {
-      "longitude": 129.39554, "latitude": 36.07622, "name": "가상 지점 B(간선)",
-      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
-      "largeTruckAllowed": true
+      "longitude": 129.39554,
+      "latitude": 36.07622,
+      "name": "가상 지점 B(간선)",
+      "adminDivision": "행정동 장량동",
+      "source": "테스트 전용 가상 데이터",
+      "snapMeters": 0.0,
+      "largeTruckAllowed": true,
+      "trafficZone": "Node_B"
     },
     "Node_C": {
-      "longitude": 129.37235, "latitude": 36.06898, "name": "가상 지점 C(골목)",
-      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
-      "largeTruckAllowed": false
+      "longitude": 129.37235,
+      "latitude": 36.06898,
+      "name": "가상 지점 C(골목)",
+      "adminDivision": "행정동 장량동",
+      "source": "테스트 전용 가상 데이터",
+      "snapMeters": 0.0,
+      "largeTruckAllowed": false,
+      "trafficZone": "Node_A"
     },
     "Node_D": {
-      "longitude": 129.38066, "latitude": 36.08027, "name": "가상 지점 D(골목)",
-      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
-      "largeTruckAllowed": false
+      "longitude": 129.38066,
+      "latitude": 36.08027,
+      "name": "가상 지점 D(골목)",
+      "adminDivision": "행정동 장량동",
+      "source": "테스트 전용 가상 데이터",
+      "snapMeters": 0.0,
+      "largeTruckAllowed": false,
+      "trafficZone": "Node_D"
     }
   }
 }

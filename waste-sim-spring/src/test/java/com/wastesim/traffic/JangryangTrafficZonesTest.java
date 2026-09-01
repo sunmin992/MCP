@@ -19,7 +19,10 @@ import java.util.Map;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * {@code traffic/jangryang-nodes.json}이 고정한 Node_A~D 좌표를 잠근다.
+ * {@code traffic/jangryang-traffic-zones.json}이 고정한 교통 구역 Node_A~D의 좌표를 잠근다.
+ *
+ * <p>이 파일이 담는 것은 <b>교통을 관측한 자리</b>이지 수거 지점이 아니다 — 그래서 학교·사거리·
+ * 아파트가 여기 온다. 수거 지점은 {@code collection/}에 따로 있고 자신이 속한 구역을 가리킨다.
  *
  * <p>이 파일은 아직 어떤 프로덕션 코드도 읽지 않는다 — 그래서 잘못되거나 낡아도 스스로
  * 드러나지 않는다. 이 테스트가 그 자리를 대신한다. 지키는 것은 세 가지다.
@@ -35,7 +38,7 @@ import static org.junit.jupiter.api.Assertions.*;
  *       않는지만 본다.</li>
  * </ol>
  */
-class JangryangNodeCoordinatesTest {
+class JangryangTrafficZonesTest {
 
     private static final List<String> NODES = List.of("Node_A", "Node_B", "Node_C", "Node_D");
 
@@ -47,30 +50,32 @@ class JangryangNodeCoordinatesTest {
 
     @BeforeAll
     static void load() throws IOException {
-        try (InputStream in = JangryangNodeCoordinatesTest.class
-                .getResourceAsStream("/traffic/jangryang-nodes.json")) {
-            assertNotNull(in, "traffic/jangryang-nodes.json이 클래스패스에 없습니다.");
+        try (InputStream in = JangryangTrafficZonesTest.class
+                .getResourceAsStream("/traffic/jangryang-traffic-zones.json")) {
+            assertNotNull(in, "traffic/jangryang-traffic-zones.json이 클래스패스에 없습니다.");
             doc = new ObjectMapper().readTree(in);
         }
     }
 
     @Test
-    void definesExactlyTheFourEngineNodes() {
-        JsonNode nodes = doc.path("nodes");
-        assertEquals(NODES.size(), nodes.size(), "노드 개수");
+    void definesExactlyTheFourTrafficZones() {
+        JsonNode nodes = doc.path("zones");
+        assertEquals(NODES.size(), nodes.size(), "교통 구역 개수");
         for (String n : NODES) {
             assertTrue(nodes.has(n), n + "이 없습니다.");
         }
-        // SimulationEngine.nodeId(0..3)과 같은 라벨이어야 한다.
-        for (int i = 0; i < NODES.size(); i++) {
-            assertEquals(NODES.get(i), com.wastesim.simulation.SimulationEngine.nodeId(i));
+        // 구역은 수거 지점과 같은 라벨 체계(Node_A~Z)를 쓰지만 별개의 이름공간이다.
+        // 같은 이름이 서로 다른 것을 가리킬 수 있으므로, 여기서는 체계만 확인한다.
+        for (String z : NODES) {
+            assertTrue(com.wastesim.simulation.SimulationEngine.nodeIndex(z) >= 0,
+                    "구역 id는 Node_A~Node_Z 체계여야 합니다: " + z);
         }
     }
 
     @Test
     void everyCoordinateIsFiniteAndInsideJangnyangArea() {
         for (String n : NODES) {
-            JsonNode node = doc.path("nodes").path(n);
+            JsonNode node = doc.path("zones").path(n);
             double lon = node.path("longitude").asDouble(Double.NaN);
             double lat = node.path("latitude").asDouble(Double.NaN);
             assertTrue(Double.isFinite(lon) && Double.isFinite(lat), n + " 좌표가 수치가 아닙니다.");
@@ -88,7 +93,7 @@ class JangryangNodeCoordinatesTest {
         StringBuilder sb = new StringBuilder();
         sb.append(doc.path("id").asText()).append('␟').append(doc.path("version").asInt());
         for (String n : NODES) {
-            JsonNode node = doc.path("nodes").path(n);
+            JsonNode node = doc.path("zones").path(n);
             sb.append('␞').append(n).append('␟')
               .append(node.path("longitude").asText()).append('␟')
               .append(node.path("latitude").asText()).append('␟')
@@ -103,7 +108,7 @@ class JangryangNodeCoordinatesTest {
     @Test
     void everyNodeCarriesItsProvenance() {
         for (String n : NODES) {
-            JsonNode node = doc.path("nodes").path(n);
+            JsonNode node = doc.path("zones").path(n);
             for (String field : List.of("landmark", "endpointRole", "geocodeSource", "adminDivision")) {
                 assertFalse(node.path(field).asText("").isBlank(), n + "." + field + "가 비었습니다.");
             }
@@ -130,7 +135,7 @@ class JangryangNodeCoordinatesTest {
         for (String n : NODES) {
             List<String> expected = derived.getOrDefault(n, List.of());
             List<String> recorded = new ArrayList<>();
-            for (JsonNode l : doc.path("nodes").path(n).path("links")) {
+            for (JsonNode l : doc.path("zones").path(n).path("links")) {
                 recorded.add(l.path("begin").asText() + "→" + l.path("end").asText());
             }
             assertEquals(expected, recorded, n + "의 귀속 링크가 CSV에서 유도한 것과 다릅니다.");
@@ -181,7 +186,7 @@ class JangryangNodeCoordinatesTest {
         double threshold = doc.path("snapThresholdMeters").asDouble(Double.NaN);
         assertEquals(300.0, threshold, "application.properties의 osrm.max-snap-meters와 같아야 합니다.");
         for (String n : NODES) {
-            double snap = doc.path("nodes").path(n).path("snapMeters").asDouble(Double.NaN);
+            double snap = doc.path("zones").path(n).path("snapMeters").asDouble(Double.NaN);
             assertTrue(Double.isFinite(snap) && snap >= 0, n + ".snapMeters가 없거나 음수입니다.");
             assertTrue(snap <= threshold,
                     n + "의 기록된 스냅 거리 " + snap + "m가 임계값 " + threshold + "m를 넘습니다.");

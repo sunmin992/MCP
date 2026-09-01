@@ -12,8 +12,11 @@
     "좌표가 유한하고 장량동 인근 경계 안일 것",
     "행정동이 장량동일 것",
     "OSRM /nearest 스냅 거리가 300m 이하이고 그 값을 snapMeters에 기록할 것",
-    "source에 좌표의 출처를 남길 것 — 무엇을 보고 이 좌표를 정했는지"
+    "source에 좌표의 출처를 남길 것 — 무엇을 보고 이 좌표를 정했는지",
+    "trafficZone을 적었다면 그 구역이 traffic/jangryang-traffic-zones.json에 있을 것",
+    "largeTruckAllowed를 명시할 것 — 대형 차량이 이 지점까지 들어오는지"
   ],
   "sites": {},
-  "modelDefinition": "참조 구현(waste_sim/MODEL_SPECIFICATION.md)에서 수거 지점은 GarbageCan이며 건물마다 정확히 하나다 — Building[b] = { ResidentGenerator × N, GarbageCan × 1 }. 트럭 경로는 건물 인덱스의 나열이고 트럭은 target == building_id인 통만 비운다. 민원이 발생하는 자리도 이 통이다(fill / capacity >= threshold). 좌표는 원본 모델에 없으며 이 파일이 더하는 것이다. 통의 용량과 청결 임계는 모델상 통의 속성이지만 두 구현 모두 아직 전역 값 하나를 모든 통에 쓴다 — 지점별로 달리하게 되면 그 값들이 올 자리가 여기다."
+  "modelDefinition": "참조 구현(waste_sim/MODEL_SPECIFICATION.md)에서 수거 지점은 GarbageCan이며 건물마다 정확히 하나다 — Building[b] = { ResidentGenerator × N, GarbageCan × 1 }. 트럭 경로는 건물 인덱스의 나열이고 트럭은 target == building_id인 통만 비운다. 민원이 발생하는 자리도 이 통이다(fill / capacity >= threshold). 좌표는 원본 모델에 없으며 이 파일이 더하는 것이다. 통의 용량과 청결 임계는 모델상 통의 속성이지만 두 구현 모두 아직 전역 값 하나를 모든 통에 쓴다 — 지점별로 달리하게 되면 그 값들이 올 자리가 여기다.",
+  "trafficZoneMapping": "각 지점의 trafficZone은 그 지점이 겪는 혼잡을 대표하는 교통 구역 id다(traffic/jangryang-traffic-zones.json). 여러 지점이 한 구역을 공유할 수 있다 — 같은 골목의 원룸 여러 동은 같은 혼잡을 겪는다. 비워 두면 매핑 없음이고 전역 시간대 가중치를 쓴다. 없는 구역을 가리키면 기동을 막는다: 조용히 전역 가중치로 떨어지면 설정 오류가 정상 동작처럼 보인다."
 }

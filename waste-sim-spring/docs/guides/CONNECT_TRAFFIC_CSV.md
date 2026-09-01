@@ -55,7 +55,7 @@
 
 ## 3.1 alleyNodeIds를 걷어냈다 (2026-09-01)
 
-`traffic/jangryang-nodes.json`이 네 노드의 위치를 못박은 뒤 OSM으로 대조한 결과다.
+`traffic/jangryang-traffic-zones.json`이 네 구역의 위치를 못박은 뒤 OSM으로 대조한 결과다.
 
 | 노드 | 확정 좌표의 실제 도로 | 현재 표시 |
 |---|---|---|
@@ -83,6 +83,28 @@
 검증 로직 자체는 `src/test/resources/collection/test-alley-sites.json`의 **가상 지점**으로
 계속 지킨다(`TestSites.withAlleys()`). 테스트를 통과시키려고 운영 데이터를 사실과 다르게
 두지 않기 위한 분리다.
+
+## 3.2 노드는 이제 "교통 구역"이다 (2026-09-01)
+
+`Node_A`~`Node_D`가 두 가지를 동시에 뜻하던 것을 갈랐다.
+
+| | 무엇인가 | 어디에 있나 |
+|---|---|---|
+| **교통 구역** | 이 CSV의 링크를 키워드로 귀속시킨 **관측 지점**. `nodeHourlyWeight`의 키가 이것이다. 학교·사거리·아파트가 여기 오는 이유 | `traffic/jangryang-traffic-zones.json` (구 `jangryang-nodes.json`) |
+| **수거 지점** | 쓰레기가 나오는 곳. 원본 DEVS 모델의 `GarbageCan`, 건물당 하나 | `collection/jangnyang-collection-sites.json` |
+
+수거 지점은 자신이 속한 구역을 `trafficZone`으로 가리키고, **여러 지점이 한 구역을 공유할 수
+있다** — 같은 골목의 원룸 여러 동은 같은 혼잡을 겪는다. 겹쳐 있던 시절에는 표현할 수 없던
+관계다. 없는 구역을 가리키면 기동을 막는다(조용히 전역 가중치로 떨어지면 설정 오류가 정상
+동작처럼 보인다).
+
+라벨 체계(`Node_A~Z`)는 같지만 **별개의 이름공간**이다. 수거 지점 `Node_A`와 교통 구역
+`Node_A`는 서로 다른 것을 가리킬 수 있다.
+
+> **아직 계산 경로는 바뀌지 않았다.** 혼잡 가중치를 찾는 두 자리(`SimulationEngine`·
+> `RouteDurationEstimator`)는 여전히 수거 지점 id를 그대로 구역 id로 넘긴다 — 겹쳐 있던
+> 시절의 잔재이며, 매핑이 비어 있는 지금은 결과가 같다. 그 두 곳을
+> `CollectionSiteRegistry.trafficZoneOf()`로 바꾸는 것이 이동시간 작업의 첫 단계다.
 
 ## 4. 변환 스크립트
 

@@ -33,6 +33,12 @@ package com.wastesim.site;
  *                      비어 있으면 다음 사람은 그 좌표를 신뢰할 근거가 없다
  * @param snapMeters    OSRM이 이 좌표를 도로로 스냅하며 밀린 거리(m). 임계값을 넘으면
  *                      그 지점의 이동시간은 요청한 위치의 값이 아니다
+ * @param trafficZone   이 지점이 겪는 혼잡을 대표하는 교통 구역 id
+ *                      ({@link com.wastesim.traffic.TrafficZoneRegistry}). 비어 있으면
+ *                      매핑 없음이고, 그때는 구역별 가중치 대신 전역 시간대 가중치를 쓴다.
+ *                      <b>여러 수거 지점이 한 구역을 공유할 수 있다</b> — 같은 골목의 원룸
+ *                      여러 동은 같은 혼잡을 겪는다. 그래서 이 값은 지점 id와 별개이며,
+ *                      같은 이름이 오더라도 우연이지 같은 대상이라는 뜻이 아니다
  * @param largeTruckAllowed 대형(5톤) 차량이 이 지점까지 들어올 수 있는가.
  *                      <b>접근성은 이 지점의 물리적 성질</b>이며 교통량과 무관하다 —
  *                      그래서 교통 프로파일이 아니라 여기 있고, 교통 레이어를 끄고 돌려도
@@ -48,5 +54,11 @@ public record CollectionSite(
         String adminDivision,
         String source,
         double snapMeters,
+        String trafficZone,
         boolean largeTruckAllowed) {
+
+    /** 이 지점에 교통 구역이 지정돼 있는가. 없으면 전역 시간대 가중치를 쓴다. */
+    public boolean hasTrafficZone() {
+        return trafficZone != null && !trafficZone.isBlank();
+    }
 }

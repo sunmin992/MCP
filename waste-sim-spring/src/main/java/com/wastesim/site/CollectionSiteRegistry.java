@@ -3,6 +3,7 @@ package com.wastesim.site;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.simulation.SimulationEngine;
+import com.wastesim.traffic.TrafficZoneRegistry;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,16 +51,23 @@ public class CollectionSiteRegistry {
     static final double MIN_LAT = 36.04, MAX_LAT = 36.11;
 
     private final String resourcePath;
+    private final TrafficZoneRegistry zones;
     private Map<String, CollectionSite> sites = Map.of();
     private double snapThresholdMeters = 300.0;
 
-    public CollectionSiteRegistry() {
-        this(RESOURCE);
+    @org.springframework.beans.factory.annotation.Autowired
+    public CollectionSiteRegistry(TrafficZoneRegistry zones) {
+        this(RESOURCE, zones);
     }
 
     /** 테스트 또는 별도 구성에서 다른 지점 목록을 물릴 때 쓰는 생성자. */
     public CollectionSiteRegistry(String resourcePath) {
+        this(resourcePath, TrafficZoneRegistry.ofDefault());
+    }
+
+    public CollectionSiteRegistry(String resourcePath, TrafficZoneRegistry zones) {
         this.resourcePath = resourcePath;
+        this.zones = zones;
     }
 
     /** 리소스를 읽어 지점을 올린다. Spring이 기동 시 부르고, 직접 만든 경우 호출부가 부른다. */
@@ -118,6 +126,13 @@ public class CollectionSiteRegistry {
             throw new IllegalStateException(id + "의 스냅 거리 " + snap + "m가 허용 "
                     + snapThresholdMeters + "m를 벗어납니다. 이 좌표의 이동시간은 요청한 위치의 값이 아닙니다.");
         }
+        String zone = n.path("trafficZone").asText("");
+        if (!zone.isBlank() && !zones.isKnownZone(zone)) {
+            // 없는 구역을 가리키면 조용히 전역 가중치로 떨어진다 — 설정 오류가 정상 동작처럼
+            // 보이는 자리라서 여기서 막는다.
+            throw new IllegalStateException(id + "가 등록되지 않은 교통 구역을 가리킵니다: " + zone
+                    + " (등록된 구역: " + zones.zoneIds() + ")");
+        }
         JsonNode allowed = n.get("largeTruckAllowed");
         if (allowed == null || !allowed.isBoolean()) {
             // 기본값으로 얼버무리면 둘 중 하나가 조용히 틀린다 — 참으로 두면 골목에 5톤을
@@ -125,7 +140,7 @@ public class CollectionSiteRegistry {
             throw new IllegalStateException(id + "에 largeTruckAllowed(대형 차량 진입 가능 여부)가 없습니다.");
         }
         return new CollectionSite(id, lon, lat, n.path("name").asText(""), admin, source, snap,
-                allowed.booleanValue());
+                zone, allowed.booleanValue());
     }
 
     private static double requireFinite(JsonNode n, String field, String id) {
@@ -155,6 +170,21 @@ public class CollectionSiteRegistry {
 
     public int size() {
         return sites.size();
+    }
+
+    /**
+     * 이 수거 지점의 혼잡을 대표하는 교통 구역. <b>매핑이 없으면 비어 있다</b> — 그때 호출부는
+     * 구역별 가중치 대신 전역 시간대 가중치를 쓴다.
+     *
+     * <p>아직 이 값을 읽는 계산 경로는 없다. 지금 혼잡 가중치를 찾는 두 자리
+     * ({@code SimulationEngine}·{@code RouteDurationEstimator})는 <b>수거 지점 id를 그대로
+     * 구역 id로 넘긴다</b> — 두 이름공간이 겹쳐 있던 시절의 잔재이며, 매핑이 비어 있는 지금은
+     * 결과가 같다. 그 두 곳을 이 메서드로 바꾸는 것이 이동시간 작업의 첫 단계다.
+     */
+    public java.util.Optional<String> trafficZoneOf(String siteId) {
+        CollectionSite s = siteId == null ? null : sites.get(siteId);
+        return s != null && s.hasTrafficZone() ? java.util.Optional.of(s.trafficZone())
+                                               : java.util.Optional.empty();
     }
 
     /**

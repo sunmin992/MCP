@@ -206,6 +206,54 @@ class CollectionSiteRegistryTest {
         assertTrue(e.getMessage().contains("클래스패스에 없습니다"), e.getMessage());
     }
 
+    // ── 교통 구역 매핑 ─────────────────────────────────────────────────────
+
+    /**
+     * 여러 수거 지점이 한 구역을 공유하는 것이 이 매핑의 존재 이유다 — 같은 골목의 원룸
+     * 여러 동은 같은 혼잡을 겪는다. 겹쳐 있던 시절에는 표현할 수 없던 관계다.
+     */
+    @Test
+    void manySitesMayShareOneTrafficZone() throws Exception {
+        CollectionSiteRegistry reg = withSites("""
+                  "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"앞동",
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,
+                             "trafficZone":"Node_C","largeTruckAllowed":true},
+                  "Node_B": {"longitude":129.3719,"latitude":36.0697,"name":"옆동",
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,
+                             "trafficZone":"Node_C","largeTruckAllowed":true}
+                """);
+
+        assertEquals("Node_C", reg.trafficZoneOf("Node_A").orElseThrow());
+        assertEquals("Node_C", reg.trafficZoneOf("Node_B").orElseThrow());
+    }
+
+    /** 매핑이 없으면 비어 있다 — 호출부는 전역 시간대 가중치로 간다. */
+    @Test
+    void siteWithoutZoneMappingYieldsNothing() throws Exception {
+        CollectionSiteRegistry reg = withSites("""
+                  "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"x",
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,
+                             "largeTruckAllowed":true}
+                """);
+
+        assertEquals(Optional.empty(), reg.trafficZoneOf("Node_A"));
+        assertEquals(Optional.empty(), reg.trafficZoneOf("Node_Z"), "등록되지 않은 지점");
+        assertEquals(Optional.empty(), reg.trafficZoneOf(null));
+    }
+
+    /**
+     * 없는 구역을 가리키면 기동을 막는다. 통과시키면 그 지점은 조용히 전역 가중치로 떨어지고,
+     * 설정 오류가 정상 동작과 구별되지 않는다.
+     */
+    @Test
+    void rejectsMappingToAnUnknownTrafficZone() {
+        assertStartupFails("""
+                  "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"x",
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,
+                             "trafficZone":"Node_Q","largeTruckAllowed":true}
+                """, "등록되지 않은 교통 구역");
+    }
+
     // ── 도우미 ─────────────────────────────────────────────────────────────
 
     private static CollectionSiteRegistry loaded(String resource) {
