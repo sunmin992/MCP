@@ -6,6 +6,7 @@ import com.wastesim.model.TrafficProfile;
 import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
 import com.wastesim.service.TrafficDataService;
+import com.wastesim.site.CollectionSiteRegistry;
 import com.wastesim.simulation.SimulationEngine;
 import org.springframework.stereotype.Component;
 
@@ -26,9 +27,27 @@ import java.util.Set;
 public class SimulationConfigValidator {
 
     private final TrafficDataService trafficData;
+    private final CollectionSiteRegistry sites;
 
-    public SimulationConfigValidator(TrafficDataService trafficData) {
+    @org.springframework.beans.factory.annotation.Autowired
+    public SimulationConfigValidator(TrafficDataService trafficData, CollectionSiteRegistry sites) {
         this.trafficData = trafficData;
+        this.sites = sites;
+    }
+
+    /**
+     * 수거 지점 정보 없이 만드는 검증기. 접근성 판정(V-T3)은 등록된 지점이 있어야 하므로
+     * 이 생성자로 만든 검증기에서는 발동하지 않는다 — 접근성과 무관한 검증만 필요한
+     * 호출부를 위한 것이다.
+     */
+    public SimulationConfigValidator(TrafficDataService trafficData) {
+        this(trafficData, emptyRegistry());
+    }
+
+    private static CollectionSiteRegistry emptyRegistry() {
+        CollectionSiteRegistry r = new CollectionSiteRegistry("/collection/empty-sites.json");
+        r.load();
+        return r;
     }
 
     public ValidationResult validate(SimulationConfig c) {
@@ -340,6 +359,25 @@ public class SimulationConfigValidator {
             }
         }
 
+        // V-T3: 대형 차량이 들어갈 수 없는 수거 지점을 5톤으로 돌려고 하면 실행 불가.
+        //
+        // 이 검사는 교통 게이트보다 앞에 있다. 접근성은 지점의 물리적 성질이지 교통량의
+        // 성질이 아니기 때문이다 — 골목은 교통 레이어를 꺼도 골목이다. v1.12까지는 이 정보가
+        // 교통 프로파일의 alleyNodeIds에 실려 있어서 교통을 켠 경우에만 판정됐고, 실측 교통량과
+        // 같은 파일에 있어 측정치처럼 보이는 문제도 있었다.
+        //
+        // 등록되지 않은 지점은 막지 않는다 — 접근성을 모르는 것과 못 들어간다는 것은 다르다.
+        if (!truckType.alleyAccess) {
+            Set<String> targetNodes = (routeValid && seq != null && !seq.isEmpty())
+                    ? new HashSet<>(seq) : allNodeIds(c.getNumBuildings());
+            List<String> blocked = sites.largeTruckBlockedAmong(targetNodes);
+            if (!blocked.isEmpty()) {
+                errs.add(new ValidationError(ErrorCode.TRAFFIC_INFEASIBLE, "truckType",
+                        truckType.labelKo + " 차량은 " + String.join(", ", blocked)
+                                + " 진입이 불가합니다. 소형 차량(SMALL_1TON) 등으로 바꿔주세요."));
+            }
+        }
+
         // 교통 적용을 요청했는데 프로파일이 없으면 조용히 비활성화하지 않고 차단한다.
         if (!c.isTrafficEnabled()) return;
         if (c.getTrafficProfileId() == null || c.getTrafficProfileId().isBlank()) {
@@ -352,20 +390,6 @@ public class SimulationConfigValidator {
             errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "trafficProfileId",
                     "등록되지 않은 교통 프로파일입니다: " + c.getTrafficProfileId()));
             return;
-        }
-
-        // V-T3: 대형트럭처럼 골목 진입 불가한 차종 + 대상 구역이 골목 → 교통상 실행 불가
-        if (!truckType.alleyAccess) {
-            Set<String> targetNodes = (routeValid && seq != null && !seq.isEmpty())
-                    ? new HashSet<>(seq) : allNodeIds(c.getNumBuildings());
-            for (String node : targetNodes) {
-                if (tp.getAlleyNodeIds().contains(node)) {
-                    errs.add(new ValidationError(ErrorCode.TRAFFIC_INFEASIBLE, "truckType",
-                            truckType.labelKo + " 차량은 골목(" + node + ") 진입이 불가합니다. " +
-                            "소형 차량(SMALL_1TON) 등으로 바꿔주세요."));
-                    break;
-                }
-            }
         }
 
         // V-T5(경고, 비차단): 수거 시각이 RED 피크 구간이면 트레이드오프 사유 첨부

@@ -57,13 +57,14 @@ public class CollectionSiteRegistry {
         this(RESOURCE);
     }
 
-    /** 테스트가 다른 지점 목록을 물릴 때 쓰는 생성자. */
-    CollectionSiteRegistry(String resourcePath) {
+    /** 테스트 또는 별도 구성에서 다른 지점 목록을 물릴 때 쓰는 생성자. */
+    public CollectionSiteRegistry(String resourcePath) {
         this.resourcePath = resourcePath;
     }
 
+    /** 리소스를 읽어 지점을 올린다. Spring이 기동 시 부르고, 직접 만든 경우 호출부가 부른다. */
     @PostConstruct
-    void load() {
+    public void load() {
         try (InputStream in = getClass().getResourceAsStream(resourcePath)) {
             if (in == null) {
                 throw new IllegalStateException("수거 지점 파일이 클래스패스에 없습니다: " + resourcePath);
@@ -117,7 +118,14 @@ public class CollectionSiteRegistry {
             throw new IllegalStateException(id + "의 스냅 거리 " + snap + "m가 허용 "
                     + snapThresholdMeters + "m를 벗어납니다. 이 좌표의 이동시간은 요청한 위치의 값이 아닙니다.");
         }
-        return new CollectionSite(id, lon, lat, n.path("name").asText(""), admin, source, snap);
+        JsonNode allowed = n.get("largeTruckAllowed");
+        if (allowed == null || !allowed.isBoolean()) {
+            // 기본값으로 얼버무리면 둘 중 하나가 조용히 틀린다 — 참으로 두면 골목에 5톤을
+            // 들여보내고, 거짓으로 두면 멀쩡한 지점을 막는다. 어느 쪽도 나중에 알아채기 어렵다.
+            throw new IllegalStateException(id + "에 largeTruckAllowed(대형 차량 진입 가능 여부)가 없습니다.");
+        }
+        return new CollectionSite(id, lon, lat, n.path("name").asText(""), admin, source, snap,
+                allowed.booleanValue());
     }
 
     private static double requireFinite(JsonNode n, String field, String id) {
@@ -147,6 +155,20 @@ public class CollectionSiteRegistry {
 
     public int size() {
         return sites.size();
+    }
+
+    /**
+     * 이 지점들 중 대형 차량이 들어갈 수 없는 곳. 등록되지 않은 지점은 <b>포함하지 않는다</b> —
+     * 접근성을 모르는 것과 못 들어간다는 것은 다르고, 모르는 것을 이유로 실행을 막지 않는다.
+     */
+    public java.util.List<String> largeTruckBlockedAmong(Iterable<String> siteIds) {
+        java.util.List<String> blocked = new java.util.ArrayList<>();
+        if (siteIds == null) return blocked;
+        for (String id : siteIds) {
+            CollectionSite s = sites.get(id);
+            if (s != null && !s.largeTruckAllowed()) blocked.add(id);
+        }
+        return blocked;
     }
 
     /**

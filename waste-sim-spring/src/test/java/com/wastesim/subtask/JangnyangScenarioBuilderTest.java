@@ -122,13 +122,20 @@ class JangnyangScenarioBuilderTest {
                 "사용자가 고른 값은 서버가 채운 값이 아니다");
 
         // 두 겹 검증 중 <b>두 번째 겹</b>이 실제로 동작하는지 — 서브태스크 규칙은 항목별로만
-        // 보므로 "차종은 유효하고 교통 여부도 유효한데 둘을 함께 놓으면 불가능"한 조합은
-        // 여기서만 잡힌다(D-48). 5톤 차량은 골목 진입이 안 되므로 교통을 켜면 실행 불가다.
+        // 보므로 "차종은 유효하고 접근성도 각각 유효한데 둘을 함께 놓으면 불가능"한 조합은
+        // 여기서만 잡힌다(D-48). 5톤 차량은 골목 진입이 안 된다.
+        //
+        // 골목 정보는 이제 수거 지점에 있고 운영 데이터에는 골목이 하나도 없으므로(실제 네
+        // 지점이 전부 간선에 접한다), 이 조합을 만들려면 가상 지점 집합을 물려야 한다.
+        JangnyangScenarioBuilder alleyAware = new JangnyangScenarioBuilder(
+                checker,
+                new SimulationConfigValidator(traffic, com.wastesim.site.TestSites.withAlleys()),
+                traffic);
         Map<String, Object> infeasible = baseAnswers();
         infeasible.put("ST-029", "APPLY");
         infeasible.put("ST-030", "jangryang-weekday");
         infeasible.put("ST-024", "LARGE_5TON");
-        var blocked = builder.build(def, accept(infeasible));
+        var blocked = alleyAware.build(def, accept(infeasible));
         assertFalse(blocked.ok(), "항목별로 다 맞아도 조합이 불가능하면 실행 전에 막아야 한다");
         assertNull(blocked.spec());
         assertTrue(blocked.configErrors().stream().anyMatch(e -> "truckType".equals(e.field())));

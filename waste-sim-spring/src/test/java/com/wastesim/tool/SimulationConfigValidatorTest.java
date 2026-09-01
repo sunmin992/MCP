@@ -2,6 +2,7 @@ package com.wastesim.tool;
 
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.service.TrafficDataService;
+import com.wastesim.site.TestSites;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -91,13 +92,20 @@ class SimulationConfigValidatorTest {
                 e.code() == ErrorCode.CRITICAL_WASTE_ACCUMULATION));
     }
 
+    /**
+     * 골목 정보는 이제 교통 프로파일이 아니라 수거 지점에 있다. 운영 데이터에는 골목이
+     * 하나도 없으므로(실제 네 지점이 전부 간선에 접한다) 가상 지점 집합을 물려 검증한다.
+     */
+    private final SimulationConfigValidator withAlleys =
+            new SimulationConfigValidator(new TrafficDataService(), TestSites.withAlleys());
+
     @Test
     void trafficInfeasibleForLargeTruckInAlley() {   // UT-T5 (V-T3)
         SimulationConfig c = new SimulationConfig();
         c.setTrafficEnabled(true);
         c.setTrafficProfileId("jangryang-weekday");
-        c.setTruckType("LARGE_5TON");        // alleyAccess=false, 시드 데이터의 Node_C/D는 골목
-        ValidationResult r = v.validate(c);
+        c.setTruckType("LARGE_5TON");        // alleyAccess=false, 가상 지점의 Node_C/D는 골목
+        ValidationResult r = withAlleys.validate(c);
         assertFalse(r.ready());
         assertTrue(r.errors().stream().anyMatch(e -> e.code() == ErrorCode.TRAFFIC_INFEASIBLE));
     }
@@ -108,7 +116,30 @@ class SimulationConfigValidatorTest {
         c.setTrafficEnabled(true);
         c.setTrafficProfileId("jangryang-weekday");
         c.setTruckType("SMALL_1TON");
-        assertTrue(v.validate(c).ready());
+        assertTrue(withAlleys.validate(c).ready());
+    }
+
+    /** 접근성은 지점의 물리적 성질이다 — 교통 레이어를 꺼도 골목은 골목이다. */
+    @Test
+    void alleyCheckAppliesEvenWithTrafficDisabled() {
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(false);
+        c.setTruckType("LARGE_5TON");
+        ValidationResult r = withAlleys.validate(c);
+        assertFalse(r.ready(), "교통을 껐다고 5톤이 골목에 들어갈 수 있게 되지는 않는다");
+        assertTrue(r.errors().stream().anyMatch(e -> e.code() == ErrorCode.TRAFFIC_INFEASIBLE));
+    }
+
+    /** 운영 데이터에는 골목이 없다 — 사실에 맞는 결과이므로 5톤이 막히지 않아야 한다. */
+    @Test
+    void operationalDataHasNoAlleysSoLargeTruckIsNotBlocked() {
+        SimulationConfig c = new SimulationConfig();
+        c.setTrafficEnabled(true);
+        c.setTrafficProfileId("jangryang-weekday");
+        c.setTruckType("LARGE_5TON");
+        assertTrue(v.validate(c).errors().stream()
+                        .noneMatch(e -> e.code() == ErrorCode.TRAFFIC_INFEASIBLE),
+                "확정 좌표 기준 장량동 네 지점은 모두 간선에 접한다");
     }
 
     @Test

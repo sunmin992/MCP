@@ -1,0 +1,29 @@
+{
+  "id": "test-alley-sites",
+  "purpose": "V-T3(대형 차량 진입 불가) 검증 전용 지점 집합. 운영 데이터가 아니다.",
+  "whyThisExists": "장량동의 실제 네 지점은 확정 좌표 기준으로 모두 간선 도로에 접해 있어 대형 차량이 들어간다. 그래서 운영 프로파일에는 골목이 하나도 없고, V-T3는 실제 데이터로는 발동하지 않는다 — 그것이 사실에 맞는 결과다. 검증 로직 자체는 계속 지켜야 하므로, 여기에 가상의 골목 지점을 둔다. 테스트를 통과시키려고 운영 데이터를 사실과 다르게 두지 않기 위한 분리다.",
+  "fictional": true,
+  "snapThresholdMeters": 300,
+  "sites": {
+    "Node_A": {
+      "longitude": 129.37185, "latitude": 36.06962, "name": "가상 지점 A(간선)",
+      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
+      "largeTruckAllowed": true
+    },
+    "Node_B": {
+      "longitude": 129.39554, "latitude": 36.07622, "name": "가상 지점 B(간선)",
+      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
+      "largeTruckAllowed": true
+    },
+    "Node_C": {
+      "longitude": 129.37235, "latitude": 36.06898, "name": "가상 지점 C(골목)",
+      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
+      "largeTruckAllowed": false
+    },
+    "Node_D": {
+      "longitude": 129.38066, "latitude": 36.08027, "name": "가상 지점 D(골목)",
+      "adminDivision": "행정동 장량동", "source": "테스트 전용 가상 데이터", "snapMeters": 0.0,
+      "largeTruckAllowed": false
+    }
+  }
+}

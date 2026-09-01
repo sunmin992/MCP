@@ -7,6 +7,12 @@ import java.util.Set;
 
 /**
  * 포항시 교통량 데이터 — 시간대별·구역별 혼잡 가중치.
+ *
+ * <p><b>이 클래스는 이제 교통량만 담는다.</b> v1.12까지는 {@code alleyNodeIds}(대형 차량
+ * 진입 불가 지점)도 함께 들고 있었는데, 그건 교통량이 아니라 <b>지점의 물리적 성질</b>이라
+ * 여기 있을 것이 아니었다. 실측 가중치와 같은 파일에 있어 측정치처럼 보이는 문제도 있었고,
+ * 실제로 확정된 좌표와 대조하니 골목으로 표시된 두 곳이 각각 4차로 교차로와 6차로 도로변이었다.
+ * 접근성은 {@code CollectionSite.largeTruckAllowed}로 옮겼다.
  * (TRAFFIC_EXTENSION_DESIGN.md §2.1). {@code src/main/resources/traffic/*.json}에서
  * {@link com.wastesim.service.TrafficDataService}가 로드한다.
  */
@@ -17,21 +23,6 @@ public class TrafficProfile {
     private double[] hourlyWeight;                  // 길이 24, 시간대별 통행시간 배수
     private java.util.Map<String, double[]> nodeHourlyWeight;  // 노드별 시간대 가중치(선택)
     private double congestionThresholdRed = 2.0;     // RED(극심) 판정 가중치
-    /**
-     * 이면도로(골목) 노드 id 집합 — V-T3(대형트럭 골목 진입 불가) 판정에 사용.
-     * 설계서에 이 데이터의 출처가 명시되지 않아, TrafficProfile이 지역의 정적
-     * 공간 정보(혼잡도와 마찬가지로 지역 고유 데이터)도 함께 갖는 것으로 간주해
-     * 이 필드를 추가했다 — 시드 JSON의 alleyNodeIds로 채운다.
-     *
-     * <p><b>같은 파일에 있지만 실측이 아니다.</b> {@code hourlyWeight}·
-     * {@code nodeHourlyWeight}는 공공데이터 교통량에서 나온 값이고, 이 필드는
-     * 모델링 가정이다. 그리고 지금 그 가정은 확정된 노드 좌표와 어긋난다 —
-     * {@code traffic/jangryang-nodes.json}이 위치를 못박은 뒤 확인하니 Node_C는
-     * 4차로 새천년대로와 만나는 교차로, Node_D는 6차로 삼흥로변으로 둘 다 골목이
-     * 아니다. 값을 바꾸면 V-T3 발동 조건과 시뮬레이션 실행 가능성이 함께 바뀌므로
-     * 그대로 두었고, 어긋난 사실은 {@code jangryang-nodes.json}의 knownIssues에 있다.
-     */
-    private Set<String> alleyNodeIds = Collections.emptySet();
 
     public String getId() { return id; }
     public void setId(String v) { this.id = v; }
@@ -44,9 +35,6 @@ public class TrafficProfile {
 
     public double getCongestionThresholdRed() { return congestionThresholdRed; }
     public void setCongestionThresholdRed(double v) { this.congestionThresholdRed = v; }
-
-    public Set<String> getAlleyNodeIds() { return alleyNodeIds; }
-    public void setAlleyNodeIds(Set<String> v) { this.alleyNodeIds = v == null ? Collections.emptySet() : v; }
 
     /** 특정 분(minuteOfDay)·노드의 혼잡 가중치. 노드별 데이터 없으면 전역 시간대 가중치 사용. */
     public double weightAt(int minuteOfDay, String node) {

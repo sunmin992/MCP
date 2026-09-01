@@ -22,17 +22,10 @@ SRC = args[0] if args else "response_filtered.csv"
 PROFILE_ID = opts.get("--id", "jangryang-weekday-real")
 OUT = opts.get("--out", "src/main/resources/traffic/jangryang-weekday-real.json")
 K = 1.2                               # 피크 지연 강도(글로벌 최대 대비). 1+K = 최대 가중치
-# 시뮬레이션상 골목(물리 속성, 이 CSV와 무관). V-T3(대형트럭 진입 불가) 판정에 쓰인다.
-#
-# 주의 — 이 값은 확정된 노드 좌표와 어긋난다. traffic/jangryang-nodes.json이 노드 위치를
-# 못박은 뒤 OSM으로 확인해 보니 Node_C는 4차로 새천년대로와 만나는 교차로이고,
-# Node_D는 6차로 삼흥로변이다. 둘 다 골목이 아니다.
-#
-# 그대로 두는 이유는 값을 바꾸면 동작이 바뀌기 때문이다 — 비우면 V-T3가 영영 발동하지
-# 않고(SimulationConfigValidatorTest·TruckRouteSearchTest·JangnyangScenarioBuilderTest가
-# 이 값에 의존한다), 5톤 차량이 지금은 못 도는 경로를 돌게 된다. 실측이 아니라 모델링
-# 가정이라는 사실만 분명히 해 두고, 바꿀지는 별도 결정으로 남긴다.
-ALLEY = ["Node_C", "Node_D"]
+# alleyNodeIds는 이 프로파일에서 제거됐다(2026-09-01). 대형 차량 진입 가능 여부는 교통량이
+# 아니라 수거 지점의 물리적 성질이라 collection/jangnyang-collection-sites.json의
+# largeTruckAllowed로 옮겼다. 확정된 좌표로 대조해 보니 골목으로 표시돼 있던 두 곳이
+# 각각 4차로 교차로와 6차로 도로변이었고, 근거 없는 값이 실측 옆에 앉아 있었다.
 
 # 지점명 키워드 → 시뮬 노드. begin/end 노드명에 키워드가 있으면 귀속.
 NODE_KEYWORDS = {
@@ -78,7 +71,6 @@ def main():
         "congestionThresholdRed": 1.7,
         "hourlyWeight": global_hourly,
         "nodeHourlyWeight": node_hourly,
-        "alleyNodeIds": ALLEY,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
     json.dump(profile, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)

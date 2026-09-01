@@ -52,9 +52,9 @@ class CollectionSiteRegistryTest {
     void coversAllRequiresEveryNodeOnTheRoute() throws Exception {
         CollectionSiteRegistry reg = withSites("""
                   "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"A",
-                             "adminDivision":"포항시 북구 장성동(행정동 장량동)","source":"테스트","snapMeters":10.0},
+                             "adminDivision":"포항시 북구 장성동(행정동 장량동)","source":"테스트","snapMeters":10.0,"largeTruckAllowed":true},
                   "Node_B": {"longitude":129.3955,"latitude":36.0762,"name":"B",
-                             "adminDivision":"포항시 북구 장성동(행정동 장량동)","source":"테스트","snapMeters":18.0}
+                             "adminDivision":"포항시 북구 장성동(행정동 장량동)","source":"테스트","snapMeters":18.0,"largeTruckAllowed":true}
                 """);
 
         assertTrue(reg.coversAll(List.of("Node_A", "Node_B")));
@@ -70,7 +70,7 @@ class CollectionSiteRegistryTest {
         CollectionSiteRegistry reg = withSites("""
                   "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"장량동 원룸 1",
                              "adminDivision":"포항시 북구 장성동(행정동 장량동)",
-                             "source":"현장 확인 2026-09-01","snapMeters":12.5}
+                             "source":"현장 확인 2026-09-01","snapMeters":12.5,"largeTruckAllowed":true}
                 """);
 
         CollectionSite s = reg.find("Node_A").orElseThrow();
@@ -93,9 +93,9 @@ class CollectionSiteRegistryTest {
     void twoSitesMaySharePreciselyTheSameCoordinate() throws Exception {
         CollectionSiteRegistry reg = withSites("""
                   "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"앞동",
-                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":10.0},
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":10.0,"largeTruckAllowed":true},
                   "Node_B": {"longitude":129.3718,"latitude":36.0696,"name":"뒷동",
-                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":10.0}
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":10.0,"largeTruckAllowed":true}
                 """);
 
         assertEquals(2, reg.size());
@@ -107,9 +107,9 @@ class CollectionSiteRegistryTest {
     void registrationOrderIsPreserved() throws Exception {
         CollectionSiteRegistry reg = withSites("""
                   "Node_C": {"longitude":129.3723,"latitude":36.0689,"name":"C",
-                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0},
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,"largeTruckAllowed":true},
                   "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"A",
-                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0}
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,"largeTruckAllowed":true}
                 """);
 
         assertEquals(List.of("Node_C", "Node_A"), List.copyOf(reg.all().keySet()));
@@ -121,7 +121,7 @@ class CollectionSiteRegistryTest {
     void rejectsIdOutsideTheEngineNodeScheme() {
         assertStartupFails("""
                   "SITE-001": {"longitude":129.3718,"latitude":36.0696,"name":"x",
-                               "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0}
+                               "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,"largeTruckAllowed":true}
                 """, "Node_A~Node_Z");
     }
 
@@ -129,7 +129,7 @@ class CollectionSiteRegistryTest {
     void rejectsCoordinateOutsideJangnyangArea() {
         assertStartupFails("""
                   "Node_A": {"longitude":126.9780,"latitude":37.5665,"name":"서울시청",
-                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0}
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,"largeTruckAllowed":true}
                 """, "장량동 인근을 벗어납니다");
     }
 
@@ -137,7 +137,7 @@ class CollectionSiteRegistryTest {
     void rejectsSiteOutsideJangnyangAdministrativeDivision() {
         assertStartupFails("""
                   "Node_A": {"longitude":129.3704,"latitude":36.0611,"name":"창포사거리",
-                             "adminDivision":"포항시 북구 창포동(행정동 우창동)","source":"테스트","snapMeters":1.0}
+                             "adminDivision":"포항시 북구 창포동(행정동 우창동)","source":"테스트","snapMeters":1.0,"largeTruckAllowed":true}
                 """, "장량동이 아닙니다");
     }
 
@@ -146,7 +146,7 @@ class CollectionSiteRegistryTest {
     void rejectsSiteWithoutProvenance() {
         assertStartupFails("""
                   "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"x",
-                             "adminDivision":"행정동 장량동","source":"","snapMeters":1.0}
+                             "adminDivision":"행정동 장량동","source":"","snapMeters":1.0,"largeTruckAllowed":true}
                 """, "출처");
     }
 
@@ -155,15 +155,47 @@ class CollectionSiteRegistryTest {
     void rejectsSnapDistanceBeyondTheThreshold() {
         assertStartupFails("""
                   "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"x",
-                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":301.0}
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":301.0,"largeTruckAllowed":true}
                 """, "스냅 거리");
+    }
+
+    /**
+     * 기본값으로 얼버무리면 둘 중 하나가 조용히 틀린다 — 참으로 두면 골목에 5톤을 들여보내고,
+     * 거짓으로 두면 멀쩡한 지점을 막는다. 어느 쪽도 나중에 알아채기 어려우므로 명시를 요구한다.
+     */
+    @Test
+    void rejectsSiteWithoutLargeTruckAccessibility() {
+        assertStartupFails("""
+                  "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"x",
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0}
+                """, "largeTruckAllowed");
+    }
+
+    /** 골목으로 표시된 지점만 골라낸다. 등록되지 않은 지점은 포함하지 않는다 — 모르는 것과 막힌 것은 다르다. */
+    @Test
+    void largeTruckBlockedAmongPicksOnlyKnownInaccessibleSites() throws Exception {
+        CollectionSiteRegistry reg = withSites("""
+                  "Node_A": {"longitude":129.3718,"latitude":36.0696,"name":"간선",
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,
+                             "largeTruckAllowed":true},
+                  "Node_B": {"longitude":129.3955,"latitude":36.0762,"name":"골목",
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,
+                             "largeTruckAllowed":false}
+                """);
+
+        assertEquals(List.of("Node_B"), reg.largeTruckBlockedAmong(List.of("Node_A", "Node_B")));
+        assertEquals(List.of(), reg.largeTruckBlockedAmong(List.of("Node_A")),
+                "간선 지점만 있으면 막을 것이 없다");
+        assertEquals(List.of(), reg.largeTruckBlockedAmong(List.of("Node_Z")),
+                "등록되지 않은 지점은 '모른다'이지 '막혔다'가 아니다");
+        assertEquals(List.of(), reg.largeTruckBlockedAmong(null));
     }
 
     @Test
     void rejectsNonNumericCoordinate() {
         assertStartupFails("""
                   "Node_A": {"longitude":"동쪽","latitude":36.0696,"name":"x",
-                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0}
+                             "adminDivision":"행정동 장량동","source":"테스트","snapMeters":1.0,"largeTruckAllowed":true}
                 """, "유한한 숫자");
     }
 
