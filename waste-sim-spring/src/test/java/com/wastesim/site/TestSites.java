@@ -12,6 +12,19 @@ public final class TestSites {
 
     private TestSites() {}
 
+    /**
+     * 네 지점이 모두 <b>같은</b> 교통 구역(Node_A)에 속하는 가상 지점 집합.
+     *
+     * <p>{@code ZONE_PROXY_HYBRID}의 구역 내 이동을 확인하려면 그런 상황이 필요하다. 확정된
+     * 네 지점은 서로 다른 구역에 흩어져 있어 구역 내 이동이 한 번도 일어나지 않는다 — 그것이
+     * 사실에 맞는 상태이므로 운영 데이터를 바꾸지 않고 여기에 가상 집합을 둔다.
+     */
+    public static CollectionSiteRegistry allInZoneA() {
+        CollectionSiteRegistry r = new CollectionSiteRegistry("/collection/test-one-zone-sites.json");
+        r.load();
+        return r;
+    }
+
     /** Node_C·Node_D가 골목인 가상 지점 집합. */
     public static CollectionSiteRegistry withAlleys() {
         CollectionSiteRegistry r = new CollectionSiteRegistry("/collection/test-alley-sites.json");

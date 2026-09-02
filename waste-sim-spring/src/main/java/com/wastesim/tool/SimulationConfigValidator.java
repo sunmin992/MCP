@@ -32,13 +32,24 @@ public class SimulationConfigValidator {
     private final TrafficDataService trafficData;
     private final CollectionSiteRegistry sites;
     private final TravelTimeMatrix travelTimes;
+    private final TravelTimeMatrix zoneTravelTimes;
 
     @org.springframework.beans.factory.annotation.Autowired
+    public SimulationConfigValidator(TrafficDataService trafficData, CollectionSiteRegistry sites,
+                                      TravelTimeMatrix travelTimes,
+                                      com.wastesim.traffic.ZoneTravelTimeMatrix zoneTravelTimes) {
+        this.trafficData = trafficData;
+        this.sites = sites;
+        this.travelTimes = travelTimes;
+        this.zoneTravelTimes = zoneTravelTimes;
+    }
+
     public SimulationConfigValidator(TrafficDataService trafficData, CollectionSiteRegistry sites,
                                       TravelTimeMatrix travelTimes) {
         this.trafficData = trafficData;
         this.sites = sites;
         this.travelTimes = travelTimes;
+        this.zoneTravelTimes = TravelTimeMatrix.ofZones();
     }
 
     public SimulationConfigValidator(TrafficDataService trafficData, CollectionSiteRegistry sites) {
@@ -406,26 +417,64 @@ public class SimulationConfigValidator {
         } catch (IllegalArgumentException ex) {
             errs.add(new ValidationError(ErrorCode.INVALID_ENUM, "travelTimeMode",
                     "알 수 없는 이동시간 모드: " + c.getTravelTimeMode()
-                            + " (허용: LEGACY_CONSTANT, OSRM_HYBRID)"));
+                            + " (허용: LEGACY_CONSTANT, OSRM_HYBRID, ZONE_PROXY_HYBRID)"));
             return;
         }
         if (c.getServiceMinutesPerSite() < 0) {
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "serviceMinutesPerSite",
                     "지점 정차시간은 0 이상이어야 합니다. 받은 값: " + c.getServiceMinutesPerSite()));
         }
-        if (mode != TravelTimeMode.OSRM_HYBRID) return;
+        if (c.getIntraZoneTravelMinutes() < 0) {
+            errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "intraZoneTravelMinutes",
+                    "구역 내 이동시간은 0 이상이어야 합니다. 받은 값: "
+                            + c.getIntraZoneTravelMinutes()));
+        }
+        if (mode == TravelTimeMode.LEGACY_CONSTANT) return;
 
         List<String> route = c.getRouteSequence();
         if (route == null || route.isEmpty()) {
             route = new ArrayList<>(allNodeIds(c.getNumBuildings()));
         }
+
+        if (mode == TravelTimeMode.ZONE_PROXY_HYBRID) {
+            validateZoneCoverage(route, errs);
+            return;
+        }
+
         List<String> missing = travelTimes.missingHops(route);
         if (!missing.isEmpty()) {
             errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "travelTimeMode",
                     "OSRM_HYBRID로 계산할 자유주행시간이 없는 구간이 있습니다: "
                             + String.join(", ", missing)
-                            + ". traffic/jangryang-travel-times.json에 실측값을 채우거나 "
-                            + "LEGACY_CONSTANT로 실행하세요."));
+                            + ". traffic/jangryang-travel-times.json은 **실제 수거 지점 좌표로 잰"
+                            + " 값만** 담습니다. 지점 좌표가 아직 없다면 교통 구역으로 근사하는"
+                            + " ZONE_PROXY_HYBRID를 쓰거나 LEGACY_CONSTANT로 실행하세요."));
+        }
+    }
+
+    /**
+     * V-T7: 구역 근사 모드로 계산할 수 있는지. 경로의 각 지점을 교통 구역으로 바꾼 뒤,
+     * <b>구역이 바뀌는 구간</b>만 구역 간 행렬에 있는지 본다.
+     *
+     * <p>같은 구역 안의 이동은 행렬을 보지 않고 {@code intraZoneTravelMinutes}를 쓰므로
+     * 덮을 값이 필요하지 않다. 여기서도 없는 값을 채워 넣지 않고 실행을 막는다.
+     */
+    private void validateZoneCoverage(List<String> route, List<ValidationError> errs) {
+        List<String> missing = new ArrayList<>();
+        for (int i = 1; i < route.size(); i++) {
+            String from = sites.trafficZoneOf(route.get(i - 1)).orElse(route.get(i - 1));
+            String to = sites.trafficZoneOf(route.get(i)).orElse(route.get(i));
+            if (from.equals(to)) continue;
+            if (zoneTravelTimes.freeFlowSeconds(from, to).isEmpty()) {
+                missing.add(from + "->" + to);
+            }
+        }
+        if (!missing.isEmpty()) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "travelTimeMode",
+                    "ZONE_PROXY_HYBRID로 계산할 구역 간 자유주행시간이 없습니다: "
+                            + String.join(", ", missing)
+                            + ". 해당 지점의 trafficZone을 확인하거나"
+                            + " traffic/jangryang-zone-travel-times.json에 실측값을 채우세요."));
         }
     }
 

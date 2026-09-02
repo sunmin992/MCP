@@ -32,11 +32,21 @@ import java.util.OptionalDouble;
  * 그래서 이 클래스는 없는 값을 0이나 추정치로 채우지 않고 "없다"고 답한다.
  */
 @Component
+@org.springframework.context.annotation.Primary
 public class TravelTimeMatrix {
 
     private static final Logger log = LoggerFactory.getLogger(TravelTimeMatrix.class);
 
     public static final String RESOURCE = "/traffic/jangryang-travel-times.json";
+
+    /**
+     * <b>교통 구역</b> 간 행렬. {@code ZONE_PROXY_HYBRID}가 읽는다.
+     *
+     * <p>같은 파서를 쓰지만 키가 가리키는 대상이 다르다 — 이쪽 {@code Node_A~D}는 교통
+     * 구역이고, {@link #RESOURCE}의 {@code Node_A~D}는 수거 지점이다. 라벨 형태가 같아서
+     * 헷갈리기 쉬우므로 파일을 갈라 뒀다.
+     */
+    public static final String ZONE_RESOURCE = "/traffic/jangryang-zone-travel-times.json";
 
     private final String resourcePath;
     private Map<String, Double> freeFlowSeconds = Map.of();
@@ -52,6 +62,13 @@ public class TravelTimeMatrix {
     /** 값이 하나도 없는 행렬 — 상수 모드로만 도는 호출부를 위한 것이다. */
     public static TravelTimeMatrix empty() {
         TravelTimeMatrix m = new TravelTimeMatrix("/traffic/empty-travel-times.json");
+        m.load();
+        return m;
+    }
+
+    /** 구역 간 행렬을 즉시 읽어 돌려준다 — Spring 밖에서 만들 때 쓴다. */
+    public static TravelTimeMatrix ofZones() {
+        TravelTimeMatrix m = new TravelTimeMatrix(ZONE_RESOURCE);
         m.load();
         return m;
     }

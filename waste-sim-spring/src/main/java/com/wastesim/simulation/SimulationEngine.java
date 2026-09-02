@@ -44,13 +44,25 @@ public class SimulationEngine {
     private final TrafficDataService trafficData;
     private final CollectionSiteRegistry sites;
     private final TravelTimeMatrix travelTimes;
+    private final TravelTimeMatrix zoneTravelTimes;
 
     @org.springframework.beans.factory.annotation.Autowired
+    public SimulationEngine(TrafficDataService trafficData, CollectionSiteRegistry sites,
+                            TravelTimeMatrix travelTimes,
+                            com.wastesim.traffic.ZoneTravelTimeMatrix zoneTravelTimes) {
+        this.trafficData = trafficData;
+        this.sites = sites;
+        this.travelTimes = travelTimes;
+        this.zoneTravelTimes = zoneTravelTimes;
+    }
+
+    /** 구역 간 행렬을 따로 주지 않으면 기본 구역 행렬을 읽는다. */
     public SimulationEngine(TrafficDataService trafficData, CollectionSiteRegistry sites,
                             TravelTimeMatrix travelTimes) {
         this.trafficData = trafficData;
         this.sites = sites;
         this.travelTimes = travelTimes;
+        this.zoneTravelTimes = TravelTimeMatrix.ofZones();
     }
 
     /**
@@ -75,8 +87,12 @@ public class SimulationEngine {
      */
     private int hopMinutes(SimulationConfig cfg, String from, String to,
                            int baseMinutes, double mobilityFactor, double congestionWeight) {
-        if (cfg.resolveTravelTimeMode() != TravelTimeMode.OSRM_HYBRID) {
+        TravelTimeMode mode = cfg.resolveTravelTimeMode();
+        if (mode == TravelTimeMode.LEGACY_CONSTANT) {
             return TravelTimeCalculator.hopMinutes(baseMinutes, mobilityFactor, congestionWeight);
+        }
+        if (mode == TravelTimeMode.ZONE_PROXY_HYBRID) {
+            return zoneProxyHopMinutes(cfg, from, to, mobilityFactor, congestionWeight);
         }
         java.util.OptionalDouble ff = travelTimes.freeFlowSeconds(from, to);
         if (ff.isEmpty()) {
@@ -85,6 +101,42 @@ public class SimulationEngine {
         }
         return TravelTimeCalculator.hopMinutesFromFreeFlow(ff.getAsDouble(), mobilityFactor,
                 congestionWeight, cfg.getServiceMinutesPerSite());
+    }
+
+    /**
+     * 구역 근사 모드의 한 구간. 두 지점이 <b>같은 구역인지</b>로 갈린다.
+     *
+     * <p>구역이 다르면 구역 간 실측 주행시간에 시간대 혼잡을 곱하고, 같으면
+     * {@code intraZoneTravelMinutes}를 쓴다 — 구역 간 행렬에 대각 성분이 없기 때문이다.
+     * 구역 내 이동에는 혼잡을 곱하지 않는다. 그 값 자체가 이미 "구역 안에서 평균적으로
+     * 이만큼 걸린다"는 통짜 가정이어서, 여기에 다시 시간대 배수를 얹으면 측정하지 않은
+     * 값에 측정하지 않은 보정을 곱하는 셈이 된다.
+     *
+     * <p>어느 쪽이든 도착 지점의 정차·상차 시간을 더한다.
+     */
+    private int zoneProxyHopMinutes(SimulationConfig cfg, String from, String to,
+                                    double mobilityFactor, double congestionWeight) {
+        String fromZone = zoneOf(from);
+        String toZone = zoneOf(to);
+        if (fromZone.equals(toZone)) {
+            return cfg.getIntraZoneTravelMinutes() + cfg.getServiceMinutesPerSite();
+        }
+        java.util.OptionalDouble ff = zoneTravelTimes.freeFlowSeconds(fromZone, toZone);
+        if (ff.isEmpty()) {
+            throw new IllegalStateException("ZONE_PROXY_HYBRID인데 구역 " + fromZone + "->" + toZone
+                    + " 의 자유주행시간이 없습니다. 검증에서 걸러졌어야 하는 상태입니다.");
+        }
+        return TravelTimeCalculator.hopMinutesFromFreeFlow(ff.getAsDouble(), mobilityFactor,
+                congestionWeight, cfg.getServiceMinutesPerSite());
+    }
+
+    /**
+     * 이 수거 지점이 속한 교통 구역. 매핑이 없으면 지점 id를 그대로 구역 id로 본다 — 두
+     * 이름공간이 겹쳐 있던 시절의 동작이며, 수거 지점을 등록하기 전에도 기본 4개 건물
+     * (Node_A~D)이 이름이 같은 구역 4곳으로 해석되게 해 준다.
+     */
+    private String zoneOf(String siteId) {
+        return sites.trafficZoneOf(siteId).orElse(siteId);
     }
 
     /** 노드 id → 건물 인덱스. 형식이 잘못됐으면 -1. */
@@ -223,7 +275,7 @@ public class SimulationEngine {
                                 // 혼잡은 "그 지점이 속한 교통 구역"의 값이다. 매핑이 없으면
                                 // 지점 id를 그대로 구역 id로 본다 — 두 이름공간이 겹쳐 있던
                                 // 시절의 동작이며, 매핑을 채우기 전까지 결과를 그대로 유지한다.
-                                String zone = sites.trafficZoneOf(site).orElse(site);
+                                String zone = zoneOf(site);
                                 int minuteOfDay = arrival % DAY;
                                 congestionWeight = trafficProfile.weightAt(minuteOfDay, zone);
                                 if (trafficProfile.isRed(minuteOfDay, zone)) {
@@ -442,6 +494,7 @@ public class SimulationEngine {
         result.setCapacityExhaustedTripCount(exhaustedTrips.size());
         result.setUncollectedDemandKg(round2(uncollectedDemandKg));
         result.setMassBalanceErrorKg(round2(massBalanceErrorKg));
+        result.setCoordinateQuality(cfg.resolveTravelTimeMode().coordinateQuality());
         result.setTripMetrics(buildTripMetrics(tripAccs));
         result.setResidualByBuilding(residualByBuilding);
         result.setResidualByWasteType(residualByWasteType);

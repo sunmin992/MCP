@@ -29,7 +29,37 @@ public enum TravelTimeMode {
      * <p>행렬이 경로의 모든 구간을 덮지 못하면 <b>실행을 막는다.</b> 조용히 상수 모드로
      * 되돌리면 두 모드의 결과가 구별되지 않아, 무엇으로 계산한 값인지 알 수 없게 된다.
      */
-    OSRM_HYBRID;
+    OSRM_HYBRID,
+
+    /**
+     * 수거 지점 좌표가 없을 때 <b>교통 구역으로 근사</b>한다. 지금 당장 쓸 수 있는 모드다.
+     *
+     * <p>각 수거 지점은 좌표 없이 소속 교통 구역만 갖는다. 구간을 계산할 때 두 지점의 구역을
+     * 보고 —
+     *
+     * <ul>
+     *   <li><b>구역이 다르면</b> 구역 간 실측 도로 시간(traffic/jangryang-zone-travel-times.json)
+     *       에 시간대 혼잡을 곱한다.</li>
+     *   <li><b>구역이 같으면</b> {@code intraZoneTravelMinutes}(구역 내 평균 이동시간)를 쓴다 —
+     *       구역 간 행렬에는 대각 성분이 없고, 있을 수도 없다.</li>
+     * </ul>
+     *
+     * <p>여기에 도착 지점의 정차·상차 시간을 더한다.
+     *
+     * <p><b>지점 단위 경로 비교에는 쓸 수 없다.</b> 같은 구역 안에서 어느 순서로 도는지가
+     * 결과에 반영되지 않기 때문이다 — 구역 내 이동이 전부 같은 평균값이 된다. 결과에는
+     * {@link CoordinateQuality#TRAFFIC_ZONE_PROXY} 표시가 붙는다.
+     */
+    ZONE_PROXY_HYBRID;
+
+    /** 이 모드가 쓰는 좌표의 성질. 결과에 함께 나간다. */
+    public CoordinateQuality coordinateQuality() {
+        return switch (this) {
+            case LEGACY_CONSTANT -> CoordinateQuality.NOT_USED;
+            case OSRM_HYBRID -> CoordinateQuality.MEASURED_SITE;
+            case ZONE_PROXY_HYBRID -> CoordinateQuality.TRAFFIC_ZONE_PROXY;
+        };
+    }
 
     /** 이름 → enum (대소문자 무관, 하이픈 허용). 알 수 없으면 예외. */
     public static TravelTimeMode fromName(String name) {

@@ -65,6 +65,18 @@ public class SimulationConfig {
     private String dischargeTimeMode = DischargeTimeMode.PAPER_BASELINE.name();
 
     /**
+     * 같은 교통 구역 안에서 지점을 옮길 때 걸리는 분.
+     * {@link TravelTimeMode#ZONE_PROXY_HYBRID}에서만 쓴다.
+     *
+     * <p><b>측정된 값이 아니다.</b> 구역 간 행렬에는 대각 성분이 없고 있을 수도 없어서
+     * (구역은 점이 아니라 영역이다), 같은 구역 안의 이동은 어딘가에서 가정해야 한다.
+     * 기본값 0은 "아직 아무 가정도 얹지 않았다"는 뜻이며, 한 구역에 여러 지점을 넣으면
+     * 그만큼 순회 시간을 <b>실제보다 짧게</b> 낸다. 0·5·10분으로 민감도를 함께 보고
+     * 결과가 이 값에 얼마나 좌우되는지 밝히는 것이 이 파라미터의 올바른 사용법이다.
+     */
+    private int intraZoneTravelMinutes = 0;
+
+    /**
      * 배출 허용 창의 시작 시각(자정 기준 분). 기본 1200 = 20:00.
      * {@link DischargeTimeMode#POHANG_ACTUAL}에서만 쓴다.
      */
@@ -177,6 +189,9 @@ public class SimulationConfig {
 
     public List<Integer> getCollectionTimesMinutes() { return collectionTimesMinutes; }
     public void setCollectionTimesMinutes(List<Integer> v) { this.collectionTimesMinutes = v; }
+
+    public int getIntraZoneTravelMinutes() { return intraZoneTravelMinutes; }
+    public void setIntraZoneTravelMinutes(int v) { this.intraZoneTravelMinutes = v; }
 
     public String getDischargeTimeMode() { return dischargeTimeMode; }
     public void setDischargeTimeMode(String v) { this.dischargeTimeMode = v; }
@@ -357,6 +372,7 @@ public class SimulationConfig {
         c.collectionIntervalDays = collectionIntervalDays;
         c.collectionDaysOfWeek = (collectionDaysOfWeek == null) ? null : new ArrayList<>(collectionDaysOfWeek);
         c.dischargeTimeMode = dischargeTimeMode;
+        c.intraZoneTravelMinutes = intraZoneTravelMinutes;
         c.dischargeWindowStartMinutes = dischargeWindowStartMinutes;
         c.dischargeWindowEndMinutes = dischargeWindowEndMinutes;
         c.skipWeekends = skipWeekends;

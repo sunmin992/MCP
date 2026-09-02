@@ -7,6 +7,15 @@ public class SimulationResult {
 
     private SimulationConfig simulationConfig;
 
+    /**
+     * 이 결과가 어떤 좌표로 계산됐는가. 이동시간 모드에서 유도되며 별도로 설정하지 않는다.
+     *
+     * <p>결과에 이것을 실어 보내는 이유는, 같은 "38분"이라도 현장 GPS로 계산한 38분과 교통
+     * 구역으로 근사한 38분이 다른 것이기 때문이다. 표시가 없으면 읽는 사람이 그 차이를 알 수
+     * 없고, 근사값이 실측처럼 인용된다.
+     */
+    private CoordinateQuality coordinateQuality = CoordinateQuality.NOT_USED;
+
     private String collectionTimeLabel;
     private int totalComplaints;
     /** 적재 임계 초과로 거주민 배출 시 발생한 생활쓰레기 민원. */
@@ -162,6 +171,25 @@ public class SimulationResult {
 
     public Map<String, Object> getByOccupationSummary() { return byOccupationSummary; }
     public void setByOccupationSummary(Map<String, Object> v) { this.byOccupationSummary = v; }
+
+    public CoordinateQuality getCoordinateQuality() { return coordinateQuality; }
+    public void setCoordinateQuality(CoordinateQuality v) { this.coordinateQuality = v; }
+
+    /** 좌표 품질을 사람이 읽는 이름으로 — 결과 카드에 그대로 쓸 수 있다. */
+    public String getCoordinateQualityLabel() {
+        return coordinateQuality == null ? null : coordinateQuality.labelKo;
+    }
+
+    /**
+     * 이 결과를 읽을 때 함께 봐야 하는 경고. 경고할 것이 없으면 {@code null}이다.
+     *
+     * <p>{@code ZONE_PROXY_HYBRID}로 돌린 결과에는 "실제 수거 지점 좌표를 쓰지 않았다"가
+     * 여기 담긴다.
+     */
+    public String getDataQualityWarning() {
+        return (coordinateQuality == null || !coordinateQuality.hasWarning())
+                ? null : coordinateQuality.warning;
+    }
 
     public SimulationConfig getSimulationConfig() { return simulationConfig; }
     public void setSimulationConfig(SimulationConfig v) { this.simulationConfig = v; }
