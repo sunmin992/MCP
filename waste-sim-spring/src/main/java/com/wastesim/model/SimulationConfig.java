@@ -68,13 +68,26 @@ public class SimulationConfig {
      * 같은 교통 구역 안에서 지점을 옮길 때 걸리는 분.
      * {@link TravelTimeMode#ZONE_PROXY_HYBRID}에서만 쓴다.
      *
-     * <p><b>측정된 값이 아니다.</b> 구역 간 행렬에는 대각 성분이 없고 있을 수도 없어서
-     * (구역은 점이 아니라 영역이다), 같은 구역 안의 이동은 어딘가에서 가정해야 한다.
-     * 기본값 0은 "아직 아무 가정도 얹지 않았다"는 뜻이며, 한 구역에 여러 지점을 넣으면
-     * 그만큼 순회 시간을 <b>실제보다 짧게</b> 낸다. 0·5·10분으로 민감도를 함께 보고
-     * 결과가 이 값에 얼마나 좌우되는지 밝히는 것이 이 파라미터의 올바른 사용법이다.
+     * <p><b>측정된 값이 아니고, 기본값도 없다.</b> 구역 간 행렬에는 대각 성분이 없고 있을
+     * 수도 없어서(구역은 점이 아니라 영역이다), 같은 구역 안의 이동은 측정할 대상이 아예
+     * 없고 누군가 정해 줘야 한다.
+     *
+     * <p>{@code null}은 "지정하지 않았다"는 뜻이며 0과 다르다. 0은 <b>구역 안을 이동하는 데
+     * 시간이 들지 않는다</b>는 강한 하한 가정이다 — 한때 이 필드의 기본값이 0이었는데,
+     * 그러면 아무 값도 주지 않은 실행이 조용히 그 가정을 쓰게 된다. 이 프로젝트의 다른
+     * 미측정 입력은 모두 실행을 막는 쪽을 택했다(V-T6이 자유주행시간 없는 구간을 막는 것과
+     * 같은 이유다). 그래서 —
+     *
+     * <ul>
+     *   <li>같은 구역이 연속되는 이동이 <b>없으면</b> 값 없이 실행된다 — 쓸 자리가 없다.</li>
+     *   <li>그런 이동이 있는데 값이 없으면 <b>검증이 막는다</b>(V-T7).</li>
+     *   <li>명시적으로 지정하면(0 포함) 그 값으로 실행하고, 결과에
+     *       {@code INTRA_ZONE_TIME_ASSUMED} 표시를 붙인다.</li>
+     * </ul>
+     *
+     * <p>0·5·10분으로 민감도를 함께 보고하는 것이 이 파라미터의 올바른 사용법이다.
      */
-    private int intraZoneTravelMinutes = 0;
+    private Integer intraZoneTravelMinutes = null;
 
     /**
      * 배출 허용 창의 시작 시각(자정 기준 분). 기본 1200 = 20:00.
@@ -113,6 +126,26 @@ public class SimulationConfig {
      * <p>기본이 0인 이유는 상수 모드의 기본값 15분이 이미 정차분을 떠맡고 있을 수 있어서다 —
      * 둘을 함께 세면 이중 계산이 된다. 혼합 모드로 갈 때 이 값을 명시적으로 정하는 것이
      * "이동시간과 정차시간을 분리한다"의 실제 내용이다.
+     *
+     * <p><b>지점마다 붙는다</b> — 첫 지점도 포함해서 방문하는 모든 지점에 한 번씩이다. 그
+     * 운행에서 첫 지점도 실제로 수거하기 때문이다. 한때 이동 구간에만 붙어서 지점 4곳에
+     * 정차시간이 3번만 들어갔고, 그 상태에서는 이름과 계산이 어긋났다.
+     *
+     * <p><b>측정할 방법</b> — 거창한 API가 필요하지 않다. 현장에서 세 시각만 적으면 된다.
+     *
+     * <pre>
+     *   접근·주차시간   = 수거 시작 - 도착
+     *   상차시간        = 출발     - 수거 시작
+     *   전체 서비스시간 = 출발     - 도착      &lt;- 이 파라미터
+     * </pre>
+     *
+     * <p>20~30회 기록하고 <b>평균 하나가 아니라 중앙값과 상위 90%</b>를 쓴다. 순회 시간은
+     * 느린 쪽 꼬리에 좌우되므로 평균만 보면 계획이 낙관적으로 기울고, 두 값을 함께 보고하면
+     * 그 폭이 드러난다.
+     *
+     * <p>수거량이나 지점 유형별 차이가 크면 나중에 이렇게 나눌 수 있다 —
+     * {@code 기본 정차시간 + 수거량(kg) × kg당 상차시간 + 지점 유형별 가중치}. 기록이
+     * 20~30건 모이기 전에 이 구조를 먼저 만들 이유는 없다.
      */
     private int serviceMinutesPerSite = 0;
 
@@ -190,8 +223,11 @@ public class SimulationConfig {
     public List<Integer> getCollectionTimesMinutes() { return collectionTimesMinutes; }
     public void setCollectionTimesMinutes(List<Integer> v) { this.collectionTimesMinutes = v; }
 
-    public int getIntraZoneTravelMinutes() { return intraZoneTravelMinutes; }
-    public void setIntraZoneTravelMinutes(int v) { this.intraZoneTravelMinutes = v; }
+    public Integer getIntraZoneTravelMinutes() { return intraZoneTravelMinutes; }
+    public void setIntraZoneTravelMinutes(Integer v) { this.intraZoneTravelMinutes = v; }
+
+    /** 구역 내 이동시간이 지정됐는가. 명시적 0과 미지정을 구분한다. */
+    public boolean hasIntraZoneTravelMinutes() { return intraZoneTravelMinutes != null; }
 
     public String getDischargeTimeMode() { return dischargeTimeMode; }
     public void setDischargeTimeMode(String v) { this.dischargeTimeMode = v; }

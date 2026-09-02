@@ -16,6 +16,13 @@ public class SimulationResult {
      */
     private CoordinateQuality coordinateQuality = CoordinateQuality.NOT_USED;
 
+    /**
+     * 이 계산이 기댄 가정들. 좌표 품질과 다른 축이다 — 현장 GPS로 계산하면서도 정차시간은
+     * 가정일 수 있다.
+     */
+    private java.util.List<String> dataQualityFlags = new java.util.ArrayList<>();
+    private java.util.List<String> assumptionNotes = new java.util.ArrayList<>();
+
     private String collectionTimeLabel;
     private int totalComplaints;
     /** 적재 임계 초과로 거주민 배출 시 발생한 생활쓰레기 민원. */
@@ -175,20 +182,35 @@ public class SimulationResult {
     public CoordinateQuality getCoordinateQuality() { return coordinateQuality; }
     public void setCoordinateQuality(CoordinateQuality v) { this.coordinateQuality = v; }
 
+    /** 이 계산이 기댄 가정의 코드 목록(예: {@code INTRA_ZONE_TIME_ASSUMED}). */
+    public java.util.List<String> getDataQualityFlags() { return dataQualityFlags; }
+    public void setDataQualityFlags(java.util.List<String> v) { this.dataQualityFlags = v; }
+
+    public java.util.List<String> getAssumptionNotes() { return assumptionNotes; }
+    public void setAssumptionNotes(java.util.List<String> v) { this.assumptionNotes = v; }
+
+    /** 가정 하나를 기록한다. 코드와 문구를 짝지어 둔다. */
+    public void addDataQualityFlag(DataQualityFlag flag, Object detail) {
+        dataQualityFlags.add(flag.name());
+        assumptionNotes.add(flag.message(detail));
+    }
+
     /** 좌표 품질을 사람이 읽는 이름으로 — 결과 카드에 그대로 쓸 수 있다. */
     public String getCoordinateQualityLabel() {
         return coordinateQuality == null ? null : coordinateQuality.labelKo;
     }
 
     /**
-     * 이 결과를 읽을 때 함께 봐야 하는 경고. 경고할 것이 없으면 {@code null}이다.
-     *
-     * <p>{@code ZONE_PROXY_HYBRID}로 돌린 결과에는 "실제 수거 지점 좌표를 쓰지 않았다"가
-     * 여기 담긴다.
+     * 이 결과를 읽을 때 함께 봐야 하는 경고 전부 — 좌표 품질 경고와 계산 중 얹은 가정들.
+     * 경고할 것이 없으면 빈 목록이다.
      */
-    public String getDataQualityWarning() {
-        return (coordinateQuality == null || !coordinateQuality.hasWarning())
-                ? null : coordinateQuality.warning;
+    public java.util.List<String> getDataQualityWarnings() {
+        java.util.List<String> all = new java.util.ArrayList<>();
+        if (coordinateQuality != null && coordinateQuality.hasWarning()) {
+            all.add(coordinateQuality.warning);
+        }
+        all.addAll(assumptionNotes);
+        return all;
     }
 
     public SimulationConfig getSimulationConfig() { return simulationConfig; }

@@ -10,6 +10,7 @@ import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
 
 import static com.wastesim.util.Round.round2;
+import com.wastesim.model.CoordinateQuality;
 import com.wastesim.model.TravelTimeMode;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.site.CollectionSiteRegistry;
@@ -106,7 +107,7 @@ public class SimulationEngine {
     /**
      * 구역 근사 모드의 한 구간. 두 지점이 <b>같은 구역인지</b>로 갈린다.
      *
-     * <p>구역이 다르면 구역 간 실측 주행시간에 시간대 혼잡을 곱하고, 같으면
+     * <p>구역이 다르면 구역 간 자유주행시간(OSRM 산출)에 시간대 혼잡을 곱하고, 같으면
      * {@code intraZoneTravelMinutes}를 쓴다 — 구역 간 행렬에 대각 성분이 없기 때문이다.
      * 구역 내 이동에는 혼잡을 곱하지 않는다. 그 값 자체가 이미 "구역 안에서 평균적으로
      * 이만큼 걸린다"는 통짜 가정이어서, 여기에 다시 시간대 배수를 얹으면 측정하지 않은
@@ -119,6 +120,12 @@ public class SimulationEngine {
         String fromZone = zoneOf(from);
         String toZone = zoneOf(to);
         if (fromZone.equals(toZone)) {
+            if (!cfg.hasIntraZoneTravelMinutes()) {
+                throw new IllegalStateException(from + "->" + to + "는 같은 교통 구역("
+                        + fromZone + ") 안의 이동인데 intraZoneTravelMinutes가 지정되지 "
+                        + "않았습니다. 구역 간 행렬에는 이 값에 해당하는 성분이 없으므로 "
+                        + "지정해야 합니다. 검증에서 걸러졌어야 하는 상태입니다(V-T7).");
+            }
             return cfg.getIntraZoneTravelMinutes() + cfg.getServiceMinutesPerSite();
         }
         java.util.OptionalDouble ff = zoneTravelTimes.freeFlowSeconds(fromZone, toZone);
@@ -128,6 +135,41 @@ public class SimulationEngine {
         }
         return TravelTimeCalculator.hopMinutesFromFreeFlow(ff.getAsDouble(), mobilityFactor,
                 congestionWeight, cfg.getServiceMinutesPerSite());
+    }
+
+    /**
+     * 이 결과가 어떤 좌표로 계산됐는가.
+     *
+     * <p>{@code LEGACY_CONSTANT}와 {@code ZONE_PROXY_HYBRID}는 모드만으로 정해지지만
+     * {@code OSRM_HYBRID}는 아니다 — 같은 계산을 현장 GPS로도 주소 지오코딩으로도 할 수
+     * 있다. 그래서 그 경우에는 <b>행렬 파일이 선언한 출처</b>를 따른다.
+     *
+     * <p>선언이 없으면 예외를 던진다. 임의로 {@code MEASURED_SITE}로 가정하면 지오코딩
+     * 좌표로 낸 결과가 현장 실측이라고 주장하게 된다.
+     */
+    private CoordinateQuality resolveCoordinateQuality(TravelTimeMode mode) {
+        return mode.intrinsicCoordinateQuality()
+                .or(travelTimes::coordinateQuality)
+                .orElseThrow(() -> new IllegalStateException(
+                        mode + "로 계산했는데 행렬이 좌표 출처를 선언하지 않았습니다. "
+                                + "traffic 행렬의 coordinateSource에 MEASURED_SITE 또는 "
+                                + "ADDRESS_GEOCODED를 적어야 결과의 출처를 말할 수 있습니다."));
+    }
+
+    /**
+     * 이 방문 순서들 안에 <b>같은 구역이 연속되는</b> 이동이 있는가. 있으면
+     * {@code intraZoneTravelMinutes}가 실제로 쓰이고, 그 값은 측정된 것이 아니므로 결과에
+     * 표시를 붙여야 한다.
+     */
+    private boolean hasIntraZoneHop(List<List<Integer>> routes) {
+        for (List<Integer> route : routes) {
+            for (int i = 1; i < route.size(); i++) {
+                if (zoneOf(nodeId(route.get(i - 1))).equals(zoneOf(nodeId(route.get(i))))) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -213,6 +255,7 @@ public class SimulationEngine {
         List<Integer> visitOrder = resolveVisitOrder(cfg, nB);
         for (int i = 0; i < visitOrder.size(); i++) routes.get(i % numTrucks).add(visitOrder.get(i));
         int travel = cfg.getRouteTravelMinutes();
+        TravelTimeMode mode = cfg.resolveTravelTimeMode();
 
         // 교통 레이어: trafficEnabled일 때만 프로파일을 조회한다(§4-1,4-4,4-5).
         // 차종 기동성(mobilityFactor)은 기본값(LARGE_5TON=1.0)이 중립이라 항상
@@ -268,6 +311,17 @@ public class SimulationEngine {
                     int arrival = d * DAY + truckSlot;
                     for (int pos = 0; pos < route.size(); pos++) {
                         int b = route.get(pos);
+                        if (pos == 0 && mode != TravelTimeMode.LEGACY_CONSTANT) {
+                            // 첫 지점도 이 운행에서 수거한다 — 아래 CollectEvt가 pos 0에도
+                            // 발행된다. 이동은 없지만 정차·상차 시간은 든다. 이것을 빼면 지점
+                            // 4곳을 도는데 정차시간이 3번만 붙어, 파라미터가 말하는 것과 실제
+                            // 계산이 어긋난다.
+                            //
+                            // 상수 모드는 정차시간을 아예 쓰지 않으므로(TravelTimeCalculator
+                            // .hopMinutes에 그 인자가 없다) 건드리지 않는다 — 논문 기준선의
+                            // 결과를 바꾸지 않기 위한 것이다.
+                            arrival += cfg.getServiceMinutesPerSite();
+                        }
                         if (pos > 0) {
                             String site = nodeId(b);
                             double congestionWeight = 1.0;
@@ -494,7 +548,11 @@ public class SimulationEngine {
         result.setCapacityExhaustedTripCount(exhaustedTrips.size());
         result.setUncollectedDemandKg(round2(uncollectedDemandKg));
         result.setMassBalanceErrorKg(round2(massBalanceErrorKg));
-        result.setCoordinateQuality(cfg.resolveTravelTimeMode().coordinateQuality());
+        result.setCoordinateQuality(resolveCoordinateQuality(mode));
+        if (mode == TravelTimeMode.ZONE_PROXY_HYBRID && hasIntraZoneHop(routes)) {
+            result.addDataQualityFlag(com.wastesim.model.DataQualityFlag.INTRA_ZONE_TIME_ASSUMED,
+                    cfg.getIntraZoneTravelMinutes());
+        }
         result.setTripMetrics(buildTripMetrics(tripAccs));
         result.setResidualByBuilding(residualByBuilding);
         result.setResidualByWasteType(residualByWasteType);

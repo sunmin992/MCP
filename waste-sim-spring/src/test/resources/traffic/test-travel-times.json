@@ -1,7 +1,9 @@
 {
   "id": "test-travel-times",
   "unit": "freeFlowSeconds",
-  "purpose": "OSRM_HYBRID 테스트용. 값은 2026-09-01 장량동 확정 좌표 실측(router.project-osrm.org)에서 가져왔다.",
+  "purpose": "OSRM_HYBRID 테스트용. 값은 2026-09-01 장량동 확정 **교통 구역** 좌표로 OSRM이 산출한 자유주행시간에서 가져왔다(현장 주행 기록이 아니다).",
+  "coordinateSource": "MEASURED_SITE",
+  "whyMeasuredSite": "이 픽스처는 '수거 지점 좌표가 현장 실측으로 채워진 상태'를 흉내내는 것이 목적이다 — OSRM_HYBRID의 계산 경로를 시험하려면 그 상태가 필요하다. 값 자체는 구역 좌표에서 빌려 왔지만 이 파일은 테스트 전용이고 운영 데이터가 아니다. 운영 행렬(traffic/jangryang-travel-times.json)은 실제 지점 좌표가 생길 때까지 비어 있다.",
   "pairs": {
     "Node_A->Node_B": 162.0,
     "Node_A->Node_C": 10.2,

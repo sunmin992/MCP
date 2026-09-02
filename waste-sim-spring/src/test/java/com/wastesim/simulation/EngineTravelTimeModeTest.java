@@ -102,6 +102,12 @@ class EngineTravelTimeModeTest {
     /**
      * 정차·상차 시간을 분리한 것의 실제 효과 — 서비스 시간을 올리면 순회가 그만큼 늘어난다.
      * 상수 모드에는 이 축이 없었다(한 값이 이동과 정차를 함께 떠맡았다).
+     *
+     * <p><b>지점 수만큼 붙는다 — 첫 지점도 포함해서.</b> 예전에는 이동 구간에만 붙어서 지점
+     * 4곳에 3번만 들어갔고, 이 테스트도 그 3번(15분)을 기대값으로 굳혀 두고 있었다. 첫
+     * 지점을 "순회 시계의 시작점"이라고 본 것인데, 엔진은 그 지점에서도 CollectEvt를
+     * 발행한다 — 즉 실제로 수거한다. 4곳을 수거하면서 정차시간을 3번만 세면 파라미터
+     * 이름과 계산이 어긋난다.
      */
     @Test
     void serviceTimePerSiteLengthensTheRoute() {
@@ -114,9 +120,9 @@ class EngineTravelTimeModeTest {
         double a = engine(measured()).run(noService, 1).getAvgCompletionMinutes();
         double b = engine(measured()).run(withService, 1).getAvgCompletionMinutes();
 
-        // 구간 3개 x 5분 = 15분. 첫 지점의 서비스는 세지 않는다(순회 시계의 시작점이다).
-        assertEquals(15.0, b - a, 0.001,
-                "도착 지점마다 5분이 더해져야 한다. " + a + " -> " + b);
+        // 지점 4곳 x 5분 = 20분.
+        assertEquals(20.0, b - a, 0.001,
+                "방문하는 지점마다 5분이 더해져야 한다(첫 지점 포함). " + a + " -> " + b);
     }
 
     /** 서비스 시간은 상수 모드에서 무시된다 — 상수값이 이미 정차분을 떠맡고 있어 이중 계산이 된다. */

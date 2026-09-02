@@ -1,6 +1,7 @@
 package com.wastesim.traffic;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.wastesim.model.CoordinateQuality;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -50,6 +51,7 @@ public class TravelTimeMatrix {
 
     private final String resourcePath;
     private Map<String, Double> freeFlowSeconds = Map.of();
+    private CoordinateQuality coordinateQuality = null;
 
     public TravelTimeMatrix() {
         this(RESOURCE);
@@ -88,6 +90,7 @@ public class TravelTimeMatrix {
             }
             JsonNode doc = new ObjectMapper().readTree(in);
             this.freeFlowSeconds = parse(doc.path("pairs"));
+            this.coordinateQuality = parseQuality(doc.path("coordinateSource").asText(null));
             log.info("자유주행시간 {}쌍 등록 ({})", freeFlowSeconds.size(), resourcePath);
         } catch (IOException e) {
             throw new IllegalStateException("이동시간 행렬 파일을 읽을 수 없습니다: " + resourcePath, e);
@@ -114,6 +117,33 @@ public class TravelTimeMatrix {
             parsed.put(key, v.doubleValue());
         });
         return Collections.unmodifiableMap(parsed);
+    }
+
+    /**
+     * 이 행렬의 값이 <b>어떤 좌표로</b> 만들어졌는가. 파일의 {@code coordinateSource}가
+     * 선언한다.
+     *
+     * <p>{@code OSRM_HYBRID}는 같은 계산을 현장 GPS로도 주소 지오코딩으로도 할 수 있어서
+     * 모드만으로는 품질을 알 수 없다. 아는 것은 이 파일뿐이다.
+     *
+     * <p>선언이 없거나 좌표 품질이 아닌 값(예: 아직 비어 있다는 뜻의
+     * {@code MEASURED_SITE_REQUIRED})이면 비어 있다 — 그런 행렬로는 결과의 출처를 말할 수
+     * 없으므로 호출부가 실행을 막아야 한다.
+     */
+    public java.util.Optional<CoordinateQuality> coordinateQuality() {
+        return java.util.Optional.ofNullable(coordinateQuality);
+    }
+
+    /**
+     * 좌표 품질로 쓸 수 있는 선언만 받아들인다. 알 수 없는 값을 임의로 승격시키지 않는다 —
+     * 여기서 추측하면 결과에 실려 나가는 출처 표시가 추측이 된다.
+     */
+    private static CoordinateQuality parseQuality(String declared) {
+        if (declared == null || declared.isBlank()) return null;
+        for (CoordinateQuality q : CoordinateQuality.values()) {
+            if (q.name().equals(declared)) return q;
+        }
+        return null;
     }
 
     private static String key(String from, String to) {

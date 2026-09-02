@@ -59,7 +59,23 @@ class ZoneProxyHybridTest {
     void defaultModeIsUnchanged() {
         assertEquals(TravelTimeMode.LEGACY_CONSTANT, new SimulationConfig().resolveTravelTimeMode(),
                 "기본값이 바뀌면 기존 사용자의 결과가 조용히 달라진다");
-        assertEquals(0, new SimulationConfig().getIntraZoneTravelMinutes());
+    }
+
+    /**
+     * 구역 내 이동시간에 <b>기본값이 없다.</b> 0을 기본값으로 두면 아무 값도 주지 않은
+     * 실행이 조용히 "구역 안 이동에 시간이 들지 않는다"는 가정을 쓴다 — 그건 가정 없음이
+     * 아니라 강한 하한 가정이다.
+     */
+    @Test
+    void intraZoneMinutesHaveNoDefault() {
+        SimulationConfig c = new SimulationConfig();
+        assertFalse(c.hasIntraZoneTravelMinutes(),
+                "기본값 0을 되돌려 놓으면 미지정 실행이 하한 가정을 조용히 쓴다");
+        assertNull(c.getIntraZoneTravelMinutes());
+
+        c.setIntraZoneTravelMinutes(0);
+        assertTrue(c.hasIntraZoneTravelMinutes(), "명시적 0은 지정된 것이다");
+        assertEquals(0, c.getIntraZoneTravelMinutes());
     }
 
     // ── 좌표 품질은 모드와 다른 축이다 ─────────────────────────────────────
@@ -68,13 +84,33 @@ class ZoneProxyHybridTest {
      * 세 모드가 각각 다른 좌표 품질을 낸다. 두 축을 한 enum에 합치면 이 대응이 사라진다.
      */
     @Test
-    void eachModeReportsItsOwnCoordinateQuality() {
-        assertEquals(CoordinateQuality.NOT_USED,
-                TravelTimeMode.LEGACY_CONSTANT.coordinateQuality());
-        assertEquals(CoordinateQuality.MEASURED_SITE,
-                TravelTimeMode.OSRM_HYBRID.coordinateQuality());
-        assertEquals(CoordinateQuality.TRAFFIC_ZONE_PROXY,
-                TravelTimeMode.ZONE_PROXY_HYBRID.coordinateQuality());
+    void twoModesFixTheirQualityButOsrmDoesNot() {
+        assertEquals(java.util.Optional.of(CoordinateQuality.NOT_USED),
+                TravelTimeMode.LEGACY_CONSTANT.intrinsicCoordinateQuality());
+        assertEquals(java.util.Optional.of(CoordinateQuality.TRAFFIC_ZONE_PROXY),
+                TravelTimeMode.ZONE_PROXY_HYBRID.intrinsicCoordinateQuality());
+    }
+
+    /**
+     * <b>{@code OSRM_HYBRID}는 모드만으로 좌표 품질이 정해지지 않는다.</b> 같은 계산을 현장
+     * GPS 좌표로도, 주소 지오코딩 좌표로도 할 수 있다. 모드가 {@code MEASURED_SITE}를
+     * 단정해 버리면 지오코딩 좌표로 낸 결과가 현장 실측이라고 주장하게 되고, 두 축을 갈라
+     * 놓은 의미가 사라진다.
+     */
+    @Test
+    void osrmHybridQualityComesFromTheMatrixNotTheMode() {
+        assertTrue(TravelTimeMode.OSRM_HYBRID.intrinsicCoordinateQuality().isEmpty(),
+                "모드가 품질을 고정하면 지오코딩 좌표를 현장 실측이라고 부르게 된다");
+    }
+
+    /** 행렬이 선언한 출처를 그대로 읽는다. 알 수 없는 선언을 임의로 승격시키지 않는다. */
+    @Test
+    void matrixDeclaresItsOwnCoordinateSource() {
+        assertEquals(java.util.Optional.of(CoordinateQuality.TRAFFIC_ZONE_PROXY),
+                TravelTimeMatrix.ofZones().coordinateQuality(),
+                "구역 행렬은 스스로 구역 근사라고 선언해야 한다");
+        assertTrue(TravelTimeMatrix.ofDefault().coordinateQuality().isEmpty(),
+                "MEASURED_SITE_REQUIRED는 아직 출처가 없다는 뜻이므로 품질이 아니다");
     }
 
     /** 좌표를 쓰지 않는 계산에는 경고할 것이 없다 — 경고를 남발하면 읽히지 않는다. */
@@ -98,16 +134,79 @@ class ZoneProxyHybridTest {
         SimulationResult r = engine().run(zoneProxy(), 1);
         assertEquals(CoordinateQuality.TRAFFIC_ZONE_PROXY, r.getCoordinateQuality());
         assertEquals("교통 구역 근사", r.getCoordinateQualityLabel());
-        assertNotNull(r.getDataQualityWarning(), "근사 결과에 경고가 없으면 안 된다");
-        assertTrue(r.getDataQualityWarning().contains("실제 수거 지점 좌표를 쓰지 않았습니다"),
-                r.getDataQualityWarning());
+        assertTrue(r.getDataQualityWarnings().stream()
+                        .anyMatch(w -> w.contains("실제 수거 지점 좌표를 쓰지 않았습니다")),
+                r.getDataQualityWarnings().toString());
+    }
+
+    /**
+     * 구역 내 이동을 실제로 쓴 결과에는 {@code INTRA_ZONE_TIME_ASSUMED}가 붙는다.
+     * <b>0을 지정했어도 붙는다</b> — 0은 "시간이 들지 않는다"는 가정이지 측정값이 아니다.
+     */
+    @Test
+    void intraZoneAssumptionIsFlaggedEvenWhenZero() {
+        SimulationEngine eng = new SimulationEngine(new TrafficDataService(),
+                TestSites.allInZoneA(), TravelTimeMatrix.empty());
+        SimulationConfig c = zoneProxy();
+        c.setIntraZoneTravelMinutes(0);
+
+        SimulationResult r = eng.run(c, 1);
+        assertTrue(r.getDataQualityFlags().contains("INTRA_ZONE_TIME_ASSUMED"),
+                "0분도 가정이다: " + r.getDataQualityFlags());
+        assertTrue(r.getDataQualityWarnings().stream().anyMatch(w -> w.contains("0분")),
+                r.getDataQualityWarnings().toString());
+    }
+
+    /** 구역 내 이동이 없으면 그 표시가 붙지 않는다 — 쓰지 않은 가정을 경고하면 안 된다. */
+    @Test
+    void noIntraZoneFlagWhenEverySiteIsInADifferentZone() {
+        SimulationConfig c = zoneProxy();
+        c.setIntraZoneTravelMinutes(10);
+        assertFalse(engine().run(c, 1).getDataQualityFlags().contains("INTRA_ZONE_TIME_ASSUMED"),
+                "구역 내 이동이 한 번도 없는데 그 가정을 경고하면 안 된다");
     }
 
     @Test
     void constantModeResultCarriesNoWarning() {
         SimulationResult r = engine().run(new SimulationConfig(), 1);
         assertEquals(CoordinateQuality.NOT_USED, r.getCoordinateQuality());
-        assertNull(r.getDataQualityWarning(), "좌표를 쓰지 않은 계산에 좌표 경고를 붙이면 안 된다");
+        assertEquals(java.util.List.of(), r.getDataQualityWarnings(),
+                "좌표를 쓰지 않은 계산에 좌표 경고를 붙이면 안 된다");
+    }
+
+    // ── 정차시간은 첫 지점에도 붙는다 ──────────────────────────────────────
+
+    /**
+     * <b>지점 4곳이면 정차시간이 4번 붙는다.</b> 첫 지점도 이 운행에서 수거하기 때문이다.
+     *
+     * <p>한때 이동 구간에만 붙어서 3번만 들어갔다 — 5분 × 4곳인데 순회 시간이 15분만
+     * 늘어나, 파라미터 이름이 말하는 것과 계산이 어긋났다.
+     */
+    @Test
+    void serviceMinutesApplyToEverySiteIncludingTheFirst() {
+        double base = engine().run(zoneProxy(), 1).getAvgCompletionMinutes();
+        SimulationConfig five = zoneProxy();
+        five.setServiceMinutesPerSite(5);
+
+        double delta = engine().run(five, 1).getAvgCompletionMinutes() - base;
+        assertEquals(20.0, delta, 1e-9,
+                "지점 4곳 × 5분 = 20분이어야 한다. 15분이면 첫 지점이 빠진 것이다.");
+    }
+
+    /** 상수 모드는 정차시간을 쓰지 않는다 — 논문 기준선의 결과가 달라지면 안 된다. */
+    @Test
+    void constantModeIgnoresServiceMinutes() {
+        SimulationConfig zero = new SimulationConfig();
+        zero.setDays(28);
+        zero.setNumBuildings(4);
+        SimulationConfig ten = new SimulationConfig();
+        ten.setDays(28);
+        ten.setNumBuildings(4);
+        ten.setServiceMinutesPerSite(10);
+
+        assertEquals(engine().run(zero, 1).getAvgCompletionMinutes(),
+                     engine().run(ten, 1).getAvgCompletionMinutes(),
+                "상수 모드가 정차시간을 세기 시작하면 기존 결과가 조용히 달라진다");
     }
 
     // ── 실제로 다른 값을 낸다 ──────────────────────────────────────────────
@@ -149,6 +248,7 @@ class ZoneProxyHybridTest {
     @Test
     void intraZoneMinutesAreInertWhenEverySiteIsInADifferentZone() {
         SimulationConfig zero = zoneProxy();
+        zero.setIntraZoneTravelMinutes(0);
         SimulationConfig ten = zoneProxy();
         ten.setIntraZoneTravelMinutes(10);
 
@@ -168,6 +268,7 @@ class ZoneProxyHybridTest {
                 TravelTimeMatrix.empty());
 
         SimulationConfig zero = zoneProxy();
+        zero.setIntraZoneTravelMinutes(0);
         SimulationConfig ten = zoneProxy();
         ten.setIntraZoneTravelMinutes(10);
 
@@ -218,6 +319,41 @@ class ZoneProxyHybridTest {
                 r.errors().toString());
     }
 
+    /**
+     * <b>같은 구역 이동이 있는데 값이 없으면 막는다.</b> 조용히 0으로 계산하면 "구역 안
+     * 이동에 시간이 들지 않는다"는 가정이 아무 표시 없이 결과에 들어간다.
+     */
+    @Test
+    void blocksUnspecifiedIntraZoneTimeWhenItWouldBeUsed() {
+        SimulationConfig c = zoneProxy();
+        assertFalse(c.hasIntraZoneTravelMinutes());
+
+        ValidationResult r = new SimulationConfigValidator(new TrafficDataService(),
+                TestSites.allInZoneA(), TravelTimeMatrix.empty()).validate(c);
+        assertFalse(r.ready(), "미지정 구역 내 이동시간을 조용히 0으로 쓰면 안 된다");
+        assertTrue(r.errors().stream()
+                .anyMatch(e -> "intraZoneTravelMinutes".equals(e.field())), r.errors().toString());
+    }
+
+    /** 명시적 0은 받아들인다 — 사용자가 그 가정을 스스로 선택한 것이다. */
+    @Test
+    void acceptsExplicitZeroIntraZoneTime() {
+        SimulationConfig c = zoneProxy();
+        c.setIntraZoneTravelMinutes(0);
+        ValidationResult r = new SimulationConfigValidator(new TrafficDataService(),
+                TestSites.allInZoneA(), TravelTimeMatrix.empty()).validate(c);
+        assertTrue(r.ready(), "명시적 0을 거부하면 하한 시나리오를 돌릴 수 없다: " + r.errors());
+    }
+
+    /** 쓸 자리가 없으면 값 없이도 실행된다 — 필요 없는 값을 요구하면 안 된다. */
+    @Test
+    void unspecifiedIsFineWhenNoIntraZoneHopExists() {
+        SimulationConfig c = zoneProxy();
+        assertFalse(c.hasIntraZoneTravelMinutes());
+        assertTrue(validator().validate(c).ready(),
+                "구역 내 이동이 없는 경로에 이 값을 요구할 이유가 없다");
+    }
+
     @Test
     void rejectsNegativeIntraZoneMinutes() {
         SimulationConfig c = zoneProxy();
@@ -236,6 +372,7 @@ class ZoneProxyHybridTest {
     void manySitesInFewZonesValidate() {
         SimulationConfig c = zoneProxy();
         c.setNumBuildings(4);
+        c.setIntraZoneTravelMinutes(3);
         ValidationResult r = new SimulationConfigValidator(new TrafficDataService(),
                 TestSites.allInZoneA(), TravelTimeMatrix.empty()).validate(c);
         assertTrue(r.ready(), "네 지점이 모두 한 구역이면 구역 간 구간이 아예 없다: " + r.errors());

@@ -424,7 +424,7 @@ public class SimulationConfigValidator {
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "serviceMinutesPerSite",
                     "지점 정차시간은 0 이상이어야 합니다. 받은 값: " + c.getServiceMinutesPerSite()));
         }
-        if (c.getIntraZoneTravelMinutes() < 0) {
+        if (c.hasIntraZoneTravelMinutes() && c.getIntraZoneTravelMinutes() < 0) {
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "intraZoneTravelMinutes",
                     "구역 내 이동시간은 0 이상이어야 합니다. 받은 값: "
                             + c.getIntraZoneTravelMinutes()));
@@ -437,7 +437,7 @@ public class SimulationConfigValidator {
         }
 
         if (mode == TravelTimeMode.ZONE_PROXY_HYBRID) {
-            validateZoneCoverage(route, errs);
+            validateZoneCoverage(c, route, errs);
             return;
         }
 
@@ -459,15 +459,30 @@ public class SimulationConfigValidator {
      * <p>같은 구역 안의 이동은 행렬을 보지 않고 {@code intraZoneTravelMinutes}를 쓰므로
      * 덮을 값이 필요하지 않다. 여기서도 없는 값을 채워 넣지 않고 실행을 막는다.
      */
-    private void validateZoneCoverage(List<String> route, List<ValidationError> errs) {
+    private void validateZoneCoverage(SimulationConfig c, List<String> route,
+                                      List<ValidationError> errs) {
         List<String> missing = new ArrayList<>();
+        List<String> intraZone = new ArrayList<>();
         for (int i = 1; i < route.size(); i++) {
             String from = sites.trafficZoneOf(route.get(i - 1)).orElse(route.get(i - 1));
             String to = sites.trafficZoneOf(route.get(i)).orElse(route.get(i));
-            if (from.equals(to)) continue;
+            if (from.equals(to)) {
+                intraZone.add(route.get(i - 1) + "->" + route.get(i) + "(구역 " + from + ")");
+                continue;
+            }
             if (zoneTravelTimes.freeFlowSeconds(from, to).isEmpty()) {
                 missing.add(from + "->" + to);
             }
+        }
+        if (!intraZone.isEmpty() && !c.hasIntraZoneTravelMinutes()) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "intraZoneTravelMinutes",
+                    "같은 교통 구역 안에서 옮기는 이동이 있는데 구역 내 이동시간이 지정되지 "
+                            + "않았습니다: " + String.join(", ", intraZone)
+                            + ". 구역 간 행렬에는 이 값에 해당하는 성분이 없으므로(구역은 점이 "
+                            + "아니라 영역이다) 측정할 대상이 아예 없고, 지정하지 않으면 조용히 "
+                            + "0분 — 즉 \"이동에 시간이 들지 않는다\"는 가정 — 으로 계산됩니다. "
+                            + "값을 명시하세요(0도 명시하면 받아들이고, 결과에 "
+                            + "INTRA_ZONE_TIME_ASSUMED로 표시합니다)."));
         }
         if (!missing.isEmpty()) {
             errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "travelTimeMode",
