@@ -127,6 +127,7 @@ public class SimulationConfigValidator {
             }
         }
 
+        validateScenarioScale(c, errs);
         validateTravelTimeMode(c, errs);
         validateCollectionDaysOfWeek(c, errs);
         validateDischargeTime(c, errs);
@@ -400,6 +401,21 @@ public class SimulationConfigValidator {
                 errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, field,
                         "요일은 0(월)~6(일)이어야 합니다. 받은 값: " + d));
             }
+        }
+    }
+
+    /**
+     * V-S1: 시나리오 규모 이름이 성립하는지.
+     *
+     * <p>알 수 없는 이름을 조용히 논문 기준선으로 떨어뜨리면, 4동 25명 결과를 26동 규모의
+     * 결과로 읽게 된다 — 오타 하나가 규모를 1/6로 바꾸고 아무 표시도 남지 않는다.
+     */
+    private void validateScenarioScale(SimulationConfig c, List<ValidationError> errs) {
+        try {
+            c.resolveScenarioScale();
+        } catch (IllegalArgumentException ex) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ENUM, "scenarioScale",
+                    ex.getMessage()));
         }
     }
 

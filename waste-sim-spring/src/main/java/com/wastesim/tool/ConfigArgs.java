@@ -19,6 +19,20 @@ public final class ConfigArgs {
         SimulationConfig c = new SimulationConfig();
         if (p == null || p.isNull() || !p.isObject()) return c;
 
+        // 시나리오 규모를 **먼저** 얹는다 — 아래의 개별 값들이 이것을 덮을 수 있어야 한다.
+        // 규모는 출발점이고 최종 결정이 아니다. 순서를 뒤집으면 "26동 규모에 동당 60명"처럼
+        // 규모를 고른 뒤 한 축만 조정하는 요청이 조용히 무시된다.
+        if (p.hasNonNull("scenarioScale")) {
+            String scale = p.get("scenarioScale").asText();
+            c.setScenarioScale(scale);
+            try {
+                com.wastesim.model.ScenarioScale.fromName(scale).applyTo(c);
+            } catch (IllegalArgumentException ignored) {
+                // 알 수 없는 이름은 검증기(V-S1)가 사용자에게 보고한다. 여기서 던지면
+                // 도구 호출이 스택트레이스로 끝나고 어느 필드가 문제인지 알 수 없다.
+            }
+        }
+
         if (p.hasNonNull("collectionTime")) c.setCollectionTimeLabel(p.get("collectionTime").asText());
         if (p.has("days"))                 c.setDays(p.get("days").asInt(30));
         if (p.has("seeds"))                c.setSeeds(p.get("seeds").asInt(30));

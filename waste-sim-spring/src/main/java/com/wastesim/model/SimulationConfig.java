@@ -26,6 +26,18 @@ public class SimulationConfig {
     private double wasteMeanKg = 0.9;
     private double capacity = 30.0;
     private double threshold = 0.8;
+    /**
+     * 시나리오 규모 이름. {@code null}이면 필드 기본값(= 논문 기준선)을 그대로 쓴다.
+     *
+     * <p>{@link ScenarioScale#JANGRYANG_CAPACITY}를 고르면 건물 수·동당 거주민·지점
+     * 용량·차종·대수 다섯 필드가 그 규모로 채워진다. 명시적으로 준 개별 값이 있으면
+     * <b>그쪽이 이긴다</b> — 규모는 출발점이고 최종 결정이 아니다.
+     *
+     * <p>필드 기본값을 이 규모로 바꾸지 않은 이유는 논문 재현이 4동 25명에 걸려 있어서다.
+     * 기본값을 옮기면 기존 결과가 조용히 달라진다.
+     */
+    private String scenarioScale = null;
+
     private int numBuildings = 4;
     private int residentsPerBuilding = 25;
 
@@ -210,6 +222,14 @@ public class SimulationConfig {
 
     public double getThreshold() { return threshold; }
     public void setThreshold(double v) { this.threshold = v; }
+
+    public String getScenarioScale() { return scenarioScale; }
+    public void setScenarioScale(String v) { this.scenarioScale = v; }
+
+    /** 해석된 시나리오 규모. 값이 없으면 논문 기준선. 알 수 없으면 예외(검증기가 잡는다). */
+    public ScenarioScale resolveScenarioScale() {
+        return ScenarioScale.fromName(scenarioScale);
+    }
 
     public int getNumBuildings() { return numBuildings; }
     public void setNumBuildings(int v) { this.numBuildings = v; }
@@ -407,6 +427,7 @@ public class SimulationConfig {
         c.collectionTimesMinutes = (collectionTimesMinutes == null) ? null : new ArrayList<>(collectionTimesMinutes);
         c.collectionIntervalDays = collectionIntervalDays;
         c.collectionDaysOfWeek = (collectionDaysOfWeek == null) ? null : new ArrayList<>(collectionDaysOfWeek);
+        c.scenarioScale = scenarioScale;
         c.dischargeTimeMode = dischargeTimeMode;
         c.intraZoneTravelMinutes = intraZoneTravelMinutes;
         c.dischargeWindowStartMinutes = dischargeWindowStartMinutes;
