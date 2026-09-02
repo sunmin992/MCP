@@ -1,6 +1,7 @@
 package com.wastesim.simulation;
 
 import com.wastesim.model.SimulationConfig;
+import com.wastesim.model.CoordinateQuality;
 import com.wastesim.model.TravelTimeMode;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.site.CollectionSiteRegistry;
@@ -10,6 +11,9 @@ import com.wastesim.traffic.TravelTimeMatrix;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.OptionalDouble;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -29,6 +33,19 @@ class TravelTimeModeTest {
 
     private static SimulationConfigValidator validator(TravelTimeMatrix m) {
         return new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty(), m);
+    }
+
+    /** 필요한 구간과 좌표 출처만 가진 작은 행렬 — 다중 트럭 검증 경계를 고립시킨다. */
+    private static TravelTimeMatrix matrix(Map<String, Double> pairs, CoordinateQuality quality) {
+        return new TravelTimeMatrix("/traffic/empty-travel-times.json") {
+            @Override public OptionalDouble freeFlowSeconds(String from, String to) {
+                Double seconds = pairs.get(from + "->" + to);
+                return seconds == null ? OptionalDouble.empty() : OptionalDouble.of(seconds);
+            }
+            @Override public Optional<CoordinateQuality> coordinateQuality() {
+                return Optional.ofNullable(quality);
+            }
+        };
     }
 
     // ── 모드 해석 ──────────────────────────────────────────────────────────
@@ -152,6 +169,59 @@ class TravelTimeModeTest {
         c.setRouteSequence(List.of("Node_A", "Node_B", "Node_C", "Node_D"));
 
         assertTrue(validator(measured()).validate(c).ready());
+    }
+
+    /**
+     * 두 트럭이면 엔진의 실제 경로는 A→C와 B→D다. 검증기가 원래 입력 A→B→C→D를
+     * 검사하면 실행 전에 통과 여부를 정확히 판단할 수 없다.
+     */
+    @Test
+    void multiTruckValidationChecksAssignedRoutes() {
+        SimulationConfig c = new SimulationConfig();
+        c.setTravelTimeMode("OSRM_HYBRID");
+        c.setNumBuildings(4);
+        c.setTruckCount(2);
+        c.setRouteSequence(List.of("Node_A", "Node_B", "Node_C", "Node_D"));
+
+        TravelTimeMatrix actualRoutes = matrix(Map.of(
+                "Node_A->Node_C", 60.0,
+                "Node_B->Node_D", 60.0), CoordinateQuality.MEASURED_SITE);
+        assertTrue(validator(actualRoutes).validate(c).ready(),
+                "실제로 달리는 두 구간이 있으면 통과해야 한다");
+        assertDoesNotThrow(() -> new SimulationEngine(new TrafficDataService(),
+                CollectionSiteRegistry.empty(), actualRoutes).run(c, 1));
+
+        c.setRouteSequence(List.of("node_a", "node_b", "node_c", "node_d"));
+        assertTrue(validator(actualRoutes).validate(c).ready(),
+                "엔진이 허용하는 대소문자 변형을 검증기만 다른 경로로 해석하면 안 된다");
+
+        TravelTimeMatrix inputOrderOnly = matrix(Map.of(
+                "Node_A->Node_B", 60.0,
+                "Node_B->Node_C", 60.0,
+                "Node_C->Node_D", 60.0), CoordinateQuality.MEASURED_SITE);
+        ValidationResult rejected = validator(inputOrderOnly).validate(c);
+        assertFalse(rejected.ready(), "엔진이 쓸 A→C/B→D가 없는데 통과하면 안 된다");
+        assertTrue(rejected.errors().stream().anyMatch(e ->
+                        e.message().contains("Node_A->Node_C") && e.message().contains("Node_B->Node_D")),
+                rejected.errors().toString());
+    }
+
+    /** OSRM 지점 행렬은 출처가 없거나 구역 대표점이면 검증 단계에서 차단한다. */
+    @Test
+    void osrmRequiresSiteLevelCoordinateProvenance() {
+        SimulationConfig c = new SimulationConfig();
+        c.setTravelTimeMode("OSRM_HYBRID");
+        c.setNumBuildings(2);
+
+        assertFalse(validator(matrix(Map.of("Node_A->Node_B", 60.0), null))
+                .validate(c).ready(), "좌표 출처 없는 행렬을 실행 단계까지 보내면 안 된다");
+        assertFalse(validator(matrix(Map.of("Node_A->Node_B", 60.0),
+                CoordinateQuality.TRAFFIC_ZONE_PROXY)).validate(c).ready(),
+                "구역 대표점은 ZONE_PROXY_HYBRID에서만 써야 한다");
+        assertTrue(validator(matrix(Map.of("Node_A->Node_B", 60.0),
+                CoordinateQuality.ADDRESS_GEOCODED)).validate(c).ready());
+        assertTrue(validator(matrix(Map.of("Node_A->Node_B", 60.0),
+                CoordinateQuality.SYNTHETIC)).validate(c).ready());
     }
 
     /** 경로의 일부만 있으면 통과시키지 않는다 — 구간마다 다른 축의 값이 섞인 합계는 뜻이 없다. */

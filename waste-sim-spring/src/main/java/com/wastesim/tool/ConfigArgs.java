@@ -47,6 +47,17 @@ public final class ConfigArgs {
         // 여기서 읽지 않으면 MCP로는 주기를 바꿀 방법이 없어, 격일 수거를 요청해도 매일
         // 수거한 결과가 돌아온다.
         if (p.has("collectionIntervalDays")) c.setCollectionIntervalDays(p.get("collectionIntervalDays").asInt(1));
+        if (p.has("collectionDaysOfWeek") && p.get("collectionDaysOfWeek").isArray()) {
+            List<Integer> days = new ArrayList<>();
+            for (JsonNode n : p.get("collectionDaysOfWeek")) days.add(n.asInt());
+            c.setCollectionDaysOfWeek(days);
+        }
+        if (p.hasNonNull("dischargeTimeMode"))
+            c.setDischargeTimeMode(p.get("dischargeTimeMode").asText());
+        if (p.has("dischargeWindowStartMinutes"))
+            c.setDischargeWindowStartMinutes(p.get("dischargeWindowStartMinutes").asInt());
+        if (p.has("dischargeWindowEndMinutes"))
+            c.setDischargeWindowEndMinutes(p.get("dischargeWindowEndMinutes").asInt());
 
         if (p.has("occupationMix") && p.get("occupationMix").isArray()) {
             List<String> mix = new ArrayList<>();
@@ -65,6 +76,11 @@ public final class ConfigArgs {
         if (p.has("truckCount"))           c.setTruckCount(p.get("truckCount").asInt(1));
         if (p.has("dispatchIntervalMinutes")) c.setDispatchIntervalMinutes(p.get("dispatchIntervalMinutes").asInt(0));
         if (p.has("routeTravelMinutes"))   c.setRouteTravelMinutes(p.get("routeTravelMinutes").asInt(0));
+        if (p.hasNonNull("travelTimeMode")) c.setTravelTimeMode(p.get("travelTimeMode").asText());
+        if (p.has("serviceMinutesPerSite"))
+            c.setServiceMinutesPerSite(p.get("serviceMinutesPerSite").asInt());
+        if (p.has("intraZoneTravelMinutes"))
+            c.setIntraZoneTravelMinutes(p.get("intraZoneTravelMinutes").asInt());
         if (p.has("trafficComplaintWeight"))  c.setTrafficComplaintWeight(p.get("trafficComplaintWeight").asDouble(1.0));
         if (p.has("routeSequence") && p.get("routeSequence").isArray()) {
             List<String> seq = new ArrayList<>();

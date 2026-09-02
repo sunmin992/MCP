@@ -100,4 +100,16 @@ class McpToolExposureTest {
                     p.toolName() + "의 스키마 최상위 type이 object가 아니다");
         }
     }
+
+    /** 새 엔진 모드는 코드에만 있고 도구 스키마에 없으면 외부 MCP 사용자가 선택할 수 없다. */
+    @Test
+    void simulationSchemaExposesNewScheduleDischargeAndTravelAxes() throws Exception {
+        JsonNode schema = catalog.inputSchemaFor(om, "run_waste_simulation");
+        JsonNode properties = schema.path("properties");
+        for (String field : List.of("collectionDaysOfWeek", "dischargeTimeMode",
+                "dischargeWindowStartMinutes", "dischargeWindowEndMinutes", "travelTimeMode",
+                "serviceMinutesPerSite", "intraZoneTravelMinutes")) {
+            assertTrue(properties.has(field), field + "가 MCP 입력 스키마에 없다");
+        }
+    }
 }

@@ -7,7 +7,7 @@ import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.model.TravelTimeMode;
-import com.wastesim.model.WasteType;
+import com.wastesim.model.CoordinateQuality;
 import com.wastesim.site.CollectionSiteRegistry;
 import com.wastesim.traffic.TravelTimeMatrix;
 import com.wastesim.simulation.SimulationEngine;
@@ -447,17 +447,16 @@ public class SimulationConfigValidator {
         }
         if (mode == TravelTimeMode.LEGACY_CONSTANT) return;
 
-        List<String> route = c.getRouteSequence();
-        if (route == null || route.isEmpty()) {
-            route = new ArrayList<>(allNodeIds(c.getNumBuildings()));
-        }
+        List<List<String>> routes = assignedRoutes(c);
 
         if (mode == TravelTimeMode.ZONE_PROXY_HYBRID) {
-            validateZoneCoverage(c, route, errs);
+            validateZoneCoverage(c, routes, errs);
             return;
         }
 
-        List<String> missing = travelTimes.missingHops(route);
+        List<String> missing = new ArrayList<>();
+        for (List<String> route : routes) missing.addAll(travelTimes.missingHops(route));
+        missing = missing.stream().distinct().toList();
         if (!missing.isEmpty()) {
             errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "travelTimeMode",
                     "OSRM_HYBRID로 계산할 자유주행시간이 없는 구간이 있습니다: "
@@ -465,6 +464,18 @@ public class SimulationConfigValidator {
                             + ". traffic/jangryang-travel-times.json은 **실제 수거 지점 좌표로 잰"
                             + " 값만** 담습니다. 지점 좌표가 아직 없다면 교통 구역으로 근사하는"
                             + " ZONE_PROXY_HYBRID를 쓰거나 LEGACY_CONSTANT로 실행하세요."));
+        }
+        java.util.Optional<CoordinateQuality> quality = travelTimes.coordinateQuality();
+        if (quality.isEmpty()) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "travelTimeMode",
+                    "OSRM_HYBRID 행렬이 좌표 출처를 선언하지 않았습니다. "
+                            + "coordinateSource에 MEASURED_SITE, ADDRESS_GEOCODED 또는 "
+                            + "SYNTHETIC을 지정하세요."));
+        } else if (!quality.get().isSiteLevel()) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "travelTimeMode",
+                    "OSRM_HYBRID의 수거 지점 행렬에 사용할 수 없는 좌표 출처입니다: "
+                            + quality.get() + ". 교통 구역 대표점은 ZONE_PROXY_HYBRID에서만 "
+                            + "사용할 수 있습니다."));
         }
     }
 
@@ -475,19 +486,21 @@ public class SimulationConfigValidator {
      * <p>같은 구역 안의 이동은 행렬을 보지 않고 {@code intraZoneTravelMinutes}를 쓰므로
      * 덮을 값이 필요하지 않다. 여기서도 없는 값을 채워 넣지 않고 실행을 막는다.
      */
-    private void validateZoneCoverage(SimulationConfig c, List<String> route,
+    private void validateZoneCoverage(SimulationConfig c, List<List<String>> routes,
                                       List<ValidationError> errs) {
         List<String> missing = new ArrayList<>();
         List<String> intraZone = new ArrayList<>();
-        for (int i = 1; i < route.size(); i++) {
-            String from = sites.trafficZoneOf(route.get(i - 1)).orElse(route.get(i - 1));
-            String to = sites.trafficZoneOf(route.get(i)).orElse(route.get(i));
-            if (from.equals(to)) {
-                intraZone.add(route.get(i - 1) + "->" + route.get(i) + "(구역 " + from + ")");
-                continue;
-            }
-            if (zoneTravelTimes.freeFlowSeconds(from, to).isEmpty()) {
-                missing.add(from + "->" + to);
+        for (List<String> route : routes) {
+            for (int i = 1; i < route.size(); i++) {
+                String from = sites.trafficZoneOf(route.get(i - 1)).orElse(route.get(i - 1));
+                String to = sites.trafficZoneOf(route.get(i)).orElse(route.get(i));
+                if (from.equals(to)) {
+                    intraZone.add(route.get(i - 1) + "->" + route.get(i) + "(구역 " + from + ")");
+                    continue;
+                }
+                if (zoneTravelTimes.freeFlowSeconds(from, to).isEmpty()) {
+                    missing.add(from + "->" + to);
+                }
             }
         }
         if (!intraZone.isEmpty() && !c.hasIntraZoneTravelMinutes()) {
@@ -507,6 +520,44 @@ public class SimulationConfigValidator {
                             + ". 해당 지점의 trafficZone을 확인하거나"
                             + " traffic/jangryang-zone-travel-times.json에 실측값을 채우세요."));
         }
+    }
+
+    /**
+     * 엔진과 동일한 round-robin 트럭 경로. 원래 방문 순서를 그대로 검사하면 트럭이 두 대일
+     * 때 검증기는 A→B→C→D를 보지만 엔진은 A→C와 B→D를 달리게 되어, 검증 통과 뒤 실행이
+     * 실패하거나 반대로 실제로 필요 없는 구간 때문에 차단된다.
+     */
+    private static List<List<String>> assignedRoutes(SimulationConfig c) {
+        int buildings = Math.max(0, Math.min(26, c.getNumBuildings()));
+        List<String> natural = new ArrayList<>();
+        for (int b = 0; b < buildings; b++) natural.add(SimulationEngine.nodeId(b));
+
+        List<String> visitOrder = natural;
+        List<String> requested = c.getRouteSequence();
+        if (requested != null && !requested.isEmpty()) {
+            List<String> canonical = new ArrayList<>();
+            Set<Integer> seen = new HashSet<>();
+            boolean valid = requested.size() == buildings;
+            if (valid) {
+                for (String site : requested) {
+                    int index = SimulationEngine.nodeIndex(site);
+                    if (index < 0 || index >= buildings || !seen.add(index)) {
+                        valid = false;
+                        break;
+                    }
+                    canonical.add(SimulationEngine.nodeId(index));
+                }
+            }
+            if (valid) visitOrder = canonical;
+        }
+
+        // 건물보다 많은 트럭은 엔진에서 빈 경로가 된다. 검증에 필요한 것은 실제로 방문하는
+        // 경로뿐이며, 사용자 입력이 지나치게 커도 여기서 거대한 빈 목록을 만들 이유가 없다.
+        int trucks = Math.max(1, Math.min(c.getTruckCount(), Math.max(1, buildings)));
+        List<List<String>> routes = new ArrayList<>();
+        for (int i = 0; i < trucks; i++) routes.add(new ArrayList<>());
+        for (int i = 0; i < visitOrder.size(); i++) routes.get(i % trucks).add(visitOrder.get(i));
+        return routes;
     }
 
     private void validateTraffic(SimulationConfig c, List<ValidationError> errs, List<ValidationError> warns) {
@@ -625,7 +676,10 @@ public class SimulationConfigValidator {
 
         int slotsPerDay = (c.getCollectionTimesMinutes() != null && !c.getCollectionTimesMinutes().isEmpty())
                 ? c.getCollectionTimesMinutes().size() : 1;
-        double collectionsPerDay = slotsPerDay / (double) Math.max(1, c.getCollectionIntervalDays());
+        double scheduleFrequency = c.usesDaysOfWeek()
+                ? c.getCollectionDaysOfWeek().size() / 7.0
+                : 1.0 / Math.max(1, c.getCollectionIntervalDays());
+        double collectionsPerDay = slotsPerDay * scheduleFrequency;
 
         TruckType truckType;
         try {
@@ -644,7 +698,7 @@ public class SimulationConfigValidator {
     }
 
     private static Set<String> allNodeIds(int numBuildings) {
-        Set<String> out = new HashSet<>();
+        Set<String> out = new java.util.LinkedHashSet<>();
         for (int b = 0; b < numBuildings; b++) out.add(SimulationEngine.nodeId(b));
         return out;
     }

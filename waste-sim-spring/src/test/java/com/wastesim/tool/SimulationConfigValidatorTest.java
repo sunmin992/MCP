@@ -92,6 +92,22 @@ class SimulationConfigValidatorTest {
                 e.code() == ErrorCode.CRITICAL_WASTE_ACCUMULATION));
     }
 
+    /** 요일 스케줄은 주 7회가 아니라 지정한 요일 수만큼만 공급을 만든다. */
+    @Test
+    void overflowPredictionUsesDayOfWeekFrequency() {
+        SimulationConfig daily = new SimulationConfig();
+        daily.setNumBuildings(4);
+        daily.setResidentsPerBuilding(1000);
+        daily.setRouteAvailableCapacityKg(5000.0);
+
+        SimulationConfig fourDays = daily.copy();
+        fourDays.setCollectionDaysOfWeek(List.of(0, 1, 3, 4));
+
+        assertEquals(v.predictOverflowRatio(daily) * 7.0 / 4.0,
+                v.predictOverflowRatio(fourDays), 1e-9,
+                "월·화·목·금은 매일 수거보다 일평균 공급이 4/7이어야 한다");
+    }
+
     /**
      * 골목 정보는 이제 교통 프로파일이 아니라 수거 지점에 있다. 운영 데이터에는 골목이
      * 하나도 없으므로(실제 네 지점이 전부 간선에 접한다) 가상 지점 집합을 물려 검증한다.

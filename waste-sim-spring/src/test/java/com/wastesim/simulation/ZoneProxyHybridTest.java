@@ -5,6 +5,7 @@ import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.model.TravelTimeMode;
 import com.wastesim.service.TrafficDataService;
+import com.wastesim.service.SimulationService;
 import com.wastesim.site.CollectionSiteRegistry;
 import com.wastesim.site.TestSites;
 import com.wastesim.tool.SimulationConfigValidator;
@@ -137,6 +138,26 @@ class ZoneProxyHybridTest {
         assertTrue(r.getDataQualityWarnings().stream()
                         .anyMatch(w -> w.contains("실제 수거 지점 좌표를 쓰지 않았습니다")),
                 r.getDataQualityWarnings().toString());
+    }
+
+    /**
+     * REST·MCP 기본 경로는 단일 실행이 아니라 다중 시드 요약을 반환한다. 요약 과정에서
+     * provenance를 버리면 실제 사용자가 받는 결과만 좌표 미사용으로 바뀌고 경고가 사라진다.
+     */
+    @Test
+    void experimentSummaryKeepsCoordinateQualityAndAssumptions() {
+        SimulationEngine eng = new SimulationEngine(new TrafficDataService(),
+                TestSites.allInZoneA(), TravelTimeMatrix.empty());
+        SimulationConfig c = zoneProxy();
+        c.setSeeds(2);
+        c.setIntraZoneTravelMinutes(0);
+
+        SimulationResult summary = new SimulationService(eng).runExperiment(c);
+
+        assertEquals(CoordinateQuality.TRAFFIC_ZONE_PROXY, summary.getCoordinateQuality());
+        assertTrue(summary.getDataQualityFlags().contains("INTRA_ZONE_TIME_ASSUMED"));
+        assertTrue(summary.getDataQualityWarnings().stream().anyMatch(w -> w.contains("0분")),
+                summary.getDataQualityWarnings().toString());
     }
 
     /**

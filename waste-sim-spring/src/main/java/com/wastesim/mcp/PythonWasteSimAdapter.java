@@ -2,6 +2,7 @@ package com.wastesim.mcp;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.tool.ErrorCode;
 import com.wastesim.tool.ToolResult;
@@ -22,8 +23,8 @@ import java.util.concurrent.TimeUnit;
  * 서브프로세스로 호출하는 어댑터(MCP_모델_연결_방법.md §3.2). Java 엔진과
  * 결과를 비교할 참조 구현으로 {@code run_waste_simulation_devs} 도구로 노출된다.
  *
- * <p>{@code waste_sim/mcp_bridge.py}가 stdin으로 JSON 설정(McpToolCatalog의
- * RUN_SIM_SCHEMA와 동일 필드명)을 받아, seeds 횟수만큼 반복 실행한 뒤 평균·
+ * <p>{@code waste_sim/mcp_bridge.py}가 stdin으로 JSON 설정(Java 스키마 중 Python이
+ * 실제로 지원하는 부분집합)을 받아, seeds 횟수만큼 반복 실행한 뒤 평균·
  * 표준편차 등을 집계한 JSON 한 줄을 stdout에 낸다. 이 어댑터는 그 결과를
  * 그대로(가공 없이) {@link ToolResult#ok}로 감싸 반환한다 — Python 쪽 필드명을
  * Java {@code SimulationResult}와 억지로 맞추지 않고 그대로 노출해, MCP
@@ -58,11 +59,43 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
 
     @Override
     public String inputSchemaJson() {
-        return McpToolCatalog.RUN_SIM_SCHEMA;
+        try {
+            ObjectNode schema = (ObjectNode) MAPPER.readTree(McpToolCatalog.RUN_SIM_SCHEMA);
+            ObjectNode properties = (ObjectNode) schema.path("properties");
+            properties.retain(java.util.List.of(
+                    "collectionTime", "days", "seeds", "leaveSigma", "wasteSigma",
+                    "wasteMeanKg", "capacity", "threshold", "numBuildings",
+                    "residentsPerBuilding", "occupationMix", "trafficEnabled",
+                    "trafficProfileId", "routeTravelMinutes"));
+            return MAPPER.writeValueAsString(schema);
+        } catch (Exception e) {
+            throw new IllegalStateException("Python 참조 엔진 입력 스키마를 만들 수 없습니다.", e);
+        }
     }
 
     @Override
     public ToolResult run(SimulationConfig cfg) {
+        java.util.List<String> unsupported = new java.util.ArrayList<>();
+        if (cfg.getCollectionIntervalDays() != 1) unsupported.add("collectionIntervalDays");
+        if (cfg.usesDaysOfWeek()) unsupported.add("collectionDaysOfWeek");
+        if (cfg.resolveDischargeTimeMode() != com.wastesim.model.DischargeTimeMode.PAPER_BASELINE)
+            unsupported.add("dischargeTimeMode");
+        if (cfg.resolveTravelTimeMode() != com.wastesim.model.TravelTimeMode.LEGACY_CONSTANT)
+            unsupported.add("travelTimeMode");
+        if (cfg.getServiceMinutesPerSite() != 0) unsupported.add("serviceMinutesPerSite");
+        if (cfg.hasIntraZoneTravelMinutes()) unsupported.add("intraZoneTravelMinutes");
+        if (!"LARGE_5TON".equals(cfg.getTruckType())) unsupported.add("truckType");
+        if (cfg.getTruckCount() != 1) unsupported.add("truckCount");
+        if (cfg.getDispatchIntervalMinutes() != 0) unsupported.add("dispatchIntervalMinutes");
+        if (cfg.getRouteSequence() != null && !cfg.getRouteSequence().isEmpty())
+            unsupported.add("routeSequence");
+        if (!unsupported.isEmpty()) {
+            return ToolResult.rejected(new ValidationError(
+                    ErrorCode.INVALID_ARGUMENTS, "python-devs",
+                    "Python 참조 엔진이 지원하지 않는 설정입니다: "
+                            + String.join(", ", unsupported)
+                            + ". 이 설정은 Java 엔진(run_waste_simulation)에서 실행하세요."));
+        }
         if (cfg.getRouteAvailableCapacityKg() != null || cfg.getInitialTruckLoadKg() != 0.0) {
             return ToolResult.rejected(new ValidationError(
                     ErrorCode.INVALID_ARGUMENTS, "routeAvailableCapacityKg",
@@ -132,7 +165,7 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
         }
     }
 
-    /** mcp_bridge.py가 기대하는 필드명(McpToolCatalog RUN_SIM_SCHEMA와 동일)으로 직렬화.
+    /** mcp_bridge.py가 기대하는 Python 지원 필드만 직렬화.
      *
      * <p>trafficEnabled/trafficProfileId/routeTravelMinutes도 전달한다 — waste_sim이
      * 오늘(장량동 실측 교통량 반영) 확장되면서 Java 엔진과 같은 필드명으로 이
@@ -151,6 +184,7 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
         node.put("residentsPerBuilding", cfg.getResidentsPerBuilding());
         node.put("leaveSigma", cfg.getLeaveSigma());
         node.put("wasteSigma", cfg.getWasteSigma());
+        node.put("wasteMeanKg", cfg.getWasteMeanKg());
         node.put("capacity", cfg.getCapacity());
         node.put("threshold", cfg.getThreshold());
         if (cfg.getOccupationMix() != null && !cfg.getOccupationMix().isEmpty()) {

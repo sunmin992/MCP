@@ -51,9 +51,11 @@ public class SimulationService {
         List<Map<String, Double>> perSeedResidualBuilding = new ArrayList<>();
         List<Map<String, Double>> perSeedResidualType = new ArrayList<>();
         List<Map<String, Double>> perSeedResidualTruck = new ArrayList<>();
+        SimulationResult provenance = null;
 
         for (int seed = 1; seed <= cfg.getSeeds(); seed++) {
             SimulationResult r = engine.run(cfg, seed);
+            if (provenance == null) provenance = r;
             totals.add(r.getTotalComplaints());
             r.getByOccupation().forEach((occ, cnt) ->
                     occTotals.computeIfAbsent(occ, k -> new ArrayList<>()).add(cnt));
@@ -128,6 +130,15 @@ public class SimulationService {
         }
         summary.setMaxResidualBuilding(maxB);
         summary.setMaxResidualBuildingKg(round2(maxKg));
+
+        // 좌표 출처와 계산 가정은 시드에 따라 달라지는 통계값이 아니라 실행 구성의
+        // provenance다. 단일 시드 결과에만 두고 요약에서 버리면 REST/MCP의 기본 다중 시드
+        // 응답이 ZONE_PROXY_HYBRID를 좌표 미사용으로 잘못 표시하고 경고도 사라진다.
+        if (provenance != null) {
+            summary.setCoordinateQuality(provenance.getCoordinateQuality());
+            summary.setDataQualityFlags(new ArrayList<>(provenance.getDataQualityFlags()));
+            summary.setAssumptionNotes(new ArrayList<>(provenance.getAssumptionNotes()));
+        }
 
         return summary;
     }

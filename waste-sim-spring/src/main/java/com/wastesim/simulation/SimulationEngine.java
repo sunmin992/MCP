@@ -148,12 +148,18 @@ public class SimulationEngine {
      * 좌표로 낸 결과가 현장 실측이라고 주장하게 된다.
      */
     private CoordinateQuality resolveCoordinateQuality(TravelTimeMode mode) {
-        return mode.intrinsicCoordinateQuality()
+        CoordinateQuality quality = mode.intrinsicCoordinateQuality()
                 .or(travelTimes::coordinateQuality)
                 .orElseThrow(() -> new IllegalStateException(
                         mode + "로 계산했는데 행렬이 좌표 출처를 선언하지 않았습니다. "
                                 + "traffic 행렬의 coordinateSource에 MEASURED_SITE 또는 "
                                 + "ADDRESS_GEOCODED를 적어야 결과의 출처를 말할 수 있습니다."));
+        if (mode == TravelTimeMode.OSRM_HYBRID && !quality.isSiteLevel()) {
+            throw new IllegalStateException("OSRM_HYBRID의 수거 지점 행렬에 사용할 수 없는 "
+                    + "좌표 출처입니다: " + quality + ". MEASURED_SITE, ADDRESS_GEOCODED 또는 "
+                    + "SYNTHETIC이어야 합니다.");
+        }
+        return quality;
     }
 
     /**

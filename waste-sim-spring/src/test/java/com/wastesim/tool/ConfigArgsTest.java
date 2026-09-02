@@ -42,4 +42,27 @@ class ConfigArgsTest {
         assertEquals(200.0, c.getInitialTruckLoadKg());
         assertEquals(List.of("Node_A", "Node_C", "Node_B"), c.getRouteSequence());
     }
+
+    @Test
+    void mapsScheduleDischargeAndTravelModesExposedByMcp() throws Exception {
+        SimulationConfig c = ConfigArgs.fromJson(om.readTree("""
+                {
+                  "collectionDaysOfWeek": [0, 1, 3, 4],
+                  "dischargeTimeMode": "POHANG_ACTUAL",
+                  "dischargeWindowStartMinutes": 1200,
+                  "dischargeWindowEndMinutes": 360,
+                  "travelTimeMode": "ZONE_PROXY_HYBRID",
+                  "serviceMinutesPerSite": 5,
+                  "intraZoneTravelMinutes": 3
+                }
+                """));
+
+        assertEquals(List.of(0, 1, 3, 4), c.getCollectionDaysOfWeek());
+        assertEquals("POHANG_ACTUAL", c.getDischargeTimeMode());
+        assertEquals(1200, c.getDischargeWindowStartMinutes());
+        assertEquals(360, c.getDischargeWindowEndMinutes());
+        assertEquals("ZONE_PROXY_HYBRID", c.getTravelTimeMode());
+        assertEquals(5, c.getServiceMinutesPerSite());
+        assertEquals(3, c.getIntraZoneTravelMinutes());
+    }
 }

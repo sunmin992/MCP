@@ -43,6 +43,28 @@ class PythonWasteSimAdapterTest {
     }
 
     @Test
+    void schemaDoesNotAdvertiseJavaOnlyModes() throws Exception {
+        JsonNode properties = new com.fasterxml.jackson.databind.ObjectMapper()
+                .readTree(adapter().inputSchemaJson()).path("properties");
+        assertFalse(properties.has("travelTimeMode"));
+        assertFalse(properties.has("collectionDaysOfWeek"));
+        assertFalse(properties.has("dischargeTimeMode"));
+        assertTrue(properties.has("wasteMeanKg"));
+    }
+
+    @Test
+    void rejectsJavaOnlyTravelModeInsteadOfSilentlyRunningLegacy() {
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setTravelTimeMode("ZONE_PROXY_HYBRID");
+
+        ToolResult r = adapter().run(cfg);
+
+        assertFalse(r.ready());
+        assertTrue(r.errors().stream().anyMatch(e -> e.message().contains("travelTimeMode")),
+                r.errors().toString());
+    }
+
+    @Test
     void runsRealPythonEngineWhenAvailable() {
         assumeTrue(new File(DEFAULT_PROJECT_ROOT, "waste_sim").isDirectory(),
                 "waste_sim 프로젝트가 이 머신에 없어 스킵");

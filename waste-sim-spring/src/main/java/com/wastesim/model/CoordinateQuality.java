@@ -57,4 +57,16 @@ public enum CoordinateQuality {
     public boolean hasWarning() {
         return warning != null;
     }
+
+    /**
+     * 실제 수거 <b>지점 단위</b>의 경로 행렬을 만들 수 있는 좌표인가.
+     *
+     * <p>{@link TravelTimeMode#OSRM_HYBRID}는 지점 사이를 계산하므로 좌표를 쓰지 않는
+     * {@link #NOT_USED}나 구역 대표점인 {@link #TRAFFIC_ZONE_PROXY}를 받아들이면 안 된다.
+     * 가상 지점은 운영값은 아니지만 몬테카를로 하네스의 개별 실행에서 지점 단위 OSRM
+     * 경로를 만들 수 있으므로 허용한다.
+     */
+    public boolean isSiteLevel() {
+        return this == MEASURED_SITE || this == ADDRESS_GEOCODED || this == SYNTHETIC;
+    }
 }
