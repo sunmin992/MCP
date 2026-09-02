@@ -152,12 +152,12 @@ class SimulationConfigValidatorTest {
     }
 
     @Test
-    void redPeakTimeWarnsButDoesNotBlock() {  // V-T5 — 13:00은 실측 데이터상 RED(점심 피크), 비차단 경고만
+    void redPeakTimeWarnsButDoesNotBlock() {  // V-T5 — 18:00은 TMAP 실측상 RED(퇴근 피크), 비차단 경고만
         SimulationConfig c = new SimulationConfig();
         c.setTrafficEnabled(true);
         c.setTrafficProfileId("jangryang-weekday");
         c.setTruckType("MEDIUM_2P5T");        // alleyAccess=true — V-T3와 섞이지 않게 격리
-        c.setCollectionTimeLabel("13:00");
+        c.setCollectionTimeLabel("18:00");
         ValidationResult r = v.validate(c);
         assertTrue(r.ready());
         assertFalse(r.warnings().isEmpty());
@@ -192,15 +192,16 @@ class SimulationConfigValidatorTest {
 
     @Test
     void redJudgedByGlobalHourlyWeight() {   // DESIGN_DECISIONS.md D-10
-        // 13:00(전역 hourlyWeight[13]=1.78 ≥ 임계 1.7) → RED 경고 발생
+        // 18:00(전역 hourlyWeight[18]=1.73 >= 임계 1.45) -> RED 경고 발생
         SimulationConfig peak = base();
-        peak.setCollectionTimeLabel("13:00");
+        peak.setCollectionTimeLabel("18:00");
         assertFalse(v.validate(peak).warnings().isEmpty());
-        // 08:30(전역 hourlyWeight[8]=1.54 < 임계 1.7) → 경고 없음(정상)
-        // 노드별 기준이었다면 Node_A(08시=1.83)로 여기서도 RED가 뜨므로,
-        // 이 어서션이 "전역 기준" 구현을 자동으로 검증한다.
+        // 16:00(전역 hourlyWeight[16]=1.38 < 임계 1.45) -> 경고 없음(정상)
+        // 노드별 기준이었다면 Node_A·Node_C(16시=1.52·1.53)로 여기서도 RED가 뜨므로,
+        // 이 어서션이 "전역 기준" 구현을 자동으로 검증한다. 데이터가 TMAP 실측으로
+        // 바뀌며 시각은 달라졌지만 이 테스트가 가르는 것은 그대로다.
         SimulationConfig off = base();
-        off.setCollectionTimeLabel("08:30");
+        off.setCollectionTimeLabel("16:00");
         assertTrue(v.validate(off).warnings().isEmpty());
     }
 

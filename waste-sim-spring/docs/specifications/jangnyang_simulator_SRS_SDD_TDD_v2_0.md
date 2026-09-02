@@ -578,7 +578,15 @@ CorrelationIdFilter가 요청마다 requestId를 MDC에 주입하고(logging.pat
 | RouteDurationEstimator (v1.7) | 전체 시뮬레이션 없이 방문 순서만으로 이동시간 근사 — 채팅 경로 질의 응답용 |
 | update_route_sequence·TrafficController | 동적 경로 재편성(정체 노드 후순위) 실행 |
 
-실측 데이터: 15개 링크를 지점명 키워드로 4개 노드에 매핑(전처리 scripts/preprocess_response_filtered.py). 점심 12–13시 피크·Node_A(장성초등학교) 최혼잡, 양덕(Node_B) 한산. 절대 스케일이 낮아 congestionThresholdRed=1.7로 정합. Python 참조 엔진(waste_sim/traffic.py)도 동일한 원본 CSV·동일 계수(K=1.2, threshold=1.7)로 같은 4개 노드 매핑을 재현한다.
+실측 데이터(**2026-09-02 개정**): 기본 프로파일 `jangryang-weekday`는 **SK TMAP 실측 소요시간**에서 나온다 — 교통 구역 4곳 사이 12개 순서쌍 × 24시간 조회, 각 구간의 하루 최소 대비 배수. **전역 피크 18시(1.73), 최혼잡 구역 Node_C·Node_A(2.14·2.12), 최한산 Node_D(1.40)**, `congestionThresholdRed=1.45`.
+
+그전까지는 공공데이터 통행량(`response_filtered.csv` 15개 링크를 지점명 키워드로 4개 구역에 귀속, `1 + K × 비율`, K=1.2)에서 유도했고 **점심 12–13시 피크·Node_A 최혼잡·Node_B 최한산**으로 서술했다. TMAP 24시간 실측과 대조한 결과 **피크 시각이 실제와 반대**였다 — 통행량은 낮에 고르게 많지만 지체는 용량을 넘는 순간 급증하므로 퇴근 시간에 몰린다. 진폭(1.71배)은 양쪽이 같았고 시간 분포만 달랐다.
+
+통행량 기반 프로파일은 `jangryang-volume-weekday`로 보존해 비교에 쓴다 — 지금까지의 결과가 그 값으로 나왔기 때문이다.
+
+> **두 엔진이 기본값에서 갈라졌다.** Python 참조 엔진(`waste_sim/traffic.py`)은 자기 사본의 원본 CSV에서 통행량 프로파일을 직접 만들고(`K=1.2`, `threshold=1.7`), **`trafficProfileId` 값을 읽지 않는다** — `trafficEnabled`만으로 그 프로파일을 켠다(`PythonWasteSimAdapter` javadoc). 그래서 Java가 실측 프로파일을 쓰는 지금, **같은 요청을 두 엔진에 보내면 서로 다른 교통 가중치로 계산한다.** 두 엔진 결과를 대조하려면 Java 쪽에 `trafficProfileId=jangryang-volume-weekday`를 명시해야 한다 — Python이 그 id를 받아들이기 때문이 아니라, 그것이 Python이 항상 쓰는 프로파일이기 때문이다. Python 쪽도 실측으로 맞추려면 `waste_sim/traffic.py`를 함께 고쳐야 하고, 그건 이 개정의 범위가 아니다.
+
+자세한 근거는 `docs/guides/CONNECT_TRAFFIC_CSV.md` §3.5.
 
 ## 2.11 교차 검증 & 적대적 방어
 
@@ -609,7 +617,7 @@ CorrelationIdFilter가 요청마다 requestId를 MDC에 주입하고(logging.pat
 | D-07 | 범위 밖 파라미터 값 | 전 경로 거절(400 / isError). 클램프 금지 | 확정 |
 | D-08 | 알 수 없는 파라미터 필드 | 무시(@JsonIgnoreProperties). 필요 시 경고 로그만 | 확정 |
 | D-09 | 교통 프로파일 부재(trafficEnabled=true) | 교통 미적용으로 안전 폴백 + 응답 warning 명시 | 확정 |
-| D-10 | RED 판정 기준(V-T5) | 전역 hourlyWeight 기준으로 고정(임계 1.7에서 13시 RED) | 확정 |
+| D-10 | RED 판정 기준(V-T5) | 전역 hourlyWeight 기준으로 고정(임계 1.45에서 17·18시 RED). 데이터가 통행량에서 TMAP 실측으로 바뀌며 시각·임계는 달라졌지만 "전역으로 판정한다"는 결정은 유효하다 | 확정 |
 | D-11 | 민원 0 결과 표기 | ‘0건’ 명시(빈 화면 아님). 데이터 없음과 값 0 구분 | 확정 |
 | D-12 | 최적 시각 동률 tie-break | 가장 이른 시각 선택(결정론) | 확정 |
 | D-13 | 채팅 엔진(모델) 선택 미지정 시 기본값 | 항상 Java 엔진(하위호환). 이번 메시지에 명시적 언급이 있을 때만 전환, 이력 승계 금지 | 확정 |

@@ -275,9 +275,11 @@ class JangryangTrafficZonesTest {
         // (3) 창포 키워드가 장량동 밖을 끌어온다
         assertTrue(issues.stream().anyMatch(t -> t.contains("창포") && t.contains("장량동 밖")),
                 "창포 키워드의 구역 이탈이 기록돼 있어야 합니다.");
-        // (1) 통행량 지수이지 혼잡도가 아니다
-        assertTrue(issues.stream().anyMatch(t -> t.contains("통행량 지수")),
-                "가중치가 혼잡도가 아니라는 점이 기록돼 있어야 합니다.");
+        // (1) "통행량 지수이지 혼잡도가 아니다" — 2026-09-02 실측으로 확인되어 해소됐다.
+        //     기록은 지우지 않는다: 보존된 jangryang-volume-weekday를 쓰는 사람에게는
+        //     이 한계가 여전히 적용되고, 무엇이 왜 틀렸는지가 그 프로파일의 사용 조건이다.
+        assertTrue(issues.stream().anyMatch(t -> t.startsWith("[해소됨") && t.contains("통행량 지수")),
+                "통행량 지수 한계가 해소 기록으로 남아 있어야 합니다.");
         // (4) weekday에 근거가 없다 — 단어가 아니라 주장을 단언한다. 단어만 보면
         //     "std_dt가 채워진 추출본이 생기면"처럼 다른 문맥의 등장으로도 통과한다.
         assertTrue(issues.stream().anyMatch(t -> t.contains("weekday")
@@ -286,8 +288,13 @@ class JangryangTrafficZonesTest {
 
         // 넷 다 "수용한 결정"으로 표시돼야 한다 — 미처리 TODO와 구별된다.
         long accepted = issues.stream().filter(t -> t.startsWith("[한계로 수용")).count();
-        assertEquals(4, accepted,
-                "수용한 한계 4건이 [한계로 수용] 표시를 달고 있어야 합니다. 실제: " + accepted);
+        assertEquals(3, accepted,
+                "수용한 한계 3건이 [한계로 수용] 표시를 달고 있어야 합니다. 실제: " + accepted);
+        // 해소된 것과 수용한 것이 표시로 구별되어야 한다 — 섞이면 무엇이 아직 열려 있는지
+        // 알 수 없다. alleyNodeIds와 통행량 지수, 두 건이 해소 상태다.
+        long resolved = issues.stream().filter(t -> t.startsWith("[해소됨")).count();
+        assertEquals(2, resolved,
+                "해소된 항목 2건이 [해소됨] 표시를 달고 있어야 합니다. 실제: " + resolved);
 
         assertTrue(doc.path("howToReadResults").asText("").contains("절대값보다 경향"),
                 "결과를 어떻게 읽어야 하는지가 기록돼 있어야 합니다.");

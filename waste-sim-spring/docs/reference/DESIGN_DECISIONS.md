@@ -12,7 +12,7 @@
 |----|------|------|-----------|------|
 | **D-03** | 대화 이력의 시각 승계 | (a) 이번 메시지 기준만 / (b) 직전 이력 승계 | **(a)** 이력 승계 금지 | 확정 |
 | **D-05** | 동시 다중 사용자/세션 | (a) 단일 'default' / (b) sessionId 분리 | **(b)로 로드맵**, 현재 (a)+"동시 사용 미지원" 제약 | 확정(현행 a, b는 로드맵) |
-| **D-10** | RED 판정 기준(V-T5) | (a) 전역 hourlyWeight / (b) 노드별 / (c) 둘 중 하나 | **(a) 전역 고정** (임계 1.7에서 13시 RED) | 확정 |
+| **D-10** | RED 판정 기준(V-T5) | (a) 전역 hourlyWeight / (b) 노드별 / (c) 둘 중 하나 | **(a) 전역 고정** (임계 1.45에서 17·18시 RED) | 확정 |
 | D-01 | 중복 시각 처리 | 중복 제거 1개 / 2개로 셈 | 중복 제거 후 1개(서로 다른 2시각은 실행 아님) | 확정 |
 | D-02 | 시각 문자열 정규화 | 트림/자연어/한 자리 시 | 트림+자연어 허용, HH:MM 강제, "8:30" 무효 | 확정 |
 | D-04 | CONFIRM 대기 중 새 요청 | 덮어씀 / 이전 우선 | 최신으로 덮어쓰고 폐기 안내 | 확정 |
@@ -57,14 +57,19 @@ void singleSessionSharesPendingConfig() {
 > 실제 코딩 시: `chat.send`가 STOMP `sessionId`를 받도록 바꾸면, "세션 A의 pendingConfig가 세션 B에 안 보인다"는 격리 테스트로 승격.
 
 ### D-10 — RED 판정: 전역 hourlyWeight 기준 고정
-**결정:** V-T5의 RED 경고는 **전역 `hourlyWeight[hour] ≥ congestionThresholdRed`**로 판정한다(노드별 아님). 실측 데이터 스케일에서 임계 1.7이면 11–17시가 RED, 08:30은 정상.
+**결정:** V-T5의 RED 경고는 **전역 `hourlyWeight[hour] ≥ congestionThresholdRed`**로 판정한다(노드별 아님). TMAP 실측 스케일에서 임계 1.45면 17·18시가 RED, 16:00은 정상.
+
+> **데이터가 바뀌어도 결정은 그대로다(2026-09-02).** 프로파일이 통행량 기반에서 TMAP 실측
+> 소요시간으로 바뀌면서 RED가 되는 시각과 임계값은 달라졌지만, "노드별이 아니라 전역으로
+> 판정한다"는 결정 자체는 유효하다. 회귀 테스트의 판별 시각만 다시 골랐다 — 16:00은 전역
+> 1.38로 정상이지만 Node_A·Node_C가 1.52·1.53이므로, 노드별 구현이면 그 자리에서 깨진다.
 
 **대응 테스트** — `SimulationConfigValidatorTest`(기존 `redPeakTimeWarnsButDoesNotBlock` 보강):
 ```java
 @Test
 void redJudgedByGlobalHourlyWeight() {
     var v = new SimulationConfigValidator(new TrafficDataService());
-    // 13:00(전역 1.78 ≥ 1.7) → RED 경고 발생
+    // 18:00(전역 1.73 ≥ 1.45) → RED 경고 발생
     var peak = base(); peak.setCollectionTimeLabel("13:00");
     assertFalse(v.validate(peak).warnings().isEmpty());
     // 08:30(전역 1.54 < 1.7) → 경고 없음(정상)

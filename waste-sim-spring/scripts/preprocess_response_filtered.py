@@ -19,13 +19,18 @@ args = [a for a in sys.argv[1:] if not a.startswith("--")]
 opts = {sys.argv[i]: sys.argv[i + 1] for i in range(1, len(sys.argv) - 1) if sys.argv[i].startswith("--")}
 
 SRC = args[0] if args else "response_filtered.csv"
+# 이 스크립트가 만드는 것은 **통행량 기반** 프로파일이다. 2026-09-02부터 시스템의 기본
+# 프로파일(jangryang-weekday)은 TMAP 실측 소요시간에서 나오므로, 이 스크립트의 산출물은
+# 별도 id(jangryang-volume-weekday)로 나간다 — 덮어쓰면 실측 프로파일이 통행량 값으로
+# 되돌아간다.
+#
 # 기본값은 TrafficDataService.SEED_IDS가 실제로 로드하는 프로파일이어야 한다.
 # 한동안 기본값이 "-real"이었는데, 그 파일은 SEED_IDS에 없어서 로드되지 않는다 —
 # 갱신 절차를 그대로 따라도 "WROTE ..."가 찍히고 테스트도 통과하면서 운영 프로파일은
 # 그대로 남았다. 아무 경고 없이 "갱신했다고 믿는" 상태가 되는 것이 문제였다.
 # ScriptOutputTargetTest가 이 기본값과 SEED_IDS의 일치를 고정한다.
-PROFILE_ID = opts.get("--id", "jangryang-weekday")
-OUT = opts.get("--out", "src/main/resources/traffic/jangryang-weekday.json")
+PROFILE_ID = opts.get("--id", "jangryang-volume-weekday")
+OUT = opts.get("--out", "src/main/resources/traffic/jangryang-volume-weekday.json")
 K = 1.2                               # 피크 지연 강도(글로벌 최대 대비). 1+K = 최대 가중치
 # alleyNodeIds는 이 프로파일에서 제거됐다(2026-09-01). 대형 차량 진입 가능 여부는 교통량이
 # 아니라 수거 지점의 물리적 성질이라 collection/jangnyang-collection-sites.json의
