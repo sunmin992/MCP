@@ -40,6 +40,42 @@ public class SimulationConfig {
     private List<Integer> collectionTimesMinutes = null;
     /** 수거 주기(일). 1=매일, 2=격일제 */
     private int collectionIntervalDays = 1;
+
+    /**
+     * 수거하는 요일 집합. <b>0=월 1=화 2=수 3=목 4=금 5=토 6=일</b>이며
+     * {@code SimulationEngine}의 {@code day % 7} 규약과 같다 — 0일차가 월요일이다.
+     *
+     * <p>{@code null}이면 기존처럼 {@link #collectionIntervalDays}로 판정한다. 기본이
+     * {@code null}이라 지정하지 않으면 결과가 예전과 완전히 같다.
+     *
+     * <p><b>주기로는 표현되지 않는 스케줄이 있다.</b> 포항시 북구의 실제 생활쓰레기 수거는
+     * 월·화·목·금인데(공식 배출요일 일·월·수·목에 하루를 더한 것 —
+     * {@code schedule/pohang-bukgu-collection-schedule.json}), 이걸 "N일마다"로 쓸 방법이
+     * 없다. 요일 집합이 그 자리를 채운다.
+     *
+     * <p>{@code collectionIntervalDays}와 함께 지정하면 검증기가 거부한다 — 두 가지 다른
+     * 스케줄 방식이고, 조용히 둘 다 적용하면 아무 날도 수거하지 않는 설정이 만들어질 수 있다.
+     */
+    private List<Integer> collectionDaysOfWeek = null;
+
+    /**
+     * 배출 시각 모델. 기본은 논문 모델이며 결과가 예전과 완전히 같다.
+     * 값은 {@link DischargeTimeMode#fromName(String)}이 해석한다.
+     */
+    private String dischargeTimeMode = DischargeTimeMode.PAPER_BASELINE.name();
+
+    /**
+     * 배출 허용 창의 시작 시각(자정 기준 분). 기본 1200 = 20:00.
+     * {@link DischargeTimeMode#POHANG_ACTUAL}에서만 쓴다.
+     */
+    private int dischargeWindowStartMinutes = 20 * 60;
+
+    /**
+     * 배출 허용 창의 종료 시각(자정 기준 분). 기본 360 = 06:00 — 시작보다 작으므로
+     * <b>자정을 넘는 창</b>이다. 포항시 북구 공식 배출 시각이 20:00~06:00이다
+     * ({@code schedule/pohang-bukgu-collection-schedule.json}).
+     */
+    private int dischargeWindowEndMinutes = 6 * 60;
     /** 주말(토·일) 미수거 여부 */
     private boolean skipWeekends = false;
     /** 주말 별도 수거 시각(분). skipWeekends=false일 때만 적용. null이면 평일과 동일 */
@@ -141,6 +177,37 @@ public class SimulationConfig {
 
     public List<Integer> getCollectionTimesMinutes() { return collectionTimesMinutes; }
     public void setCollectionTimesMinutes(List<Integer> v) { this.collectionTimesMinutes = v; }
+
+    public String getDischargeTimeMode() { return dischargeTimeMode; }
+    public void setDischargeTimeMode(String v) { this.dischargeTimeMode = v; }
+
+    /** 해석된 배출 시각 모드. 값이 없으면 논문 모델. 알 수 없는 값이면 예외(검증기가 잡는다). */
+    public DischargeTimeMode resolveDischargeTimeMode() {
+        return DischargeTimeMode.fromName(dischargeTimeMode);
+    }
+
+    public int getDischargeWindowStartMinutes() { return dischargeWindowStartMinutes; }
+    public void setDischargeWindowStartMinutes(int v) { this.dischargeWindowStartMinutes = v; }
+
+    public int getDischargeWindowEndMinutes() { return dischargeWindowEndMinutes; }
+    public void setDischargeWindowEndMinutes(int v) { this.dischargeWindowEndMinutes = v; }
+
+    /**
+     * 배출 창의 길이(분). 종료가 시작보다 작으면 자정을 넘는 창으로 본다 —
+     * 20:00~06:00이면 600분이다.
+     */
+    public int dischargeWindowSpanMinutes() {
+        int start = dischargeWindowStartMinutes, end = dischargeWindowEndMinutes;
+        return end > start ? end - start : (1440 - start) + end;
+    }
+
+    public List<Integer> getCollectionDaysOfWeek() { return collectionDaysOfWeek; }
+    public void setCollectionDaysOfWeek(List<Integer> v) { this.collectionDaysOfWeek = v; }
+
+    /** 요일 집합으로 스케줄을 정하는가. 아니면 {@link #getCollectionIntervalDays()}를 쓴다. */
+    public boolean usesDaysOfWeek() {
+        return collectionDaysOfWeek != null && !collectionDaysOfWeek.isEmpty();
+    }
 
     public int getCollectionIntervalDays() { return collectionIntervalDays; }
     /**
@@ -253,8 +320,13 @@ public class SimulationConfig {
     /** 쓰레기 종류 해석. 미지정 시 cfg 용량/임계/주기를 쓰는 통합 단일 수거장. */
     public List<WasteType> resolveWasteTypes() {
         if (wasteTypes == null || wasteTypes.isEmpty()) {
+            WasteType single = WasteType.single(capacity, threshold, collectionIntervalDays);
+            // 전역 요일 집합을 지정했으면 암묵적 단일 종류도 그 요일을 따라야 한다.
+            // 그러지 않으면 이 종류가 collectionIntervalDays를 물려받아, 전역 게이트에서
+            // 요일 집합이 주기를 대신했는데도 종류 게이트가 주기로 다시 거부한다 —
+            // 수거일이 통째로 사라져 "민원 폭증"이라는 그럴듯한 결과가 나온다.
             return Collections.singletonList(
-                    WasteType.single(capacity, threshold, collectionIntervalDays));
+                    usesDaysOfWeek() ? single.withDaysOfWeek(collectionDaysOfWeek) : single);
         }
         return wasteTypes;
     }
@@ -283,6 +355,10 @@ public class SimulationConfig {
         c.occupationMix = (occupationMix == null) ? null : new ArrayList<>(occupationMix);
         c.collectionTimesMinutes = (collectionTimesMinutes == null) ? null : new ArrayList<>(collectionTimesMinutes);
         c.collectionIntervalDays = collectionIntervalDays;
+        c.collectionDaysOfWeek = (collectionDaysOfWeek == null) ? null : new ArrayList<>(collectionDaysOfWeek);
+        c.dischargeTimeMode = dischargeTimeMode;
+        c.dischargeWindowStartMinutes = dischargeWindowStartMinutes;
+        c.dischargeWindowEndMinutes = dischargeWindowEndMinutes;
         c.skipWeekends = skipWeekends;
         c.weekendCollectionTimeMinutes = weekendCollectionTimeMinutes;
         c.holidays = (holidays == null) ? null : new ArrayList<>(holidays);

@@ -1,5 +1,6 @@
 package com.wastesim.simulation;
 
+import com.wastesim.model.DischargeTimeMode;
 import com.wastesim.model.OccupationType;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
@@ -265,9 +266,9 @@ public class SimulationEngine {
                     int monthIdx = d / 30;
                     double dailyAmount = sampleWaste(rng, cfg.getWasteSigma(), cfg.getWasteMeanKg()) * cfg.resolveMonthlyFactor(monthIdx);
                     wasteByMonth[monthIdx] += dailyAmount;
-                    int leaveT = d * DAY + sampleOffset(rng, occ.leaveMeanMinutes, cfg.getLeaveSigma());
+                    int leaveT = d * DAY + dischargeOffset(rng, cfg, occ.leaveMeanMinutes);
                     if (retDis) {
-                        int retT = d * DAY + sampleOffset(rng, occ.returnMeanMinutes, cfg.getLeaveSigma());
+                        int retT = d * DAY + dischargeOffset(rng, cfg, occ.returnMeanMinutes);
                         offerDischarge(pq, leaveT, occ, b, d, dailyAmount * (1.0 - retFrac), totalMinutes);
                         offerDischarge(pq, retT,   occ, b, d, dailyAmount * retFrac,         totalMinutes);
                     } else {
@@ -302,7 +303,7 @@ public class SimulationEngine {
                 // 해당 건물의 due 폐기물들을 현재 적재량에 비례해 부분 수거한다.
                 double dueTotal = 0.0;
                 for (int t = 0; t < nT; t++) {
-                    if (ce.day % types.get(t).getIntervalDays() == 0) dueTotal += fill[ce.building][t];
+                    if (isTypeDue(ce.day, types.get(t))) dueTotal += fill[ce.building][t];
                 }
                 if (dueTotal > EPS) {
                     double remaining = remainingTruckCapacity.getOrDefault(ce.tripId, 0.0);
@@ -311,7 +312,7 @@ public class SimulationEngine {
                     if (collected > EPS) {
                         double keepFraction = 1.0 - collected / dueTotal;
                         for (int t = 0; t < nT; t++) {
-                            if (ce.day % types.get(t).getIntervalDays() == 0) {
+                            if (isTypeDue(ce.day, types.get(t))) {
                                 fill[ce.building][t] *= keepFraction;
                             }
                         }
@@ -530,15 +531,54 @@ public class SimulationEngine {
     private static boolean isTruckDay(int day, SimulationConfig cfg, List<WasteType> types) {
         if (cfg.getHolidays() != null && cfg.getHolidays().contains(day)) return false;
         if (cfg.isSkipWeekends() && isWeekend(day)) return false;
-        if (day % Math.max(1, cfg.getCollectionIntervalDays()) != 0) return false;
+
+        // 전역 스케줄 — 요일 집합을 지정했으면 그것이 주기를 대신한다(둘을 함께 쓰는 설정은
+        // 검증기가 거부한다). 미수거일은 그 집합에서 빠지는 것으로 표현된다.
+        if (cfg.usesDaysOfWeek()) {
+            if (!cfg.getCollectionDaysOfWeek().contains(dayOfWeek(day))) return false;
+        } else if (day % Math.max(1, cfg.getCollectionIntervalDays()) != 0) {
+            return false;
+        }
+
+        // 종류별 스케줄 — 하나라도 오늘 수거하는 종류가 있으면 트럭이 나간다.
         for (WasteType t : types) {
-            if (day % Math.max(1, t.getIntervalDays()) == 0) return true;
+            if (isTypeDue(day, t)) return true;
         }
         return false;
     }
 
+    /**
+     * 이 종류를 오늘 수거하는가.
+     *
+     * <p><b>세 자리가 같은 규칙을 써야 한다</b> — 트럭이 나가는지({@link #isTruckDay}),
+     * 도착해서 어느 종류를 비우는지(수거 이벤트의 due 집계), 부분 수거 때 어느 종류를
+     * 줄이는지. 처음 요일 집합을 넣을 때 첫 자리만 고치고 나머지 둘을 {@code intervalDays}로
+     * 남겨 뒀는데, 그러면 <b>트럭은 나가지만 아무것도 비우지 않는다</b> — 수거가 일어난 것처럼
+     * 보이면서 쓰레기는 계속 쌓여 민원이 두 배로 나왔다. 테스트가 그것을 잡았다.
+     *
+     * <p>요일 집합을 지정한 종류는 그 요일로만 판정하고, 지정하지 않은 종류는 주기로 판정한다.
+     */
+    private static boolean isTypeDue(int day, WasteType t) {
+        if (t.usesDaysOfWeek()) {
+            return t.getCollectionDaysOfWeek().contains(dayOfWeek(day));
+        }
+        return day % Math.max(1, t.getIntervalDays()) == 0;
+    }
+
+    /**
+     * 요일 — <b>0=월 1=화 2=수 3=목 4=금 5=토 6=일</b>. 즉 시뮬레이션 0일차가 월요일이다.
+     *
+     * <p>이 규약은 {@code skipWeekends}·{@code weekendCollectionTimeMinutes}가 쓰던 것인데,
+     * 요일 집합 스케줄이 들어오면서 <b>결과를 좌우하는 값</b>이 됐다 — 0일차를 다른 요일로
+     * 보면 수거하는 날이 통째로 밀린다. 시작 요일을 설정으로 열지 않은 이유는 그러면 기존
+     * 결과가 조용히 달라지기 때문이다.
+     */
+    static int dayOfWeek(int day) {
+        return ((day % 7) + 7) % 7;
+    }
+
     private static boolean isWeekend(int day) {
-        int dow = day % 7;          // 0=월 … 5=토, 6=일
+        int dow = dayOfWeek(day);   // 0=월 … 5=토, 6=일
         return dow == 5 || dow == 6;
     }
 
@@ -548,6 +588,29 @@ public class SimulationEngine {
             return Collections.singletonList(cfg.getWeekendCollectionTimeMinutes());
         }
         return cfg.resolveCollectionSlots();
+    }
+
+    /**
+     * 이 배출 한 건이 일어나는 시각(그날 0시 기준 분).
+     *
+     * <p>논문 모델은 직업별 외출·귀가 시각 ± {@code leaveSigma}다. 포항시 실제 규정 모드는
+     * 배출 허용 창 안에서 <b>균등</b>하게 뽑는다 — 공식 데이터가 창만 주고 분포를 주지
+     * 않으므로, 창만 아는 상태에서 가장 적은 가정을 얹는 선택이다.
+     *
+     * <p>돌려주는 값이 1440을 넘을 수 있다. 창이 자정을 넘기 때문이다(20:00 시작, 600분
+     * 길이면 최대 1799 = 다음 날 05:59). 호출부가 {@code d * DAY}에 더하므로 그 배출은
+     * 자연히 다음 날로 넘어가고, 요일 기반 수거 스케줄과도 그렇게 맞물린다 — "일요일 밤에
+     * 내놓고 월요일 새벽에 수거된다"가 바로 이 동작이다.
+     *
+     * <p><b>이 모드에서 {@code meanMinutes}는 쓰이지 않는다.</b> 즉 직업이 배출 시각에
+     * 영향을 주지 않는다({@link com.wastesim.model.DischargeTimeMode#POHANG_ACTUAL} javadoc).
+     */
+    private int dischargeOffset(Random rng, SimulationConfig cfg, int meanMinutes) {
+        if (cfg.resolveDischargeTimeMode() == DischargeTimeMode.POHANG_ACTUAL) {
+            int span = Math.max(1, cfg.dischargeWindowSpanMinutes());
+            return cfg.getDischargeWindowStartMinutes() + rng.nextInt(span);
+        }
+        return sampleOffset(rng, meanMinutes, cfg.getLeaveSigma());
     }
 
     private int sampleOffset(Random rng, int meanMinutes, double sigma) {

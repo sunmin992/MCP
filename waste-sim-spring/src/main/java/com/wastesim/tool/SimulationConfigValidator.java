@@ -7,6 +7,7 @@ import com.wastesim.model.TruckType;
 import com.wastesim.model.WasteType;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.model.TravelTimeMode;
+import com.wastesim.model.WasteType;
 import com.wastesim.site.CollectionSiteRegistry;
 import com.wastesim.traffic.TravelTimeMatrix;
 import com.wastesim.simulation.SimulationEngine;
@@ -116,6 +117,8 @@ public class SimulationConfigValidator {
         }
 
         validateTravelTimeMode(c, errs);
+        validateCollectionDaysOfWeek(c, errs);
+        validateDischargeTime(c, errs);
 
         List<ValidationError> warns = new ArrayList<>();
         validateTraffic(c, errs, warns);
@@ -307,6 +310,87 @@ public class SimulationConfigValidator {
     }
 
     // ── 교통·폐기물 교차 검증 (TRAFFIC_EXTENSION_DESIGN.md §5.2) ──────────────
+
+    /**
+     * V-D2: 배출 시각 모델이 성립하는지.
+     *
+     * <p>창의 길이가 0이면 모든 주민이 같은 순간에 버리게 되는데, 그건 "허용 창"이라는
+     * 개념과 어긋나고 결과도 그 한 순간에 쏠린다. 자정을 넘는 창(20:00~06:00)은 정상이므로
+     * 시작 &gt; 종료를 오류로 보지 않는다.
+     */
+    private void validateDischargeTime(SimulationConfig c, List<ValidationError> errs) {
+        try {
+            c.resolveDischargeTimeMode();
+        } catch (IllegalArgumentException ex) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ENUM, "dischargeTimeMode",
+                    "알 수 없는 배출 시각 모드: " + c.getDischargeTimeMode()
+                            + " (허용: PAPER_BASELINE, POHANG_ACTUAL)"));
+            return;
+        }
+        for (int[] f : new int[][]{{c.getDischargeWindowStartMinutes(), 0},
+                                   {c.getDischargeWindowEndMinutes(), 1}}) {
+            if (f[0] < 0 || f[0] > 1439) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE,
+                        f[1] == 0 ? "dischargeWindowStartMinutes" : "dischargeWindowEndMinutes",
+                        "배출 창 시각은 0~1439분이어야 합니다. 받은 값: " + f[0]));
+            }
+        }
+        if (c.getDischargeWindowStartMinutes() == c.getDischargeWindowEndMinutes()) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "dischargeWindowStartMinutes",
+                    "배출 창의 시작과 종료가 같습니다(" + c.getDischargeWindowStartMinutes()
+                            + "분). 모든 주민이 같은 순간에 버리게 됩니다."));
+        }
+    }
+
+    /**
+     * V-D1: 요일 집합 스케줄이 성립하는지.
+     *
+     * <p>두 가지를 막는다. 첫째 <b>범위를 벗어난 요일</b> — 0~6이 아닌 값은 영영 맞지 않아
+     * 아무 날도 수거하지 않는 설정이 된다. 둘째 <b>주기와의 동시 지정</b> — 둘은 서로 다른
+     * 스케줄 방식이고, 조용히 둘 다 적용하면 교집합이 비어 수거가 한 번도 일어나지 않을 수
+     * 있다. 그런 설정은 "수거가 없어서 민원이 폭증한다"는 그럴듯한 결과를 내므로, 설정
+     * 오류가 결과처럼 보인다.
+     */
+    private void validateCollectionDaysOfWeek(SimulationConfig c, List<ValidationError> errs) {
+        checkDayList(c.getCollectionDaysOfWeek(), "collectionDaysOfWeek", errs);
+        if (c.getWasteTypes() != null) {
+            for (WasteType t : c.getWasteTypes()) {
+                checkDayList(t.getCollectionDaysOfWeek(),
+                        "wasteTypes[" + t.getKey() + "].collectionDaysOfWeek", errs);
+            }
+        }
+        if (!c.usesDaysOfWeek()) return;
+
+        if (c.getCollectionIntervalDays() != 1) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "collectionDaysOfWeek",
+                    "요일 집합과 collectionIntervalDays(" + c.getCollectionIntervalDays()
+                            + ")를 함께 지정했습니다. 둘은 서로 다른 스케줄 방식이므로 하나만 쓰세요."));
+        }
+        if (c.isSkipWeekends()) {
+            List<Integer> weekend = c.getCollectionDaysOfWeek().stream()
+                    .filter(d -> d != null && (d == 5 || d == 6)).toList();
+            if (!weekend.isEmpty()) {
+                errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "collectionDaysOfWeek",
+                        "요일 집합에 주말(" + weekend + ")이 있는데 skipWeekends=true입니다. "
+                                + "그 요일은 영영 수거되지 않습니다."));
+            }
+        }
+    }
+
+    private static void checkDayList(List<Integer> days, String field, List<ValidationError> errs) {
+        if (days == null) return;
+        if (days.isEmpty()) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, field,
+                    "요일 집합이 비어 있습니다. 스케줄을 쓰지 않으려면 아예 지정하지 마세요."));
+            return;
+        }
+        for (Integer d : days) {
+            if (d == null || d < 0 || d > 6) {
+                errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, field,
+                        "요일은 0(월)~6(일)이어야 합니다. 받은 값: " + d));
+            }
+        }
+    }
 
     /**
      * V-T6: 이동시간 모드와 그 모드가 요구하는 데이터가 맞는지.

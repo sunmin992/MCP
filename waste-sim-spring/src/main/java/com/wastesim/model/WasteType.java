@@ -22,6 +22,14 @@ public class WasteType {
     private double threshold;
     private int intervalDays;
 
+    /**
+     * 이 종류를 수거하는 요일 집합(0=월 … 6=일). {@code null}이면 {@link #intervalDays}를 쓴다.
+     *
+     * <p>종류마다 요일이 다른 것이 실제다 — 포항시 북구는 생활쓰레기 월·화·목·금,
+     * 음식물 화·목·토, 재활용 수·토다({@code schedule/pohang-bukgu-collection-schedule.json}).
+     */
+    private List<Integer> collectionDaysOfWeek;
+
     public WasteType() {}
 
     public WasteType(String key, String labelKo, double fraction,
@@ -57,6 +65,21 @@ public class WasteType {
     public void setCapacity(double v) { this.capacity = v; }
     public double getThreshold() { return threshold; }
     public void setThreshold(double v) { this.threshold = v; }
+    public List<Integer> getCollectionDaysOfWeek() { return collectionDaysOfWeek; }
+    public void setCollectionDaysOfWeek(List<Integer> v) { this.collectionDaysOfWeek = v; }
+
+    /** 이 종류가 요일 집합으로 스케줄을 정하는가. */
+    public boolean usesDaysOfWeek() {
+        return collectionDaysOfWeek != null && !collectionDaysOfWeek.isEmpty();
+    }
+
+    /** 요일 집합을 지정한 사본. 기존 생성자를 건드리지 않으려고 별도로 둔다. */
+    public WasteType withDaysOfWeek(List<Integer> days) {
+        WasteType t = new WasteType(key, labelKo, fraction, capacity, threshold, intervalDays);
+        t.collectionDaysOfWeek = days;
+        return t;
+    }
+
     public int getIntervalDays() { return intervalDays; }
     public void setIntervalDays(int v) { this.intervalDays = Math.max(1, v); }
 }
