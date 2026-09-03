@@ -153,13 +153,20 @@ public record JangnyangScenarioSpec(
     public record AnswerRecord(String field, Object value, String raw,
                                SubtaskAnswerSource source, AnswerType type) {
 
-        /** 사람이 읽는 표시형. TIME은 HH:MM으로 되돌린다. */
+        /** 사람이 읽는 표시형. TIME은 HH:MM으로, TIME_RANGE는 HH:MM~HH:MM으로 되돌린다. */
         public String display() {
             if (type == AnswerType.TIME && value instanceof Number n) {
-                int m = n.intValue();
-                return String.format("%02d:%02d", m / 60, m % 60);
+                return hhmm(n.intValue());
+            }
+            if (type == AnswerType.TIME_RANGE && value instanceof List<?> l && l.size() == 2
+                    && l.get(0) instanceof Number start && l.get(1) instanceof Number end) {
+                return hhmm(start.intValue()) + "~" + hhmm(end.intValue());
             }
             return renderValue(value);
+        }
+
+        private static String hhmm(int minutes) {
+            return String.format("%02d:%02d", minutes / 60, minutes % 60);
         }
     }
 }

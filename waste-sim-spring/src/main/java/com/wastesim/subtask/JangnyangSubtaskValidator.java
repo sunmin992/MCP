@@ -150,6 +150,7 @@ public class JangnyangSubtaskValidator {
             case ENUM_LIST -> coerceStringList(st, rawValue, raw);
             case STRING_LIST -> coerceStringList(st, rawValue, raw);
             case TIME_LIST -> coerceTimeList(st, rawValue, raw);
+            case TIME_RANGE -> coerceTimeRange(st, raw);
             case INTEGER_MAP -> coerceMap(st, rawValue, raw, true);
             case NUMBER_MAP -> coerceMap(st, rawValue, raw, false);
         };
@@ -278,6 +279,40 @@ public class JangnyangSubtaskValidator {
         SubtaskError sizeError = checkSize(st, raw, normalized.size());
         if (sizeError != null) return JangnyangSubtaskAnswer.rejected(st.id(), raw, SubtaskAnswerSource.USER_DIRECT, sizeError);
         return JangnyangSubtaskAnswer.accepted(st.id(), raw, List.copyOf(normalized), SubtaskAnswerSource.USER_DIRECT);
+    }
+
+    /**
+     * "20:00~06:00"처럼 시작과 종료가 짝인 한 구간. 구조화 값은 {@code [시작분, 종료분]}이다.
+     *
+     * <p><b>정렬하지 않는다.</b> {@link #coerceTimeList}는 시각 목록을 오름차순으로 세우는데,
+     * 그 규칙을 이 자리에 쓰면 자정을 넘는 창이 뒤집힌다 — 20:00~06:00이 06:00~20:00, 즉
+     * "밤에만 버린다"가 "낮에만 버린다"로 바뀐다. 포항시 북구의 실제 배출 창이 그 창이라,
+     * 정렬은 규정값을 정반대로 만든다. 그래서 시작 &gt; 종료를 오류로 보지 않고 자정을 넘는
+     * 창으로 읽는다({@code SimulationConfigValidator}의 V-D2와 같은 규약).
+     */
+    private JangnyangSubtaskAnswer coerceTimeRange(JangnyangSubtask st, String raw) {
+        String[] parts = raw.trim().split("\\s*[~\\-–]\\s*", -1);
+        if (parts.length != 2) {
+            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                    "시작~종료 두 시각이어야 한다(받은 값: " + raw + "). 예: 20:00~06:00");
+        }
+        int[] minutes = new int[2];
+        for (int i = 0; i < 2; i++) {
+            String t = parts[i].trim();
+            if (!HHMM.matcher(t).matches()) {
+                return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                        "24시간 HH:MM 형식이어야 한다(받은 값: " + t + ").");
+            }
+            minutes[i] = Integer.parseInt(t.substring(0, 2)) * 60 + Integer.parseInt(t.substring(3, 5));
+        }
+        if (minutes[0] == minutes[1]) {
+            // 길이 0인 창은 모든 주민을 같은 순간에 몰아넣는다 — "허용 창"이라는 개념과
+            // 어긋나고 결과도 그 한 순간에 쏠린다.
+            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                    "시작과 종료가 같다(" + parts[0].trim() + "). 창의 길이가 0이면 모든 주민이 같은 순간에 버린다.");
+        }
+        return JangnyangSubtaskAnswer.accepted(st.id(), raw, List.of(minutes[0], minutes[1]),
+                SubtaskAnswerSource.USER_DIRECT);
     }
 
     /** "09:00, 18:00"처럼 시각이 여러 개인 항목. 각 원소를 분으로 바꾸고 중복을 막는다. */

@@ -26,7 +26,9 @@ class SubtaskNormalizationTest {
     private OpenAiService llm;
 
     private final JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
-    private final JangnyangSubtaskDefinition def = catalog.latest();
+    // 이 테스트가 보는 것은 v2 세트의 내용이다 — 최신 세트(v3)로 두면 세트를 하나
+    // 올릴 때마다 여기가 함께 깨지고, 무엇이 깨졌는지가 "질문이 바뀌었다"에 묻힌다.
+    private final JangnyangSubtaskDefinition def = catalog.byVersion(2);
 
     @BeforeEach
     void startServer() throws Exception {
@@ -98,12 +100,14 @@ class SubtaskNormalizationTest {
         // 세션에 넣어도 다른 항목은 여전히 비어 있어야 한다.
         SubtaskSessionService sessions = TestSubtaskFixtures.service(catalog);
         sessions.start("k");
-        sessions.submit("k", "ST-020", value, null);
+        // 대상을 <b>답변 필드명</b>으로 가리킨다 — 세션이 쓰는 세트는 최신 버전이고,
+        // ST 번호는 버전마다 다른 항목에 붙지만 필드명은 버전을 건너도 같다.
+        sessions.submit("k", "collectionTime", value, null);
         Map<String, JangnyangSubtaskAnswer> answers = sessions.store().find("k").answers();
         assertEquals(1, answers.size());
-        assertNull(answers.get("ST-006"), "days가 조용히 365로 채워지면 안 된다");
-        assertNull(answers.get("ST-024"));
-        assertNull(answers.get("ST-029"));
+        assertEquals(catalog.latest().byAnswerField("collectionTime").id(),
+                answers.keySet().iterator().next(),
+                "days·truckType·교통 반영이 조용히 함께 채워지면 안 된다");
     }
 
     @Test
@@ -139,17 +143,17 @@ class SubtaskNormalizationTest {
         SubtaskSessionService sessions = TestSubtaskFixtures.service(catalog);
         sessions.start("k");
         Object value = normalize("ST-020", "아침 여덟시 반");
-        SubtaskSessionService.Step step = sessions.submit("k", "ST-020", value, null);
+        SubtaskSessionService.Step step = sessions.submit("k", "collectionTime", value, null);
 
         // 다음에 나갈 질문은 카탈로그의 문장이다 — 모델이 보낸 문장이 닿을 자리가 없다.
         JangnyangSubtask next = step.question();
         assertNotNull(next);
-        assertEquals(def.byId(next.id()).question(), next.question());
+        assertEquals(catalog.latest().byId(next.id()).question(), next.question());
         assertFalse(next.question().contains("치울까요"));
         assertFalse(next.retryQuestion().contains(":)"));
 
         // 세트 자체도 그대로다.
-        assertEquals(catalog.latest().hash(), def.hash());
+        assertEquals(catalog.byVersion(2).hash(), def.hash());
     }
 
     @Test
@@ -184,20 +188,21 @@ class SubtaskNormalizationTest {
         // 넘기고, 검증기가 판정한다.
         SubtaskSessionService sessions = TestSubtaskFixtures.service(catalog);
         sessions.start("k");
-        // ST-020을 대상으로 명시해 답한다 — 도착 순서가 아니라 대상이 자리를 정한다.
-        SubtaskSessionService.Step step = sessions.submit("k", "ST-020", "아침 여덟시 반쯤", null);
+        // 수거 시각 항목을 대상으로 명시해 답한다 — 도착 순서가 아니라 대상이 자리를 정한다.
+        SubtaskSessionService.Step step = sessions.submit("k", "collectionTime", "아침 여덟시 반쯤", null);
         assertTrue(step.ok(), "LLM이 죽어도 요청 자체가 거부되면 안 된다");
         assertFalse(step.errors().isEmpty(), "원문이 형식에 안 맞으면 검증기가 잡는다");
-        assertEquals(def.byId("ST-020").retryQuestion(), step.errors().get(0).retryQuestion());
+        assertEquals(catalog.latest().byAnswerField("collectionTime").retryQuestion(),
+                step.errors().get(0).retryQuestion());
         assertNotNull(step.progress(), "진행 상태는 정상적으로 나와야 한다");
-        // 재질문이므로 진행률이 오르지 않고 같은 항목에 머문다.
-        // 재질문이므로 ST-020은 아직 비어 있고, 세션은 첫 미답 질문에 머문다.
+        // 재질문이므로 수거 시각은 아직 비어 있고, 세션은 첫 미답 질문에 머문다.
         assertEquals("ST-001", step.progress().currentSubtaskId());
         assertTrue(step.progress().answers().isEmpty());
 
         // 형식에 맞는 원문은 LLM 없이도 그대로 통과한다.
-        SubtaskSessionService.Step direct = sessions.submit("k", "ST-020", "08:30", null);
+        String timeId = catalog.latest().byAnswerField("collectionTime").id();
+        SubtaskSessionService.Step direct = sessions.submit("k", timeId, "08:30", null);
         assertTrue(direct.errors().isEmpty());
-        assertEquals(510, sessions.store().find("k").answers().get("ST-020").value());
+        assertEquals(510, sessions.store().find("k").answers().get(timeId).value());
     }
 }

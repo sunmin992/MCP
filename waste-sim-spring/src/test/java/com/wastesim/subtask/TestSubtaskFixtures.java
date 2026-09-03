@@ -1,7 +1,11 @@
 package com.wastesim.subtask;
 
+import com.wastesim.mcp.PythonWasteSimAdapter;
+import com.wastesim.mcp.SimulationModelRegistry;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.tool.SimulationConfigValidator;
+
+import java.util.List;
 
 /**
  * 수집 계층 테스트가 공유하는 조립 — 실제 구현을 그대로 물린다.
@@ -18,18 +22,24 @@ final class TestSubtaskFixtures {
     }
 
     static SubtaskSessionService service(JangnyangSubtaskCatalog catalog, SubtaskSessionStore store) {
-        TrafficDataService traffic = new TrafficDataService();
         JangnyangCompletenessChecker checker = new JangnyangCompletenessChecker();
         return new SubtaskSessionService(
                 catalog,
                 new JangnyangSubtaskValidator(),
                 checker,
-                new JangnyangScenarioBuilder(checker, new SimulationConfigValidator(traffic), traffic),
+                builder(checker),
                 store);
     }
 
+    /**
+     * 실제 어댑터가 들어 있는 모델 레지스트리를 물린다 — 엔진별 지원 판정을 어댑터에게
+     * 묻는 경로이므로, 빈 레지스트리로 두면 "미지원 설정을 실행 전에 막는다"는 성질이
+     * 검증에서 그대로 빠진다. Java 엔진은 등록하지 않는다: 그 어댑터를 만들려면 시뮬레이션
+     * 도구 전체가 필요한데, 지원 범위가 "전부"라 없을 때와 판정이 같다.
+     */
     static JangnyangScenarioBuilder builder(JangnyangCompletenessChecker checker) {
         TrafficDataService traffic = new TrafficDataService();
-        return new JangnyangScenarioBuilder(checker, new SimulationConfigValidator(traffic), traffic);
+        return new JangnyangScenarioBuilder(checker, new SimulationConfigValidator(traffic), traffic,
+                new SimulationModelRegistry(List.of(new PythonWasteSimAdapter())));
     }
 }

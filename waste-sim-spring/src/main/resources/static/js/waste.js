@@ -440,6 +440,10 @@ function buildSubtaskInput(schema) {
         : '항목=값, 항목=값';
     } else if (type === 'TIME_LIST') {
       input.placeholder = '09:00, 18:00 (없으면 해당 없음)';
+    } else if (type === 'TIME_RANGE') {
+      // 시각 입력 두 개로 나누지 않는다 — 자정을 넘는 창(20:00~06:00)을 두 칸으로 받으면
+      // 어느 쪽이 시작인지 화면만 보고는 알 수 없다. 한 칸에 시작~종료로 받는다.
+      input.placeholder = '20:00~06:00 (없으면 해당 없음)';
     } else if (type === 'STRING_LIST') {
       input.placeholder = '쉼표로 구분해 입력 (예: Node_A, Node_B)';
     } else {

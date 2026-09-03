@@ -1,6 +1,9 @@
 package com.wastesim.subtask;
 
+import com.wastesim.mcp.SimulationModelProvider;
 import com.wastesim.mcp.SimulationModelRegistry;
+import com.wastesim.model.DischargeTimeMode;
+import com.wastesim.model.ScenarioPreset;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.service.EngineSelectionDetector;
 import com.wastesim.service.TrafficDataService;
@@ -43,13 +46,16 @@ public class JangnyangScenarioBuilder {
     private final JangnyangCompletenessChecker checker;
     private final SimulationConfigValidator configValidator;
     private final TrafficDataService trafficData;
+    private final SimulationModelRegistry models;
 
     public JangnyangScenarioBuilder(JangnyangCompletenessChecker checker,
                                     SimulationConfigValidator configValidator,
-                                    TrafficDataService trafficData) {
+                                    TrafficDataService trafficData,
+                                    SimulationModelRegistry models) {
         this.checker = checker;
         this.configValidator = configValidator;
         this.trafficData = trafficData;
+        this.models = models;
     }
 
     /**
@@ -87,6 +93,21 @@ public class JangnyangScenarioBuilder {
 
         String engineId = engineOf(def, answers, defaults, assumptions);
         String toolName = toolFor(scenarioType, engineId);
+
+        // 고른 엔진이 이 설정을 돌릴 수 있는가(FR-134). 실행 시점에도 어댑터가 같은
+        // 판정을 하지만, 그때는 사용자가 답을 다 채우고 실행을 누른 뒤다.
+        List<ValidationError> engineErrors = engineSupport(scenarioType, engineId, cfg);
+        if (!engineErrors.isEmpty()) {
+            return BuildOutcome.invalidConfig(engineErrors);
+        }
+
+        // 서버가 채운 값에 동의를 받았는가. 동의 없이 기본값을 적용하지 않는다.
+        ValidationError unapproved = unapprovedDefaults(def, answers, defaults);
+        if (unapproved != null) {
+            return BuildOutcome.invalidConfig(List.of(unapproved));
+        }
+
+        disclose(scenarioType, assumptions);
 
         Map<String, JangnyangScenarioSpec.AnswerRecord> records = new LinkedHashMap<>();
         for (Map.Entry<String, JangnyangSubtaskAnswer> e : answers.entrySet()) {
@@ -159,8 +180,21 @@ public class JangnyangScenarioBuilder {
             c.setResidentsPerBuilding(f.intOr("residentsPerBuilding", c.getResidentsPerBuilding()));
         }
 
+        // 직업 구성 프리셋(v3). 프리셋은 비율을 배정 목록의 <b>반복 횟수</b>로 표현하므로
+        // (대학가형 = 학생 7 : 생산직 2 : 주부 1) 비율이 그대로 반영된다 — 아래 v2 경로가
+        // 비율 맵을 목록으로 뭉개던 것과 다른 점이 이것이다.
+        String preset = f.str("occupationPreset");
+        if (preset != null) {
+            ScenarioPreset p = ScenarioPreset.fromKey(preset);
+            c.setOccupationMix(List.copyOf(p.mix));
+            assumptions.add("직업 구성 " + preset + "(" + p.labelKo + ") — "
+                    + p.ratioPercent().entrySet().stream()
+                        .map(e -> e.getKey() + " " + e.getValue() + "%")
+                        .reduce((a, b) -> a + ", " + b).orElse("") + "로 배정한다.");
+        }
+
         // 직업 구성은 비율로 받지만 엔진은 목록을 받는다 — 비율이 0인 직업은 뺀다.
-        Map<String, Object> occ = f.map("occupationRatios");
+        Map<String, Object> occ = preset != null ? null : f.map("occupationRatios");
         if (occ != null && !occ.isEmpty()) {
             List<String> mix = new ArrayList<>();
             for (Map.Entry<String, Object> e : occ.entrySet()) {
@@ -184,6 +218,61 @@ public class JangnyangScenarioBuilder {
             if (!minutes.isEmpty()) c.setCollectionTimesMinutes(minutes);
         }
 
+        // 수거 스케줄(v3) — 주기와 요일 집합을 한 질문으로 받되 <b>둘 중 하나만</b>
+        // 설정한다. 함께 지정하면 교집합이 비어 한 번도 수거하지 않는 설정이 만들어질 수
+        // 있고, 검증기(V-D1)가 그 조합을 거부한다.
+        String schedule = f.str("collectionSchedule");
+        if (schedule != null) {
+            switch (schedule) {
+                case "EVERY_DAY" -> c.setCollectionIntervalDays(1);
+                case "EVERY_2_DAYS" -> c.setCollectionIntervalDays(2);
+                case "EVERY_3_DAYS" -> c.setCollectionIntervalDays(3);
+                case "EVERY_7_DAYS" -> c.setCollectionIntervalDays(7);
+                case "WEEKDAYS_MON_FRI" -> applyDaysOfWeek(c, List.of(0, 1, 2, 3, 4), "월~금", assumptions);
+                case "MON_WED_FRI" -> applyDaysOfWeek(c, List.of(0, 2, 4), "월·수·금", assumptions);
+                case "POHANG_MON_TUE_THU_FRI" ->
+                        applyDaysOfWeek(c, List.of(0, 1, 3, 4), "월·화·목·금(포항시 북구 실제 수거요일)", assumptions);
+                default -> throw new IllegalStateException("세트에 없는 수거 스케줄 값: " + schedule);
+            }
+        }
+
+        // 배출 시각 모델(v3).
+        String dischargeMode = f.str("dischargeTimeMode");
+        if (dischargeMode != null) {
+            c.setDischargeTimeMode(dischargeMode);
+            if (DischargeTimeMode.POHANG_ACTUAL.name().equals(dischargeMode)) {
+                assumptions.add("배출 허용 창 안의 분포는 균등이다 — 공식 데이터가 주는 것은 창뿐이고, "
+                        + "그 안에서 언제 버리는지는 어디에도 없다. 이 모델에서는 직업 구성이 배출 시각에 "
+                        + "영향을 주지 않는다.");
+            }
+        }
+        List<?> window = f.rawList("dischargeWindow");
+        if (window != null && window.size() == 2
+                && window.get(0) instanceof Number start && window.get(1) instanceof Number end) {
+            c.setDischargeWindowStartMinutes(start.intValue());
+            c.setDischargeWindowEndMinutes(end.intValue());
+        }
+
+        // 이동시간 계산 방식(v3)과 그 방식이 쓰는 값들.
+        String travelMode = f.str("travelTimeMode");
+        if (travelMode != null) {
+            c.setTravelTimeMode(travelMode);
+            // 그 방식이 쓰지 않는 값을 답했으면 그렇다고 적는다 — 값이 결과에 반영된 줄
+            // 알고 조건을 바꿔 가며 실험하면 아무 변화가 없는 이유를 알 수 없다.
+            if (!"LEGACY_CONSTANT".equals(travelMode) && f.intVal("routeTravelMinutes") != null) {
+                assumptions.add("이동시간 방식이 " + travelMode
+                        + "이므로 기본 이동시간(routeTravelMinutes)은 계산에 쓰이지 않는다.");
+            }
+            if (!"ZONE_PROXY_HYBRID".equals(travelMode) && f.intVal("intraZoneTravelMinutes") != null) {
+                assumptions.add("이동시간 방식이 " + travelMode
+                        + "이므로 구역 내 이동시간(intraZoneTravelMinutes)은 계산에 쓰이지 않는다.");
+            }
+        }
+        Integer serviceMinutes = f.intVal("serviceMinutesPerSite");
+        if (serviceMinutes != null) c.setServiceMinutesPerSite(serviceMinutes);
+        Integer intraZone = f.intVal("intraZoneTravelMinutes");
+        if (intraZone != null) c.setIntraZoneTravelMinutes(intraZone);
+
         // 교통.
         String trafficMode = f.str("trafficMode");
         boolean traffic = trafficMode != null && !"NONE".equals(trafficMode);
@@ -193,8 +282,13 @@ public class JangnyangScenarioBuilder {
             if (profile == null || JangnyangSubtaskValidator.NOT_APPLICABLE.equals(profile)
                     || "default".equals(profile)) {
                 profile = trafficData.defaultProfileId();
-                defaults.add(new AppliedDefault("trafficProfileId", profile,
-                        "교통 레이어를 켰는데 프로파일을 고르지 않았다 — 실측 기본 프로파일을 적용"));
+                if (profile != null) {
+                    defaults.add(new AppliedDefault("trafficProfileId", profile,
+                            "교통 레이어를 켰는데 프로파일을 고르지 않았다 — 실측 기본 프로파일을 적용"));
+                }
+                // 기본 프로파일조차 없으면 채운 것이 없으므로 기록하지 않는다. null인 채로
+                // 넘기면 공통 검증이 "교통 레이어를 사용하려면 trafficProfileId가 필요합니다"로
+                // 막는다 — "적용했다"고 적어 두고 값이 비어 있는 것보다 낫다.
             }
             c.setTrafficProfileId(profile);
         }
@@ -232,6 +326,33 @@ public class JangnyangScenarioBuilder {
                 "일일 배출량 변동을 묻지 않았다 — 논문 기준값");
         recordUnaskedDefault(def, answers, defaults, "wasteMeanKg", c.getWasteMeanKg(),
                 "1인 1일 평균 배출량을 묻지 않았다 — 논문 가정치");
+
+        // 묻지 않고 <b>계산해서</b> 보여주는 값들(v3). 질문을 줄인 자리이므로, 무엇이 어떻게
+        // 계산됐는지 미리보기에 남긴다 — 사용자가 답하지 않은 값이 결과에 들어가 있는데
+        // 근거가 없으면 "어디서 나온 숫자냐"에 답할 수 없다.
+        if (def.byAnswerField("residentsPerBuilding") != null
+                && def.byAnswerField("totalResidents") == null) {
+            assumptions.add("총 주민 수 " + (c.getNumBuildings() * c.getResidentsPerBuilding())
+                    + "명 = 건물 " + c.getNumBuildings() + "동 × 건물당 " + c.getResidentsPerBuilding() + "명.");
+        }
+        if (def.byAnswerField("collectionNodes") == null) {
+            assumptions.add("수거 지점 " + c.getNumBuildings() + "곳을 건물 수에 맞춰 자동 생성한다: "
+                    + String.join(", ", autoNodeIds(c.getNumBuildings())) + ".");
+        }
+        if (c.getRouteSequence() == null || c.getRouteSequence().isEmpty()) {
+            assumptions.add("방문 순서를 지정하지 않아 자동 생성 순서대로 돈다.");
+        }
+
+        // 계산에 쓰이지 않는 질문을 그렇다고 밝힌다 — 답을 받았다는 사실만으로 결과에
+        // 반영됐다고 읽히면, 목적 문장이 실험 조건이었다고 오해된다.
+        List<String> recordOnly = new ArrayList<>();
+        for (String field : List.of("simulationGoal", "defaultApproval",
+                "inputAndScenarioConfirmed", "executionApproval")) {
+            if (def.byAnswerField(field) != null) recordOnly.add(field);
+        }
+        if (!recordOnly.isEmpty()) {
+            assumptions.add("계산에 쓰이지 않는 항목(기록·제어용): " + String.join(", ", recordOnly) + ".");
+        }
 
         // "해당 없음"으로 넘어간 항목은 가정으로 남긴다 — 사용자가 답하지 않기로 한
         // 것도 실험의 조건이다.
@@ -307,6 +428,96 @@ public class JangnyangScenarioBuilder {
         }
     }
 
+    /** 요일 집합을 쓰는 스케줄. 주기는 기본값 1로 두어야 검증기(V-D1)가 동시 지정으로 보지 않는다. */
+    private static void applyDaysOfWeek(SimulationConfig c, List<Integer> days,
+                                        String label, List<String> assumptions) {
+        c.setCollectionDaysOfWeek(days);
+        c.setCollectionIntervalDays(1);
+        assumptions.add("수거 요일을 " + label + "로 둔다 — 주기(N일마다)는 함께 적용하지 않는다.");
+    }
+
+    /** 건물 수에 맞춰 자동 생성하는 수거 지점 ID — 엔진의 {@code Node_A~Node_Z} 체계와 같다. */
+    static List<String> autoNodeIds(int numBuildings) {
+        List<String> ids = new ArrayList<>();
+        for (int i = 0; i < Math.max(0, Math.min(26, numBuildings)); i++) {
+            ids.add("Node_" + (char) ('A' + i));
+        }
+        return ids;
+    }
+
+    /**
+     * 고른 엔진이 이 시나리오와 설정을 실제로 돌릴 수 있는가.
+     *
+     * <p>두 가지를 막는다. 첫째 <b>시나리오 비교에 참조 엔진을 고른 경우</b> — 비교 실험은
+     * {@code run_scenario} 한 경로로만 돌고 그 경로는 Java 엔진을 쓴다. 막지 않으면 사용자는
+     * python을 골랐는데 Java 결과를 받고, 어디에도 그 사실이 남지 않는다. 둘째 <b>어댑터가
+     * 지원하지 않는 필드</b> — 판정은 어댑터 자신에게 묻는다({@code unsupported}), 여기서
+     * 목록을 다시 적으면 어댑터가 늘 때 이 자리가 낡는다.
+     */
+    private List<ValidationError> engineSupport(String scenarioType, String engineId,
+                                                SimulationConfig cfg) {
+        List<ValidationError> errors = new ArrayList<>();
+        boolean singleRun = "single-run".equals(scenarioType);
+        if (!singleRun && EngineSelectionDetector.PYTHON_MODEL_ID.equals(engineId)) {
+            errors.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "engine",
+                    "정책 비교 실험(" + scenarioType + ")은 Java 엔진으로만 돌릴 수 있습니다. "
+                            + "python을 고른 채 실행하면 비교는 Java로 계산되고 엔진 선택이 결과에 "
+                            + "반영되지 않습니다. engine을 java로 바꾸거나 single-run으로 실행하세요."));
+        }
+        SimulationModelProvider provider = models == null ? null : models.byId(engineId);
+        if (provider != null) {
+            List<String> unsupported = provider.unsupported(cfg);
+            if (!unsupported.isEmpty()) {
+                errors.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "engine",
+                        "엔진 " + engineId + "이(가) 지원하지 않는 설정입니다: "
+                                + String.join(", ", unsupported)
+                                + ". 값을 무시하거나 다른 엔진으로 바꾸지 않으므로, 해당 항목을 "
+                                + "되돌리거나 엔진을 바꿔 주세요."));
+            }
+        }
+        return errors;
+    }
+
+    /**
+     * 서버가 채운 값에 동의를 받았는가(v3의 {@code defaultApproval}).
+     *
+     * <p>기본값을 동의 없이 적용하지 않는다는 규약이라, 채울 값이 있는데 사용자가 NONE으로
+     * 답했으면 실행하지 않고 <b>무엇을 채우려 했는지</b> 알려준다. 세트에 이 질문이 없는
+     * 버전(v2)에서는 판정하지 않는다.
+     */
+    private static ValidationError unapprovedDefaults(JangnyangSubtaskDefinition def,
+                                                      Map<String, JangnyangSubtaskAnswer> answers,
+                                                      List<AppliedDefault> defaults) {
+        if (defaults.isEmpty()) return null;
+        JangnyangSubtask st = def.byAnswerField("defaultApproval");
+        if (st == null) return null;
+        JangnyangSubtaskAnswer a = answers.get(st.id());
+        if (a == null || !a.valid() || !"NONE".equals(String.valueOf(a.value()))) return null;
+        List<String> fields = defaults.stream().map(AppliedDefault::field).distinct().toList();
+        return new ValidationError(ErrorCode.MISSING_FIELD, "defaultApproval",
+                "기본값 적용에 동의하지 않았는데 서버가 채워야 하는 값이 있습니다: "
+                        + String.join(", ", fields)
+                        + ". 해당 항목에 값을 직접 답하거나 defaultApproval을 ALL로 바꿔 주세요.");
+    }
+
+    /**
+     * 비교 실험의 <b>기본 비교 범위</b>를 미리보기에 밝힌다.
+     *
+     * <p>축 값을 사용자에게 받지 않는 이유는 그 값이 실행 경로에 전달되지 않기 때문이다 —
+     * 받아 두면 사용자는 자기가 준 후보로 비교됐다고 읽는다. 대신 <b>실제로 쓰이는 범위</b>를
+     * 적어 둔다.
+     */
+    private static void disclose(String scenarioType, List<String> assumptions) {
+        if (scenarioType == null || "single-run".equals(scenarioType)) return;
+        if ("collection-sweep".equals(scenarioType)) {
+            assumptions.add("수거 시각 비교는 서버에 정의된 후보로 실행된다 — 06:00~18:00을 60분 간격으로 "
+                    + "훑는다(13개 시각). 임의의 후보 시각을 받지 않는다.");
+            return;
+        }
+        assumptions.add("비교 축 값을 받지 않으므로 " + scenarioType
+                + " 시나리오의 기본 비교 범위로 실행된다.");
+    }
+
     /** 세트에 그 질문이 아예 없어서 채운 값만 기록한다. */
     private static void recordUnaskedDefault(JangnyangSubtaskDefinition def,
                                              Map<String, JangnyangSubtaskAnswer> answers,
@@ -346,10 +557,6 @@ public class JangnyangScenarioBuilder {
     }
 
     // ── 값 꺼내기는 Fields 레코드가 담당한다 ──────────────────────────────
-
-    private static String hhmm(int minutes) {
-        return String.format("%02d:%02d", minutes / 60, minutes % 60);
-    }
 
     /**
      * 조립 결과. 성공이면 명세가, 실패면 <b>왜 아직 못 만드는지</b>가 담긴다.

@@ -74,7 +74,7 @@ class UnregisteredSubtaskToolsTest {
 
         Map<String, Object> p = result(progress.call(json("{\"sessionKey\":\"ext-1\"}")));
         assertEquals("ST-002", p.get("currentSubtaskId"));
-        assertEquals("jangnyang-simulator-v2", p.get("subtaskSetId"));
+        assertEquals(catalog.latest().subtaskSetId(), p.get("subtaskSetId"));
         assertEquals(SubtaskState.COLLECTING.name(), p.get("state"));
         assertEquals(1, ((Map<?, ?>) p.get("answers")).size());
     }

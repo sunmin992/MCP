@@ -46,7 +46,8 @@ class ChatControllerTest {
                 new com.wastesim.subtask.JangnyangSubtaskValidator(),
                 checker,
                 new com.wastesim.subtask.JangnyangScenarioBuilder(
-                        checker, new com.wastesim.tool.SimulationConfigValidator(traffic), traffic),
+                        checker, new com.wastesim.tool.SimulationConfigValidator(traffic), traffic,
+                        new com.wastesim.mcp.SimulationModelRegistry(java.util.List.of())),
                 new com.wastesim.subtask.InMemorySubtaskSessionStore());
     }
 

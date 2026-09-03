@@ -20,7 +20,7 @@ class SubtaskSessionStoreTest {
 
     /** 세트 수준 필수를 전부 채운 뒤 READY까지 밀어 올린다. */
     private static void answerAllRequired(SubtaskSessionService sessions, String key) {
-        Map<String, Object> answers = new LinkedHashMap<>(V2Answers.all());
+        Map<String, Object> answers = new LinkedHashMap<>(V3Answers.all());
         for (Map.Entry<String, Object> e : answers.entrySet()) {
             sessions.submit(key, e.getKey(), e.getValue(), null);
         }
@@ -33,11 +33,11 @@ class SubtaskSessionStoreTest {
         sessions.start("ws:A");
         sessions.start("ws:B");
 
-        sessions.submit("ws:A", "ST-020", "08:30", null);
-        sessions.submit("ws:B", "ST-020", "20:00", null);
+        sessions.submit("ws:A", "ST-016", "08:30", null);
+        sessions.submit("ws:B", "ST-016", "20:00", null);
 
-        assertEquals(510, sessions.store().find("ws:A").answers().get("ST-020").value());
-        assertEquals(1200, sessions.store().find("ws:B").answers().get("ST-020").value());
+        assertEquals(510, sessions.store().find("ws:A").answers().get("ST-016").value());
+        assertEquals(1200, sessions.store().find("ws:B").answers().get("ST-016").value());
 
         // A만 목적을 답했으면 B에는 없어야 한다.
         sessions.submit("ws:A", "ST-001", "A의 목적", null);
@@ -57,11 +57,11 @@ class SubtaskSessionStoreTest {
         assertEquals(0.0, start.progress().progress(), 1e-9);
 
         int total = start.progress().total();
-        // v2는 시나리오 유형과 무관하게 수집 단계 전부를 묻는다 — 분모가 처음부터 끝까지
+        // 시나리오 유형과 무관하게 수집 단계 전부를 묻는다 — 분모가 처음부터 끝까지
         // 같아야 사용자가 남은 질문 수를 알 수 있다(v1의 "필요한 것만 묻는다"가 뒤집혔다).
         assertEquals(catalog.latest().collectSubtasks().size(), total);
         assertEquals(1, start.progress().groupOrder());
-        assertEquals(8, start.progress().groupTotal());
+        assertEquals(catalog.latest().groupCount(), start.progress().groupTotal());
         assertFalse(start.progress().groupName().isBlank());
 
         SubtaskSessionService.Step after = sessions.submit("k", "ST-001", "목적", null);
@@ -94,7 +94,7 @@ class SubtaskSessionStoreTest {
         SubtaskSessionService sessions = TestSubtaskFixtures.service(catalog);
         sessions.start("ws:A");
         sessions.submit("ws:A", "ST-001", "목적", null);
-        sessions.submit("ws:A", "ST-002", java.util.List.of("collectionTime"), null);
+        sessions.submit("ws:A", "ST-002", "single-run", null);
 
         // "연결이 끊겼다 돌아옴" = 같은 키로 다시 조회하는 것. 저장소가 세션을 들고 있으면
         // 진행이 이어진다.

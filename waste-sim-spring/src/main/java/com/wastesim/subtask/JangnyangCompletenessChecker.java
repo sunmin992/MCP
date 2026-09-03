@@ -67,6 +67,8 @@ public class JangnyangCompletenessChecker {
         addIfPresent(missing, reasons, truckLoadExceedsCapacity(def, answers));
         addIfPresent(missing, reasons, monthlyWasteNeedsSeeds(def, answers, scenarioType));
         addIfPresent(missing, reasons, assumptionsRejected(def, answers));
+        addIfPresent(missing, reasons, dischargeWindowMissing(def, answers));
+        addIfPresent(missing, reasons, travelTimeInputMissing(def, answers));
 
         return new CompletenessVerdict(missing.isEmpty(), scenarioType,
                 List.copyOf(missing), List.copyOf(reasons));
@@ -139,6 +141,48 @@ public class JangnyangCompletenessChecker {
         return error(def, "seeds", ErrorCode.OUT_OF_RANGE,
                 "monthly-waste는 시드가 " + MONTHLY_WASTE_MIN_SEEDS
                         + " 이상이어야 한다 — 시드가 하나면 잡음 위에 순위를 세우게 된다(D-40).");
+    }
+
+    /**
+     * 포항시 규정 모델을 골랐으면 배출 허용 창이 있어야 한다(v3).
+     *
+     * <p>창이 없으면 조용히 기본 창(20:00~06:00)으로 돌아간다 — 그 값이 규정값이라 결과가
+     * 그럴듯하게 나오고, 사용자는 자기가 답하지 않은 창으로 계산된 것을 모른다. 논문 모델
+     * (PAPER_BASELINE)에서는 창을 쓰지 않으므로 "해당 없음"이 정상이다.
+     */
+    private static SubtaskError dischargeWindowMissing(JangnyangSubtaskDefinition def,
+                                                       Map<String, JangnyangSubtaskAnswer> a) {
+        String mode = stringValue(a, def, "dischargeTimeMode");
+        if (!"POHANG_ACTUAL".equals(mode)) return null;
+        if (listValue(a, def, "dischargeWindow") != null) return null;
+        return error(def, "dischargeWindow", ErrorCode.MISSING_FIELD,
+                "포항시 규정 배출 모델(POHANG_ACTUAL)을 골랐으면 배출 허용 시간대가 있어야 한다. "
+                        + "없으면 답하지 않은 기본 창으로 계산된다.");
+    }
+
+    /**
+     * 고른 이동시간 방식이 요구하는 값이 있는지(v3).
+     *
+     * <p>둘 다 <b>없으면 0분</b>으로 계산된다는 점이 문제다. 0분은 "이동에 시간이 들지
+     * 않는다"는 강한 가정인데 화면에는 아무 표시도 남지 않아서, 경로·차종·혼잡을 바꿔도
+     * 결과가 움직이지 않는 이유를 알 수 없다. 그래서 0도 <b>명시하면</b> 받아들이고
+     * 비워 두는 것만 막는다.
+     */
+    private static SubtaskError travelTimeInputMissing(JangnyangSubtaskDefinition def,
+                                                       Map<String, JangnyangSubtaskAnswer> a) {
+        String mode = stringValue(a, def, "travelTimeMode");
+        if (mode == null) return null;
+        if ("LEGACY_CONSTANT".equals(mode) && intValue(a, def, "routeTravelMinutes") == null) {
+            return error(def, "routeTravelMinutes", ErrorCode.MISSING_FIELD,
+                    "상수 이동시간 방식(LEGACY_CONSTANT)에서는 이 값이 유일한 이동시간 출처다. "
+                            + "비워 두면 0분 — 이동에 시간이 들지 않는다 — 으로 계산된다.");
+        }
+        if ("ZONE_PROXY_HYBRID".equals(mode) && intValue(a, def, "intraZoneTravelMinutes") == null) {
+            return error(def, "intraZoneTravelMinutes", ErrorCode.MISSING_FIELD,
+                    "구역 근사 방식(ZONE_PROXY_HYBRID)은 같은 구역 안 이동에 이 값을 쓴다. "
+                            + "구역 간 행렬에는 해당 성분이 없으므로 비워 두면 0분으로 계산된다.");
+        }
+        return null;
     }
 
     /** 모델 가정을 확인하지 않았으면 실행하지 않는다. */

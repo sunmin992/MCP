@@ -48,11 +48,14 @@ class JangnyangSubtaskCatalogTest {
     @Test
     @DisplayName("UT-296 서브태스크 개수와 order 수열이 리소스 정의와 일치하고 중복·누락이 없다")
     void countAndOrderMatchResource() throws Exception {
-        JsonNode resource = readResource();
-        JangnyangSubtaskDefinition def = catalog.latest();
+        // 등록된 <b>모든</b> 버전을 본다. 최신 세트만 보면 v2를 남겨 둔 이유(진행된 세션을
+        // 되짚는 것)가 검증에서 빠져, 옛 세트가 깨진 채로 남아 있어도 통과한다.
+        for (int version : catalog.versions()) {
+        JsonNode resource = readResource(version);
+        JangnyangSubtaskDefinition def = catalog.byVersion(version);
 
         assertEquals(resource.path("subtasks").size(), def.subtasks().size(),
-                "카탈로그가 리소스의 서브태스크를 하나도 빠뜨리지 않아야 한다");
+                "카탈로그가 리소스의 서브태스크를 하나도 빠뜨리지 않아야 한다: v" + version);
 
         Set<Integer> orders = new HashSet<>();
         Set<String> ids = new HashSet<>();
@@ -66,13 +69,15 @@ class JangnyangSubtaskCatalogTest {
         }
         List<Integer> asRead = def.ordered().stream().map(JangnyangSubtask::order).toList();
         assertEquals(asRead.stream().sorted().toList(), asRead, "ordered()는 order 오름차순이어야 한다");
+        }
     }
 
     @Test
     @DisplayName("UT-297 question·retryQuestion이 리소스 문자열과 문자 단위로 동일하다")
     void questionsAreVerbatimFromResource() throws Exception {
-        JsonNode resource = readResource();
-        JangnyangSubtaskDefinition def = catalog.latest();
+        for (int version : catalog.versions()) {
+        JsonNode resource = readResource(version);
+        JangnyangSubtaskDefinition def = catalog.byVersion(version);
 
         for (JsonNode node : resource.path("subtasks")) {
             JangnyangSubtask s = def.byId(node.path("id").asText());
@@ -81,12 +86,14 @@ class JangnyangSubtaskCatalogTest {
             assertEquals(node.path("question").asText(), s.question());
             assertEquals(node.path("retryQuestion").asText(), s.retryQuestion());
         }
+        }
     }
 
     @Test
     @DisplayName("UT-298 모든 서브태스크가 열 개 항목을 갖는다(하나라도 비면 실패)")
     void everySubtaskIsFullySpecified() {
-        for (JangnyangSubtask s : catalog.latest().ordered()) {
+        for (int version : catalog.versions())
+        for (JangnyangSubtask s : catalog.byVersion(version).ordered()) {
             assertTrue(s.isFullySpecified(), "항목이 빈 서브태스크: " + s.id());
             // 열 항목을 하나씩 다시 확인한다 — isFullySpecified()가 조건을 빠뜨려도
             // 이 테스트가 잡아야 하기 때문이다(검사기와 테스트가 같은 실수를 공유하면
@@ -138,12 +145,14 @@ class JangnyangSubtaskCatalogTest {
     @Test
     @DisplayName("UT-300 존재하지 않는 버전은 가까운 버전으로 대체하지 않고 거부한다")
     void unknownVersionIsRejectedNotSubstituted() {
-        assertNotNull(catalog.byVersion(2));
-        assertEquals(2, catalog.latest().version(), "등록된 세트는 v2뿐이다");
+        assertNotNull(catalog.byVersion(2), "v2는 덮어쓰지 않고 보존한다");
+        assertNotNull(catalog.byVersion(3));
+        assertEquals(List.of(2, 3), catalog.versions());
+        assertEquals(3, catalog.latest().version(), "버전을 지정하지 않은 조회는 최신 세트를 준다");
         // v1은 삭제했다 — 진행 중인 세션도, 그 버전을 핀한 클라이언트도 없었다.
         // 없는 버전을 가까운 것으로 대체하지 않는다는 규칙은 그대로다(FR-138·D-45).
         assertNull(catalog.byVersion(1), "지운 버전을 v2로 대신 주면 안 된다");
-        assertNull(catalog.byVersion(3), "없는 버전에 최신 세트를 대신 주면 안 된다");
+        assertNull(catalog.byVersion(4), "없는 버전에 최신 세트를 대신 주면 안 된다");
         assertNull(catalog.byVersion(0));
         assertNull(catalog.byVersion(-1));
 
@@ -174,13 +183,16 @@ class JangnyangSubtaskCatalogTest {
     @Test
     @DisplayName("UT-302 required 플래그가 정의와 일치하고 응답을 통해 바꿀 수 없다")
     void requiredFlagsAreImmutable() throws Exception {
-        JsonNode resource = readResource();
-        JangnyangSubtaskDefinition def = catalog.latest();
-        for (JsonNode node : resource.path("subtasks")) {
-            assertEquals(node.path("required").asBoolean(),
-                    def.byId(node.path("id").asText()).required(),
-                    "required가 리소스와 다르다: " + node.path("id").asText());
+        for (int version : catalog.versions()) {
+            JsonNode resource = readResource(version);
+            JangnyangSubtaskDefinition def = catalog.byVersion(version);
+            for (JsonNode node : resource.path("subtasks")) {
+                assertEquals(node.path("required").asBoolean(),
+                        def.byId(node.path("id").asText()).required(),
+                        "required가 리소스와 다르다: v" + version + " " + node.path("id").asText());
+            }
         }
+        JangnyangSubtaskDefinition def = catalog.latest();
 
         // 세트 목록도, 도구가 내보내는 맵도 불변이어야 한다 — 응답 객체로 세트를 바꿀 수
         // 있으면 "LLM이 필수를 선택으로 바꿀 수 없다"는 보장이 약속으로 내려앉는다.
@@ -196,15 +208,31 @@ class JangnyangSubtaskCatalogTest {
     }
 
     @Test
-    @DisplayName("50개가 8단계에 나뉘어 있고, 사용자에게 보이는 것은 단계 이름이다")
-    void fiftySubtasksAcrossEightGroups() {
-        JangnyangSubtaskDefinition def = catalog.latest();
+    @DisplayName("v2는 50개가 8단계에 나뉘어 있다(보존한 세트의 형태를 그대로 고정한다)")
+    void v2ShapeIsPreserved() {
+        JangnyangSubtaskDefinition def = catalog.byVersion(2);
         assertEquals(50, def.subtasks().size());
         assertEquals(8, def.groupCount());
         assertEquals(47, def.collectSubtasks().size(), "질문으로 묻는 것은 47개");
         assertEquals(3, def.confirmSubtasks().size(), "확인 단계는 미리보기가 대신한다");
+        groupsAreWellFormed(def);
+    }
 
-        for (int g = 1; g <= 8; g++) {
+    @Test
+    @DisplayName("v3는 33개가 6단계에 나뉘어 있고, 사용자에게 보이는 것은 단계 이름이다")
+    void v3ShapeIsFixed() {
+        JangnyangSubtaskDefinition def = catalog.byVersion(3);
+        assertEquals(33, def.subtasks().size(), "v3는 33개로 동결한다");
+        assertEquals(6, def.groupCount());
+        assertEquals(31, def.collectSubtasks().size(), "질문으로 묻는 것은 31개");
+        assertEquals(2, def.confirmSubtasks().size(),
+                "확인 질문을 하나로 통합했으므로 미리보기가 채우는 것은 2개다");
+        groupsAreWellFormed(def);
+    }
+
+    /** 단계 정의가 온전하고 질문의 단계 번호가 역행하지 않는가. */
+    private static void groupsAreWellFormed(JangnyangSubtaskDefinition def) {
+        for (int g = 1; g <= def.groupCount(); g++) {
             assertNotNull(def.group(g), g + "단계 정의가 없다");
             assertFalse(def.group(g).name().isBlank());
             assertFalse(def.group(g).description().isBlank());
@@ -218,9 +246,10 @@ class JangnyangSubtaskCatalogTest {
         }
     }
 
-    private JsonNode readResource() throws Exception {
-        try (InputStream in = getClass().getResourceAsStream("/subtask/jangnyang-simulator-v2.json")) {
-            assertNotNull(in, "세트 리소스가 없다");
+    private JsonNode readResource(int version) throws Exception {
+        String path = "/subtask/jangnyang-simulator-v" + version + ".json";
+        try (InputStream in = getClass().getResourceAsStream(path)) {
+            assertNotNull(in, "세트 리소스가 없다: " + path);
             return om.readTree(in);
         }
     }

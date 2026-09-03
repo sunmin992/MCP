@@ -1,0 +1,711 @@
+{
+  "subtaskSetId": "jangnyang-simulator-v3",
+  "version": 3,
+  "immutable": true,
+  "groups": [
+    {
+      "order": 1,
+      "name": "실행할 실험 선택",
+      "description": "무엇을 알아볼 것인지, 어떤 실험 유형과 엔진으로 돌릴지 정합니다."
+    },
+    {
+      "order": 2,
+      "name": "대상 규모와 주민 설정",
+      "description": "건물 수, 건물당 인원, 직업 구성, 기간과 반복 횟수를 입력합니다."
+    },
+    {
+      "order": 3,
+      "name": "쓰레기 배출과 수거장 설정",
+      "description": "배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다."
+    },
+    {
+      "order": 4,
+      "name": "수거 일정과 차량 설정",
+      "description": "수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다."
+    },
+    {
+      "order": 5,
+      "name": "경로와 교통 설정",
+      "description": "교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다."
+    },
+    {
+      "order": 6,
+      "name": "설정 확인과 실행",
+      "description": "서버가 채운 값과 조립된 시나리오를 확인하고 실행·수정·취소를 정합니다."
+    }
+  ],
+  "subtasks": [
+    {
+      "id": "ST-001",
+      "order": 1,
+      "group": 1,
+      "stage": "COLLECT",
+      "question": "이번 시뮬레이션으로 무엇을 확인하려고 하나요? (예: 민원이 가장 적은 수거 시각, 트럭 대수별 효과)",
+      "answerField": "simulationGoal",
+      "answerType": "STRING",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "2자 이상 200자 이하의 한 문장",
+        "minLength": 2,
+        "maxLength": 200
+      },
+      "validationRule": "빈 문자열을 허용하지 않는다. 이 답은 기록용이며 계산에 쓰이지 않는다 — 결과를 어떤 질문의 답으로 읽을지 나중에 되짚는 데 쓴다.",
+      "retryQuestion": "이번 시뮬레이션으로 무엇을 확인하려고 하나요? (예: 민원이 가장 적은 수거 시각, 트럭 대수별 효과)",
+      "completionCondition": "목적 문장이 비어 있지 않게 저장되면 완료. 계산에는 반영되지 않는다."
+    },
+    {
+      "id": "ST-002",
+      "order": 2,
+      "group": 1,
+      "stage": "COLLECT",
+      "question": "단일 조건으로 한 번 돌릴까요, 아니면 어떤 정책 비교 실험을 할까요? (single-run은 단일 실행입니다)",
+      "answerField": "scenarioType",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "서버가 실제로 구현한 실행 유형 13종 중 하나",
+        "values": [
+          "single-run",
+          "occupation-mix",
+          "collection-sweep",
+          "behavior-grid",
+          "infra-grid",
+          "density",
+          "collection-schedule",
+          "multi-truck",
+          "waste-separation",
+          "new-occupations",
+          "coupling-variants",
+          "monthly-waste",
+          "truck-route"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 목록은 서버가 구현한 것만 담는다 — 없는 유형을 고를 수 없다.",
+      "retryQuestion": "단일 조건으로 한 번 돌릴까요, 아니면 어떤 정책 비교 실험을 할까요? (single-run은 단일 실행입니다)",
+      "completionCondition": "허용 값 하나가 저장되면 완료. 이 값이 곧 실행 도구를 정한다."
+    },
+    {
+      "id": "ST-003",
+      "order": 3,
+      "group": 1,
+      "stage": "COLLECT",
+      "question": "어떤 시뮬레이션 엔진을 사용할까요? java는 재구현 엔진, python은 논문 재현 pyevsim 참조 엔진입니다.",
+      "answerField": "engine",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "java 또는 python. 정책 비교 실험은 java만 지원한다",
+        "values": [
+          "java",
+          "python"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 두 엔진의 지원 범위가 달라 조용히 바꾸지 않고, 고른 엔진이 지원하지 않는 설정은 실행 전에 차단한다.",
+      "retryQuestion": "어떤 시뮬레이션 엔진을 사용할까요? java는 재구현 엔진, python은 논문 재현 pyevsim 참조 엔진입니다.",
+      "completionCondition": "허용 값 하나가 저장되면 완료. 지원 여부는 조립 단계에서 설정과 함께 판정한다."
+    },
+    {
+      "id": "ST-004",
+      "order": 4,
+      "group": 2,
+      "stage": "COLLECT",
+      "question": "건물을 몇 개 포함할까요?",
+      "answerField": "numBuildings",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "1~26 (수거 지점 ID가 Node_A~Node_Z 한 글자 체계다)",
+        "min": 1,
+        "max": 26
+      },
+      "validationRule": "1 이상 26 이하의 정수여야 한다. 27 이상은 노드 ID 체계를 벗어나므로 받지 않는다.",
+      "retryQuestion": "건물을 몇 개 포함할까요?",
+      "completionCondition": "1~26 범위의 정수가 저장되면 완료. 수거 지점 목록과 총 주민 수는 이 값으로 자동 계산해 보여준다."
+    },
+    {
+      "id": "ST-005",
+      "order": 5,
+      "group": 2,
+      "stage": "COLLECT",
+      "question": "건물 한 곳당 몇 명이 살고 있나요? (모든 건물에 같은 인원이 적용됩니다)",
+      "answerField": "residentsPerBuilding",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "1~500 (명). 엔진은 건물당 인원을 하나만 받는다",
+        "min": 1,
+        "max": 500
+      },
+      "validationRule": "1 이상 500 이하의 정수여야 한다. 건물마다 다른 인원을 받지 않는다 — 엔진이 건물당 인원 하나만 쓰므로, 분포를 받아 평균 내면 사용자가 준 값과 계산에 쓰인 값이 달라진다.",
+      "retryQuestion": "건물 한 곳당 몇 명이 살고 있나요? (모든 건물에 같은 인원이 적용됩니다)",
+      "completionCondition": "1~500 범위의 정수가 저장되면 완료. 총 주민 수는 건물 수 × 이 값으로 자동 계산한다."
+    },
+    {
+      "id": "ST-006",
+      "order": 6,
+      "group": 2,
+      "stage": "COLLECT",
+      "question": "어떤 직업 구성으로 계산할까요? (BALANCED 균형형 · UNIVERSITY 대학가형 · INDUSTRIAL 공단인근형 · FAMILY 가족주거형)",
+      "answerField": "occupationPreset",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "엔진이 지원하는 거주민 구성 프리셋 4종",
+        "values": [
+          "BALANCED",
+          "UNIVERSITY",
+          "INDUSTRIAL",
+          "FAMILY"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 프리셋은 비율을 배정 목록의 반복 횟수로 표현하므로 비율이 그대로 반영된다 — 임의 비율을 받으면 엔진이 가중치를 쓰지 않아 목록으로 뭉개진다.",
+      "retryQuestion": "어떤 직업 구성으로 계산할까요? (BALANCED 균형형 · UNIVERSITY 대학가형 · INDUSTRIAL 공단인근형 · FAMILY 가족주거형)",
+      "completionCondition": "허용 값 하나가 저장되면 완료. 프리셋의 직업 배정 목록이 그대로 엔진에 넘어간다."
+    },
+    {
+      "id": "ST-007",
+      "order": 7,
+      "group": 2,
+      "stage": "COLLECT",
+      "question": "며칠 동안 시뮬레이션할까요?",
+      "answerField": "days",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "1~365 (일)",
+        "min": 1,
+        "max": 365
+      },
+      "validationRule": "1 이상 365 이하의 정수여야 한다.",
+      "retryQuestion": "며칠 동안 시뮬레이션할까요?",
+      "completionCondition": "1~365 범위의 정수가 저장되면 완료."
+    },
+    {
+      "id": "ST-008",
+      "order": 8,
+      "group": 2,
+      "stage": "COLLECT",
+      "question": "같은 조건을 몇 번 반복할까요? (반복 횟수가 많으면 결과가 안정되지만 실행이 느려집니다)",
+      "answerField": "seeds",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "1~100 (회). monthly-waste는 2 이상이어야 한다",
+        "min": 1,
+        "max": 100
+      },
+      "validationRule": "1 이상 100 이하의 정수여야 한다. monthly-waste는 시드가 하나면 잡음 위에 순위를 세우므로 조립 단계에서 2 이상을 요구한다(D-40).",
+      "retryQuestion": "같은 조건을 몇 번 반복할까요? (반복 횟수가 많으면 결과가 안정되지만 실행이 느려집니다)",
+      "completionCondition": "1~100 범위의 정수가 저장되면 완료."
+    },
+    {
+      "id": "ST-009",
+      "order": 9,
+      "group": 3,
+      "stage": "COLLECT",
+      "question": "한 사람이 하루에 버리는 평균 쓰레기 양은 몇 kg인가요?",
+      "answerField": "wasteMeanKg",
+      "answerType": "NUMBER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "0.01~10 (kg/인·일). 논문 가정치는 0.9",
+        "min": 0.01,
+        "max": 10
+      },
+      "validationRule": "0.01 이상 10 이하의 유한한 수여야 한다. NaN·Infinity는 받지 않는다.",
+      "retryQuestion": "한 사람이 하루에 버리는 평균 쓰레기 양은 몇 kg인가요?",
+      "completionCondition": "허용 범위의 수가 저장되면 완료."
+    },
+    {
+      "id": "ST-010",
+      "order": 10,
+      "group": 3,
+      "stage": "COLLECT",
+      "question": "하루 배출량의 변동 정도(표준편차 비율)는 얼마인가요?",
+      "answerField": "wasteSigma",
+      "answerType": "NUMBER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "0~5. 논문 기준값은 0.3",
+        "min": 0,
+        "max": 5
+      },
+      "validationRule": "0 이상 5 이하의 유한한 수여야 한다. 0이면 매일 같은 양을 버린다는 뜻이다.",
+      "retryQuestion": "하루 배출량의 변동 정도(표준편차 비율)는 얼마인가요?",
+      "completionCondition": "허용 범위의 수가 저장되면 완료."
+    },
+    {
+      "id": "ST-011",
+      "order": 11,
+      "group": 3,
+      "stage": "COLLECT",
+      "question": "주민 외출 시각의 변동 정도(표준편차)는 몇 분인가요?",
+      "answerField": "leaveSigma",
+      "answerType": "NUMBER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "0~180 (분). 논문 기준값은 30",
+        "min": 0,
+        "max": 180
+      },
+      "validationRule": "0 이상 180 이하의 유한한 수여야 한다.",
+      "retryQuestion": "주민 외출 시각의 변동 정도(표준편차)는 몇 분인가요?",
+      "completionCondition": "허용 범위의 수가 저장되면 완료. 배출 시각 모델이 POHANG_ACTUAL이면 배출 시각에는 영향을 주지 않는다."
+    },
+    {
+      "id": "ST-012",
+      "order": 12,
+      "group": 3,
+      "stage": "COLLECT",
+      "question": "어떤 배출 시각 모델을 사용할까요? PAPER_BASELINE은 논문 모델(직업별 외출 시각에 배출), POHANG_ACTUAL은 포항시 규정의 배출 허용 창 안에서 배출입니다.",
+      "answerField": "dischargeTimeMode",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "PAPER_BASELINE 또는 POHANG_ACTUAL",
+        "values": [
+          "PAPER_BASELINE",
+          "POHANG_ACTUAL"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. POHANG_ACTUAL에서는 직업 구성이 배출 시각에 영향을 주지 않는다 — 창 안 분포가 균등이기 때문이다.",
+      "retryQuestion": "어떤 배출 시각 모델을 사용할까요? PAPER_BASELINE은 논문 모델(직업별 외출 시각에 배출), POHANG_ACTUAL은 포항시 규정의 배출 허용 창 안에서 배출입니다.",
+      "completionCondition": "허용 값 하나가 저장되면 완료."
+    },
+    {
+      "id": "ST-013",
+      "order": 13,
+      "group": 3,
+      "stage": "COLLECT",
+      "question": "쓰레기 배출 가능 시간대는 언제인가요? 시작~종료로 입력해 주세요. (예: 20:00~06:00, 포항시 북구 규정값입니다)",
+      "answerField": "dischargeWindow",
+      "answerType": "TIME_RANGE",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "HH:MM~HH:MM. 자정을 넘는 창(20:00~06:00)도 정상이다",
+        "min": 0,
+        "max": 1439
+      },
+      "validationRule": "시작과 종료가 각각 00:00~23:59인 HH:MM이어야 하고 두 값이 같을 수 없다 — 같으면 모든 주민이 같은 순간에 버린다. 입력 순서를 정렬하지 않는다(20:00~06:00과 06:00~20:00은 다른 창이다). PAPER_BASELINE 모델에서는 쓰이지 않으므로 해당 없음으로 둘 수 있다.",
+      "retryQuestion": "쓰레기 배출 가능 시간대는 언제인가요? 시작~종료로 입력해 주세요. (예: 20:00~06:00, 포항시 북구 규정값입니다)",
+      "completionCondition": "시작·종료 두 시각이 저장되거나 해당 없음으로 표시되면 완료. POHANG_ACTUAL을 골랐으면 해당 없음으로 둘 수 없다."
+    },
+    {
+      "id": "ST-014",
+      "order": 14,
+      "group": 3,
+      "stage": "COLLECT",
+      "question": "수거장 한 곳의 용량은 몇 kg인가요?",
+      "answerField": "capacity",
+      "answerType": "NUMBER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "1~10000 (kg). 논문 기준값은 30",
+        "min": 1,
+        "max": 10000
+      },
+      "validationRule": "1 이상 10000 이하의 유한한 수여야 한다. 0 이하는 적재율을 계산할 수 없어 민원이 영영 발생하지 않는다.",
+      "retryQuestion": "수거장 한 곳의 용량은 몇 kg인가요?",
+      "completionCondition": "허용 범위의 수가 저장되면 완료."
+    },
+    {
+      "id": "ST-015",
+      "order": 15,
+      "group": 3,
+      "stage": "COLLECT",
+      "question": "적재율이 몇 %일 때 민원 기준으로 볼까요?",
+      "answerField": "threshold",
+      "answerType": "NUMBER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "0~1의 비율. 80처럼 퍼센트로 답하면 0.8로 읽는다",
+        "min": 0,
+        "max": 1
+      },
+      "validationRule": "0 이상 1 이하의 비율이어야 한다. 1보다 크고 100 이하인 값은 퍼센트로 보고 100으로 나눈다 — 조용한 보정이 아니라 이 허용 범위에 명시된 변환이며 원문은 그대로 남는다.",
+      "retryQuestion": "적재율이 몇 %일 때 민원 기준으로 볼까요?",
+      "completionCondition": "0~1 범위의 비율이 저장되면 완료."
+    },
+    {
+      "id": "ST-016",
+      "order": 16,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "기준 수거 시각을 24시간 형식으로 입력해 주세요. (예: 08:30)",
+      "answerField": "collectionTime",
+      "answerType": "TIME",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "00:00~23:59",
+        "min": 0,
+        "max": 1439
+      },
+      "validationRule": "HH:MM 형식이어야 하며 00:00~23:59 범위여야 한다. 12:99를 13:39로 정상화하지 않는다.",
+      "retryQuestion": "기준 수거 시각을 24시간 형식으로 입력해 주세요. (예: 08:30)",
+      "completionCondition": "00:00~23:59 범위의 HH:MM 값이 저장되면 완료."
+    },
+    {
+      "id": "ST-017",
+      "order": 17,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "하루에 여러 번 수거한다면 각각 몇 시인가요? (한 번만 수거하면 해당 없음)",
+      "answerField": "collectionTimes",
+      "answerType": "TIME_LIST",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "HH:MM 2~6개. python 참조 엔진은 다회 수거를 지원하지 않는다",
+        "minItems": 2,
+        "maxItems": 6
+      },
+      "validationRule": "각 원소가 HH:MM이어야 하고 같은 시각이 두 번 들어갈 수 없다. 2개 미만이면 다회 수거가 아니므로 해당 없음으로 답한다. python 엔진을 골랐으면 조립 단계에서 차단한다 — 그 엔진은 이 값을 무시하고 기준 시각 하나로만 돌린다.",
+      "retryQuestion": "하루에 여러 번 수거한다면 각각 몇 시인가요? (한 번만 수거하면 해당 없음)",
+      "completionCondition": "2~6개의 서로 다른 시각이 저장되거나 해당 없음으로 표시되면 완료."
+    },
+    {
+      "id": "ST-018",
+      "order": 18,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "며칠마다 수거하거나 어떤 요일에 수거할까요? (EVERY_DAY 매일 · EVERY_2_DAYS 격일 · EVERY_3_DAYS 3일마다 · EVERY_7_DAYS 주 1회 · WEEKDAYS_MON_FRI 월~금 · MON_WED_FRI 월수금 · POHANG_MON_TUE_THU_FRI 포항시 북구 실제 수거요일)",
+      "answerField": "collectionSchedule",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "주기 방식 4종과 요일 방식 3종 중 하나. 두 방식을 함께 적용하지 않는다",
+        "values": [
+          "EVERY_DAY",
+          "EVERY_2_DAYS",
+          "EVERY_3_DAYS",
+          "EVERY_7_DAYS",
+          "WEEKDAYS_MON_FRI",
+          "MON_WED_FRI",
+          "POHANG_MON_TUE_THU_FRI"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 한 질문으로 묶은 이유는 주기와 요일 집합이 서로 다른 스케줄 방식이어서다 — 둘을 함께 지정하면 교집합이 비어 한 번도 수거하지 않는 설정이 만들어질 수 있고, 그런 설정은 설정 오류가 아니라 결과처럼 보인다. python 참조 엔진은 매일 수거만 지원한다.",
+      "retryQuestion": "며칠마다 수거하거나 어떤 요일에 수거할까요? (EVERY_DAY 매일 · EVERY_2_DAYS 격일 · EVERY_3_DAYS 3일마다 · EVERY_7_DAYS 주 1회 · WEEKDAYS_MON_FRI 월~금 · MON_WED_FRI 월수금 · POHANG_MON_TUE_THU_FRI 포항시 북구 실제 수거요일)",
+      "completionCondition": "허용 값 하나가 저장되면 완료. 주기 방식은 collectionIntervalDays로, 요일 방식은 collectionDaysOfWeek로만 반영된다."
+    },
+    {
+      "id": "ST-019",
+      "order": 19,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "어떤 크기의 트럭을 사용할까요? (LARGE_5TON · MEDIUM_2P5T · SMALL_1TON)",
+      "answerField": "truckType",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "엔진에 정격용량·기동성이 정의된 차종 3종",
+        "values": [
+          "LARGE_5TON",
+          "MEDIUM_2P5T",
+          "SMALL_1TON"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. python 참조 엔진은 LARGE_5TON만 지원한다.",
+      "retryQuestion": "어떤 크기의 트럭을 사용할까요? (LARGE_5TON · MEDIUM_2P5T · SMALL_1TON)",
+      "completionCondition": "허용 값 하나가 저장되면 완료."
+    },
+    {
+      "id": "ST-020",
+      "order": 20,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "트럭을 몇 대 사용할까요?",
+      "answerField": "truckCount",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "1~26 (대). python 참조 엔진은 1대만 지원한다",
+        "min": 1,
+        "max": 26
+      },
+      "validationRule": "1 이상 26 이하의 정수여야 한다. 엔진은 건물을 트럭에 순환 배정하므로, 건물 수보다 많은 트럭은 빈 경로를 갖는다.",
+      "retryQuestion": "트럭을 몇 대 사용할까요?",
+      "completionCondition": "1~26 범위의 정수가 저장되면 완료."
+    },
+    {
+      "id": "ST-021",
+      "order": 21,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "차량 한 대가 이번 경로에서 수거할 수 있는 양은 몇 kg인가요? (차종 정격용량을 그대로 쓰려면 해당 없음)",
+      "answerField": "routeAvailableCapacityKg",
+      "answerType": "NUMBER",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "1~20000 (kg). 해당 없음이면 차종 정격용량을 쓴다",
+        "min": 1,
+        "max": 20000
+      },
+      "validationRule": "1 이상 20000 이하의 유한한 수여야 한다. 초기 적재량보다 작을 수 없다. python 참조 엔진은 이 필드를 지원하지 않는다.",
+      "retryQuestion": "차량 한 대가 이번 경로에서 수거할 수 있는 양은 몇 kg인가요? (차종 정격용량을 그대로 쓰려면 해당 없음)",
+      "completionCondition": "허용 범위의 수가 저장되거나 해당 없음으로 표시되면 완료."
+    },
+    {
+      "id": "ST-022",
+      "order": 22,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "출발할 때 차량에 이미 실린 양은 몇 kg인가요?",
+      "answerField": "initialTruckLoadKg",
+      "answerType": "NUMBER",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "0~20000 (kg). 빈 차로 출발하면 0",
+        "min": 0,
+        "max": 20000
+      },
+      "validationRule": "0 이상 20000 이하의 유한한 수여야 한다. 경로 적재용량보다 많을 수 없다. python 참조 엔진은 0만 지원한다.",
+      "retryQuestion": "출발할 때 차량에 이미 실린 양은 몇 kg인가요?",
+      "completionCondition": "허용 범위의 수가 저장되면 완료."
+    },
+    {
+      "id": "ST-023",
+      "order": 23,
+      "group": 4,
+      "stage": "COLLECT",
+      "question": "차량 사이의 출발 간격은 몇 분인가요? (동시에 출발하면 0, 트럭이 한 대면 해당 없음)",
+      "answerField": "dispatchIntervalMinutes",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "0~720 (분)",
+        "min": 0,
+        "max": 720
+      },
+      "validationRule": "0 이상 720 이하의 정수여야 한다. python 참조 엔진은 0만 지원한다.",
+      "retryQuestion": "차량 사이의 출발 간격은 몇 분인가요? (동시에 출발하면 0, 트럭이 한 대면 해당 없음)",
+      "completionCondition": "0~720 범위의 정수가 저장되거나 해당 없음으로 표시되면 완료."
+    },
+    {
+      "id": "ST-024",
+      "order": 24,
+      "group": 5,
+      "stage": "COLLECT",
+      "question": "교통량을 반영할까요? (APPLY 반영 · NONE 미반영)",
+      "answerField": "trafficMode",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "APPLY 또는 NONE. 교통 반영·미반영을 한 번에 비교하는 기능은 없다",
+        "values": [
+          "APPLY",
+          "NONE"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 반영·미반영 비교(COMPARE)는 선택지에 두지 않는다 — 실행 경로가 그 값을 반영으로만 처리해서, 고른 사람은 비교 결과를 기대하지만 단일 실행이 돌아간다.",
+      "retryQuestion": "교통량을 반영할까요? (APPLY 반영 · NONE 미반영)",
+      "completionCondition": "허용 값 하나가 저장되면 완료."
+    },
+    {
+      "id": "ST-025",
+      "order": 25,
+      "group": 5,
+      "stage": "COLLECT",
+      "question": "어떤 교통 프로파일을 사용할까요? jangryang-weekday는 TMAP 실측 소요시간, jangryang-volume-weekday는 통행량 기반 구 프로파일입니다. (교통을 반영하지 않으면 해당 없음)",
+      "answerField": "trafficProfileId",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "서버에 등록된 프로파일 2종 중 하나",
+        "values": [
+          "jangryang-weekday",
+          "jangryang-volume-weekday"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 교통을 반영하기로 했으면 해당 없음으로 둘 수 없다 — 프로파일이 없으면 교통 레이어가 조용히 무력화된다.",
+      "retryQuestion": "어떤 교통 프로파일을 사용할까요? jangryang-weekday는 TMAP 실측 소요시간, jangryang-volume-weekday는 통행량 기반 구 프로파일입니다. (교통을 반영하지 않으면 해당 없음)",
+      "completionCondition": "허용 값 하나가 저장되거나 교통 미반영과 함께 해당 없음으로 표시되면 완료."
+    },
+    {
+      "id": "ST-026",
+      "order": 26,
+      "group": 5,
+      "stage": "COLLECT",
+      "question": "이동시간을 어떤 방식으로 계산할까요? LEGACY_CONSTANT는 구간마다 같은 상수, OSRM_HYBRID는 수거 지점 좌표 실측 행렬, ZONE_PROXY_HYBRID는 교통 구역으로 근사합니다.",
+      "answerField": "travelTimeMode",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "LEGACY_CONSTANT · OSRM_HYBRID · ZONE_PROXY_HYBRID",
+        "values": [
+          "LEGACY_CONSTANT",
+          "OSRM_HYBRID",
+          "ZONE_PROXY_HYBRID"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 고른 모드가 요구하는 데이터가 없으면 조용히 상수 모드로 되돌리지 않고 실행을 막는다 — 되돌리면 나온 숫자가 무엇으로 계산된 것인지 알 수 없다. python 참조 엔진은 LEGACY_CONSTANT만 지원한다.",
+      "retryQuestion": "이동시간을 어떤 방식으로 계산할까요? LEGACY_CONSTANT는 구간마다 같은 상수, OSRM_HYBRID는 수거 지점 좌표 실측 행렬, ZONE_PROXY_HYBRID는 교통 구역으로 근사합니다.",
+      "completionCondition": "허용 값 하나가 저장되면 완료. 모드가 요구하는 데이터 충족 여부는 조립 단계에서 판정한다."
+    },
+    {
+      "id": "ST-027",
+      "order": 27,
+      "group": 5,
+      "stage": "COLLECT",
+      "question": "지점 사이의 기본 이동시간은 몇 분인가요? (LEGACY_CONSTANT에서만 쓰입니다)",
+      "answerField": "routeTravelMinutes",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "0~240 (분). 다른 이동시간 방식을 골랐으면 해당 없음",
+        "min": 0,
+        "max": 240
+      },
+      "validationRule": "0 이상 240 이하의 정수여야 한다. 0이면 경로·차종·혼잡이 결과에 반영될 물리적 여지가 없다.",
+      "retryQuestion": "지점 사이의 기본 이동시간은 몇 분인가요? (LEGACY_CONSTANT에서만 쓰입니다)",
+      "completionCondition": "0~240 범위의 정수가 저장되거나 해당 없음으로 표시되면 완료."
+    },
+    {
+      "id": "ST-028",
+      "order": 28,
+      "group": 5,
+      "stage": "COLLECT",
+      "question": "한 지점에서 정차·상차하는 데 몇 분이 걸리나요? (LEGACY_CONSTANT는 이 시간이 기본 이동시간에 섞여 있어 해당 없음)",
+      "answerField": "serviceMinutesPerSite",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "0~120 (분). 혼합 모드에서 모든 지점에 더한다",
+        "min": 0,
+        "max": 120
+      },
+      "validationRule": "0 이상 120 이하의 정수여야 한다. python 참조 엔진은 지점별 정차시간을 지원하지 않는다.",
+      "retryQuestion": "한 지점에서 정차·상차하는 데 몇 분이 걸리나요? (LEGACY_CONSTANT는 이 시간이 기본 이동시간에 섞여 있어 해당 없음)",
+      "completionCondition": "0~120 범위의 정수가 저장되거나 해당 없음으로 표시되면 완료."
+    },
+    {
+      "id": "ST-029",
+      "order": 29,
+      "group": 5,
+      "stage": "COLLECT",
+      "question": "같은 교통 구역 안의 이동시간은 몇 분인가요? (ZONE_PROXY_HYBRID에서만 쓰입니다)",
+      "answerField": "intraZoneTravelMinutes",
+      "answerType": "INTEGER",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "0~120 (분). 구역 간 행렬에는 이 값에 해당하는 성분이 없다",
+        "min": 0,
+        "max": 120
+      },
+      "validationRule": "0 이상 120 이하의 정수여야 한다. 구역 근사 모드에서 같은 구역 안 이동이 있는데 이 값이 없으면 조용히 0분(이동에 시간이 들지 않는다)으로 계산되므로, 값을 명시해야 실행한다 — 0도 명시하면 받아들이고 결과에 표시한다.",
+      "retryQuestion": "같은 교통 구역 안의 이동시간은 몇 분인가요? (ZONE_PROXY_HYBRID에서만 쓰입니다)",
+      "completionCondition": "0~120 범위의 정수가 저장되거나 해당 없음으로 표시되면 완료."
+    },
+    {
+      "id": "ST-030",
+      "order": 30,
+      "group": 5,
+      "stage": "COLLECT",
+      "question": "수거장을 어떤 순서로 방문할까요? (예: Node_A, Node_B, Node_C. 자동 생성 순서를 쓰려면 해당 없음)",
+      "answerField": "routeSequence",
+      "answerType": "STRING_LIST",
+      "required": true,
+      "allowsNotApplicable": true,
+      "allowedRange": {
+        "description": "Node_A~Node_Z 형식의 지점 ID 1~26개, 중복 없이",
+        "minItems": 1,
+        "maxItems": 26
+      },
+      "validationRule": "각 원소가 Node_A~Node_Z 형식이어야 하고 같은 지점이 두 번 들어갈 수 없다. python 참조 엔진은 방문 순서 지정을 지원하지 않는다.",
+      "retryQuestion": "수거장을 어떤 순서로 방문할까요? (예: Node_A, Node_B, Node_C. 자동 생성 순서를 쓰려면 해당 없음)",
+      "completionCondition": "지점 ID 목록이 저장되거나 해당 없음으로 표시되면 완료. 해당 없음이면 건물 수만큼 자동 생성한 순서를 쓰고 그 사실을 가정으로 남긴다."
+    },
+    {
+      "id": "ST-031",
+      "order": 31,
+      "group": 6,
+      "stage": "COLLECT",
+      "question": "비워 둔 항목에 서버 기본값을 적용해도 될까요? 적용할 값의 목록을 미리보기에서 함께 보여드립니다. (ALL 적용 동의 · NONE 적용하지 않음)",
+      "answerField": "defaultApproval",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "ALL 또는 NONE",
+        "values": [
+          "ALL",
+          "NONE"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. NONE인데 서버가 채울 값이 하나라도 있으면 실행하지 않고 그 항목을 알려준다 — 기본값을 동의 없이 적용하지 않는다.",
+      "retryQuestion": "비워 둔 항목에 서버 기본값을 적용해도 될까요? 적용할 값의 목록을 미리보기에서 함께 보여드립니다. (ALL 적용 동의 · NONE 적용하지 않음)",
+      "completionCondition": "허용 값 하나가 저장되면 완료. 이 답은 계산이 아니라 기본값 적용 여부를 제어한다."
+    },
+    {
+      "id": "ST-032",
+      "order": 32,
+      "group": 6,
+      "stage": "CONFIRM",
+      "question": "입력값·서버가 채운 값·적용 가정·실행할 시나리오를 확인하셨나요?",
+      "answerField": "inputAndScenarioConfirmed",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "CONFIRMED 또는 NEEDS_CHANGE",
+        "values": [
+          "CONFIRMED",
+          "NEEDS_CHANGE"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 질문으로 묻지 않고 미리보기 화면이 대신 채운다 — 조립된 시나리오가 있어야 보여줄 수 있는 항목이다.",
+      "retryQuestion": "입력값·서버가 채운 값·적용 가정·실행할 시나리오를 확인하셨나요?",
+      "completionCondition": "미리보기를 승인하는 순간 기록된다. 이 답은 계산에 쓰이지 않는다."
+    },
+    {
+      "id": "ST-033",
+      "order": 33,
+      "group": 6,
+      "stage": "CONFIRM",
+      "question": "이 설정으로 실행할까요? (RUN 실행 · REVISE 수정 · CANCEL 취소)",
+      "answerField": "executionApproval",
+      "answerType": "ENUM",
+      "required": true,
+      "allowsNotApplicable": false,
+      "allowedRange": {
+        "description": "RUN · REVISE · CANCEL",
+        "values": [
+          "RUN",
+          "REVISE",
+          "CANCEL"
+        ]
+      },
+      "validationRule": "허용 목록의 값 하나여야 한다. 질문으로 묻지 않고 미리보기 화면의 선택이 그대로 기록된다.",
+      "retryQuestion": "이 설정으로 실행할까요? (RUN 실행 · REVISE 수정 · CANCEL 취소)",
+      "completionCondition": "미리보기에서 고른 값이 기록되면 완료. 이 답은 계산이 아니라 실행 제어에 쓰인다."
+    }
+  ]
+}

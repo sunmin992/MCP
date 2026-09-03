@@ -78,7 +78,7 @@ class SubtaskChatFlowTest {
 
     /** 지정한 서브태스크가 현재 질문이 될 때까지 순서대로 답한다. */
     private void answerUpTo(String stopAtId) {
-        Map<String, Object> answers = V2Answers.all();
+        Map<String, Object> answers = V3Answers.all();
         for (int i = 0; i < 60; i++) {
             SubtaskProgress p = sessions.progress("default");
             if (p == null || p.currentSubtaskId() == null || stopAtId.equals(p.currentSubtaskId())) return;
@@ -107,8 +107,8 @@ class SubtaskChatFlowTest {
         ChatMessage q = subtasks.get(0);
         assertEquals("ST-001", q.getCurrentSubtaskId());
         assertEquals(1, q.getSubtaskOrder());
-        assertEquals("jangnyang-simulator-v2", q.getSubtaskSetId());
-        assertEquals(2, q.getSubtaskVersion());
+        assertEquals("jangnyang-simulator-v3", q.getSubtaskSetId());
+        assertEquals(3, q.getSubtaskVersion());
         assertNotNull(q.getInputSchema(), "프런트엔드가 입력 위젯을 고르려면 스키마가 필요하다");
         assertEquals("STRING", q.getInputSchema().get("answerType"));
 
@@ -138,8 +138,8 @@ class SubtaskChatFlowTest {
     @DisplayName("IT-87 범위 밖 값을 내면 같은 질문이 같은 문장으로 다시 오고 진행률이 오르지 않는다")
     void retryRepeatsTheSameSentenceWithoutProgress() {
         send("장량동 원룸촌 시뮬레이터 만들어 줘");
-        // ST-020까지 순서대로 채운 뒤 그 질문에서 틀려 본다.
-        answerUpTo("ST-020");
+        // 수거 시각(ST-016)까지 순서대로 채운 뒤 그 질문에서 틀려 본다.
+        answerUpTo("ST-016");
         double before = sessions.progress("default").progress();
         clearInvocations(messaging);
 
@@ -149,9 +149,9 @@ class SubtaskChatFlowTest {
 
         List<ChatMessage> retries = ofType(ChatMessage.MessageType.SUBTASK);
         assertEquals(2, retries.size());
-        String expected = new JangnyangSubtaskCatalog().latest().byId("ST-020").retryQuestion();
+        String expected = new JangnyangSubtaskCatalog().latest().byId("ST-016").retryQuestion();
         for (ChatMessage m : retries) {
-            assertEquals("ST-020", m.getCurrentSubtaskId());
+            assertEquals("ST-016", m.getCurrentSubtaskId());
             assertEquals(expected, m.getQuestion(), "재질문 문장이 매번 달라지면 안 된다(D-47)");
             assertFalse(m.getValidationErrors().isEmpty());
         }
@@ -163,7 +163,7 @@ class SubtaskChatFlowTest {
     @DisplayName("IT-88 전 항목 완료 시 PREVIEW에 시나리오·기본값·가정이 실리고, 승인 전에는 엔진이 호출되지 않는다")
     void previewCarriesDefaultsAndBlocksExecutionUntilApproved() {
         send("장량동 원룸촌 시뮬레이터 만들어 줘");
-        answerRemaining(V2Answers.all());
+        answerRemaining(V3Answers.all());
         clearInvocations(messaging);
 
         // 마지막 답변이 들어가면 미리보기가 나온다.
@@ -188,7 +188,7 @@ class SubtaskChatFlowTest {
     @DisplayName("IT-89 승인하면 기존 엔진이 돌고 결과가 RESULT로 오며, 조건·가정이 함께 실린다")
     void approvalRunsTheExistingEngineAndReportsOnlyComputedMetrics() {
         send("장량동 원룸촌 시뮬레이터 만들어 줘");
-        answerRemaining(V2Answers.all());
+        answerRemaining(V3Answers.all());
         assertTrue(sessions.build("default").ok());
         clearInvocations(messaging);
 
@@ -204,10 +204,9 @@ class SubtaskChatFlowTest {
         // 미리보기 화면이 확인 단계 셋을 대신했다 — 화면에는 실행 승인만 보였지만 세트의
         // 50개는 전부 채워져야 한다("생략하지 않는다"는 규약).
         Map<String, JangnyangSubtaskAnswer> answers = sessions.store().find("default").answers();
-        assertEquals(50, answers.size(), "확인 단계까지 채워야 50개가 된다");
-        assertEquals("CONFIRMED", answers.get("ST-048").value());
-        assertEquals("CONFIRMED", answers.get("ST-049").value());
-        assertEquals("RUN", answers.get("ST-050").value());
+        assertEquals(33, answers.size(), "확인 단계까지 채워야 33개가 된다");
+        assertEquals("CONFIRMED", answers.get("ST-032").value());
+        assertEquals("RUN", answers.get("ST-033").value());
 
         // 설명 문장은 엔진이 낸 값으로만 구성된다(FR-135). 결과 경로에 LLM 호출이
         // 아예 없다는 것이 그 근거다 — 정규화(수집 단계) 외에는 이 목이 건드려지지 않는다.
@@ -230,21 +229,21 @@ class SubtaskChatFlowTest {
         // 판단하면 08:30이 scenarioType 칸에, single-run이 collectionTime 칸에 들어간다.
         ChatMessage late = new ChatMessage(ChatMessage.MessageType.USER, "08:30");
         late.setDomain("waste");
-        late.setCurrentSubtaskId("ST-020");        // 이 답이 어느 질문의 것인지 명시
+        late.setCurrentSubtaskId("ST-016");        // 이 답이 어느 질문의 것인지 명시
         controller.handleMessage(late);
 
         ChatMessage early = new ChatMessage(ChatMessage.MessageType.USER, "single-run");
         early.setDomain("waste");
-        early.setCurrentSubtaskId("ST-035");
+        early.setCurrentSubtaskId("ST-002");
         controller.handleMessage(early);
 
         Map<String, JangnyangSubtaskAnswer> answers = sessions.store().find("default").answers();
-        assertEquals(510, answers.get("ST-020").value(), "08:30은 수거 시각 칸에 들어가야 한다");
-        assertEquals("single-run", answers.get("ST-035").value(), "single-run은 시나리오 유형 칸에");
+        assertEquals(510, answers.get("ST-016").value(), "08:30은 수거 시각 칸에 들어가야 한다");
+        assertEquals("single-run", answers.get("ST-002").value(), "single-run은 시나리오 유형 칸에");
 
         // 조립까지 가도 값이 어긋나 있지 않아야 한다 — 어긋난 값이 그 필드에서 우연히
         // 유효하면 오류 없이 끝까지 가기 때문에, 여기서 고정해 둔다.
-        answerRemaining(V2Answers.all());
+        answerRemaining(V3Answers.all());
         SubtaskSessionService.BuildStep build = sessions.build("default");
         assertTrue(build.ok(), build::message);
         assertEquals(510, build.spec().toSimulationConfig().getCollectionTimeMinutes());
@@ -306,7 +305,7 @@ class SubtaskChatFlowTest {
         start.setDomain("waste");
         c.handleMessage(start);
 
-        Map<String, Object> answers = V2Answers.all();
+        Map<String, Object> answers = V3Answers.all();
         for (int i = 0; i < 60; i++) {
             SubtaskProgress p = svc.progress("default");
             if (p == null || p.currentSubtaskId() == null) break;
@@ -329,7 +328,7 @@ class SubtaskChatFlowTest {
         start.setDomain("waste");
         c.handleMessage(start);
 
-        Map<String, Object> answers = V2Answers.all();
+        Map<String, Object> answers = V3Answers.all();
         for (int i = 0; i < 60; i++) {
             SubtaskProgress p = svc.progress("default");
             if (p == null || p.currentSubtaskId() == null) break;

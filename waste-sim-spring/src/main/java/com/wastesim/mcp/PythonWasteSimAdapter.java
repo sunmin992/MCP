@@ -73,11 +73,22 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
         }
     }
 
+    /**
+     * {@code mcp_bridge.py}가 실제로 읽는 필드 밖에 있는 설정들.
+     *
+     * <p>목록에 없으면 이 어댑터는 그 값을 <b>보내지 않고 아무 표시도 남기지 않는다</b> —
+     * 사용자는 자기가 준 조건이 반영된 결과로 읽는다. {@link #toBridgeJson}이 담는 필드와
+     * 이 목록이 서로의 여집합이어야 한다.
+     */
     @Override
-    public ToolResult run(SimulationConfig cfg) {
+    public java.util.List<String> unsupported(SimulationConfig cfg) {
         java.util.List<String> unsupported = new java.util.ArrayList<>();
         if (cfg.getCollectionIntervalDays() != 1) unsupported.add("collectionIntervalDays");
         if (cfg.usesDaysOfWeek()) unsupported.add("collectionDaysOfWeek");
+        // 다회 수거는 브리지 페이로드에 자리가 없다 — collectionTime 하나만 보내므로
+        // 나머지 시각이 조용히 사라지고 "하루 두 번 수거" 실험이 한 번 수거로 돌아간다.
+        if (cfg.getCollectionTimesMinutes() != null && cfg.getCollectionTimesMinutes().size() > 1)
+            unsupported.add("collectionTimes");
         if (cfg.resolveDischargeTimeMode() != com.wastesim.model.DischargeTimeMode.PAPER_BASELINE)
             unsupported.add("dischargeTimeMode");
         if (cfg.resolveTravelTimeMode() != com.wastesim.model.TravelTimeMode.LEGACY_CONSTANT)
@@ -89,18 +100,29 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
         if (cfg.getDispatchIntervalMinutes() != 0) unsupported.add("dispatchIntervalMinutes");
         if (cfg.getRouteSequence() != null && !cfg.getRouteSequence().isEmpty())
             unsupported.add("routeSequence");
+        if (cfg.getRouteAvailableCapacityKg() != null) unsupported.add("routeAvailableCapacityKg");
+        if (cfg.getInitialTruckLoadKg() != 0.0) unsupported.add("initialTruckLoadKg");
+        return unsupported;
+    }
+
+    @Override
+    public ToolResult run(SimulationConfig cfg) {
+        // 적재 관련 두 필드는 먼저 본다 — 오류의 field를 그 필드 이름으로 돌려주기
+        // 위해서다. 아래 일반 목록은 field가 "python-devs"라, 어느 값이 문제인지 메시지를
+        // 읽어야 알 수 있다.
+        if (cfg.getRouteAvailableCapacityKg() != null || cfg.getInitialTruckLoadKg() != 0.0) {
+            return ToolResult.rejected(new ValidationError(
+                    ErrorCode.INVALID_ARGUMENTS, "routeAvailableCapacityKg",
+                    "Python 참조 엔진은 routeAvailableCapacityKg/initialTruckLoadKg를 지원하지 않습니다. "
+                            + "이 필드는 Java 엔진에서 실행하세요."));
+        }
+        java.util.List<String> unsupported = unsupported(cfg);
         if (!unsupported.isEmpty()) {
             return ToolResult.rejected(new ValidationError(
                     ErrorCode.INVALID_ARGUMENTS, "python-devs",
                     "Python 참조 엔진이 지원하지 않는 설정입니다: "
                             + String.join(", ", unsupported)
                             + ". 이 설정은 Java 엔진(run_waste_simulation)에서 실행하세요."));
-        }
-        if (cfg.getRouteAvailableCapacityKg() != null || cfg.getInitialTruckLoadKg() != 0.0) {
-            return ToolResult.rejected(new ValidationError(
-                    ErrorCode.INVALID_ARGUMENTS, "routeAvailableCapacityKg",
-                    "Python 참조 엔진은 routeAvailableCapacityKg/initialTruckLoadKg를 지원하지 않습니다. "
-                            + "이 필드는 Java 엔진에서 실행하세요."));
         }
         String requestJson;
         try {

@@ -23,7 +23,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class JangnyangScenarioBuilderTest {
 
     private final JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
-    private final JangnyangSubtaskDefinition def = catalog.latest();
+    // 이 테스트가 보는 것은 v2 세트의 내용이다 — 최신 세트(v3)로 두면 세트를 하나
+    // 올릴 때마다 여기가 함께 깨지고, 무엇이 깨졌는지가 "질문이 바뀌었다"에 묻힌다.
+    private final JangnyangSubtaskDefinition def = catalog.byVersion(2);
     private final JangnyangSubtaskValidator validator = new JangnyangSubtaskValidator();
     private final JangnyangCompletenessChecker checker = new JangnyangCompletenessChecker();
     private final JangnyangScenarioBuilder builder = TestSubtaskFixtures.builder(checker);
@@ -130,7 +132,8 @@ class JangnyangScenarioBuilderTest {
         JangnyangScenarioBuilder alleyAware = new JangnyangScenarioBuilder(
                 checker,
                 new SimulationConfigValidator(traffic, com.wastesim.site.TestSites.withAlleys()),
-                traffic);
+                traffic,
+                new com.wastesim.mcp.SimulationModelRegistry(java.util.List.of()));
         Map<String, Object> infeasible = baseAnswers();
         infeasible.put("ST-029", "APPLY");
         infeasible.put("ST-030", "jangryang-weekday");
@@ -273,9 +276,20 @@ class JangnyangScenarioBuilderTest {
         // 만들지 않는다(FR-134).
         Map<String, Object> python = baseAnswers();
         python.put("ST-042", "python");
+        // 참조 엔진은 방문 순서 지정을 지원하지 않는다 — 그 값을 남겨 두면 조립 단계에서
+        // 막힌다(아래에서 그 판정을 따로 확인한다).
+        python.put("ST-032", V2Answers.NA);
         var pySpec = builder.build(def, accept(python)).spec();
         assertEquals("run_waste_simulation_devs", pySpec.toolName());
         assertEquals("python-devs", pySpec.engineId());
+
+        // 참조 엔진이 지원하지 않는 값을 남겨 두면 실행 전에 막는다 — 실행 시점에
+        // 어댑터가 같은 판정을 하지만, 그때는 답을 다 채우고 실행을 누른 뒤다.
+        var blocked = builder.build(def, accept(V2Answers.with("ST-042", "python")));
+        assertFalse(blocked.ok());
+        assertTrue(blocked.asValidationErrors().stream()
+                        .anyMatch(e -> e.message().contains("routeSequence")),
+                "어느 값이 미지원인지 알려야 사용자가 되돌릴 항목을 안다");
 
         // 시나리오 실험은 유형과 무관하게 기존 run_scenario로 간다.
         Map<String, Object> sweep = V2Answers.with("ST-035", "collection-sweep");

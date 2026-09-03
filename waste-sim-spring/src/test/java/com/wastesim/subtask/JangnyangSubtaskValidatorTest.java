@@ -20,7 +20,9 @@ class JangnyangSubtaskValidatorTest {
 
     private final JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
     private final JangnyangSubtaskValidator validator = new JangnyangSubtaskValidator();
-    private final JangnyangSubtaskDefinition def = catalog.latest();
+    // 이 테스트가 보는 것은 v2 세트의 내용이다 — 최신 세트(v3)로 두면 세트를 하나
+    // 올릴 때마다 여기가 함께 깨지고, 무엇이 깨졌는지가 "질문이 바뀌었다"에 묻힌다.
+    private final JangnyangSubtaskDefinition def = catalog.byVersion(2);
 
     private SubtaskValidationResult validate(Map<String, Object> answers) {
         return validator.validate(def, answers, Map.of());
@@ -176,8 +178,8 @@ class JangnyangSubtaskValidatorTest {
         assertTrue(wrongVersion.rejection().contains("버전"),
                 "조용히 맞춰 주면 어떤 세트로 시작했는지 재구성할 수 없다(NFR-20)");
 
-        // 대조군 — 같은 버전이면 정상 처리된다.
-        assertTrue(sessions.submit("k1", "ST-001", "목적", 2).ok());
+        // 대조군 — 세션이 시작한 버전(최신 세트)이면 정상 처리된다.
+        assertTrue(sessions.submit("k1", "ST-001", "목적", catalog.latest().version()).ok());
     }
 
     @Test

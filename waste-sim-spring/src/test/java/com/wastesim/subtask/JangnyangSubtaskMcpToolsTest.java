@@ -40,7 +40,8 @@ class JangnyangSubtaskMcpToolsTest {
     private final JangnyangSubtaskValidator validator = new JangnyangSubtaskValidator();
     private final JangnyangCompletenessChecker checker = new JangnyangCompletenessChecker();
     private final JangnyangScenarioBuilder builder =
-            new JangnyangScenarioBuilder(checker, new SimulationConfigValidator(traffic), traffic);
+            new JangnyangScenarioBuilder(checker, new SimulationConfigValidator(traffic), traffic,
+                    new com.wastesim.mcp.SimulationModelRegistry(List.of()));
 
     private final GetJangnyangFixedSubtasksTool getTool = new GetJangnyangFixedSubtasksTool(catalog);
     private final ValidateJangnyangSubtaskAnswersTool validateTool =
@@ -134,6 +135,8 @@ class JangnyangSubtaskMcpToolsTest {
     @DisplayName("IT-81 get_jangnyang_fixed_subtasks의 버전·해시·배열이 카탈로그와 일치한다")
     void getToolMatchesCatalog() throws Exception {
         Map<String, Object> out = result(getTool.call(json("{}")));
+        // 버전을 지정하지 않은 조회는 최신 세트를 준다 — 여기서 v2를 기대하면 세트를
+        // 올리는 순간 "도구가 카탈로그와 다르다"로 읽히는 실패가 난다.
         JangnyangSubtaskDefinition def = catalog.latest();
 
         assertEquals(def.subtaskSetId(), out.get("subtaskSetId"));
@@ -153,8 +156,11 @@ class JangnyangSubtaskMcpToolsTest {
         }
         assertEquals(def.ordered().get(0).question(), items.get(0).get("question"));
 
-        // 명시적으로 버전 1을 요청해도 같은 응답이다.
-        assertEquals(out, result(getTool.call(json("{\"version\":2}"))));
+        // 명시적으로 최신 버전을 요청해도 같은 응답이다.
+        assertEquals(out, result(getTool.call(json("{\"version\":3}"))));
+        // 옛 버전을 요청하면 그 세트가 온다 — 최신으로 갈아 주지 않는다(FR-138).
+        assertEquals("jangnyang-simulator-v2",
+                result(getTool.call(json("{\"version\":2}"))).get("subtaskSetId"));
     }
 
     @Test
@@ -178,7 +184,7 @@ class JangnyangSubtaskMcpToolsTest {
         List<Map<String, Object>> errors = (List<Map<String, Object>>) out.get("errors");
         assertEquals(1, errors.size());
         assertEquals("ST-020", errors.get(0).get("subtaskId"));
-        assertEquals(catalog.latest().byId("ST-020").retryQuestion(),
+        assertEquals(catalog.byVersion(2).byId("ST-020").retryQuestion(),
                 errors.get(0).get("retryQuestion"),
                 "재질문 문장을 호출자가 짓지 않아도 되게 함께 실어야 한다(FR-127)");
 
