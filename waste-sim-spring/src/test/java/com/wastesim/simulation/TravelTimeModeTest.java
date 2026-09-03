@@ -206,6 +206,44 @@ class TravelTimeModeTest {
                 rejected.errors().toString());
     }
 
+    /** 검증이 조회한 구간과 실제 엔진이 조회한 구간이 여러 순열·트럭 수에서 같아야 한다. */
+    @Test
+    void validatorAndEngineQueryTheSameHopsForDifferentAssignments() {
+        List<String> queried = new java.util.ArrayList<>();
+        TravelTimeMatrix recording = new TravelTimeMatrix() {
+            @Override public OptionalDouble freeFlowSeconds(String from, String to) {
+                queried.add(from + "->" + to);
+                return OptionalDouble.of(60);
+            }
+            @Override public Optional<CoordinateQuality> coordinateQuality() {
+                return Optional.of(CoordinateQuality.MEASURED_SITE);
+            }
+        };
+        SimulationConfigValidator validator = validator(recording);
+        SimulationEngine engine = new SimulationEngine(new TrafficDataService(),
+                CollectionSiteRegistry.empty(), recording);
+        List<List<String>> orders = List.of(
+                List.of(),
+                List.of("Node_D", "Node_C", "Node_B", "Node_A"),
+                List.of("node_b", "NODE_c", "Node_A", "node_d"));
+
+        for (List<String> order : orders) {
+            for (int trucks : List.of(1, 2, 3, 4, 6)) {
+                SimulationConfig c = new SimulationConfig();
+                c.setDays(1);
+                c.setTravelTimeMode("OSRM_HYBRID");
+                c.setTruckCount(trucks);
+                c.setRouteSequence(order);
+                queried.clear();
+                assertTrue(validator.validate(c).ready());
+                List<String> validatedHops = List.copyOf(queried);
+                queried.clear();
+                engine.run(c, 1);
+                assertEquals(validatedHops, queried, "order=" + order + ", trucks=" + trucks);
+            }
+        }
+    }
+
     /** OSRM 지점 행렬은 출처가 없거나 구역 대표점이면 검증 단계에서 차단한다. */
     @Test
     void osrmRequiresSiteLevelCoordinateProvenance() {

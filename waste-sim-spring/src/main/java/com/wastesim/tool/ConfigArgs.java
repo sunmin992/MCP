@@ -77,6 +77,8 @@ public final class ConfigArgs {
         if (p.has("dispatchIntervalMinutes")) c.setDispatchIntervalMinutes(p.get("dispatchIntervalMinutes").asInt(0));
         if (p.has("routeTravelMinutes"))   c.setRouteTravelMinutes(p.get("routeTravelMinutes").asInt(0));
         if (p.hasNonNull("travelTimeMode")) c.setTravelTimeMode(p.get("travelTimeMode").asText());
+        if (p.hasNonNull("zoneAssignmentRule"))
+            c.setZoneAssignmentRule(p.get("zoneAssignmentRule").asText());
         if (p.has("serviceMinutesPerSite"))
             c.setServiceMinutesPerSite(p.get("serviceMinutesPerSite").asInt());
         if (p.has("intraZoneTravelMinutes"))

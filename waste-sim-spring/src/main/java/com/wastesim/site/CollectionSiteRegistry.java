@@ -3,6 +3,7 @@ package com.wastesim.site;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.simulation.SimulationEngine;
+import com.wastesim.model.ZoneAssignmentRule;
 import com.wastesim.traffic.TrafficZoneRegistry;
 import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
@@ -188,6 +189,51 @@ public class CollectionSiteRegistry {
      * 구역 id로 넘긴다</b> — 두 이름공간이 겹쳐 있던 시절의 잔재이며, 매핑이 비어 있는 지금은
      * 결과가 같다. 그 두 곳을 이 메서드로 바꾸는 것이 이동시간 작업의 첫 단계다.
      */
+    /**
+     * 등록된 구역 목록(정렬). 배정 규칙이 이 순서로 구역을 고른다 — 순서가 흔들리면 같은
+     * 설정이 다른 배정을 내고 재현성(NFR-02)이 깨지므로 정렬해서 돌려준다.
+     */
+    public java.util.List<String> sortedZoneIds() {
+        java.util.List<String> out = new java.util.ArrayList<>(zones.zoneIds());
+        java.util.Collections.sort(out);
+        return out;
+    }
+
+    /**
+     * 이 지점이 속한 교통 구역 — <b>엔진과 검증기가 함께 쓰는 단 하나의 해석</b>이다.
+     *
+     * <p>세 단계로 찾는다. 앞선 단계가 이긴다.
+     *
+     * <ol>
+     *   <li><b>등록된 지점의 {@code trafficZone}</b> — 조사한 사실.</li>
+     *   <li><b>배정 규칙</b> — 가정({@link ZoneAssignmentRule}). 결과에
+     *       {@code ZONE_ASSIGNMENT_ASSUMED}로 표시된다.</li>
+     *   <li><b>지점 id 그대로</b> — 두 이름공간이 겹쳐 있던 시절의 폴백. 이름이 겹치는
+     *       {@code Node_A~D}까지만 우연히 성립한다.</li>
+     * </ol>
+     *
+     * <p>이 순서가 뒤집히면 규칙이 조사한 사실을 덮는다. 가정이 데이터를 밀어내는 방향은
+     * 있을 수 없다.
+     *
+     * <p><b>한 곳에 두는 이유</b>: 엔진과 검증기가 각자 해석하면 검증을 통과한 설정이
+     * 실행에서 죽는다 — 트럭 배정에서 이미 한 번 겪었다.
+     *
+     * @param rule           배정 규칙. {@code null}이면 {@link ZoneAssignmentRule#NONE}.
+     * @param totalBuildings 전체 건물 수. 연속 블록 배정이 블록 크기를 정하는 데 쓴다.
+     */
+    public String resolveZone(String siteId, ZoneAssignmentRule rule, int totalBuildings) {
+        java.util.Optional<String> registered = trafficZoneOf(siteId);
+        if (registered.isPresent()) return registered.get();
+
+        if (rule != null && rule.assigns()) {
+            int index = SimulationEngine.nodeIndex(siteId);
+            java.util.Optional<String> assigned =
+                    rule.assign(index, totalBuildings, sortedZoneIds());
+            if (assigned.isPresent()) return assigned.get();
+        }
+        return siteId;
+    }
+
     public java.util.Optional<String> trafficZoneOf(String siteId) {
         CollectionSite s = siteId == null ? null : sites.get(siteId);
         return s != null && s.hasTrafficZone() ? java.util.Optional.of(s.trafficZone())

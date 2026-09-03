@@ -11,6 +11,7 @@ import com.wastesim.model.CoordinateQuality;
 import com.wastesim.site.CollectionSiteRegistry;
 import com.wastesim.traffic.TravelTimeMatrix;
 import com.wastesim.simulation.SimulationEngine;
+import com.wastesim.simulation.RoutePlanner;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -128,6 +129,7 @@ public class SimulationConfigValidator {
         }
 
         validateScenarioScale(c, errs);
+        validateZoneAssignmentRule(c, errs);
         validateTravelTimeMode(c, errs);
         validateCollectionDaysOfWeek(c, errs);
         validateDischargeTime(c, errs);
@@ -420,6 +422,22 @@ public class SimulationConfigValidator {
     }
 
     /**
+     * V-S2: 구역 배정 규칙 이름이 성립하는지.
+     *
+     * <p>알 수 없는 이름을 조용히 {@code NONE}으로 떨어뜨리면, 배정한 줄 알았던 실행이
+     * 이름 폴백으로 돌아가 5동부터 엉뚱한 오류를 낸다 — 그때 원인이 오타였다는 것을 알 수
+     * 없다.
+     */
+    private void validateZoneAssignmentRule(SimulationConfig c, List<ValidationError> errs) {
+        try {
+            c.resolveZoneAssignmentRule();
+        } catch (IllegalArgumentException ex) {
+            errs.add(new ValidationError(ErrorCode.INVALID_ENUM, "zoneAssignmentRule",
+                    ex.getMessage()));
+        }
+    }
+
+    /**
      * V-T6: 이동시간 모드와 그 모드가 요구하는 데이터가 맞는지.
      *
      * <p>혼합 모드를 골랐는데 자유주행시간이 없으면 <b>막는다.</b> 조용히 상수 모드로
@@ -447,7 +465,11 @@ public class SimulationConfigValidator {
         }
         if (mode == TravelTimeMode.LEGACY_CONSTANT) return;
 
-        List<List<String>> routes = assignedRoutes(c);
+        // 건물 수 오류는 validate()가 이미 기록했다. 잘못된 규모로 경로를 만들지 않는다.
+        if (c.getNumBuildings() < 1 || c.getNumBuildings() > 26) return;
+        List<List<String>> routes = RoutePlanner.assignRoutes(c).stream()
+                .map(route -> route.stream().map(RoutePlanner::nodeId).toList())
+                .toList();
 
         if (mode == TravelTimeMode.ZONE_PROXY_HYBRID) {
             validateZoneCoverage(c, routes, errs);
@@ -488,12 +510,20 @@ public class SimulationConfigValidator {
      */
     private void validateZoneCoverage(SimulationConfig c, List<List<String>> routes,
                                       List<ValidationError> errs) {
+        // 규칙 이름이 잘못됐으면 V-S2가 이미 오류로 보고했다. 여기서 다시 예외를 던지면
+        // 검증이 중단되고 남은 항목의 문제를 함께 알려줄 수 없으므로 NONE으로 진행한다.
+        com.wastesim.model.ZoneAssignmentRule rule;
+        try {
+            rule = c.resolveZoneAssignmentRule();
+        } catch (IllegalArgumentException ex) {
+            rule = com.wastesim.model.ZoneAssignmentRule.NONE;
+        }
         List<String> missing = new ArrayList<>();
         List<String> intraZone = new ArrayList<>();
         for (List<String> route : routes) {
             for (int i = 1; i < route.size(); i++) {
-                String from = sites.trafficZoneOf(route.get(i - 1)).orElse(route.get(i - 1));
-                String to = sites.trafficZoneOf(route.get(i)).orElse(route.get(i));
+                String from = sites.resolveZone(route.get(i - 1), rule, c.getNumBuildings());
+                String to = sites.resolveZone(route.get(i), rule, c.getNumBuildings());
                 if (from.equals(to)) {
                     intraZone.add(route.get(i - 1) + "->" + route.get(i) + "(구역 " + from + ")");
                     continue;
@@ -520,44 +550,6 @@ public class SimulationConfigValidator {
                             + ". 해당 지점의 trafficZone을 확인하거나"
                             + " traffic/jangryang-zone-travel-times.json에 실측값을 채우세요."));
         }
-    }
-
-    /**
-     * 엔진과 동일한 round-robin 트럭 경로. 원래 방문 순서를 그대로 검사하면 트럭이 두 대일
-     * 때 검증기는 A→B→C→D를 보지만 엔진은 A→C와 B→D를 달리게 되어, 검증 통과 뒤 실행이
-     * 실패하거나 반대로 실제로 필요 없는 구간 때문에 차단된다.
-     */
-    private static List<List<String>> assignedRoutes(SimulationConfig c) {
-        int buildings = Math.max(0, Math.min(26, c.getNumBuildings()));
-        List<String> natural = new ArrayList<>();
-        for (int b = 0; b < buildings; b++) natural.add(SimulationEngine.nodeId(b));
-
-        List<String> visitOrder = natural;
-        List<String> requested = c.getRouteSequence();
-        if (requested != null && !requested.isEmpty()) {
-            List<String> canonical = new ArrayList<>();
-            Set<Integer> seen = new HashSet<>();
-            boolean valid = requested.size() == buildings;
-            if (valid) {
-                for (String site : requested) {
-                    int index = SimulationEngine.nodeIndex(site);
-                    if (index < 0 || index >= buildings || !seen.add(index)) {
-                        valid = false;
-                        break;
-                    }
-                    canonical.add(SimulationEngine.nodeId(index));
-                }
-            }
-            if (valid) visitOrder = canonical;
-        }
-
-        // 건물보다 많은 트럭은 엔진에서 빈 경로가 된다. 검증에 필요한 것은 실제로 방문하는
-        // 경로뿐이며, 사용자 입력이 지나치게 커도 여기서 거대한 빈 목록을 만들 이유가 없다.
-        int trucks = Math.max(1, Math.min(c.getTruckCount(), Math.max(1, buildings)));
-        List<List<String>> routes = new ArrayList<>();
-        for (int i = 0; i < trucks; i++) routes.add(new ArrayList<>());
-        for (int i = 0; i < visitOrder.size(); i++) routes.get(i % trucks).add(visitOrder.get(i));
-        return routes;
     }
 
     private void validateTraffic(SimulationConfig c, List<ValidationError> errs, List<ValidationError> warns) {

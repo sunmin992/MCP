@@ -183,6 +183,23 @@ public class SimulationResult {
     public CoordinateQuality getCoordinateQuality() { return coordinateQuality; }
     public void setCoordinateQuality(CoordinateQuality v) { this.coordinateQuality = v; }
 
+    /**
+     * 이 결과를 운영 예측으로 쓸 수 없는가. <b>유도값이라 따로 설정하지 않는다</b> — 필드로
+     * 두면 표시와 실제가 어긋날 수 있다.
+     *
+     * <p>좌표가 지점 단위가 아니거나(구역 근사·좌표 미사용) 계산 중 가정을 얹었으면 참이다.
+     * 둘 중 하나라도 걸리면 그 숫자는 장량동에 대한 예측이 아니라 <b>가정 아래의 비교값</b>이다.
+     */
+    public boolean isNotForOperationalUse() {
+        boolean siteLevel = coordinateQuality != null && coordinateQuality.isSiteLevel();
+        return !siteLevel || !dataQualityFlags.isEmpty();
+    }
+
+    /** 결과 카드에 그대로 쓸 수 있는 용도 표시. */
+    public String getResultUseLabel() {
+        return isNotForOperationalUse() ? "가정 비교 실험 (운영 예측 아님)" : "운영 후보";
+    }
+
     /** 이 계산이 기댄 가정의 코드 목록(예: {@code INTRA_ZONE_TIME_ASSUMED}). */
     public java.util.List<String> getDataQualityFlags() { return dataQualityFlags; }
     public void setDataQualityFlags(java.util.List<String> v) { this.dataQualityFlags = v; }

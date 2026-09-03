@@ -38,6 +38,20 @@ public class SimulationConfig {
      */
     private String scenarioScale = null;
 
+    /**
+     * 건물을 교통 구역에 배정하는 <b>가정</b>. {@code null}이면 배정하지 않는다.
+     *
+     * <p>{@link TravelTimeMode#ZONE_PROXY_HYBRID}로 5동 이상을 돌리려면 필요하다 — 배정이
+     * 없으면 지점 id를 그대로 구역 id로 보고, 그 폴백은 이름이 겹치는 {@code Node_A~D}까지만
+     * 우연히 성립한다.
+     *
+     * <p><b>이 값은 조사한 사실이 아니다.</b> 지정하면 결과에
+     * {@link DataQualityFlag#ZONE_ASSIGNMENT_ASSUMED}가 붙고 운영 예측으로 쓸 수 없게
+     * 표시된다. {@code CONTIGUOUS}와 {@code ROUND_ROBIN}을 함께 돌려 <b>범위로</b> 보고하는
+     * 것이 올바른 사용법이다 — 실제 배치가 무엇이든 그 사이에 있다.
+     */
+    private String zoneAssignmentRule = null;
+
     private int numBuildings = 4;
     private int residentsPerBuilding = 25;
 
@@ -222,6 +236,14 @@ public class SimulationConfig {
 
     public double getThreshold() { return threshold; }
     public void setThreshold(double v) { this.threshold = v; }
+
+    public String getZoneAssignmentRule() { return zoneAssignmentRule; }
+    public void setZoneAssignmentRule(String v) { this.zoneAssignmentRule = v; }
+
+    /** 해석된 배정 규칙. 값이 없으면 NONE. 알 수 없으면 예외(검증기가 잡는다). */
+    public ZoneAssignmentRule resolveZoneAssignmentRule() {
+        return ZoneAssignmentRule.fromName(zoneAssignmentRule);
+    }
 
     public String getScenarioScale() { return scenarioScale; }
     public void setScenarioScale(String v) { this.scenarioScale = v; }
@@ -428,6 +450,7 @@ public class SimulationConfig {
         c.collectionIntervalDays = collectionIntervalDays;
         c.collectionDaysOfWeek = (collectionDaysOfWeek == null) ? null : new ArrayList<>(collectionDaysOfWeek);
         c.scenarioScale = scenarioScale;
+        c.zoneAssignmentRule = zoneAssignmentRule;
         c.dischargeTimeMode = dischargeTimeMode;
         c.intraZoneTravelMinutes = intraZoneTravelMinutes;
         c.dischargeWindowStartMinutes = dischargeWindowStartMinutes;

@@ -76,7 +76,7 @@ public class SimulationEngine {
 
     /** 건물 인덱스 → 노드 id(예: 0→"Node_A"). 최대 26개 건물까지 지원. */
     public static String nodeId(int buildingIndex) {
-        return "Node_" + (char) ('A' + buildingIndex);
+        return RoutePlanner.nodeId(buildingIndex);
     }
 
     /**
@@ -117,8 +117,8 @@ public class SimulationEngine {
      */
     private int zoneProxyHopMinutes(SimulationConfig cfg, String from, String to,
                                     double mobilityFactor, double congestionWeight) {
-        String fromZone = zoneOf(from);
-        String toZone = zoneOf(to);
+        String fromZone = zoneOf(cfg, from);
+        String toZone = zoneOf(cfg, to);
         if (fromZone.equals(toZone)) {
             if (!cfg.hasIntraZoneTravelMinutes()) {
                 throw new IllegalStateException(from + "->" + to + "는 같은 교통 구역("
@@ -167,10 +167,11 @@ public class SimulationEngine {
      * {@code intraZoneTravelMinutes}가 실제로 쓰이고, 그 값은 측정된 것이 아니므로 결과에
      * 표시를 붙여야 한다.
      */
-    private boolean hasIntraZoneHop(List<List<Integer>> routes) {
+    private boolean hasIntraZoneHop(SimulationConfig cfg, List<List<Integer>> routes) {
         for (List<Integer> route : routes) {
             for (int i = 1; i < route.size(); i++) {
-                if (zoneOf(nodeId(route.get(i - 1))).equals(zoneOf(nodeId(route.get(i))))) {
+                if (zoneOf(cfg, nodeId(route.get(i - 1)))
+                        .equals(zoneOf(cfg, nodeId(route.get(i))))) {
                     return true;
                 }
             }
@@ -179,18 +180,18 @@ public class SimulationEngine {
     }
 
     /**
-     * 이 수거 지점이 속한 교통 구역. 매핑이 없으면 지점 id를 그대로 구역 id로 본다 — 두
-     * 이름공간이 겹쳐 있던 시절의 동작이며, 수거 지점을 등록하기 전에도 기본 4개 건물
-     * (Node_A~D)이 이름이 같은 구역 4곳으로 해석되게 해 준다.
+     * 이 수거 지점이 속한 교통 구역. 해석은
+     * {@link CollectionSiteRegistry#resolveZone(String, com.wastesim.model.ZoneAssignmentRule, int)}
+     * 한 곳에만 있다 — 검증기도 같은 메서드를 쓴다. 엔진과 검증기가 각자 해석하면 검증을
+     * 통과한 설정이 실행에서 죽는다.
      */
-    private String zoneOf(String siteId) {
-        return sites.trafficZoneOf(siteId).orElse(siteId);
+    private String zoneOf(SimulationConfig cfg, String siteId) {
+        return sites.resolveZone(siteId, cfg.resolveZoneAssignmentRule(), cfg.getNumBuildings());
     }
 
     /** 노드 id → 건물 인덱스. 형식이 잘못됐으면 -1. */
     public static int nodeIndex(String nodeId) {
-        if (nodeId == null || !nodeId.matches("(?i)Node_[A-Za-z]")) return -1;
-        return Character.toUpperCase(nodeId.charAt(5)) - 'A';
+        return RoutePlanner.nodeIndex(nodeId);
     }
 
     // ── 이벤트 정의 ─────────────────────────────────────────────────────────
@@ -253,13 +254,8 @@ public class SimulationEngine {
         double[][] fill = new double[nB][nT];
         double[][] peak = new double[nB][nT];
 
-        // 트럭별 구역(건물) 배정 — routeSequence가 있으면 그 순서로, 없으면 자연 순서로
-        // round-robin 배정(§4-2).
-        int numTrucks = Math.max(1, cfg.getNumTrucks());
-        List<List<Integer>> routes = new ArrayList<>();
-        for (int i = 0; i < numTrucks; i++) routes.add(new ArrayList<>());
-        List<Integer> visitOrder = resolveVisitOrder(cfg, nB);
-        for (int i = 0; i < visitOrder.size(); i++) routes.get(i % numTrucks).add(visitOrder.get(i));
+        // 검증기와 같은 방문 순서·round-robin 배정 규칙을 사용한다(§4-2).
+        List<List<Integer>> routes = RoutePlanner.assignRoutes(cfg);
         int travel = cfg.getRouteTravelMinutes();
         TravelTimeMode mode = cfg.resolveTravelTimeMode();
 
@@ -335,7 +331,7 @@ public class SimulationEngine {
                                 // 혼잡은 "그 지점이 속한 교통 구역"의 값이다. 매핑이 없으면
                                 // 지점 id를 그대로 구역 id로 본다 — 두 이름공간이 겹쳐 있던
                                 // 시절의 동작이며, 매핑을 채우기 전까지 결과를 그대로 유지한다.
-                                String zone = zoneOf(site);
+                                String zone = zoneOf(cfg, site);
                                 int minuteOfDay = arrival % DAY;
                                 congestionWeight = trafficProfile.weightAt(minuteOfDay, zone);
                                 if (trafficProfile.isRed(minuteOfDay, zone)) {
@@ -555,9 +551,16 @@ public class SimulationEngine {
         result.setUncollectedDemandKg(round2(uncollectedDemandKg));
         result.setMassBalanceErrorKg(round2(massBalanceErrorKg));
         result.setCoordinateQuality(resolveCoordinateQuality(mode));
-        if (mode == TravelTimeMode.ZONE_PROXY_HYBRID && hasIntraZoneHop(routes)) {
+        if (mode == TravelTimeMode.ZONE_PROXY_HYBRID && hasIntraZoneHop(cfg, routes)) {
             result.addDataQualityFlag(com.wastesim.model.DataQualityFlag.INTRA_ZONE_TIME_ASSUMED,
                     cfg.getIntraZoneTravelMinutes());
+        }
+        // 배정 규칙은 이동시간 모드와 무관하게 표시한다 — 상수 모드에서도 혼잡 가중치를
+        // 구역별로 찾으므로 배정이 결과에 관여한다.
+        if (cfg.resolveZoneAssignmentRule().assigns()) {
+            result.addDataQualityFlag(
+                    com.wastesim.model.DataQualityFlag.ZONE_ASSIGNMENT_ASSUMED,
+                    cfg.resolveZoneAssignmentRule().name());
         }
         result.setTripMetrics(buildTripMetrics(tripAccs));
         result.setResidualByBuilding(residualByBuilding);
@@ -599,29 +602,6 @@ public class SimulationEngine {
     }
 
     // ── 헬퍼 ─────────────────────────────────────────────────────────────────
-
-    /**
-     * 건물 방문 순서(인덱스 목록). routeSequence가 유효하면 그 순서, 아니면
-     * 자연 순서(0..nB-1). 검증기(V-T4)가 실행 전 이미 routeSequence의
-     * 유효성(건물 집합과 정확히 일치)을 확인하므로, 여기서는 방어적으로만
-     * 재검증하고 이상하면 자연 순서로 폴백한다.
-     */
-    private static List<Integer> resolveVisitOrder(SimulationConfig cfg, int nB) {
-        List<Integer> natural = new ArrayList<>();
-        for (int b = 0; b < nB; b++) natural.add(b);
-
-        List<String> seq = cfg.getRouteSequence();
-        if (seq == null || seq.isEmpty()) return natural;
-
-        List<Integer> out = new ArrayList<>();
-        Set<Integer> seen = new HashSet<>();
-        for (String s : seq) {
-            int idx = nodeIndex(s);
-            if (idx < 0 || idx >= nB || !seen.add(idx)) return natural;   // 이상하면 폴백
-            out.add(idx);
-        }
-        return out.size() == nB ? out : natural;
-    }
 
     private static void offerDischarge(PriorityQueue<Evt> pq, int time, OccupationType occ,
                                        int building, int day, double amount, int totalMinutes) {
