@@ -51,6 +51,22 @@ public class TrafficDataService {
     private static final String[] SEED_IDS = {"jangryang-weekday", "jangryang-volume-weekday"};
 
     /**
+     * 프로파일 id 없이 "교통 반영해줘"라고만 했을 때 쓸 기본 프로파일 —
+     * <b>TMAP 실측 소요시간</b>이다.
+     *
+     * <p>이름으로 못박아 둔 이유가 있다. 예전에는 {@code profiles.keySet().findFirst()}로
+     * 골랐는데, 그 맵은 {@link ConcurrentHashMap}이라 순회 순서가 <b>등록 순서도 사전
+     * 순서도 아닌 해시 순서</b>다. 프로파일이 하나였을 때는 답이 하나뿐이라 드러나지 않았고,
+     * 2026-09-02에 통행량 기반 구 프로파일이 비교용으로 함께 등록되면서 기본값이
+     * <b>어느 쪽이 될지 코드로 결정되지 않는 상태</b>가 됐다.
+     *
+     * <p>그 둘은 서로 다른 답을 낸다 — 구 프로파일의 피크는 13시, 실측은 18시이고, 그
+     * 차이 때문에 "가장 나쁜 수거 시각"이 뒤집힌다. 즉 순회 순서가 실험 결론을 바꿀 수
+     * 있었다. 기본값은 실측 쪽이어야 하므로 이름으로 고정한다.
+     */
+    public static final String DEFAULT_PROFILE_ID = "jangryang-weekday";
+
+    /**
      * 기동 시 읽는 프로파일 id들. 전처리 스크립트의 기본 출력 대상이 이 목록 안에 있어야
      * 한다 — 어긋나면 갱신 절차를 따라도 반영되지 않고, 그 사실이 아무 데도 드러나지 않는다
      * (실제로 그런 상태였다. {@code ScriptOutputTargetTest}가 고정한다).
@@ -76,6 +92,14 @@ public class TrafficDataService {
                 log.error("교통 프로파일 로드 실패: {}", path, e);
             }
         }
+        if (!profiles.containsKey(DEFAULT_PROFILE_ID)) {
+            // 기동 자체를 막지는 않는다 — 교통 레이어는 선택 기능이고, 끈 실험은 그대로
+            // 돌아야 한다. 다만 이 상태에서 "교통 반영해줘"는 기본값이 없어 검증에서
+            // 막히므로, 왜 막히는지를 로그에 남긴다.
+            log.error("기본 교통 프로파일 {}이 등록되지 않았다 — 프로파일을 지정하지 않은 "
+                    + "교통 반영 요청은 검증에서 거부된다. 등록된 프로파일: {}",
+                    DEFAULT_PROFILE_ID, profiles.keySet());
+        }
     }
 
     /** id로 조회. 없으면 null(호출측에서 교통 레이어 미적용으로 처리). */
@@ -85,12 +109,16 @@ public class TrafficDataService {
     }
 
     /**
-     * 사용자가 프로파일 id 없이 "교통 반영해줘"라고만 말했을 때 쓸 기본값.
-     * 등록된 프로파일이 1개뿐인 현재는 그걸 그대로 반환한다(여러 개로 늘어나면
-     * 재검토 필요).
+     * 사용자가 프로파일 id 없이 "교통 반영해줘"라고만 말했을 때 쓸 기본값 —
+     * {@link #DEFAULT_PROFILE_ID}가 등록돼 있으면 그것이고, 없으면 {@code null}이다.
+     *
+     * <p><b>남은 프로파일 중 아무거나 대신 주지 않는다.</b> 기본값이 실측이 아닌 다른
+     * 프로파일로 조용히 바뀌면 결론이 달라지는데(피크 13시 vs 18시) 화면에는 아무 표시도
+     * 남지 않는다. {@code null}을 주면 검증기가 "교통 레이어를 사용하려면
+     * trafficProfileId가 필요합니다"로 막으므로, 실패가 결과처럼 보이지 않는다.
      */
     public String defaultProfileId() {
-        return profiles.keySet().stream().findFirst().orElse(null);
+        return profiles.containsKey(DEFAULT_PROFILE_ID) ? DEFAULT_PROFILE_ID : null;
     }
 
     /** 프로파일을 직접 등록(테스트 전용 시나리오 구성, 또는 향후 동적 데이터 갱신용). */

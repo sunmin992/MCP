@@ -25,12 +25,19 @@ class CollectionIntervalTest {
 
     private SimulationConfig base(int intervalDays) {
         SimulationConfig c = new SimulationConfig();
-        c.setCollectionTimeLabel("13:00");   // 경로 후반 노드(C·D)가 RED인 시각 — 첫 노드는 혼잡 판정에서 제외된다
+        // 18:00은 실측 프로파일에서 경로 후반 노드가 RED인 시각이다(Node_C 2.14 · Node_A 2.12,
+        // RED 기준 1.45). 첫 노드는 혼잡 판정에서 제외되므로 뒤쪽 노드가 걸려야 한다.
+        //
+        // 예전에는 13:00이었고 프로파일을 defaultProfileId()로 받았다. 그 기본값이 해시
+        // 순서로 정해지던 시절에 <b>통행량 기반 구 프로파일</b>(피크 13시)이 돌아왔기 때문에
+        // 통과하던 것이다 — 이 테스트의 전제가 맵 순회 순서에 얹혀 있었다. 실측 프로파일의
+        // 피크는 18시이므로, 필요한 프로파일을 이름으로 명시하고 시각을 그에 맞춘다.
+        c.setCollectionTimeLabel("18:00");
         c.setDays(8);
         c.setSeeds(1);
         c.setCollectionIntervalDays(intervalDays);
         c.setTrafficEnabled(true);
-        c.setTrafficProfileId(trafficData.defaultProfileId());
+        c.setTrafficProfileId(TrafficDataService.DEFAULT_PROFILE_ID);
         c.setRouteTravelMinutes(15);         // 이동이 있어야 구간별 혼잡 판정이 일어난다
         return c;
     }
