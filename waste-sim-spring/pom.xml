@@ -13,7 +13,7 @@
 
     <groupId>com.wastesim</groupId>
     <artifactId>waste-sim-spring</artifactId>
-    <!-- 애플리케이션 버전. 명세서 버전(v1.11)과는 별개 축이라 통일하지 않는다 —
+    <!-- 애플리케이션 버전. 명세서 버전(파일 v1.15 · 문서 2.3)과는 별개 축이라 통일하지 않는다 —
          문서만 고치는 개정과 코드만 고치는 핫픽스가 따로 일어나기 때문이다.
          자세한 근거는 docs/specifications/README.md "버전 체계".
          실행 중인 서버가 어느 명세로 빌드됐는지는 /actuator/info가 둘을 함께 알려준다

@@ -4,7 +4,8 @@
 
 ## 기준 명세서
 
-- [waste-sim-spring SRS·SDD·TDD 통합 명세서 v1.11](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_11.md) (이전 버전: [v1.10](specifications/docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md))
+- [장량동 시뮬레이터 SRS·SDD·TDD 통합 명세서 (파일 v1.15 · 문서 버전 2.3)](specifications/waste-sim-spring_SRS_SDD_TDD_v1.15.md)
+- [라즈베리파이 엣지 발열 명세서 v1.0](specifications/raspberrypi_thermal_simulator_SRS_SDD_TDD_v1_0.md) — 이 저장소에서 분리된 도메인의 명세만 보존한다
 - [정합 상태와 대조 결과](specifications/README.md) — 명세와 코드가 어긋나는 지점을 여기서 관리한다
 
 v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바이너리라 세 대의 개발 머신에서 병합이 불가능했고,
@@ -13,10 +14,11 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 변환은 [`scripts/docx_to_markdown.py`](../scripts/docx_to_markdown.py)로 고정해 두었다(절차는
 [specifications/README.md](specifications/README.md) 참고).
 
-통합 명세서에는 다음 내용이 포함되어 있다.
+통합 명세서에는 다음 내용이 포함되어 있다. **엣지 발열 도메인은 2026-08-31에 분리됐으므로
+여기에 없다** — 그 도메인의 명세는 위 엣지 문서에 있고, 코드는 이 저장소에서 삭제됐다.
 
-- SRS: 기능·비기능 요구사항, 외부 인터페이스, MCP 도구, 교통 및 엣지 요구사항
-- SDD: 도메인 허브, 결정론적 채팅 게이트, DEVS 엔진, MCP 확장점, 엣지 열 모델
+- SRS: 기능·비기능 요구사항, 외부 인터페이스, MCP 도구, 교통·이동시간·좌표 요구사항, 고정 서브태스크 세트
+- SDD: 요청 판별 계층(고정 서브태스크 수집), 결정론적 채팅 게이트, DEVS 엔진, MCP 확장점, 이동시간·좌표 계층
 - TDD: 단위·통합 테스트 설계, 요구사항 추적 매트릭스와 합격 기준
 
 ## 운영 및 연동 가이드
@@ -24,14 +26,12 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 - [환경 설정](guides/ENV_SETUP.md)
 - [교통 CSV 연결](guides/CONNECT_TRAFFIC_CSV.md)
 - [MCP 모델 연결 방법](guides/MCP_MODEL_INTEGRATION.md)
-- [엣지 발열 실험 설계](guides/EDGE_THERMAL_EXPERIMENT.md)
 
 ## 참고 및 변경 기록
 
 - [설계 결정 기록](reference/DESIGN_DECISIONS.md)
 - [채팅 자연어 요청 카탈로그](reference/CHAT_REQUEST_CATALOG.md)
 - [디버깅 점검 목록](reference/DEBUGGING_ISSUES.md)
-- [팬 RPM 스윕·최적점 탐색 설계](reference/FAN_RPM_SWEEP_DESIGN.md)
 - [LLM 벤치마크 해석 규칙](reference/LLM_BENCHMARK_GUIDE.md)
 
 설계 결정 기록은 통합 명세서 v1.7 이후 코드와 함께 확정된 결정의 근거를 보존하므로 삭제하지 않는다. 디버깅 목록은 아직 명세서에 반영되지 않은 결함과 테스트 공백을 관리한다 — v1.8이 P1 4건(E-01, E-02, W-01, W-03), v1.9가 E-04와 P2 잔여분을 반영했고, v1.10이 새로 발견된 게이트 어휘 결함(D-33)을 반영했다. E-06·E-08은 2026-08-26에 결정(D-37·D-38)과 회귀 테스트로 해소되어 부록 B.2는 비었다.
