@@ -272,6 +272,10 @@ public class JangnyangScenarioBuilder {
         if (serviceMinutes != null) c.setServiceMinutesPerSite(serviceMinutes);
         Integer intraZone = f.intVal("intraZoneTravelMinutes");
         if (intraZone != null) c.setIntraZoneTravelMinutes(intraZone);
+        // 건물의 교통 구역 배정 가정(v4). "해당없음"이면 Fields.value()가 null로 걸러
+        // 주므로 여기서는 세팅하지 않는다 — 세팅하지 않은 값이 곧 "가정 없음"이다.
+        String zoneRule = f.str("zoneAssignmentRule");
+        if (zoneRule != null) c.setZoneAssignmentRule(zoneRule);
 
         // 교통.
         String trafficMode = f.str("trafficMode");

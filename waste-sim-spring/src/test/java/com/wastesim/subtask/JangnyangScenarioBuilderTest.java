@@ -297,4 +297,51 @@ class JangnyangScenarioBuilderTest {
         assertEquals("run_scenario", sweepSpec.toolName());
         assertEquals("collection-sweep", sweepSpec.scenarioType());
     }
+
+    @Test
+    @DisplayName("v4 zoneAssignmentRule이 SimulationConfig까지 연결된다 — 답하면 실리고 해당없음이면 비어 있다")
+    void zoneAssignmentRuleReachesConfig() {
+        // v3에는 이 질문이 없다(FieldBasisTest 참고 — v4에서 34번째로 추가됐다). 그래서
+        // 이 테스트만 v4 세트로 조립한다. 나머지 답은 V3Answers를 그대로 재사용하되,
+        // zoneAssignmentRule 질문이 끼어들며 뒤따르는 서브태스크 id가 전부 하나씩 밀렸으므로
+        // id가 아니라 답변 필드명으로 옮겨 담는다 — id를 그대로 재사용하면 엉뚱한 질문에
+        // 값이 들어간다.
+        JangnyangSubtaskDefinition v3 = catalog.byVersion(3);
+        JangnyangSubtaskDefinition v4 = catalog.byVersion(4);
+
+        var built = builder.build(v4, acceptV4(v3, v4, "CONTIGUOUS"));
+        assertTrue(built.ok(), () -> "조립이 거부됐다: " + built.configErrors());
+        assertEquals("CONTIGUOUS", built.spec().toSimulationConfig().getZoneAssignmentRule(),
+                "질문에 답한 구역 배정 규칙이 설정에 실려야 한다");
+
+        var naBuilt = builder.build(v4, acceptV4(v3, v4, V3Answers.NA));
+        assertTrue(naBuilt.ok(), () -> "조립이 거부됐다: " + naBuilt.configErrors());
+        assertNull(naBuilt.spec().toSimulationConfig().getZoneAssignmentRule(),
+                "해당없음으로 답했으면 설정에 값을 세팅하지 않아야 한다 — 세팅하지 않은 것 자체가 "
+                        + "\"가정 없음\"이라는 뜻이다");
+    }
+
+    /**
+     * {@link V3Answers}(id 키)를 v4 세트에 맞게 옮겨 담고 {@code zoneAssignmentRule} 답을
+     * 채운다. id가 아니라 답변 필드명으로 옮기므로, v4가 중간에 질문을 끼워 넣어 뒤쪽 id가
+     * 전부 밀려도 이 변환은 깨지지 않는다.
+     */
+    private Map<String, JangnyangSubtaskAnswer> acceptV4(JangnyangSubtaskDefinition v3,
+                                                          JangnyangSubtaskDefinition v4,
+                                                          Object zoneAssignmentRuleValue) {
+        Map<String, Object> raw = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> e : V3Answers.all().entrySet()) {
+            JangnyangSubtask v3st = v3.byId(e.getKey());
+            JangnyangSubtask v4st = v4.byAnswerField(v3st.answerField());
+            assertNotNull(v4st, "v4에서 사라진 필드: " + v3st.answerField());
+            raw.put(v4st.id(), e.getValue());
+        }
+        JangnyangSubtask zoneRule = v4.byAnswerField("zoneAssignmentRule");
+        assertNotNull(zoneRule, "v4에 zoneAssignmentRule 질문이 없다");
+        raw.put(zoneRule.id(), zoneAssignmentRuleValue);
+
+        SubtaskValidationResult r = validator.validate(v4, raw, Map.of());
+        assertTrue(r.valid(), () -> "이 테스트의 입력 자체가 검증에서 걸렸다: " + r.errors());
+        return r.accepted();
+    }
 }
