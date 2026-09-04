@@ -23,13 +23,27 @@ public final class FeasibilityGate {
     private static final List<String> ABSENT_AXES =
             List.of("가격", "요금", "봉투값", "분리율", "재활용률", "보조금", "과태료");
 
-    /** 지점 단위 결론을 가리키는 말. 수거 지점 좌표가 0곳이라 답할 수 없다. */
+    /**
+     * 지점 단위 결론을 가리키는 말. 수거 지점 좌표가 0곳이라 답할 수 없다.
+     *
+     * <p>반드시 "지점" 한정어를 포함해야 한다 — "최적 경로"·"최단 경로"만으로는 구역
+     * 단위 요청("구역 간 최적 경로")까지 걸려 넘어간다. 구역 단위 경로는 오늘도 계산되고,
+     * 그것을 안내하는 것이 바로 이 DATA_UNAVAILABLE 분기의 목적이므로 그 자체를 거부해서는
+     * 안 된다.
+     */
     private static final List<String> SITE_LEVEL =
-            List.of("지점 단위", "지점단위", "지점별 경로", "최적 경로", "최단 경로");
+            List.of("지점 단위", "지점단위", "지점별", "수거 지점 경로", "지점 경로");
 
     /** 실행이 아니라 조회를 가리키는 말. */
     private static final List<String> LOOKUP =
             List.of("알려줘", "얼마야", "몇이야", "연락처", "조회");
+
+    /**
+     * 시뮬레이션을 요청한다는 표시. 조회 동사와 함께 있으면 조회가 아니다 —
+     * "시뮬레이션 결과를 알려줘"는 조회 동사를 쓰지만 실행 요청이다.
+     */
+    private static final List<String> SIMULATION_INTENT =
+            List.of("시뮬레이션", "시뮬레이터", "실험", "비교", "돌려", "돌리", "예측");
 
     public static FeasibilityVerdict judge(RequestExtraction extraction) {
         String region = lower(extraction.targetRegion());
@@ -59,7 +73,9 @@ public final class FeasibilityGate {
                                 "ZONE_PROXY_HYBRID로 교통 구역 사이는 지금도 계산됩니다. "
                                         + "같은 구역 안의 방문 순서는 결과에 반영되지 않습니다.")));
         }
-        if (containsAny(conclusion, LOOKUP)) {
+        // 조회 동사가 있어도 시뮬레이션 의도 표현이 함께 있으면 조회가 아니라 실행 요청이다
+        // — "시뮬레이션 결과를 알려줘"를 NOT_A_SIMULATION으로 잘못 거부하지 않기 위함.
+        if (containsAny(conclusion, LOOKUP) && !containsAny(conclusion, SIMULATION_INTENT)) {
             return new FeasibilityVerdict(false, FeasibilityVerdict.Reason.NOT_A_SIMULATION,
                     "이것은 실행할 시뮬레이션이 아니라 사실 조회입니다.",
                     List.of(new FeasibilityVerdict.Missing("조회 경로", false,

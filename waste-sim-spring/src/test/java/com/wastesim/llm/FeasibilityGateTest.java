@@ -112,4 +112,30 @@ class FeasibilityGateTest {
         assertNull(v.reason());
         assertEquals(List.of(), v.whatWouldBeNeeded());
     }
+
+    /**
+     * "알려줘"는 평범한 한국어 종결 어미이고, 시뮬레이션 결과를 묻는 문장에도 흔히 붙는다.
+     * "장량동 배출량 시뮬레이션 결과를 알려줘"는 조회 동사를 쓰지만 실행 요청이므로
+     * NOT_A_SIMULATION으로 거부되면 안 된다 — 그러면 이 요청은 정상 경로인데도 막힌다.
+     */
+    @Test
+    void simulationRequestPhrasedAsAQuestionIsNotALookup() {
+        FeasibilityVerdict v = FeasibilityGate.judge(
+                req(null, null, "장량동 배출량 시뮬레이션 결과를 알려줘"));
+        assertTrue(v.feasible());
+        assertNull(v.reason());
+    }
+
+    /**
+     * "최적 경로"·"최단 경로"는 지점 단위 요청에만 쓰이는 말이 아니다. 구역 단위 경로
+     * 비교는 ZONE_PROXY_HYBRID로 오늘도 계산되며, 그것을 안내하는 것이 바로
+     * DATA_UNAVAILABLE 분기의 목적이다. 그런데 지점 한정어 없이 거부한다면 그 분기가
+     * 안내하려는 대안 자체를 막아버려 자기모순이 된다.
+     */
+    @Test
+    void zoneLevelRouteQuestionIsNotRefused() {
+        FeasibilityVerdict v = FeasibilityGate.judge(
+                req(null, null, "구역 간 최적 경로를 비교해줘"));
+        assertTrue(v.feasible());
+    }
 }
