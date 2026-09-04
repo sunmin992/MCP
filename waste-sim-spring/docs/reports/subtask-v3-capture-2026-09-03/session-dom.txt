@@ -1,0 +1,460 @@
+- complementary:
+  - heading "쓰레기 시뮬레이터" [level=1]
+  - paragraph:
+    - text: 포항 장량동 원룸촌 생활쓰레기 DEVS 시뮬레이션
+    - text: 채팅으로 조건을 자연어로 입력하세요.
+    - text: "\"시뮬레이터 만들어 줘\"라고 하면 필요한 값을"
+    - text: 순서대로 여쭤봅니다.
+  - heading "최근 결과" [level=3]
+  - generic: "58.4"
+  - generic: 평균 생활 민원
+  - generic: "6.4"
+  - generic: 표준편차
+- main:
+  - generic: AI 시뮬레이션 어시스턴트
+  - generic: 연결됨
+  - button "대화 초기화"
+  - generic: 장량동 생활쓰레기 시뮬레이션입니다. 수거 시각·거주민 특성이 민원 발생에 어떤 영향을 미치는지 DEVS(이산사건시스템) 모델로 분석합니다. 원하는 조건을 한 문장으로 적어주세요. 무엇이 필요한지 모르겠다면 "시뮬레이터 만들어 줘"라고 하시면 필요한 값을 순서대로 여쭤봅니다.
+  - generic: 장량동 원룸촌 시뮬레이터 만들어 줘
+  - generic: 현재 단계 1 / 6
+  - generic: 실행할 실험 선택
+  - generic: 무엇을 알아볼 것인지, 어떤 실험 유형과 엔진으로 돌릴지 정합니다.
+  - generic: "질문 1. 이번 시뮬레이션으로 무엇을 확인하려고 하나요? (예: 민원이 가장 적은 수거 시각, 트럭 대수별 효과)"
+  - generic: "허용 범위: 2자 이상 200자 이하의 한 문장"
+  - textbox "2자 이상 200자 이하의 한 문장" [disabled]: 기본 수거 조건에서 생활 민원 발생량 확인
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 기본 수거 조건에서 생활 민원 발생량 확인
+  - generic: 현재 단계 1 / 6
+  - generic: 실행할 실험 선택
+  - generic: 무엇을 알아볼 것인지, 어떤 실험 유형과 엔진으로 돌릴지 정합니다.
+  - generic: 질문 2. 단일 조건으로 한 번 돌릴까요, 아니면 어떤 정책 비교 실험을 할까요? (single-run은 단일 실행입니다)
+  - generic: "허용 범위: 서버가 실제로 구현한 실행 유형 13종 중 하나"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "single-run" [selected]
+    - option "occupation-mix"
+    - option "collection-sweep"
+    - option "behavior-grid"
+    - option "infra-grid"
+    - option "density"
+    - option "collection-schedule"
+    - option "multi-truck"
+    - option "waste-separation"
+    - option "new-occupations"
+    - option "coupling-variants"
+    - option "monthly-waste"
+    - option "truck-route"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: single-run
+  - generic: 현재 단계 1 / 6
+  - generic: 실행할 실험 선택
+  - generic: 무엇을 알아볼 것인지, 어떤 실험 유형과 엔진으로 돌릴지 정합니다.
+  - generic: 질문 3. 어떤 시뮬레이션 엔진을 사용할까요? java는 재구현 엔진, python은 논문 재현 pyevsim 참조 엔진입니다.
+  - generic: "허용 범위: java 또는 python. 정책 비교 실험은 java만 지원한다"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "java" [selected]
+    - option "python"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: java
+  - generic: 현재 단계 2 / 6
+  - generic: 대상 규모와 주민 설정
+  - generic: 건물 수, 건물당 인원, 직업 구성, 기간과 반복 횟수를 입력합니다.
+  - generic: 질문 1. 건물을 몇 개 포함할까요?
+  - generic: "허용 범위: 1~26 (수거 지점 ID가 Node_A~Node_Z 한 글자 체계다)"
+  - spinbutton [disabled]: "4"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "4"
+  - generic: 현재 단계 2 / 6
+  - generic: 대상 규모와 주민 설정
+  - generic: 건물 수, 건물당 인원, 직업 구성, 기간과 반복 횟수를 입력합니다.
+  - generic: 질문 2. 건물 한 곳당 몇 명이 살고 있나요? (모든 건물에 같은 인원이 적용됩니다)
+  - generic: "허용 범위: 1~500 (명). 엔진은 건물당 인원을 하나만 받는다"
+  - spinbutton [disabled]: "25"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "25"
+  - generic: 현재 단계 2 / 6
+  - generic: 대상 규모와 주민 설정
+  - generic: 건물 수, 건물당 인원, 직업 구성, 기간과 반복 횟수를 입력합니다.
+  - generic: 질문 3. 어떤 직업 구성으로 계산할까요? (BALANCED 균형형 · UNIVERSITY 대학가형 · INDUSTRIAL 공단인근형 · FAMILY 가족주거형)
+  - generic: "허용 범위: 엔진이 지원하는 거주민 구성 프리셋 4종"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "BALANCED" [selected]
+    - option "UNIVERSITY"
+    - option "INDUSTRIAL"
+    - option "FAMILY"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: BALANCED
+  - generic: 현재 단계 2 / 6
+  - generic: 대상 규모와 주민 설정
+  - generic: 건물 수, 건물당 인원, 직업 구성, 기간과 반복 횟수를 입력합니다.
+  - generic: 질문 4. 며칠 동안 시뮬레이션할까요?
+  - generic: "허용 범위: 1~365 (일)"
+  - spinbutton [disabled]: "30"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "30"
+  - generic: 현재 단계 2 / 6
+  - generic: 대상 규모와 주민 설정
+  - generic: 건물 수, 건물당 인원, 직업 구성, 기간과 반복 횟수를 입력합니다.
+  - generic: 질문 5. 같은 조건을 몇 번 반복할까요? (반복 횟수가 많으면 결과가 안정되지만 실행이 느려집니다)
+  - generic: "허용 범위: 1~100 (회). monthly-waste는 2 이상이어야 한다"
+  - spinbutton [disabled]: "10"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "10"
+  - generic: 현재 단계 3 / 6
+  - generic: 쓰레기 배출과 수거장 설정
+  - generic: 배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다.
+  - generic: 질문 1. 한 사람이 하루에 버리는 평균 쓰레기 양은 몇 kg인가요?
+  - generic: "허용 범위: 0.01~10 (kg/인·일). 논문 가정치는 0.9"
+  - spinbutton [disabled]: "0.9"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "0.9"
+  - generic: 현재 단계 3 / 6
+  - generic: 쓰레기 배출과 수거장 설정
+  - generic: 배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다.
+  - generic: 질문 2. 하루 배출량의 변동 정도(표준편차 비율)는 얼마인가요?
+  - generic: "허용 범위: 0~5. 논문 기준값은 0.3"
+  - spinbutton [disabled]: "0.3"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "0.3"
+  - generic: 현재 단계 3 / 6
+  - generic: 쓰레기 배출과 수거장 설정
+  - generic: 배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다.
+  - generic: 질문 3. 주민 외출 시각의 변동 정도(표준편차)는 몇 분인가요?
+  - generic: "허용 범위: 0~180 (분). 논문 기준값은 30"
+  - spinbutton [disabled]: "30"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "30"
+  - generic: 현재 단계 3 / 6
+  - generic: 쓰레기 배출과 수거장 설정
+  - generic: 배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다.
+  - generic: 질문 4. 어떤 배출 시각 모델을 사용할까요? PAPER_BASELINE은 논문 모델(직업별 외출 시각에 배출), POHANG_ACTUAL은 포항시 규정의 배출 허용 창 안에서 배출입니다.
+  - generic: "허용 범위: PAPER_BASELINE 또는 POHANG_ACTUAL"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "PAPER_BASELINE" [selected]
+    - option "POHANG_ACTUAL"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: PAPER_BASELINE
+  - generic: 현재 단계 3 / 6
+  - generic: 쓰레기 배출과 수거장 설정
+  - generic: 배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다.
+  - generic: "질문 5. 쓰레기 배출 가능 시간대는 언제인가요? 시작~종료로 입력해 주세요. (예: 20:00~06:00, 포항시 북구 규정값입니다)"
+  - generic: "허용 범위: HH:MM~HH:MM. 자정을 넘는 창(20:00~06:00)도 정상이다"
+  - textbox "20:00~06:00 (없으면 해당 없음)" [disabled]
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 3 / 6
+  - generic: 쓰레기 배출과 수거장 설정
+  - generic: 배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다.
+  - generic: 질문 6. 수거장 한 곳의 용량은 몇 kg인가요?
+  - generic: "허용 범위: 1~10000 (kg). 논문 기준값은 30"
+  - spinbutton [disabled]: "30"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "30"
+  - generic: 현재 단계 3 / 6
+  - generic: 쓰레기 배출과 수거장 설정
+  - generic: 배출량과 변동, 배출 시각 모델, 수거장 용량과 민원 기준을 입력합니다.
+  - generic: 질문 7. 적재율이 몇 %일 때 민원 기준으로 볼까요?
+  - generic: "허용 범위: 0~1의 비율. 80처럼 퍼센트로 답하면 0.8로 읽는다"
+  - spinbutton [disabled]: "80"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "80"
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: "질문 1. 기준 수거 시각을 24시간 형식으로 입력해 주세요. (예: 08:30)"
+  - generic: "허용 범위: 00:00~23:59"
+  - textbox [disabled]: 08:30
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 08:30
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: 질문 2. 하루에 여러 번 수거한다면 각각 몇 시인가요? (한 번만 수거하면 해당 없음)
+  - generic: "허용 범위: HH:MM 2~6개. python 참조 엔진은 다회 수거를 지원하지 않는다"
+  - textbox "09:00, 18:00 (없으면 해당 없음)" [disabled]
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: 질문 3. 며칠마다 수거하거나 어떤 요일에 수거할까요? (EVERY_DAY 매일 · EVERY_2_DAYS 격일 · EVERY_3_DAYS 3일마다 · EVERY_7_DAYS 주 1회 · WEEKDAYS_MON_FRI 월~금 · MON_WED_FRI 월수금 · POHANG_MON_TUE_THU_FRI 포항시 북구 실제 수거요일)
+  - generic: "허용 범위: 주기 방식 4종과 요일 방식 3종 중 하나. 두 방식을 함께 적용하지 않는다"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "EVERY_DAY" [selected]
+    - option "EVERY_2_DAYS"
+    - option "EVERY_3_DAYS"
+    - option "EVERY_7_DAYS"
+    - option "WEEKDAYS_MON_FRI"
+    - option "MON_WED_FRI"
+    - option "POHANG_MON_TUE_THU_FRI"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: EVERY_DAY
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: 질문 4. 어떤 크기의 트럭을 사용할까요? (LARGE_5TON · MEDIUM_2P5T · SMALL_1TON)
+  - generic: "허용 범위: 엔진에 정격용량·기동성이 정의된 차종 3종"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "LARGE_5TON" [selected]
+    - option "MEDIUM_2P5T"
+    - option "SMALL_1TON"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: LARGE_5TON
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: 질문 5. 트럭을 몇 대 사용할까요?
+  - generic: "허용 범위: 1~26 (대). python 참조 엔진은 1대만 지원한다"
+  - spinbutton [disabled]: "1"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "1"
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: 질문 6. 차량 한 대가 이번 경로에서 수거할 수 있는 양은 몇 kg인가요? (차종 정격용량을 그대로 쓰려면 해당 없음)
+  - generic: "허용 범위: 1~20000 (kg). 해당 없음이면 차종 정격용량을 쓴다"
+  - spinbutton [disabled]
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: 질문 7. 출발할 때 차량에 이미 실린 양은 몇 kg인가요?
+  - generic: "허용 범위: 0~20000 (kg). 빈 차로 출발하면 0"
+  - spinbutton [disabled]: "0"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "0"
+  - generic: 현재 단계 4 / 6
+  - generic: 수거 일정과 차량 설정
+  - generic: 수거 시각, 수거 스케줄, 트럭 종류·대수·적재 조건을 입력합니다.
+  - generic: 질문 8. 차량 사이의 출발 간격은 몇 분인가요? (동시에 출발하면 0, 트럭이 한 대면 해당 없음)
+  - generic: "허용 범위: 0~720 (분)"
+  - spinbutton [disabled]
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 5 / 6
+  - generic: 경로와 교통 설정
+  - generic: 교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다.
+  - generic: 질문 1. 교통량을 반영할까요? (APPLY 반영 · NONE 미반영)
+  - generic: "허용 범위: APPLY 또는 NONE. 교통 반영·미반영을 한 번에 비교하는 기능은 없다"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "APPLY"
+    - option "NONE" [selected]
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: NONE
+  - generic: 현재 단계 5 / 6
+  - generic: 경로와 교통 설정
+  - generic: 교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다.
+  - generic: 질문 2. 어떤 교통 프로파일을 사용할까요? jangryang-weekday는 TMAP 실측 소요시간, jangryang-volume-weekday는 통행량 기반 구 프로파일입니다. (교통을 반영하지 않으면 해당 없음)
+  - generic: "허용 범위: 서버에 등록된 프로파일 2종 중 하나"
+  - combobox [disabled]:
+    - option "선택하세요" [selected]
+    - option "jangryang-weekday"
+    - option "jangryang-volume-weekday"
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 5 / 6
+  - generic: 경로와 교통 설정
+  - generic: 교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다.
+  - generic: 질문 3. 이동시간을 어떤 방식으로 계산할까요? LEGACY_CONSTANT는 구간마다 같은 상수, OSRM_HYBRID는 수거 지점 좌표 실측 행렬, ZONE_PROXY_HYBRID는 교통 구역으로 근사합니다.
+  - generic: "허용 범위: LEGACY_CONSTANT · OSRM_HYBRID · ZONE_PROXY_HYBRID"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "LEGACY_CONSTANT" [selected]
+    - option "OSRM_HYBRID"
+    - option "ZONE_PROXY_HYBRID"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: LEGACY_CONSTANT
+  - generic: 현재 단계 5 / 6
+  - generic: 경로와 교통 설정
+  - generic: 교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다.
+  - generic: 질문 4. 지점 사이의 기본 이동시간은 몇 분인가요? (LEGACY_CONSTANT에서만 쓰입니다)
+  - generic: "허용 범위: 0~240 (분). 다른 이동시간 방식을 골랐으면 해당 없음"
+  - spinbutton [disabled]: "8"
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: "8"
+  - generic: 현재 단계 5 / 6
+  - generic: 경로와 교통 설정
+  - generic: 교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다.
+  - generic: 질문 5. 한 지점에서 정차·상차하는 데 몇 분이 걸리나요? (LEGACY_CONSTANT는 이 시간이 기본 이동시간에 섞여 있어 해당 없음)
+  - generic: "허용 범위: 0~120 (분). 혼합 모드에서 모든 지점에 더한다"
+  - spinbutton [disabled]
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 5 / 6
+  - generic: 경로와 교통 설정
+  - generic: 교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다.
+  - generic: 질문 6. 같은 교통 구역 안의 이동시간은 몇 분인가요? (ZONE_PROXY_HYBRID에서만 쓰입니다)
+  - generic: "허용 범위: 0~120 (분). 구역 간 행렬에는 이 값에 해당하는 성분이 없다"
+  - spinbutton [disabled]
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 5 / 6
+  - generic: 경로와 교통 설정
+  - generic: 교통 반영 여부, 이동시간 계산 방식과 방문 순서를 입력합니다.
+  - generic: "질문 7. 수거장을 어떤 순서로 방문할까요? (예: Node_A, Node_B, Node_C. 자동 생성 순서를 쓰려면 해당 없음)"
+  - generic: "허용 범위: Node_A~Node_Z 형식의 지점 ID 1~26개, 중복 없이"
+  - 'textbox "쉼표로 구분해 입력 (예: Node_A, Node_B)" [disabled]'
+  - button "답변" [disabled]
+  - button "해당 없음" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: 해당 없음
+  - generic: 현재 단계 6 / 6
+  - generic: 설정 확인과 실행
+  - generic: 서버가 채운 값과 조립된 시나리오를 확인하고 실행·수정·취소를 정합니다.
+  - generic: 질문 1. 비워 둔 항목에 서버 기본값을 적용해도 될까요? 적용할 값의 목록을 미리보기에서 함께 보여드립니다. (ALL 적용 동의 · NONE 적용하지 않음)
+  - generic: "허용 범위: ALL 또는 NONE"
+  - combobox [disabled]:
+    - option "선택하세요"
+    - option "ALL" [selected]
+    - option "NONE"
+  - button "답변" [disabled]
+  - button "구성 취소" [disabled]
+  - generic: ALL
+  - generic: 구성된 시나리오
+  - generic: single-run · run_waste_simulation · java-devs
+  - generic: 내가 답한 값
+  - list:
+    - listitem: "simulationGoal: 기본 수거 조건에서 생활 민원 발생량 확인"
+    - listitem: "scenarioType: single-run"
+    - listitem: "engine: java"
+    - listitem: "numBuildings: 4"
+    - listitem: "residentsPerBuilding: 25"
+    - listitem: "occupationPreset: BALANCED"
+    - listitem: "days: 30"
+    - listitem: "seeds: 10"
+    - listitem: "wasteMeanKg: 0.9"
+    - listitem: "wasteSigma: 0.3"
+    - listitem: "leaveSigma: 30.0"
+    - listitem: "dischargeTimeMode: PAPER_BASELINE"
+    - listitem: "dischargeWindow: 해당 없음"
+    - listitem: "capacity: 30.0"
+    - listitem: "threshold: 0.8"
+    - listitem: "collectionTime: 08:30"
+    - listitem: "collectionTimes: 해당 없음"
+    - listitem: "collectionSchedule: EVERY_DAY"
+    - listitem: "truckType: LARGE_5TON"
+    - listitem: "truckCount: 1"
+    - listitem: "routeAvailableCapacityKg: 해당 없음"
+    - listitem: "initialTruckLoadKg: 0.0"
+    - listitem: "dispatchIntervalMinutes: 해당 없음"
+    - listitem: "trafficMode: NONE"
+    - listitem: "trafficProfileId: 해당 없음"
+    - listitem: "travelTimeMode: LEGACY_CONSTANT"
+    - listitem: "routeTravelMinutes: 8"
+    - listitem: "serviceMinutesPerSite: 해당 없음"
+    - listitem: "intraZoneTravelMinutes: 해당 없음"
+    - listitem: "routeSequence: 해당 없음"
+    - listitem: "defaultApproval: ALL"
+  - generic: 가정
+  - list:
+    - listitem: 직업 구성 BALANCED(균형형) — BlueCollar 33%, Student 33%, Housewife 33%로 배정한다.
+    - listitem: 총 주민 수 100명 = 건물 4동 × 건물당 25명.
+    - listitem: "수거 지점 4곳을 건물 수에 맞춰 자동 생성한다: Node_A, Node_B, Node_C, Node_D."
+    - listitem: 방문 순서를 지정하지 않아 자동 생성 순서대로 돈다.
+    - listitem: "계산에 쓰이지 않는 항목(기록·제어용): simulationGoal, defaultApproval, inputAndScenarioConfirmed, executionApproval."
+    - listitem: "dischargeWindow: 해당 없음으로 두어 기본 동작을 따른다."
+    - listitem: "collectionTimes: 해당 없음으로 두어 기본 동작을 따른다."
+    - listitem: "routeAvailableCapacityKg: 해당 없음으로 두어 기본 동작을 따른다."
+    - listitem: "dispatchIntervalMinutes: 해당 없음으로 두어 기본 동작을 따른다."
+    - listitem: "trafficProfileId: 해당 없음으로 두어 기본 동작을 따른다."
+    - listitem: "serviceMinutesPerSite: 해당 없음으로 두어 기본 동작을 따른다."
+    - listitem: "intraZoneTravelMinutes: 해당 없음으로 두어 기본 동작을 따른다."
+    - listitem: "routeSequence: 해당 없음으로 두어 기본 동작을 따른다."
+  - button "실행 중..." [disabled]
+  - button "취소" [disabled]
+  - generic: 구성한 시나리오를 실행하는 중... (single-run, run_waste_simulation)
+  - generic: "시뮬레이션 실행 중... (수거시각: 08:30, 30일 × 10시드)"
+  - generic: 시뮬레이션 결과 — 수거시각 08:30
+  - generic: "58.4"
+  - generic: 평균 생활 민원
+  - generic: "58.4"
+  - generic: 적재 초과 민원
+  - generic: "0.0"
+  - generic: 임대인 민원
+  - generic: 2650.0kg
+  - generic: 평균 수거량
+  - generic: 50.8kg
+  - generic: 평균 잔류량
+  - generic: 1.8%
+  - generic: 트럭 이용률
+  - generic: "0"
+  - generic: 미수거 방문(회)
+  - generic: 0.0kg
+  - generic: 용량부족 미수거
+  - generic: "0.00"
+  - generic: 교통 패널티
+  - generic: ±6.4
+  - generic: 표준편차
+  - generic: 30일
+  - generic: 시뮬레이션 기간
+  - generic: "10"
+  - generic: 반복 시드
+  - generic: 생산직
+  - generic: "8.9"
+  - generic: 학생
+  - generic: "49.5"
+  - generic: 전업주부
+  - generic: "0.0"
+  - generic: 트럭별 운행
+  - table:
+    - rowgroup:
+      - row "트럭 운행 수거 부분수거":
+        - columnheader "트럭"
+        - columnheader "운행"
+        - columnheader "수거"
+        - columnheader "부분수거"
+    - rowgroup:
+      - row "T1 30 2650.0kg —":
+        - cell "T1"
+        - cell "30"
+        - cell "2650.0kg"
+        - cell "—"
+  - generic: 유형별 잔류
+  - generic: 일반 50.8kg
+  - generic: "최대 잔류 건물: Node_A 13.8kg"
+  - 'textbox "시뮬레이션 조건을 자연어로 입력하세요... (Shift+Enter: 줄바꿈, Enter: 전송)"'
+  - button "➤"

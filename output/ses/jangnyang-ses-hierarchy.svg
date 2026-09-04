@@ -1,0 +1,98 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2400" height="1400" viewBox="0 0 2400 1400"><rect width="100%" height="100%" fill="white"/>
+<text x="1200" y="65" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="48" font-weight="700" fill="#17324d">장량동 수거 시뮬레이터의 SES 구조</text>
+<text x="1200" y="119" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="25" font-weight="400" fill="#64748b">구성 요소의 분해 · 대안 선택 · 반복 구성 · 속성</text>
+<polyline points="1200,220 1200,260" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="1200,330 1200,365 2150,365" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="250,365 1200,365" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="250,365 250,405" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="750,365 750,405" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="1200,365 1200,405" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="1680,365 1680,405" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="2150,365 2150,405" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="250,475 250,535" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="750,475 750,535" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="1680,475 1680,535" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="250,625 250,680" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="750,625 750,680" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="250,750 250,800" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="250,870 250,925 350,925 350,985" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="250,925 120,925 120,985" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="750,750 750,800" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="750,870 750,925 570,925 570,985" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="750,870 750,925 750,925 750,985" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="750,870 750,925 930,925 930,985" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="1680,605 1680,680 1450,680 1450,740" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="1680,605 1680,680 1680,680 1680,740" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<polyline points="1680,605 1680,680 1910,680 1910,740" fill="none" stroke="#94a3b8" stroke-width="3"/>
+<rect x="925.0" y="150.0" width="550" height="70" rx="10" fill="#133456" stroke="#133456" stroke-width="3"/>
+<text x="1200" y="185" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="white">장량동 수거 시뮬레이터 [E]</text>
+<rect x="1025.0" y="260.0" width="350" height="70" rx="35.0" fill="#e7f5ef" stroke="#2e8769" stroke-width="3"/>
+<text x="1200" y="295" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">시뮬레이터 구성 [A]</text>
+<rect x="110.0" y="405.0" width="280" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="250" y="440" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">원룸촌 [E]</text>
+<rect x="610.0" y="405.0" width="280" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="750" y="440" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">차량군 [E]</text>
+<rect x="1055.0" y="405.0" width="290" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="1200" y="440" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">수거 일정 [E]</text>
+<rect x="1510.0" y="405.0" width="340" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="1680" y="440" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">이동시간 모델 [E]</text>
+<rect x="2000.0" y="405.0" width="300" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="2150" y="440" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">실험 설정 [E]</text>
+<text x="1200" y="523" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">{수거시각, 수거 주기}</text>
+<text x="2150" y="520" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">{엔진,</text>
+<text x="2150" y="555" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">시뮬레이션 기간,</text>
+<text x="2150" y="590" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">반복 횟수}</text>
+<rect x="100.0" y="535.0" width="300" height="90" rx="10" fill="#f1eafb" stroke="#8662b4" stroke-width="3"/>
+<polyline points="112.0,544.0 112.0,616.0" fill="none" stroke="#8662b4" stroke-width="2"/>
+<polyline points="388.0,544.0 388.0,616.0" fill="none" stroke="#8662b4" stroke-width="2"/>
+<text x="250" y="568" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">건물 반복 [M]</text>
+<text x="250" y="604" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">{건물 수}</text>
+<rect x="600.0" y="535.0" width="300" height="90" rx="10" fill="#f1eafb" stroke="#8662b4" stroke-width="3"/>
+<polyline points="612.0,544.0 612.0,616.0" fill="none" stroke="#8662b4" stroke-width="2"/>
+<polyline points="888.0,544.0 888.0,616.0" fill="none" stroke="#8662b4" stroke-width="2"/>
+<text x="750" y="568" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">차량 반복 [M]</text>
+<text x="750" y="604" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">{차량 대수}</text>
+<rect x="130.0" y="680.0" width="240" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="250" y="715" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">건물 [E]</text>
+<rect x="630.0" y="680.0" width="240" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="750" y="715" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">차량 [E]</text>
+<rect x="100.0" y="800.0" width="300" height="70" rx="35.0" fill="#e7f5ef" stroke="#2e8769" stroke-width="3"/>
+<text x="250" y="835" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">건물 구성 [A]</text>
+<polygon points="622.0,800.0 878.0,800.0 900.0,835 878.0,870.0 622.0,870.0 600.0,835" fill="#fff2dd" stroke="#c58826" stroke-width="3"/>
+<text x="750" y="835" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">차종 선택 [S]</text>
+<rect x="15.0" y="985.0" width="210" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="120" y="1020" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">주민 집단 [E]</text>
+<rect x="245.0" y="985.0" width="210" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="350" y="1020" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">수거장 [E]</text>
+<text x="125" y="1090" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#17324d">{건물당 인원,</text>
+<text x="125" y="1123" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#17324d">직업 구성, 배출량}</text>
+<text x="350" y="1090" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#17324d">{용량,</text>
+<text x="350" y="1123" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#17324d">민원 임계값}</text>
+<rect x="490.0" y="985.0" width="160" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="570" y="1020" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">5톤 [E]</text>
+<rect x="670.0" y="985.0" width="160" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="750" y="1020" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">2.5톤 [E]</text>
+<rect x="850.0" y="985.0" width="160" height="70" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="930" y="1020" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">1톤 [E]</text>
+<polygon points="1537.0,535.0 1823.0,535.0 1845.0,570 1823.0,605.0 1537.0,605.0 1515.0,570" fill="#fff2dd" stroke="#c58826" stroke-width="3"/>
+<text x="1680" y="570" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">계산 방식 선택 [S]</text>
+<rect x="1342.5" y="740.0" width="215" height="80" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="1450" y="780" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">구간 상수 [E]</text>
+<rect x="1572.5" y="740.0" width="215" height="80" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="1680" y="780" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">지점 행렬 [E]</text>
+<rect x="1802.5" y="740.0" width="215" height="80" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="1910" y="780" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">구역 근사 [E]</text>
+<text x="1680" y="863" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="22" font-weight="400" fill="#64748b">지점 행렬: 수거 지점 행렬 기반</text>
+<text x="1680" y="900" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="22" font-weight="400" fill="#64748b">구역 근사: 교통 구역 근사 기반</text>
+<polyline points="70,1200 2330,1200" fill="none" stroke="#dbe3ec" stroke-width="2"/>
+<rect x="105.0" y="1228.0" width="410" height="64" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="310" y="1260" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">E  구성 요소</text>
+<rect x="655.0" y="1228.0" width="410" height="64" rx="32.0" fill="#e7f5ef" stroke="#2e8769" stroke-width="3"/>
+<text x="860" y="1260" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">A  하위 요소로 분해</text>
+<polygon points="1247.0,1228.0 1613.0,1228.0 1635.0,1260 1613.0,1292.0 1247.0,1292.0 1225.0,1260" fill="#fff2dd" stroke="#c58826" stroke-width="3"/>
+<text x="1430" y="1260" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">S  대안 중 선택</text>
+<rect x="1785.0" y="1228.0" width="410" height="64" rx="10" fill="#f1eafb" stroke="#8662b4" stroke-width="3"/>
+<polyline points="1797.0,1237.0 1797.0,1283.0" fill="none" stroke="#8662b4" stroke-width="2"/>
+<polyline points="2183.0,1237.0 2183.0,1283.0" fill="none" stroke="#8662b4" stroke-width="2"/>
+<text x="1990" y="1260" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">M  동일 구조 반복</text>
+<text x="1200" y="1340" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="23" font-weight="400" fill="#64748b">{ }는 속성  |  선은 계층 관계  |  현재 시스템을 SES 관점으로 표현한 개념도</text></svg>

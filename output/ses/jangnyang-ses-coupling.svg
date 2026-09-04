@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="2200" height="1250" viewBox="0 0 2200 1250"><rect width="100%" height="100%" fill="white"/>
+<text x="1100" y="65" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="46" font-weight="700" fill="#17324d">선택된 시나리오의 모델 간 결합</text>
+<text x="1100" y="120" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="400" fill="#64748b">건물 4개 · 주민 100명 · 수거장 각 30kg · 5톤 차량 1대</text>
+<polyline points="480,400 670,400" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="670,400 656.4932934647098,406.52448301166845 656.4932934647098,393.47551698833155" fill="#3977a8"/>
+<text x="575" y="365" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">배출량</text>
+<polyline points="970,350 1390,350" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="1390,350 1376.49329346471,356.52448301166845 1376.49329346471,343.47551698833155" fill="#3977a8"/>
+<text x="1180" y="312" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">배출 후 적재율</text>
+<polyline points="1690,350 1940,350 1940,690" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="1940,690 1933.4755169883315,676.4932934647098 1946.5244830116685,676.4932934647098" fill="#3977a8"/>
+<text x="1900" y="310" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">민원 발생 건수</text>
+<polyline points="900,470 900,690" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="900,690 893.4755169883315,676.4932934647098 906.5244830116685,676.4932934647098" fill="#3977a8"/>
+<text x="1045" y="570" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="23" font-weight="400" fill="#17324d">수거 가능한 적재량</text>
+<polyline points="740,690 740,470" fill="none" stroke="#2e8769" stroke-width="4"/>
+<polygon points="740,470 746.5244830116685,483.50670653529016 733.4755169883315,483.50670653529016" fill="#2e8769"/>
+<text x="551" y="566" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="22" font-weight="400" fill="#2e8769">수거량만큼 적재량 감소</text>
+<polyline points="480,750 670,750" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="670,750 656.4932934647098,756.5244830116685 656.4932934647098,743.4755169883315" fill="#3977a8"/>
+<text x="574" y="713" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">출발</text>
+<polyline points="820,1000 820,830" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="820,830 826.5244830116685,843.5067065352902 813.4755169883315,843.5067065352902" fill="#3977a8"/>
+<text x="978" y="930" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">도착 시각 계산</text>
+<polyline points="970,750 1760,750" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="1760,750 1746.49329346471,756.5244830116685 1746.49329346471,743.4755169883315" fill="#3977a8"/>
+<text x="1370" y="713" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="25" font-weight="400" fill="#17324d">수거량 · 운행 실적</text>
+<polyline points="820,330 820,220 2050,220 2050,690" fill="none" stroke="#3977a8" stroke-width="4"/>
+<polygon points="2050,690 2043.4755169883315,676.4932934647098 2056.5244830116685,676.4932934647098" fill="#3977a8"/>
+<text x="1410" y="195" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="24" font-weight="400" fill="#17324d">잔류량</text>
+<rect x="140.0" y="330.0" width="340" height="140" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="310" y="388" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">주민 집단</text>
+<text x="310" y="424" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">총 100명</text>
+<rect x="670.0" y="330.0" width="300" height="140" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="820" y="388" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">수거장 A~D</text>
+<text x="820" y="424" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">각 30kg</text>
+<rect x="1390.0" y="280.0" width="300" height="140" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="1540" y="338" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">민원 판단</text>
+<text x="1540" y="374" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">적재율 80% 이상</text>
+<rect x="140.0" y="680.0" width="340" height="140" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="310" y="738" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">수거 일정</text>
+<text x="310" y="774" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">매일 08:30</text>
+<rect x="670.0" y="690.0" width="300" height="140" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="820" y="748" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">5톤 차량 T1</text>
+<text x="820" y="784" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">초기 적재량 0kg</text>
+<rect x="640.0" y="1000.0" width="360" height="120" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="820" y="1048" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">이동 환경</text>
+<text x="820" y="1084" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">구간당 8분</text>
+<rect x="1760.0" y="690.0" width="360" height="140" rx="10" fill="#edf4fc" stroke="#487ca8" stroke-width="3"/>
+<text x="1940" y="748" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="27" font-weight="700" fill="#17324d">결과 집계</text>
+<text x="1940" y="784" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="21" font-weight="400" fill="#4b6074">민원 · 수거량 · 잔류량</text>
+<text x="1550" y="1020" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="26" font-weight="400" fill="#17324d">기간: 30일  /  반복: 10회  /  엔진: Java</text>
+<text x="1100" y="1190" text-anchor="middle" dominant-baseline="central" font-family="Malgun Gothic, sans-serif" font-size="23" font-weight="400" fill="#64748b">화살표는 정보 전달·상태 갱신 관계를 나타냄  |  현재 계산 로직의 개념적 결합 표현</text></svg>
