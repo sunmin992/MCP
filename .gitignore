@@ -61,3 +61,6 @@ application-local.properties
 # 머신마다 다르고 버전도 각자 관리하므로 저장소가 들고 있을 이유가 없다.
 # (실제로 .tools/github-cli/.../LICENSE 한 개가 이렇게 커밋된 적이 있다.)
 .tools/
+
+# --- Superpowers SDD 작업 공간 (원장·브리프·리뷰 패키지) ---
+.superpowers/
