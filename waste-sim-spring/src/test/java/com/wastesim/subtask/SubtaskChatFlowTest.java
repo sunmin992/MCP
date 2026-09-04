@@ -39,6 +39,16 @@ import static org.mockito.Mockito.*;
  */
 class SubtaskChatFlowTest {
 
+    /**
+     * 이 테스트 파일은 {@link V3Answers}로 응답한다 — 세트를 올릴 때마다 최신을 따라가지
+     * 않도록, 카탈로그를 v2·v3까지로 고정해 {@code latest()}가 항상 v3를 가리키게 한다.
+     * v4가 늘어도(zoneAssignmentRule 질문 추가 등) 이 스위트가 함께 깨지지 않는다.
+     */
+    private static JangnyangSubtaskCatalog v3Catalog() {
+        return new JangnyangSubtaskCatalog(
+                "/subtask/jangnyang-simulator-v2.json", "/subtask/jangnyang-simulator-v3.json");
+    }
+
     private SimpMessagingTemplate messaging;
     private OpenAiService llm;
     private SimulationTool tool;
@@ -55,7 +65,7 @@ class SubtaskChatFlowTest {
                 List.of(new JavaEngineProvider(sim)));
         tool = new SimulationTool(new SimulationConfigValidator(traffic), models,
                 new ScenarioService(sim), new SimpleMeterRegistry());
-        sessions = TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
+        sessions = TestSubtaskFixtures.service(v3Catalog());
         controller = new ChatController(messaging, llm, tool, new SimpleMeterRegistry(),
                 traffic, sessions, com.wastesim.site.CollectionSiteRegistry.empty());
     }
@@ -149,7 +159,7 @@ class SubtaskChatFlowTest {
 
         List<ChatMessage> retries = ofType(ChatMessage.MessageType.SUBTASK);
         assertEquals(2, retries.size());
-        String expected = new JangnyangSubtaskCatalog().latest().byId("ST-016").retryQuestion();
+        String expected = v3Catalog().latest().byId("ST-016").retryQuestion();
         for (ChatMessage m : retries) {
             assertEquals("ST-016", m.getCurrentSubtaskId());
             assertEquals(expected, m.getQuestion(), "재질문 문장이 매번 달라지면 안 된다(D-47)");
@@ -297,7 +307,7 @@ class SubtaskChatFlowTest {
     /** 한 프로바이더로 수집을 처음부터 끝까지 돌며 나온 질문 문장을 순서대로 모은다. */
     private List<String> collectQuestionsWith(OpenAiService provider) {
         SimpMessagingTemplate bus = mock(SimpMessagingTemplate.class);
-        SubtaskSessionService svc = TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
+        SubtaskSessionService svc = TestSubtaskFixtures.service(v3Catalog());
         ChatController c = new ChatController(bus, provider, tool, new SimpleMeterRegistry(),
                 new TrafficDataService(), svc, com.wastesim.site.CollectionSiteRegistry.empty());
 
@@ -321,7 +331,7 @@ class SubtaskChatFlowTest {
     }
 
     private SimulationConfig buildConfigWith(OpenAiService provider) {
-        SubtaskSessionService svc = TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
+        SubtaskSessionService svc = TestSubtaskFixtures.service(v3Catalog());
         ChatController c = new ChatController(mock(SimpMessagingTemplate.class), provider, tool,
                 new SimpleMeterRegistry(), new TrafficDataService(), svc, com.wastesim.site.CollectionSiteRegistry.empty());
         ChatMessage start = new ChatMessage(ChatMessage.MessageType.USER, "장량동 시뮬레이터 만들어 줘");

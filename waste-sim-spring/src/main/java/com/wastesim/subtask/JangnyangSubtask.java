@@ -27,6 +27,9 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  * @param validationRule      검증 규칙을 사람이 읽는 문장으로 적은 것(감사·문서화용)
  * @param retryQuestion       재질문 문장 — 몇 번을 틀려도 이 문장 그대로 나간다(FR-127, D-47)
  * @param completionCondition 이 서브태스크가 완료로 판정되는 조건
+ * @param basis                이 필드의 기본값이 무엇에 근거하는가. FR-120 필수 항목이 아니라
+ *                            v3까지는 {@code null}이다 — 선언이 없다는 뜻이지 근거가 있다는
+ *                            뜻이 아니다
  */
 @JsonIgnoreProperties(ignoreUnknown = false)
 public record JangnyangSubtask(
@@ -61,7 +64,12 @@ public record JangnyangSubtask(
         AllowedRange allowedRange,
         String validationRule,
         String retryQuestion,
-        String completionCondition) {
+        String completionCondition,
+        /**
+         * 이 필드의 기본값이 무엇에 근거하는가. v3까지는 선언이 없어 {@code null}이다.
+         * {@link GapResolver}가 이 값을 보고 자동 채움과 되묻기를 가른다.
+         */
+        FieldBasis basis) {
 
     /**
      * FR-120이 요구하는 항목이 하나도 비지 않았는가 — 카탈로그가 리소스를 읽은 직후

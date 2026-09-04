@@ -128,7 +128,8 @@ class JangnyangSubtaskCatalogTest {
         edited.set(0, new JangnyangSubtask(first.id(), first.order(), first.group(), first.stage(),
                 first.question() + ".", first.answerField(), first.answerType(), first.required(),
                 first.allowsNotApplicable(), first.allowedRange(),
-                first.validationRule(), first.retryQuestion(), first.completionCondition()));
+                first.validationRule(), first.retryQuestion(), first.completionCondition(),
+                first.basis()));
         JangnyangSubtaskDefinition tampered = new JangnyangSubtaskDefinition(
                 def.subtaskSetId(), def.version(), def.immutable(), def.groups(), edited);
         assertNotEquals(def.hash(), tampered.hash(), "질문을 고쳤는데 해시가 같으면 변조를 놓친다");
@@ -137,7 +138,8 @@ class JangnyangSubtaskCatalogTest {
         edited.set(0, new JangnyangSubtask(first.id(), first.order(), first.group(), first.stage(),
                 first.question(), first.answerField(), first.answerType(), !first.required(),
                 first.allowsNotApplicable(), first.allowedRange(),
-                first.validationRule(), first.retryQuestion(), first.completionCondition()));
+                first.validationRule(), first.retryQuestion(), first.completionCondition(),
+                first.basis()));
         assertNotEquals(def.hash(), new JangnyangSubtaskDefinition(
                 def.subtaskSetId(), def.version(), def.immutable(), def.groups(), edited).hash());
     }
@@ -147,12 +149,13 @@ class JangnyangSubtaskCatalogTest {
     void unknownVersionIsRejectedNotSubstituted() {
         assertNotNull(catalog.byVersion(2), "v2는 덮어쓰지 않고 보존한다");
         assertNotNull(catalog.byVersion(3));
-        assertEquals(List.of(2, 3), catalog.versions());
-        assertEquals(3, catalog.latest().version(), "버전을 지정하지 않은 조회는 최신 세트를 준다");
+        assertNotNull(catalog.byVersion(4));
+        assertEquals(List.of(2, 3, 4), catalog.versions());
+        assertEquals(4, catalog.latest().version(), "버전을 지정하지 않은 조회는 최신 세트를 준다");
         // v1은 삭제했다 — 진행 중인 세션도, 그 버전을 핀한 클라이언트도 없었다.
         // 없는 버전을 가까운 것으로 대체하지 않는다는 규칙은 그대로다(FR-138·D-45).
         assertNull(catalog.byVersion(1), "지운 버전을 v2로 대신 주면 안 된다");
-        assertNull(catalog.byVersion(4), "없는 버전에 최신 세트를 대신 주면 안 된다");
+        assertNull(catalog.byVersion(5), "없는 버전에 최신 세트를 대신 주면 안 된다");
         assertNull(catalog.byVersion(0));
         assertNull(catalog.byVersion(-1));
 

@@ -157,7 +157,7 @@ class JangnyangSubtaskMcpToolsTest {
         assertEquals(def.ordered().get(0).question(), items.get(0).get("question"));
 
         // 명시적으로 최신 버전을 요청해도 같은 응답이다.
-        assertEquals(out, result(getTool.call(json("{\"version\":3}"))));
+        assertEquals(out, result(getTool.call(json("{\"version\":4}"))));
         // 옛 버전을 요청하면 그 세트가 온다 — 최신으로 갈아 주지 않는다(FR-138).
         assertEquals("jangnyang-simulator-v2",
                 result(getTool.call(json("{\"version\":2}"))).get("subtaskSetId"));

@@ -16,7 +16,13 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class SubtaskSessionStoreTest {
 
-    private final JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+    /**
+     * 이 파일은 {@link V3Answers}로 세션을 끝까지 채운다 — 카탈로그를 v2·v3까지로 고정해
+     * {@code latest()}가 v3를 가리키게 한다. 세트가 늘 때마다(v4의 zoneAssignmentRule
+     * 추가 등) 이 스위트가 함께 깨지지 않게 하려는 것이다.
+     */
+    private final JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog(
+            "/subtask/jangnyang-simulator-v2.json", "/subtask/jangnyang-simulator-v3.json");
 
     /** 세트 수준 필수를 전부 채운 뒤 READY까지 밀어 올린다. */
     private static void answerAllRequired(SubtaskSessionService sessions, String key) {

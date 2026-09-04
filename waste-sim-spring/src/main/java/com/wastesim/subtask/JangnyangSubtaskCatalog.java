@@ -31,14 +31,15 @@ public class JangnyangSubtaskCatalog {
     /**
      * 세트 리소스 경로. 버전을 올릴 때는 이 배열에 <b>새 파일을 추가</b>한다(덮어쓰지 않는다, D-45).
      *
-     * <p>v2를 남겨 두는 이유는 <b>진행 중이거나 이미 끝난 세션을 되짚기 위해서다</b>. 답변
+     * <p>v2·v3를 남겨 두는 이유는 <b>진행 중이거나 이미 끝난 세션을 되짚기 위해서다</b>. 답변
      * 기록은 세트 ID·버전·해시로 조건을 가리키므로(NFR-20), 세트 파일을 지우면 그 기록이
      * 무엇을 물어서 받은 답인지 알 수 없는 값이 된다. 새 세션은 {@link #latest()}가 고르는
-     * 최신 버전(v3)을 쓴다.
+     * 최신 버전(v4)을 쓴다.
      */
     private static final String[] SET_RESOURCES = {
             "/subtask/jangnyang-simulator-v2.json",
-            "/subtask/jangnyang-simulator-v3.json"
+            "/subtask/jangnyang-simulator-v3.json",
+            "/subtask/jangnyang-simulator-v4.json",
     };
 
     /** 등록 순서를 유지한다 — 목록 출력이 매번 같은 순서여야 한다. */
