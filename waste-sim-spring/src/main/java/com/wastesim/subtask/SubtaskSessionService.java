@@ -73,6 +73,17 @@ public class SubtaskSessionService {
      * @param version   답변이 주장하는 세트 버전. 세션 버전과 다르면 거부한다(FR-138·UT-311)
      */
     public Step submit(String sessionKey, String subtaskId, Object value, Integer version) {
+        return submit(sessionKey, subtaskId, value, version, SubtaskAnswerSource.USER_DIRECT);
+    }
+
+    /**
+     * 이 답을 누가 넣었는지 원장에 남긴다(FR-126 답변 출처).
+     *
+     * <p>출처를 주지 않는 기존 4인자 호출은 {@code USER_DIRECT}로 위임한다 — 이미 쌓인
+     * 원장의 의미를 바꾸지 않기 위해서다.
+     */
+    public Step submit(String sessionKey, String subtaskId, Object value, Integer version,
+                       SubtaskAnswerSource source) {
         JangnyangSubtaskSession session = store.find(sessionKey);
         if (session == null || !session.state().isActive()) {
             return Step.rejected("진행 중인 수집 세션이 없습니다. 시뮬레이터 구성을 먼저 요청해 주세요.");
@@ -92,7 +103,7 @@ public class SubtaskSessionService {
 
         session.transitionTo(SubtaskState.VALIDATING);
         SubtaskValidationResult result = validator.validate(
-                def, Map.of(targetId, value == null ? "" : value), session.answers());
+                def, Map.of(targetId, value == null ? "" : value), session.answers(), source);
         session.apply(result);
 
         if (session.nextSubtask(def, checker) == null

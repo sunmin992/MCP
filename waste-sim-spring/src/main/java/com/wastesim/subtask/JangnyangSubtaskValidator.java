@@ -42,6 +42,14 @@ public class JangnyangSubtaskValidator {
      */
     public static final String NOT_APPLICABLE = "해당 없음";
 
+    /**
+     * 출처를 주지 않는 낡은 호출부(3인자 {@code validate}, 2인자 {@code coerce})가 공유하는
+     * 기본값 — 사용자가 직접 답한 것으로 본다. 리터럴을 이 한 곳에만 두는 이유는, 이 값이
+     * 코드 여기저기 흩어지면 "출처를 안 주면 기본값이 뭐였더라"를 grep 한 번으로 답할 수
+     * 없게 되기 때문이다.
+     */
+    private static final SubtaskAnswerSource DEFAULT_SOURCE = SubtaskAnswerSource.USER_DIRECT;
+
     private static final java.util.Set<String> NOT_APPLICABLE_WORDS = java.util.Set.of(
             "해당 없음", "해당없음", "없음", "n/a", "na", "안 함", "안함",
             "기본값 사용", "기본값사용", "기본값", "제공 데이터 없음", "제공데이터없음");
@@ -74,6 +82,20 @@ public class JangnyangSubtaskValidator {
     public SubtaskValidationResult validate(JangnyangSubtaskDefinition def,
                                             Map<String, Object> answers,
                                             Map<String, JangnyangSubtaskAnswer> existing) {
+        return validate(def, answers, existing, DEFAULT_SOURCE);
+    }
+
+    /**
+     * 이 답변들을 누가 넣었는지를 원장에 남긴다.
+     *
+     * <p>LLM이 채운 값과 사람이 답한 값은 <b>같은 검증을 받지만 출처가 다르다.</b> 검증은
+     * 같아야 하고(LLM 값에 예외를 두면 근거 없는 값이 흘러든다) 출처는 달라야 한다
+     * (나중에 "이 값을 누가 넣었나"를 되짚어야 한다).
+     */
+    public SubtaskValidationResult validate(JangnyangSubtaskDefinition def,
+                                            Map<String, Object> answers,
+                                            Map<String, JangnyangSubtaskAnswer> existing,
+                                            SubtaskAnswerSource source) {
         List<SubtaskError> errors = new ArrayList<>();
         Map<String, JangnyangSubtaskAnswer> accepted = new LinkedHashMap<>();
         if (existing != null) accepted.putAll(existing);
@@ -91,7 +113,7 @@ public class JangnyangSubtaskValidator {
                             "세트에 있는 서브태스크에만 답할 수 있습니다."));
                     continue;
                 }
-                JangnyangSubtaskAnswer a = coerce(st, e.getValue());
+                JangnyangSubtaskAnswer a = coerce(st, e.getValue(), source);
                 if (a.valid()) {
                     // 다시 제출한 답이 이전 값을 덮어쓴다(UT-309).
                     accepted.put(st.id(), a);
@@ -126,74 +148,80 @@ public class JangnyangSubtaskValidator {
      * 실패하면 {@code retryQuestion}이 붙은 거부 답변을 돌려준다.
      */
     public JangnyangSubtaskAnswer coerce(JangnyangSubtask st, Object rawValue) {
+        return coerce(st, rawValue, DEFAULT_SOURCE);
+    }
+
+    /** 출처를 받아 구조화 값에 함께 싣는다. 검증 규칙 자체는 출처와 무관하다. */
+    public JangnyangSubtaskAnswer coerce(JangnyangSubtask st, Object rawValue, SubtaskAnswerSource source) {
         String raw = rawValue == null ? null : String.valueOf(rawValue);
         if (rawValue == null || (rawValue instanceof String s && s.isBlank())) {
-            return reject(st, raw, ErrorCode.MISSING_FIELD, "값이 비어 있다.");
+            return reject(st, raw, source, ErrorCode.MISSING_FIELD, "값이 비어 있다.");
         }
         if (isNotApplicable(rawValue)) {
             if (!st.allowsNotApplicable()) {
                 // 목적·수거 시각처럼 없으면 실험이 성립하지 않는 항목이다. 여기서 받아
                 // 주면 조립 단계가 빈 값을 들고 진행한다.
-                return reject(st, raw, ErrorCode.MISSING_FIELD,
+                return reject(st, raw, source, ErrorCode.MISSING_FIELD,
                         "이 항목은 '해당 없음'으로 넘어갈 수 없다. 값이 없으면 실험이 성립하지 않는다.");
             }
-            return JangnyangSubtaskAnswer.accepted(st.id(), raw, NOT_APPLICABLE,
-                    SubtaskAnswerSource.USER_DIRECT);
+            return JangnyangSubtaskAnswer.accepted(st.id(), raw, NOT_APPLICABLE, source);
         }
         return switch (st.answerType()) {
-            case STRING -> coerceString(st, raw);
-            case INTEGER -> coerceInteger(st, rawValue, raw);
-            case NUMBER -> coerceNumber(st, rawValue, raw);
-            case BOOLEAN -> coerceBoolean(st, rawValue, raw);
-            case TIME -> coerceTime(st, raw);
-            case ENUM -> coerceEnum(st, raw);
-            case ENUM_LIST -> coerceStringList(st, rawValue, raw);
-            case STRING_LIST -> coerceStringList(st, rawValue, raw);
-            case TIME_LIST -> coerceTimeList(st, rawValue, raw);
-            case TIME_RANGE -> coerceTimeRange(st, raw);
-            case INTEGER_MAP -> coerceMap(st, rawValue, raw, true);
-            case NUMBER_MAP -> coerceMap(st, rawValue, raw, false);
+            case STRING -> coerceString(st, raw, source);
+            case INTEGER -> coerceInteger(st, rawValue, raw, source);
+            case NUMBER -> coerceNumber(st, rawValue, raw, source);
+            case BOOLEAN -> coerceBoolean(st, rawValue, raw, source);
+            case TIME -> coerceTime(st, raw, source);
+            case ENUM -> coerceEnum(st, raw, source);
+            case ENUM_LIST -> coerceStringList(st, rawValue, raw, source);
+            case STRING_LIST -> coerceStringList(st, rawValue, raw, source);
+            case TIME_LIST -> coerceTimeList(st, rawValue, raw, source);
+            case TIME_RANGE -> coerceTimeRange(st, raw, source);
+            case INTEGER_MAP -> coerceMap(st, rawValue, raw, true, source);
+            case NUMBER_MAP -> coerceMap(st, rawValue, raw, false, source);
         };
     }
 
     // ── 자료형별 강제 ──────────────────────────────────────────────────────
 
-    private JangnyangSubtaskAnswer coerceString(JangnyangSubtask st, String raw) {
+    private JangnyangSubtaskAnswer coerceString(JangnyangSubtask st, String raw, SubtaskAnswerSource source) {
         String v = raw.trim();
         AllowedRange r = st.allowedRange();
         if (r.minLength() != null && v.length() < r.minLength()) {
-            return reject(st, raw, ErrorCode.OUT_OF_RANGE,
+            return reject(st, raw, source, ErrorCode.OUT_OF_RANGE,
                     "최소 " + r.minLength() + "자 이상이어야 한다(받은 길이: " + v.length() + ").");
         }
         if (r.maxLength() != null && v.length() > r.maxLength()) {
-            return reject(st, raw, ErrorCode.OUT_OF_RANGE,
+            return reject(st, raw, source, ErrorCode.OUT_OF_RANGE,
                     "최대 " + r.maxLength() + "자 이하여야 한다(받은 길이: " + v.length() + ").");
         }
-        return JangnyangSubtaskAnswer.accepted(st.id(), raw, v, SubtaskAnswerSource.USER_DIRECT);
+        return JangnyangSubtaskAnswer.accepted(st.id(), raw, v, source);
     }
 
-    private JangnyangSubtaskAnswer coerceInteger(JangnyangSubtask st, Object rawValue, String raw) {
+    private JangnyangSubtaskAnswer coerceInteger(JangnyangSubtask st, Object rawValue, String raw,
+                                                 SubtaskAnswerSource source) {
         Long parsed = asLong(rawValue);
         if (parsed == null) {
             // 소수를 조용히 절삭하면(10.9 → 10) 사용자가 보낸 값과 계산에 쓰인 값이
             // 달라진다(E-03과 같은 이유, UT-305).
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                     "정수여야 한다(받은 값: " + raw + "). 소수는 반올림·절삭하지 않는다.");
         }
         if (parsed < Integer.MIN_VALUE || parsed > Integer.MAX_VALUE) {
-            return reject(st, raw, ErrorCode.OUT_OF_RANGE, "정수 범위를 벗어났다(받은 값: " + raw + ").");
+            return reject(st, raw, source, ErrorCode.OUT_OF_RANGE, "정수 범위를 벗어났다(받은 값: " + raw + ").");
         }
         int v = parsed.intValue();
         AllowedRange r = st.allowedRange();
-        if (r.min() != null && v < r.min()) return outOfRange(st, raw, r, v);
-        if (r.max() != null && v > r.max()) return outOfRange(st, raw, r, v);
-        return JangnyangSubtaskAnswer.accepted(st.id(), raw, v, SubtaskAnswerSource.USER_DIRECT);
+        if (r.min() != null && v < r.min()) return outOfRange(st, raw, r, v, source);
+        if (r.max() != null && v > r.max()) return outOfRange(st, raw, r, v, source);
+        return JangnyangSubtaskAnswer.accepted(st.id(), raw, v, source);
     }
 
-    private JangnyangSubtaskAnswer coerceNumber(JangnyangSubtask st, Object rawValue, String raw) {
+    private JangnyangSubtaskAnswer coerceNumber(JangnyangSubtask st, Object rawValue, String raw,
+                                                SubtaskAnswerSource source) {
         Double v = asDouble(rawValue);
         if (v == null || !Double.isFinite(v)) {
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                     "유한한 수여야 한다(받은 값: " + raw + "). NaN·Infinity는 받지 않는다.");
         }
         AllowedRange r = st.allowedRange();
@@ -203,53 +231,55 @@ public class JangnyangSubtaskValidator {
         if (r.max() != null && r.max() <= 1.0 && v > 1.0 && v <= 100.0) {
             v = v / 100.0;
         }
-        if (r.min() != null && v < r.min()) return outOfRange(st, raw, r, v);
-        if (r.max() != null && v > r.max()) return outOfRange(st, raw, r, v);
-        return JangnyangSubtaskAnswer.accepted(st.id(), raw, v, SubtaskAnswerSource.USER_DIRECT);
+        if (r.min() != null && v < r.min()) return outOfRange(st, raw, r, v, source);
+        if (r.max() != null && v > r.max()) return outOfRange(st, raw, r, v, source);
+        return JangnyangSubtaskAnswer.accepted(st.id(), raw, v, source);
     }
 
-    private JangnyangSubtaskAnswer coerceBoolean(JangnyangSubtask st, Object rawValue, String raw) {
+    private JangnyangSubtaskAnswer coerceBoolean(JangnyangSubtask st, Object rawValue, String raw,
+                                                 SubtaskAnswerSource source) {
         if (rawValue instanceof Boolean b) {
-            return JangnyangSubtaskAnswer.accepted(st.id(), raw, b, SubtaskAnswerSource.USER_DIRECT);
+            return JangnyangSubtaskAnswer.accepted(st.id(), raw, b, source);
         }
         String v = raw.trim().toLowerCase();
         if (v.equals("true") || v.equals("예") || v.equals("네") || v.equals("yes") || v.equals("y") || v.equals("반영")) {
-            return JangnyangSubtaskAnswer.accepted(st.id(), raw, Boolean.TRUE, SubtaskAnswerSource.USER_DIRECT);
+            return JangnyangSubtaskAnswer.accepted(st.id(), raw, Boolean.TRUE, source);
         }
         if (v.equals("false") || v.equals("아니오") || v.equals("아니요") || v.equals("no") || v.equals("n") || v.equals("미반영")) {
-            return JangnyangSubtaskAnswer.accepted(st.id(), raw, Boolean.FALSE, SubtaskAnswerSource.USER_DIRECT);
+            return JangnyangSubtaskAnswer.accepted(st.id(), raw, Boolean.FALSE, source);
         }
         // 애매한 답을 임의로 false로 두지 않는다 — 사용자는 교통 레이어가 켜졌다고
         // 믿은 채 꺼진 결과를 읽게 된다.
-        return reject(st, raw, ErrorCode.INVALID_ARGUMENTS, "예/아니오로 답해야 한다(받은 값: " + raw + ").");
+        return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS, "예/아니오로 답해야 한다(받은 값: " + raw + ").");
     }
 
-    private JangnyangSubtaskAnswer coerceTime(JangnyangSubtask st, String raw) {
+    private JangnyangSubtaskAnswer coerceTime(JangnyangSubtask st, String raw, SubtaskAnswerSource source) {
         String v = raw.trim();
         if (!HHMM.matcher(v).matches()) {
             // 12:99를 13:39로 정상화하지 않는다(W-04).
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                     "24시간 HH:MM 형식이어야 한다(받은 값: " + raw + "). 00:00~23:59 범위 밖의 값을 보정하지 않는다.");
         }
         int minutes = Integer.parseInt(v.substring(0, 2)) * 60 + Integer.parseInt(v.substring(3, 5));
-        return JangnyangSubtaskAnswer.accepted(st.id(), raw, minutes, SubtaskAnswerSource.USER_DIRECT);
+        return JangnyangSubtaskAnswer.accepted(st.id(), raw, minutes, source);
     }
 
-    private JangnyangSubtaskAnswer coerceEnum(JangnyangSubtask st, String raw) {
+    private JangnyangSubtaskAnswer coerceEnum(JangnyangSubtask st, String raw, SubtaskAnswerSource source) {
         String v = raw.trim();
         for (String allowed : st.allowedRange().valuesOrEmpty()) {
             if (allowed.equalsIgnoreCase(v)) {
-                return JangnyangSubtaskAnswer.accepted(st.id(), raw, allowed, SubtaskAnswerSource.USER_DIRECT);
+                return JangnyangSubtaskAnswer.accepted(st.id(), raw, allowed, source);
             }
         }
-        return reject(st, raw, ErrorCode.INVALID_ENUM,
+        return reject(st, raw, source, ErrorCode.INVALID_ENUM,
                 "허용되지 않은 값 '" + v + "'. 허용 값: " + String.join(", ", st.allowedRange().valuesOrEmpty()));
     }
 
-    private JangnyangSubtaskAnswer coerceStringList(JangnyangSubtask st, Object rawValue, String raw) {
+    private JangnyangSubtaskAnswer coerceStringList(JangnyangSubtask st, Object rawValue, String raw,
+                                                     SubtaskAnswerSource source) {
         List<String> items = asStringList(rawValue);
         if (items == null) {
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS, "목록이어야 한다(받은 값: " + raw + ").");
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS, "목록이어야 한다(받은 값: " + raw + ").");
         }
         AllowedRange r = st.allowedRange();
         List<String> allowed = r.valuesOrEmpty();
@@ -260,25 +290,25 @@ public class JangnyangSubtaskValidator {
             if (!allowed.isEmpty()) {
                 String match = allowed.stream().filter(a -> a.equalsIgnoreCase(t)).findFirst().orElse(null);
                 if (match == null) {
-                    return reject(st, raw, ErrorCode.INVALID_ENUM,
+                    return reject(st, raw, source, ErrorCode.INVALID_ENUM,
                             "허용되지 않은 값 '" + t + "'. 허용 값: " + String.join(", ", allowed));
                 }
                 normalized.add(match);
             } else {
                 // 허용 목록이 없는 목록형(routeSequence)은 형식 규칙으로 본다.
                 if ("routeSequence".equals(st.answerField()) && !NODE_ID.matcher(t).matches()) {
-                    return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                    return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                             "노드 id는 Node_A~Node_Z 형식이어야 한다(받은 값: " + t + ").");
                 }
                 normalized.add(t);
             }
         }
         if (normalized.stream().distinct().count() != normalized.size()) {
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS, "같은 값이 두 번 들어 있다.");
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS, "같은 값이 두 번 들어 있다.");
         }
         SubtaskError sizeError = checkSize(st, raw, normalized.size());
-        if (sizeError != null) return JangnyangSubtaskAnswer.rejected(st.id(), raw, SubtaskAnswerSource.USER_DIRECT, sizeError);
-        return JangnyangSubtaskAnswer.accepted(st.id(), raw, List.copyOf(normalized), SubtaskAnswerSource.USER_DIRECT);
+        if (sizeError != null) return JangnyangSubtaskAnswer.rejected(st.id(), raw, source, sizeError);
+        return JangnyangSubtaskAnswer.accepted(st.id(), raw, List.copyOf(normalized), source);
     }
 
     /**
@@ -290,17 +320,17 @@ public class JangnyangSubtaskValidator {
      * 정렬은 규정값을 정반대로 만든다. 그래서 시작 &gt; 종료를 오류로 보지 않고 자정을 넘는
      * 창으로 읽는다({@code SimulationConfigValidator}의 V-D2와 같은 규약).
      */
-    private JangnyangSubtaskAnswer coerceTimeRange(JangnyangSubtask st, String raw) {
+    private JangnyangSubtaskAnswer coerceTimeRange(JangnyangSubtask st, String raw, SubtaskAnswerSource source) {
         String[] parts = raw.trim().split("\\s*[~\\-–]\\s*", -1);
         if (parts.length != 2) {
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                     "시작~종료 두 시각이어야 한다(받은 값: " + raw + "). 예: 20:00~06:00");
         }
         int[] minutes = new int[2];
         for (int i = 0; i < 2; i++) {
             String t = parts[i].trim();
             if (!HHMM.matcher(t).matches()) {
-                return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                         "24시간 HH:MM 형식이어야 한다(받은 값: " + t + ").");
             }
             minutes[i] = Integer.parseInt(t.substring(0, 2)) * 60 + Integer.parseInt(t.substring(3, 5));
@@ -308,39 +338,39 @@ public class JangnyangSubtaskValidator {
         if (minutes[0] == minutes[1]) {
             // 길이 0인 창은 모든 주민을 같은 순간에 몰아넣는다 — "허용 창"이라는 개념과
             // 어긋나고 결과도 그 한 순간에 쏠린다.
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                     "시작과 종료가 같다(" + parts[0].trim() + "). 창의 길이가 0이면 모든 주민이 같은 순간에 버린다.");
         }
-        return JangnyangSubtaskAnswer.accepted(st.id(), raw, List.of(minutes[0], minutes[1]),
-                SubtaskAnswerSource.USER_DIRECT);
+        return JangnyangSubtaskAnswer.accepted(st.id(), raw, List.of(minutes[0], minutes[1]), source);
     }
 
     /** "09:00, 18:00"처럼 시각이 여러 개인 항목. 각 원소를 분으로 바꾸고 중복을 막는다. */
-    private JangnyangSubtaskAnswer coerceTimeList(JangnyangSubtask st, Object rawValue, String raw) {
+    private JangnyangSubtaskAnswer coerceTimeList(JangnyangSubtask st, Object rawValue, String raw,
+                                                  SubtaskAnswerSource source) {
         List<String> items = asStringList(rawValue);
         if (items == null) {
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS, "시각 목록이어야 한다(받은 값: " + raw + ").");
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS, "시각 목록이어야 한다(받은 값: " + raw + ").");
         }
         List<Integer> minutes = new ArrayList<>();
         for (String item : items) {
             String t = item.trim();
             if (t.isEmpty()) continue;
             if (!HHMM.matcher(t).matches()) {
-                return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                         "24시간 HH:MM 형식이어야 한다(받은 값: " + t + ").");
             }
             minutes.add(Integer.parseInt(t.substring(0, 2)) * 60 + Integer.parseInt(t.substring(3, 5)));
         }
         if (minutes.stream().distinct().count() != minutes.size()) {
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS, "같은 시각이 두 번 들어 있다.");
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS, "같은 시각이 두 번 들어 있다.");
         }
         SubtaskError sizeError = checkSize(st, raw, minutes.size());
         if (sizeError != null) {
-            return JangnyangSubtaskAnswer.rejected(st.id(), raw, SubtaskAnswerSource.USER_DIRECT, sizeError);
+            return JangnyangSubtaskAnswer.rejected(st.id(), raw, source, sizeError);
         }
         // 정렬해 둔다 — 수거 시각의 순서는 의미가 있고, 입력 순서에 좌우되면 안 된다.
         return JangnyangSubtaskAnswer.accepted(st.id(), raw,
-                minutes.stream().sorted().toList(), SubtaskAnswerSource.USER_DIRECT);
+                minutes.stream().sorted().toList(), source);
     }
 
     /**
@@ -352,10 +382,10 @@ public class JangnyangSubtaskValidator {
      * 달라진다(D-26).
      */
     private JangnyangSubtaskAnswer coerceMap(JangnyangSubtask st, Object rawValue, String raw,
-                                             boolean integral) {
+                                             boolean integral, SubtaskAnswerSource source) {
         Map<String, String> entries = asStringMap(rawValue);
         if (entries == null || entries.isEmpty()) {
-            return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+            return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                     "항목=값 형식의 목록이어야 한다(받은 값: " + raw + ").");
         }
         AllowedRange r = st.allowedRange();
@@ -368,25 +398,25 @@ public class JangnyangSubtaskValidator {
                 final String probe = key;
                 String match = allowed.stream().filter(a -> a.equalsIgnoreCase(probe)).findFirst().orElse(null);
                 if (match == null) {
-                    return reject(st, raw, ErrorCode.INVALID_ENUM,
+                    return reject(st, raw, source, ErrorCode.INVALID_ENUM,
                             "허용되지 않은 항목 '" + key + "'. 허용 값: " + String.join(", ", allowed));
                 }
                 key = match;
             } else if (st.answerType() == AnswerType.INTEGER_MAP && !NODE_ID.matcher(key).matches()) {
-                return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                         "노드 id는 Node_A~Node_Z 형식이어야 한다(받은 값: " + key + ").");
             }
             Double v = asDouble(e.getValue());
             if (v == null || !Double.isFinite(v)) {
-                return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                         key + "의 값이 유한한 수가 아니다(받은 값: " + e.getValue() + ").");
             }
             if (integral && v != Math.rint(v)) {
-                return reject(st, raw, ErrorCode.INVALID_ARGUMENTS,
+                return reject(st, raw, source, ErrorCode.INVALID_ARGUMENTS,
                         key + "의 값은 정수여야 한다(받은 값: " + e.getValue() + ").");
             }
             if ((r.min() != null && v < r.min()) || (r.max() != null && v > r.max())) {
-                return reject(st, raw, ErrorCode.OUT_OF_RANGE,
+                return reject(st, raw, source, ErrorCode.OUT_OF_RANGE,
                         key + "의 값이 허용 범위 " + r.description() + "를 벗어났다(받은 값: " + v + ").");
             }
             sum += v;
@@ -394,14 +424,14 @@ public class JangnyangSubtaskValidator {
         }
         SubtaskError sizeError = checkSize(st, raw, out.size());
         if (sizeError != null) {
-            return JangnyangSubtaskAnswer.rejected(st.id(), raw, SubtaskAnswerSource.USER_DIRECT, sizeError);
+            return JangnyangSubtaskAnswer.rejected(st.id(), raw, source, sizeError);
         }
         if (r.sumTo() != null && Math.abs(sum - r.sumTo()) > 1e-6) {
-            return reject(st, raw, ErrorCode.OUT_OF_RANGE,
+            return reject(st, raw, source, ErrorCode.OUT_OF_RANGE,
                     "값의 합이 " + r.sumTo() + "이어야 하는데 " + sum + "이다. 합을 서버가 임의로 맞추지 않는다.");
         }
         return JangnyangSubtaskAnswer.accepted(st.id(), raw,
-                java.util.Collections.unmodifiableMap(out), SubtaskAnswerSource.USER_DIRECT);
+                java.util.Collections.unmodifiableMap(out), source);
     }
 
     /** 항목=값 형태의 문자열이나 JSON 객체를 키에서 값으로 가는 문자열 맵으로. 아니면 null. */
@@ -491,14 +521,15 @@ public class JangnyangSubtaskValidator {
 
     // ── 거부 생성 ──────────────────────────────────────────────────────────
 
-    private JangnyangSubtaskAnswer outOfRange(JangnyangSubtask st, String raw, AllowedRange r, Number v) {
-        return reject(st, raw, ErrorCode.OUT_OF_RANGE,
+    private JangnyangSubtaskAnswer outOfRange(JangnyangSubtask st, String raw, AllowedRange r, Number v,
+                                              SubtaskAnswerSource source) {
+        return reject(st, raw, source, ErrorCode.OUT_OF_RANGE,
                 "허용 범위 " + r.description() + "를 벗어났다(받은 값: " + v + "). 값을 잘라 맞추지 않는다.");
     }
 
-    private JangnyangSubtaskAnswer reject(JangnyangSubtask st, String raw, ErrorCode code, String reason) {
-        return JangnyangSubtaskAnswer.rejected(st.id(), raw, SubtaskAnswerSource.USER_DIRECT,
-                error(st, code, reason));
+    private JangnyangSubtaskAnswer reject(JangnyangSubtask st, String raw, SubtaskAnswerSource source,
+                                          ErrorCode code, String reason) {
+        return JangnyangSubtaskAnswer.rejected(st.id(), raw, source, error(st, code, reason));
     }
 
     private SubtaskError error(JangnyangSubtask st, ErrorCode code, String reason) {
