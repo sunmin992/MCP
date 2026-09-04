@@ -15,8 +15,13 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class BlueprintComposerTest {
 
-    private static SubtaskSessionService sessions() {
-        return TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
+    /**
+     * 조립기(BlueprintComposer)와 세션 서비스가 <b>같은 카탈로그 인스턴스</b>를 보게
+     * 한다 — 둘이 각자 새 카탈로그를 만들면 세트 내용은 같아도 서로 다른 객체가 되어
+     * "세션과 조립기가 같은 세트를 본다"는 전제가 테스트에서 깨질 수 있다.
+     */
+    private static SubtaskSessionService sessions(JangnyangSubtaskCatalog catalog) {
+        return TestSubtaskFixtures.service(catalog);
     }
 
     /** 고정 응답을 내는 스텁. */
@@ -32,8 +37,9 @@ class BlueprintComposerTest {
     /** 거부 사유가 있으면 세션을 만들지 않고 끝낸다. */
     @Test
     void refusedRequestDoesNotStartASession() {
-        SubtaskSessionService svc = sessions();
-        BlueprintComposer composer = new BlueprintComposer(svc,
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog,
                 stub(new RequestExtraction(List.of(), "부산", null, null)));
 
         BlueprintComposer.Outcome o = composer.compose("s1", "부산 시뮬레이터 만들어 줘");
@@ -52,8 +58,9 @@ class BlueprintComposerTest {
      */
     @Test
     void onlyVerifiedValuesEnterTheSessionAndAreMarkedAsLlm() {
-        SubtaskSessionService svc = sessions();
-        BlueprintComposer composer = new BlueprintComposer(svc, stub(
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, stub(
                 new RequestExtraction(List.of(
                         new ExtractedValue("numBuildings", 26, "26개 동"),
                         new ExtractedValue("seeds", 10, "10회 반복")),   // 요청에 없다
@@ -80,8 +87,9 @@ class BlueprintComposerTest {
     /** 인용을 확인하지 못한 필드는 되묻기 목록에 있어야 한다. */
     @Test
     void unverifiedValuesGoToMustAsk() {
-        SubtaskSessionService svc = sessions();
-        BlueprintComposer composer = new BlueprintComposer(svc, stub(
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, stub(
                 new RequestExtraction(List.of(
                         new ExtractedValue("seeds", 10, "10회 반복")),   // 요청에 없다
                         "장량동", null, null)));
@@ -94,8 +102,9 @@ class BlueprintComposerTest {
     /** 근거 없는 셋은 언제나 되묻기 목록에 있다. */
     @Test
     void unbasedFieldsAreAlwaysAsked() {
-        SubtaskSessionService svc = sessions();
-        BlueprintComposer composer = new BlueprintComposer(svc, stub(
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, stub(
                 new RequestExtraction(List.of(), "장량동", null, null)));
 
         BlueprintComposer.Outcome o = composer.compose("s4", "장량동 시뮬레이터 만들어 줘");
@@ -110,8 +119,9 @@ class BlueprintComposerTest {
      */
     @Test
     void llmFailureFallsBackLoudlyNotSilently() {
-        SubtaskSessionService svc = sessions();
-        BlueprintComposer composer = new BlueprintComposer(svc, failing());
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, failing());
 
         BlueprintComposer.Outcome o = composer.compose("s5", "장량동 시뮬레이터 만들어 줘");
 
@@ -126,8 +136,9 @@ class BlueprintComposerTest {
     /** 스키마가 깨진 추출은 전체를 버린다 — 부분 파싱 금지. */
     @Test
     void malformedExtractionIsDiscardedWholesale() {
-        SubtaskSessionService svc = sessions();
-        BlueprintComposer composer = new BlueprintComposer(svc, stub(
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, stub(
                 new RequestExtraction(List.of(
                         new ExtractedValue(null, 26, "26개 동")),   // 필드 이름이 없다
                         "장량동", null, null)));
@@ -146,18 +157,146 @@ class BlueprintComposerTest {
      */
     @Test
     void outcomeReportsUnverifiedBasisFields() {
-        SubtaskSessionService svc = sessions();
-        BlueprintComposer composer = new BlueprintComposer(svc,
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog,
                 stub(new RequestExtraction(List.of(), "장량동", null, null)));
 
         BlueprintComposer.Outcome o = composer.compose("s7", "장량동 시뮬레이터 만들어 줘");
         assertFalse(o.unverifiedFields().isEmpty(), "days 같은 UNVERIFIED 근거 필드가 있어야 한다");
         assertTrue(o.unverifiedFields().contains("days"), "" + o.unverifiedFields());
 
-        SubtaskSessionService svcFallback = sessions();
-        BlueprintComposer fallbackComposer = new BlueprintComposer(svcFallback, failing());
+        JangnyangSubtaskCatalog catalogFallback = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svcFallback = sessions(catalogFallback);
+        BlueprintComposer fallbackComposer = new BlueprintComposer(svcFallback, catalogFallback, failing());
         BlueprintComposer.Outcome fallback = fallbackComposer.compose("s8", "장량동 시뮬레이터 만들어 줘");
         assertTrue(fallback.unverifiedFields().isEmpty(),
                 "폴백은 아무것도 채우지 않으므로 출처 미확인 필드도 없어야 한다");
+    }
+
+    /**
+     * {@link GapResolver}가 낸 자동 채움 값이 세션 원장에 <b>실제로</b> 들어간다.
+     *
+     * <p>결과(Outcome)만 보면 충분하지 않다 — 결과에는 값이 실려도 세션에 제출되지
+     * 않으면, 다음 답변 제출에서 세션은 여전히 그 필드를 묻는다(이 클래스 상단 javadoc이
+     * 말하는 "같은 판단이 두 곳에 사는 문제"). 근거 값이 null인 필드("해당없음"으로
+     * 확정)도 건너뛰지 않고 들어가야 한다 — 건너뛰면 그 필드는 영원히 채워지지도
+     * 물어지지도 않는다.
+     */
+    @Test
+    void autoFilledValuesEnterTheSession() {
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog,
+                stub(new RequestExtraction(List.of(), "장량동", null, null)));
+
+        composer.compose("s10", "장량동 시뮬레이터 만들어 줘");
+
+        JangnyangSubtaskSession session = svc.activeSession("s10");
+        assertNotNull(session);
+        assertFalse(session.answers().isEmpty(), "자동 채움 값이 하나도 세션에 들어가지 않았다");
+
+        JangnyangSubtaskDefinition def = svc.definitionOf(session);
+        JangnyangSubtask trafficProfile = def.byAnswerField("trafficProfileId");
+        assertNotNull(trafficProfile, "테스트 픽스처에 trafficProfileId 서브태스크가 없다");
+        JangnyangSubtaskAnswer answer = session.answers().get(trafficProfile.id());
+        assertNotNull(answer, "근거가 있는 필드(trafficProfileId)가 자동으로 채워지지 않았다");
+        assertEquals(SubtaskAnswerSource.SERVER_DEFAULT, answer.source(),
+                "서버가 채운 값의 출처는 SERVER_DEFAULT여야 한다: " + answer);
+
+        // 근거 값이 null인 필드도 세션에 들어가야 한다 — "해당없음"으로 확정된 것이지
+        // 채우지 못한 것이 아니다.
+        JangnyangSubtask routeSequence = def.byAnswerField("routeSequence");
+        assertNotNull(routeSequence, "테스트 픽스처에 routeSequence 서브태스크가 없다");
+        JangnyangSubtaskAnswer naAnswer = session.answers().get(routeSequence.id());
+        assertNotNull(naAnswer,
+                "근거 값이 null인 필드가 자동 채움에서 빠졌다 — 해당없음 확정을 건너뛰면 안 된다");
+        assertEquals(JangnyangSubtaskValidator.NOT_APPLICABLE, naAnswer.value());
+    }
+
+    /**
+     * {@code appliedDefaults}의 각 항목은 근거 문장을 지녀야 한다.
+     *
+     * <p>근거 없이 "채운 사실"만 남으면 사용자는 자기가 답하지 않은 값이 어디서 왔는지
+     * 되짚을 수 없다.
+     */
+    @Test
+    void appliedDefaultsCarryTheirReason() {
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog,
+                stub(new RequestExtraction(List.of(), "장량동", null, null)));
+
+        BlueprintComposer.Outcome o = composer.compose("s11", "장량동 시뮬레이터 만들어 줘");
+
+        assertFalse(o.appliedDefaults().isEmpty(), "채운 값이 있는데 appliedDefaults가 비어 있다");
+        assertTrue(o.appliedDefaults().stream()
+                        .anyMatch(d -> d.reason() != null && !d.reason().isBlank()),
+                "근거 문장이 없으면 사용자가 답하지 않은 값의 출처를 되짚을 수 없다: "
+                        + o.appliedDefaults());
+    }
+
+    /**
+     * 근거가 없는(NONE) 세 필드는 자동 채움 대상이 아니다.
+     *
+     * <p>이 셋은 되묻기 목록에 있어야 하고, 동시에 세션 원장에는 없어야 한다 — 채우면
+     * 근거 없는 값이 조용한 가정으로 흘러든다.
+     */
+    @Test
+    void unbasedFieldsAreNeverAutoFilled() {
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog,
+                stub(new RequestExtraction(List.of(), "장량동", null, null)));
+
+        BlueprintComposer.Outcome o = composer.compose("s12", "장량동 시뮬레이터 만들어 줘");
+
+        JangnyangSubtaskSession session = svc.activeSession("s12");
+        assertNotNull(session);
+        JangnyangSubtaskDefinition def = svc.definitionOf(session);
+        for (String field : new String[]{"serviceMinutesPerSite", "intraZoneTravelMinutes",
+                "zoneAssignmentRule"}) {
+            assertTrue(o.mustAsk().contains(field),
+                    field + "는 근거가 없으므로 되물어야 한다: " + o.mustAsk());
+            JangnyangSubtask st = def.byAnswerField(field);
+            assertNotNull(st, "테스트 픽스처에 " + field + " 서브태스크가 없다");
+            assertFalse(session.answers().containsKey(st.id()),
+                    field + "는 근거가 없는데 세션에 값이 들어갔다 — 조용한 가정이 된다: "
+                            + session.answers().keySet());
+        }
+    }
+
+    /**
+     * 거부된 요청 하나가 이미 진행 중인 세션을 지우면 안 된다.
+     *
+     * <p>세션을 먼저 시작해서 답을 하나 넣어 두고 나서 범위 밖 문장을 보낸다. 거부된
+     * 문장이 세션을 건드리면, 사용자가 20문항을 답해 온 뒤 범위 밖 문장 하나를 보내는
+     * 순간 그 답을 모두 잃는다.
+     */
+    @Test
+    void refusedRequestLeavesAnExistingSessionIntact() {
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer refusing = new BlueprintComposer(svc, catalog,
+                stub(new RequestExtraction(List.of(), "부산", null, null)));
+
+        svc.start("s9");
+        JangnyangSubtaskSession before = svc.activeSession("s9");
+        JangnyangSubtaskDefinition def = svc.definitionOf(before);
+        JangnyangSubtask first = before.nextSubtask(def, svc.checker());
+        assertNotNull(first, "테스트 픽스처의 첫 질문을 찾지 못했다");
+        svc.submit("s9", first.id(), "민원이 가장 적은 수거 시각 찾기", null,
+                SubtaskAnswerSource.USER_DIRECT);
+
+        JangnyangSubtaskAnswer answered = svc.activeSession("s9").answers().get(first.id());
+        assertNotNull(answered, "테스트 준비 단계에서 답이 들어가지 않았다");
+
+        BlueprintComposer.Outcome o = refusing.compose("s9", "부산 시뮬레이터 만들어 줘");
+        assertFalse(o.verdict().feasible());
+
+        JangnyangSubtaskSession after = svc.activeSession("s9");
+        assertNotNull(after, "거부된 요청이 진행 중인 세션 자체를 지웠다");
+        assertEquals(answered, after.answers().get(first.id()),
+                "거부된 문장 하나가 이미 답한 값을 지우면 안 된다 — 진행 중인 작업을 잃는다");
     }
 }
