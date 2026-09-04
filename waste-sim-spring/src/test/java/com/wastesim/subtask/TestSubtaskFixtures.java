@@ -12,16 +12,20 @@ import java.util.List;
  *
  * <p>검증기·조립기를 모킹하지 않는 것이 의도다. 이 계층의 테스트는 "서버가 판정을
  * 소유하는가"를 보는 것이라, 판정기를 가짜로 바꾸면 정확히 그 성질이 검증에서 빠진다.
+ *
+ * <p>{@code public}인 이유: 다른 패키지(예: {@code com.wastesim.llm})의 테스트도 같은
+ * 실제 조립이 필요하다. 거기서 이 조립을 그대로 다시 베끼면 "검증기·조립기는 언제나
+ * 진짜를 쓴다"는 의도가 두 곳으로 갈라져 한쪽만 낡은 채 남을 수 있다.
  */
-final class TestSubtaskFixtures {
+public final class TestSubtaskFixtures {
 
     private TestSubtaskFixtures() {}
 
-    static SubtaskSessionService service(JangnyangSubtaskCatalog catalog) {
+    public static SubtaskSessionService service(JangnyangSubtaskCatalog catalog) {
         return service(catalog, new InMemorySubtaskSessionStore());
     }
 
-    static SubtaskSessionService service(JangnyangSubtaskCatalog catalog, SubtaskSessionStore store) {
+    public static SubtaskSessionService service(JangnyangSubtaskCatalog catalog, SubtaskSessionStore store) {
         JangnyangCompletenessChecker checker = new JangnyangCompletenessChecker();
         return new SubtaskSessionService(
                 catalog,
@@ -37,7 +41,7 @@ final class TestSubtaskFixtures {
      * 검증에서 그대로 빠진다. Java 엔진은 등록하지 않는다: 그 어댑터를 만들려면 시뮬레이션
      * 도구 전체가 필요한데, 지원 범위가 "전부"라 없을 때와 판정이 같다.
      */
-    static JangnyangScenarioBuilder builder(JangnyangCompletenessChecker checker) {
+    public static JangnyangScenarioBuilder builder(JangnyangCompletenessChecker checker) {
         TrafficDataService traffic = new TrafficDataService();
         return new JangnyangScenarioBuilder(checker, new SimulationConfigValidator(traffic), traffic,
                 new SimulationModelRegistry(List.of(new PythonWasteSimAdapter())));
