@@ -80,4 +80,20 @@ class SpanVerifierTest {
                 ex(new ExtractedValue("days", 30, "한 달")));
         assertEquals(0, v.accepted().size());
     }
+
+    /**
+     * 한 글자짜리 조각은 요청에 그 글자가 실제로 있어도 인용으로 인정하지 않는다.
+     *
+     * <p>숫자나 글자 하나는 요청 어디에나 우연히 등장할 수 있어서, 길이 제한이 없으면
+     * 지어낸 값에 아무 글자나 하나 붙여 "인용했다"고 우길 수 있다 — 이 검사 전체의
+     * 목적(근거 없는 값을 막는 것)이 무력화된다.
+     */
+    @Test
+    void rejectsSuspiciouslyShortSpans() {
+        SpanVerifier.Verified v = SpanVerifier.verify("3동으로 돌려줘",
+                ex(new ExtractedValue("truckCount", 3, "3")));
+        assertEquals(0, v.accepted().size(),
+                "한 글자 조각은 요청에 그 글자가 있어도 인용의 증거가 아니다");
+        assertEquals(1, v.rejected().size());
+    }
 }

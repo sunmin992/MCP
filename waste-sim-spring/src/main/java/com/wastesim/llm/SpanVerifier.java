@@ -16,8 +16,16 @@ import java.util.Locale;
  *
  * <p>공백과 대소문자 차이는 용인한다 — LLM이 조각을 옮길 때 흔히 달라지고, 그것으로 정당한
  * 인용을 버리면 쓸 수 없는 검사가 된다.
+ *
+ * <p><b>한 글자짜리 조각은 인용으로 인정하지 않는다.</b> 요청에 숫자·글자 하나쯤은 거의
+ * 항상 등장하므로("3", "동" 같은 조각), 길이 제한이 없으면 이 검사가 사실상 통과만 시키는
+ * 우회로가 된다 — 지어낸 값에 아무 글자나 하나 붙여 "조각"이라고 대면 뚫린다. 그래서
+ * 정규화 후 2글자 미만인 조각은 근거로 보지 않고 버린다.
  */
 public final class SpanVerifier {
+
+    /** 정규화 후 이 길이보다 짧은 조각은 인용으로 인정하지 않는다. */
+    private static final int MIN_SPAN_LENGTH = 2;
 
     private SpanVerifier() {}
 
@@ -39,7 +47,9 @@ public final class SpanVerifier {
 
         for (ExtractedValue v : extraction.values()) {
             String needle = normalize(v.span());
-            if (needle.isEmpty() || haystack.isEmpty() || !haystack.contains(needle)) {
+            // 한 글자는 요청 어디에나 우연히 있을 수 있다 — 그것을 인용의 증거로 삼지
+            // 않는다(이 클래스 상단 javadoc 참고).
+            if (needle.length() < MIN_SPAN_LENGTH || haystack.isEmpty() || !haystack.contains(needle)) {
                 rejected.add(v);
             } else {
                 accepted.add(v);
