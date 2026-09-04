@@ -43,7 +43,13 @@ class BlueprintComposerTest {
         assertNull(svc.activeSession("s1"), "거부한 요청으로 세션을 만들면 안 된다");
     }
 
-    /** 인용이 확인된 값만 세션에 들어가고, 출처가 LLM_NORMALIZED로 남는다. */
+    /**
+     * 인용이 확인된 값만 세션에 들어가고, 출처가 LLM_NORMALIZED로 남는다.
+     *
+     * <p>검증된 값이 도착했는지만 보면 충분하지 않다 — 검증되지 않은 값이 함께 들어와도
+     * 그 확인은 통과해 버리기 때문이다. 그래서 이 테스트는 양방향을 모두 본다: 검증된
+     * 값은 들어오고, 검증되지 않은 값은 들어오지 않는다.
+     */
     @Test
     void onlyVerifiedValuesEnterTheSessionAndAreMarkedAsLlm() {
         SubtaskSessionService svc = sessions();
@@ -60,6 +66,15 @@ class BlueprintComposerTest {
         boolean anyLlm = session.answers().values().stream()
                 .anyMatch(a -> a.source() == SubtaskAnswerSource.LLM_NORMALIZED);
         assertTrue(anyLlm, "LLM이 채운 값이 원장에 그 출처로 남아야 한다");
+
+        // 원장은 필드명이 아니라 서브태스크 id로 키가 잡혀 있으므로, "seeds"가 가리키는
+        // id를 먼저 찾아야 한다 — 정의는 세션이 아니라 정의(definition)가 갖고 있다.
+        JangnyangSubtaskDefinition def = svc.definitionOf(session);
+        JangnyangSubtask seedsSubtask = def.byAnswerField("seeds");
+        assertNotNull(seedsSubtask, "테스트 픽스처에 seeds 서브태스크가 없다");
+        assertFalse(session.answers().containsKey(seedsSubtask.id()),
+                "인용을 확인하지 못한 값이 원장에 들어가면, 지어낸 값이 시뮬레이션 입력이 될 수 있다: "
+                        + session.answers().keySet());
     }
 
     /** 인용을 확인하지 못한 필드는 되묻기 목록에 있어야 한다. */
