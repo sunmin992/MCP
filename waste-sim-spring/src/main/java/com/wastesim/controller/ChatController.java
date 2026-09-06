@@ -66,6 +66,21 @@ public class ChatController {
     /** 혼잡 가중치를 "그 지점이 속한 교통 구역"으로 찾기 위한 매핑(SimulationEngine과 같은 기준). */
     private final com.wastesim.site.CollectionSiteRegistry sites;
 
+    /**
+     * 자유 문장에서 설계도를 채우는 경로. {@code null}이면 기존 문항 흐름만 쓴다 —
+     * 이 컨트롤러를 수집 계층 없이 만드는 호출부가 있어서 선택적으로 둔다.
+     */
+    private final com.wastesim.llm.BlueprintComposer composer;
+
+    /**
+     * LLM 경로를 쓸 것인가.
+     *
+     * <p>되돌릴 스위치 없이 켜 두지 않는다. LLM이 값을 잘못 뽑으면 문항을 처음부터 묻던
+     * 예전보다 나빠질 수 있고, 그때 배포를 되돌리는 것 말고 방법이 없으면 곤란하다.
+     * 꺼지면 해석기를 <b>호출조차 하지 않는다</b> — 끈 기능이 비용을 쓰면 안 된다.
+     */
+    private final boolean blueprintEnabled;
+
     // 간단한 in-memory 대화 이력 (sessionId → 메시지 목록).
     //
     // DESIGN_DECISIONS.md D-05: 현재는 모든 클라이언트가 sessionId="default"
@@ -90,6 +105,13 @@ public class ChatController {
     private static final String WASTE_DOMAIN = "waste";
 
 
+    /**
+     * LLM 경로 없이 만드는 생성자. 자유 문장 해석을 쓰지 않고 <b>기존 문항 흐름만</b> 돈다.
+     *
+     * <p>이 경로를 남겨 두는 이유는 기존 테스트들이 검증하는 성질이 "생성 요청이 아닌 문장은
+     * 수집 계층을 건드리지 않는다"이기 때문이다 — 거기에 해석기를 끼우면 그 테스트들이
+     * 무엇을 보고 있는지가 흐려진다. 스프링은 아래 {@code @Autowired} 생성자를 쓴다.
+     */
     public ChatController(SimpMessagingTemplate messaging,
                           OpenAiService openAiService,
                           SimulationTool tool,
@@ -97,6 +119,20 @@ public class ChatController {
                           TrafficDataService trafficData,
                           SubtaskSessionService subtasks,
                           com.wastesim.site.CollectionSiteRegistry sites) {
+        this(messaging, openAiService, tool, metrics, trafficData, subtasks, sites, null, false);
+    }
+
+    @org.springframework.beans.factory.annotation.Autowired
+    public ChatController(SimpMessagingTemplate messaging,
+                          OpenAiService openAiService,
+                          SimulationTool tool,
+                          MeterRegistry metrics,
+                          TrafficDataService trafficData,
+                          SubtaskSessionService subtasks,
+                          com.wastesim.site.CollectionSiteRegistry sites,
+                          com.wastesim.llm.BlueprintComposer composer,
+                          @org.springframework.beans.factory.annotation.Value(
+                                  "${wastesim.llm.blueprint.enabled:true}") boolean blueprintEnabled) {
         this.messaging = messaging;
         this.openAiService = openAiService;
         this.tool = tool;
@@ -104,6 +140,8 @@ public class ChatController {
         this.trafficData = trafficData;
         this.subtasks = subtasks;
         this.sites = sites;
+        this.composer = composer;
+        this.blueprintEnabled = blueprintEnabled;
     }
 
     @MessageMapping("/chat.send")
@@ -412,9 +450,78 @@ public class ChatController {
      */
     private void startSubtaskCollection(String userText, List<Map<String, String>> history) {
         metrics.counter("waste.chat.subtask", "event", "start").increment();
-        SubtaskSessionService.Step step = subtasks.start(subtaskKey.get());
-        sendSubtaskQuestion(step, "시뮬레이터를 구성하겠습니다. 필요한 값을 순서대로 여쭤보겠습니다.",
-                userText, history);
+
+        // 스위치가 꺼져 있거나 조립기가 없으면 예전 그대로 — 해석기를 부르지도 않는다.
+        if (!blueprintEnabled || composer == null) {
+            SubtaskSessionService.Step step = subtasks.start(subtaskKey.get());
+            sendSubtaskQuestion(step, "시뮬레이터를 구성하겠습니다. 필요한 값을 순서대로 여쭤보겠습니다.",
+                    userText, history);
+            return;
+        }
+
+        com.wastesim.llm.BlueprintComposer.Outcome outcome =
+                composer.compose(subtaskKey.get(), userText);
+
+        // 만들 수 없는 요청은 수집을 시작하지 않는다. 시작해 버리면 사용자가 34문항을
+        // 다 답한 뒤에야 자기 요청이 애초에 불가능했다는 것을 알게 된다.
+        if (!outcome.verdict().feasible()) {
+            metrics.counter("waste.chat.subtask", "event", "refused").increment();
+            reply(refusalText(outcome.verdict()), userText, history);
+            return;
+        }
+
+        SubtaskSessionService.Step step = subtasks.currentStep(subtaskKey.get());
+        if (outcome.usedFallback()) {
+            // 조용히 문항으로 넘어가지 않는다 — 아무 말 없이 34문항이 시작되면 사용자는
+            // 자기 문장이 무시된 줄 모른다.
+            metrics.counter("waste.chat.subtask", "event", "fallback").increment();
+            sendSubtaskQuestion(step,
+                    outcome.fallbackNotice() + " 필요한 값을 순서대로 여쭤보겠습니다.",
+                    userText, history);
+            return;
+        }
+        sendSubtaskQuestion(step, composedIntro(outcome), userText, history);
+    }
+
+    /**
+     * 요청에서 무엇을 읽었고 무엇이 남았는지 알린다.
+     *
+     * <p>읽어낸 값을 말하지 않으면 사용자는 자기 문장이 반영됐는지 알 수 없고, 남은 개수를
+     * 말하지 않으면 얼마나 더 답해야 하는지 알 수 없다.
+     */
+    private static String composedIntro(com.wastesim.llm.BlueprintComposer.Outcome outcome) {
+        int filled = outcome.appliedDefaults().size();
+        int asking = outcome.mustAsk().size();
+        StringBuilder sb = new StringBuilder("시뮬레이터를 구성하겠습니다.");
+        if (filled > 0) {
+            sb.append(" 요청과 기본값에서 ").append(filled).append("개를 채웠습니다.");
+        }
+        sb.append(" 남은 ").append(asking).append("개를 여쭤보겠습니다.");
+        if (!outcome.unverifiedFields().isEmpty()) {
+            sb.append(" (기본값 중 ").append(outcome.unverifiedFields().size())
+              .append("개는 출처를 확인하지 않은 값입니다)");
+        }
+        return sb.toString();
+    }
+
+    /**
+     * 거부 사유와 <b>무엇이 있으면 되는지</b>를 함께 낸다.
+     *
+     * <p>자동으로 얻을 수 있는 것과 사람이 채워야 하는 것을 갈라 보여 준다 — 후자를 감추면
+     * 전부 자동으로 될 것처럼 읽힌다.
+     */
+    private static String refusalText(com.wastesim.llm.FeasibilityVerdict verdict) {
+        StringBuilder sb = new StringBuilder(verdict.message());
+        List<com.wastesim.llm.FeasibilityVerdict.Missing> needs = verdict.whatWouldBeNeeded();
+        if (needs.isEmpty()) return sb.toString();
+
+        sb.append("\n\n필요한 것:");
+        for (com.wastesim.llm.FeasibilityVerdict.Missing m : needs) {
+            sb.append("\n· ").append(m.item())
+              .append(m.obtainable() ? " — 자동 수집 가능" : " — 사람이 채워야 함");
+            if (m.note() != null && !m.note().isBlank()) sb.append(": ").append(m.note());
+        }
+        return sb.toString();
     }
 
     /**

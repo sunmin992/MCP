@@ -190,6 +190,22 @@ public class SubtaskSessionService {
         return s == null ? null : s.id();
     }
 
+    /**
+     * 이미 시작된 세션의 현재 질문. 값을 제출하지 않고 <b>지금 무엇을 묻고 있는지</b>만
+     * 읽는다.
+     *
+     * <p>{@link #start(String)}은 세션을 새로 만들기 때문에, 다른 경로가 세션을 채워 둔
+     * 뒤 화면에 질문을 띄우려면 여기가 필요하다 — 그때 start를 다시 부르면 방금 채운
+     * 값이 전부 사라진다.
+     */
+    public Step currentStep(String sessionKey) {
+        JangnyangSubtaskSession session = store.find(sessionKey);
+        if (session == null || !session.state().isActive()) {
+            return Step.rejected("진행 중인 수집 세션이 없습니다.");
+        }
+        return step(session, definitionOf(session), List.of());
+    }
+
     private Step step(JangnyangSubtaskSession session, JangnyangSubtaskDefinition def,
                       List<SubtaskError> errors) {
         JangnyangSubtask next = session.nextSubtask(def, checker);
