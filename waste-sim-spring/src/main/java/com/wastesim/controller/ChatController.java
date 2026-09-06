@@ -701,7 +701,10 @@ public class ChatController {
                 "구성한 시나리오를 실행하는 중... (" + spec.scenarioType() + ", " + spec.toolName() + ")"));
 
         if (spec.isSingleRun()) {
-            runSimulation(cfg, spec.engineId(), true);   // 미리보기에서 이미 승인받았다
+            // 미리보기에서 이미 승인받았다. 출처 미확인 기본값 목록을 함께 넘겨 결과에
+            // 표시가 붙게 한다 — 결과만 따로 인용되면 그 숫자가 무엇에 기대고 있었는지가
+            // 사라진다.
+            runSimulation(cfg, spec.engineId(), true, spec.unverifiedDefaults());
             return true;
         }
         ToolResult tr = tool.runScenario(spec.scenarioType(), cfg);
@@ -964,7 +967,19 @@ public class ChatController {
      *   바로 실행하지 않고 CONFIRM 버블로 사용자 확인을 유도한다
      *   (TRAFFIC_EXTENSION_DESIGN.md §7.2). true는 확인 후 강행 경로.
      */
+    /** 출처 미확인 기본값 없이 도는 기존 호출부용 — 동작이 예전과 같다. */
     private void runSimulation(SimulationConfig cfg, String modelId, boolean skipWarnings) {
+        runSimulation(cfg, modelId, skipWarnings, List.of());
+    }
+
+    /**
+     * @param unverifiedDefaults 서버가 채웠는데 출처를 확인하지 않은 필드들. 비어 있지 않으면
+     *                           결과에 {@code DEFAULT_BASIS_UNVERIFIED} 표시가 붙는다 —
+     *                           결과만 따로 인용될 때 그 숫자가 무엇에 기대고 있었는지가
+     *                           함께 남아야 한다
+     */
+    private void runSimulation(SimulationConfig cfg, String modelId, boolean skipWarnings,
+                               List<String> unverifiedDefaults) {
         boolean pythonEngine = EngineSelectionDetector.PYTHON_MODEL_ID.equals(modelId);
         ChatMessage runningMsg = new ChatMessage(ChatMessage.MessageType.SYSTEM,
                 String.format("시뮬레이션 실행 중... (수거시각: %s, %d일 × %d시드%s)",
@@ -1008,6 +1023,10 @@ public class ChatController {
         SimulationResult result = (raw instanceof SimulationResult sr)
                 ? sr
                 : toSimulationResult((JsonNode) raw, cfg);
+        if (!unverifiedDefaults.isEmpty()) {
+            result.addDataQualityFlag(com.wastesim.model.DataQualityFlag.DEFAULT_BASIS_UNVERIFIED,
+                    String.join(", ", unverifiedDefaults));
+        }
         ChatMessage resultMsg = new ChatMessage(ChatMessage.MessageType.RESULT,
                 formatResult(result, pythonEngine ? "Python(pyevsim) 참조 엔진" : null));
         resultMsg.setSimulationResult(result);
