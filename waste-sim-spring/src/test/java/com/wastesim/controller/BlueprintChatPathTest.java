@@ -207,4 +207,102 @@ class BlueprintChatPathTest {
 
         assertFalse(called[0], "꺼진 경로가 LLM을 부르면 끈 의미가 없다");
     }
+
+    // ── 실행 동사만 있고 시각이 없는 요청 ──────────────────────────────────
+
+    /** 세션에서 한 필드의 답을 꺼낸다. 없으면 null. */
+    private static Object answerOf(Rig r, String field) {
+        var session = r.sessions().activeSession("default");
+        if (session == null) return null;
+        var def = r.sessions().definitionOf(session);
+        String id = def.subtasks().stream()
+                .filter(s -> field.equals(s.answerField()))
+                .findFirst().orElseThrow().id();
+        var a = session.answers().get(id);
+        return a == null ? null : a.value();
+    }
+
+    /**
+     * <b>이 변경의 요점.</b> "돌려줘"는 처음부터 "실행해줘"와 같게 판정됐다 — 갈린 것은
+     * 동사가 아니라 수거 시각의 유무였다. 시각이 없으면 즉시 실행 게이트가 받지 않고,
+     * 생성 판별기는 실행 동사를 일부러 제외하므로, 조건을 다 말한 문장이 일반 답변으로
+     * 떨어졌다.
+     *
+     * <p>되묻고 즉시 실행하는 방식은 쓸 수 없다. 즉시 실행 경로의 추출 스키마에는
+     * {@code numBuildings}가 없고 프롬프트가 히스토리 이어받기를 금지하므로, 시각만 받아
+     * 실행하면 "26개 동"이 조용히 사라진다.
+     */
+    @Test
+    void runVerbWithoutATimeStartsCollectionAndKeepsWhatTheRequestSaid() {
+        Rig r = rig(reads("numBuildings", 26, "26개 동"), true);
+
+        r.controller().handleMessage(userMsg("장량동 26개 동으로 한 달 돌려줘"));
+
+        assertNotNull(r.sessions().activeSession("default"),
+                "조건을 다 말한 요청이 일반 답변으로 떨어지면 사용자는 아무것도 못 얻는다");
+        assertEquals(26, answerOf(r, "numBuildings"),
+                "요청에 있던 26개 동이 사라지면 되묻는 의미가 없다");
+    }
+
+    /** 말하지 않은 수거 시각은 기본값으로 채우지 않고 <b>묻는다</b>. */
+    @Test
+    void theMissingCollectionTimeIsAskedNotDefaulted() {
+        Rig r = rig(reads("numBuildings", 26, "26개 동"), true);
+
+        r.controller().handleMessage(userMsg("장량동 26개 동으로 한 달 돌려줘"));
+
+        assertNull(answerOf(r, "collectionTime"),
+                "실행을 요청했는데 정작 수거 시각이 12:00으로 조용히 채워지면 안 된다");
+    }
+
+    /**
+     * 무엇을 왜 묻는지 말한다 — 이유 없이 질문이 뜨면 요청이 무시된 것처럼 보인다.
+     *
+     * <p>안내 문구를 직접 확인하고, 그것이 <b>SUBTASK가 아닌</b> 메시지로 나갔는지도 본다.
+     * "수거 시각"이라는 낱말만 찾으면 {@code collectionTime} 문항 자체가 그 낱말을 담고 있어
+     * 안내를 통째로 지워도 통과한다 — 변이로 확인했다.
+     */
+    @Test
+    void theUserIsToldWhyTheTimeIsBeingAsked() {
+        Rig r = rig(reads("numBuildings", 26, "26개 동"), true);
+
+        r.controller().handleMessage(userMsg("장량동 26개 동으로 한 달 돌려줘"));
+
+        ArgumentCaptor<Object> sent = ArgumentCaptor.forClass(Object.class);
+        verify(r.messaging(), atLeastOnce()).convertAndSend(anyString(), sent.capture());
+        boolean visible = sent.getAllValues().stream()
+                .filter(o -> o instanceof ChatMessage)
+                .map(o -> (ChatMessage) o)
+                .anyMatch(m -> m.getType() != ChatMessage.MessageType.SUBTASK
+                        && m.getContent() != null && m.getContent().contains("수거 시각이 없어"));
+        assertTrue(visible, "왜 시각을 묻는지가 화면이 그리는 메시지에 없다: " + saidTo(r.messaging()));
+    }
+
+    /**
+     * 시각이 있는 문장은 즉시 실행 그대로다 — <b>시나리오 조건이 함께 있어도</b> 그렇다.
+     *
+     * <p>이 게이트가 즉시 실행보다 먼저 서면 "10시에 수거로 26개 동 한 달 돌려줘"가 문항
+     * 수집으로 샌다. 조건 없는 "10시에 수거로 돌려줘"로만 확인하면 판정기가 어차피 false를
+     * 내므로 순서 가드를 지워도 통과한다 — 변이로 확인했다.
+     */
+    @Test
+    void aRequestThatHasATimeStillRunsImmediately() {
+        Rig r = rig(reads("numBuildings", 26, "26개 동"), true);
+
+        r.controller().handleMessage(userMsg("10시에 수거로 26개 동 한 달 돌려줘"));
+
+        assertNull(r.sessions().activeSession("default"),
+                "시각이 있는 실행 요청은 수집이 아니라 즉시 실행이다");
+    }
+
+    /** 실행 동사가 없는 조회는 그대로 일반 답변이다. */
+    @Test
+    void aPlainQuestionStillGetsAPlainAnswer() {
+        Rig r = rig(reads("numBuildings", 26, "26개 동"), true);
+
+        r.controller().handleMessage(userMsg("장량동 배출량 알려줘"));
+
+        assertNull(r.sessions().activeSession("default"),
+                "조회 문장이 수집을 시작하면 아무 질문에나 34문항이 뜬다");
+    }
 }

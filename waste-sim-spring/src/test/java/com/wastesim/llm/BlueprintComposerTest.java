@@ -4,6 +4,7 @@ import com.wastesim.subtask.*;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -298,5 +299,35 @@ class BlueprintComposerTest {
         assertNotNull(after, "거부된 요청이 진행 중인 세션 자체를 지웠다");
         assertEquals(answered, after.answers().get(first.id()),
                 "거부된 문장 하나가 이미 답한 값을 지우면 안 된다 — 진행 중인 작업을 잃는다");
+    }
+
+    /**
+     * 반드시 물으라고 지정한 필드는 <b>채운 것으로 세지 않는다</b>.
+     *
+     * <p>{@code collectionTime}은 지금도 되묻기 목록에 있지만 그것은 의도가 아니라 사고다 —
+     * 선언된 기본값 {@code 720}(분)이 TIME 검증({@code HH:MM})을 통과하지 못해 제출이
+     * 거부되고, 거부된 답이 "아직 안 물은 것"으로 남기 때문이다. 그래서 화면은 채우지도
+     * 못한 값을 "채웠습니다"에 세고 시뮬레이터 기본값 목록에도 올린다.
+     *
+     * <p>그 기본값을 언젠가 {@code "12:00"}으로 고치면, 지정이 없는 한 이 경로는 조용히
+     * 12시로 돌아간다 — 사용자가 "돌려줘"라고 한 문장에서 유일하게 빠진 값이 시각인데도
+     * 묻지 않게 된다. 지정은 그때에도 묻게 만든다.
+     */
+    @Test
+    void anAlwaysAskFieldIsNotCountedAsFilled() {
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, stub(
+                new RequestExtraction(List.of(new ExtractedValue("numBuildings", 26, "26개 동")),
+                        "장량동", null, null)));
+
+        BlueprintComposer.Outcome o = composer.compose("s-always", "장량동 26개 동으로 한 달 돌려줘",
+                Set.of("collectionTime"));
+
+        assertTrue(o.mustAsk().contains("collectionTime"));
+        assertFalse(o.appliedDefaults().stream().anyMatch(d -> "collectionTime".equals(d.field())),
+                "묻기로 한 값을 채운 것으로 세면 화면의 개수가 사실과 달라진다: " + o.appliedDefaults());
+        assertFalse(o.modelDefaultFields().contains("collectionTime"),
+                "채우지 않은 값에 기본값 표시를 붙이면 결과 표시가 무의미해진다");
     }
 }

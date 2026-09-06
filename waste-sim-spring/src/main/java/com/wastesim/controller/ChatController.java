@@ -33,6 +33,7 @@ import com.wastesim.service.OpenAiService;
 import com.wastesim.service.RouteAwarenessDetector;
 import com.wastesim.service.RouteDurationEstimator;
 import com.wastesim.service.RouteDurationQueryDetector;
+import com.wastesim.service.RunWithoutTimeDetector;
 import com.wastesim.service.ScenarioIntentDetector;
 import com.wastesim.service.SimulatorCreationDetector;
 import com.wastesim.service.TimeExpressionDetector;
@@ -291,6 +292,19 @@ public class ChatController {
             // 확장해 LLM 의존을 완전히 제거함으로써 근본적으로 해결한다.
             int timeCount = TimeExpressionDetector.count(userText);
             boolean isRunRequest = timeCount == 1 && ExecutionIntentDetector.isExecutionRequest(userText);
+
+            // 1.8단계 — 실행 동사는 있는데 수거 시각이 없는 요청. 즉시 실행 게이트가 떨어진
+            // <b>뒤에</b> 선다 — 앞에 두면 "10시에 수거로 돌려줘"까지 문항 수집으로 샌다.
+            //
+            // 되묻고 즉시 실행하는 방식은 쓸 수 없다: 즉시 실행 경로의 추출 스키마에는
+            // numBuildings가 없고 프롬프트가 히스토리 이어받기를 금지하므로, 시각만 받아
+            // 실행하면 "26개 동"이 조용히 사라진다(게다가 "한 달"→30은 기본값과 같아
+            // 그 손실이 화면에 보이지도 않는다). 수집 경로로 보내면 말한 조건은 살고,
+            // 말하지 않은 시각만 물어진다.
+            if (!isRunRequest && RunWithoutTimeDetector.isRunWithoutTime(userText)) {
+                startSubtaskCollection(userText, history, MUST_ASK_COLLECTION_TIME);
+                return;
+            }
             metrics.counter("waste.chat.classify", "result", isRunRequest ? "yes" : "no", "source", "deterministic").increment();
 
             // 1.7단계 — 엔진(모델) 선택도 결정론적으로 판정한다(EngineSelectionDetector,
@@ -448,7 +462,22 @@ public class ChatController {
      * <p>질문 문장은 카탈로그의 것을 <b>그대로</b> 싣는다 — LLM이 만든 텍스트가 아니다
      * (FR-122·D-44). 이 메서드에 LLM 호출이 없다는 사실이 그 보장의 근거다.
      */
+    /**
+     * 실행 동사만 있고 시각이 없는 요청에서 반드시 되물을 필드.
+     *
+     * <p>{@code collectionTime}은 근거가 {@code MODEL_DEFAULT}라 지정하지 않으면 기본값으로
+     * 자동으로 채워진다. 사용자가 "돌려줘"라고 한 것은 지금 돌리겠다는 뜻이고, 그 문장에서
+     * 유일하게 빠진 값이 시각이다 — 그것을 묻지 않으면 되묻는 경로를 만든 의미가 없다.
+     */
+    private static final java.util.Set<String> MUST_ASK_COLLECTION_TIME =
+            java.util.Set.of("collectionTime");
+
     private void startSubtaskCollection(String userText, List<Map<String, String>> history) {
+        startSubtaskCollection(userText, history, java.util.Set.of());
+    }
+
+    private void startSubtaskCollection(String userText, List<Map<String, String>> history,
+                                        java.util.Set<String> alwaysAsk) {
         metrics.counter("waste.chat.subtask", "event", "start").increment();
 
         // 스위치가 꺼져 있거나 조립기가 없으면 예전 그대로 — 해석기를 부르지도 않는다.
@@ -460,7 +489,7 @@ public class ChatController {
         }
 
         com.wastesim.llm.BlueprintComposer.Outcome outcome =
-                composer.compose(subtaskKey.get(), userText);
+                composer.compose(subtaskKey.get(), userText, alwaysAsk);
 
         // 만들 수 없는 요청은 수집을 시작하지 않는다. 시작해 버리면 사용자가 34문항을
         // 다 답한 뒤에야 자기 요청이 애초에 불가능했다는 것을 알게 된다.
@@ -475,7 +504,7 @@ public class ChatController {
             metrics.counter("waste.chat.subtask", "event", "fallback").increment();
             notice(outcome.fallbackNotice() + " 필요한 값을 순서대로 여쭤보겠습니다.");
         } else {
-            notice(composedIntro(outcome));
+            notice(composedIntro(outcome, alwaysAsk));
         }
         sendSubtaskQuestion(step, null, userText, history);
     }
@@ -500,7 +529,8 @@ public class ChatController {
      * <p>읽어낸 값을 말하지 않으면 사용자는 자기 문장이 반영됐는지 알 수 없고, 남은 개수를
      * 말하지 않으면 얼마나 더 답해야 하는지 알 수 없다.
      */
-    private static String composedIntro(com.wastesim.llm.BlueprintComposer.Outcome outcome) {
+    private static String composedIntro(com.wastesim.llm.BlueprintComposer.Outcome outcome,
+                                        java.util.Set<String> alwaysAsk) {
         int filled = outcome.appliedDefaults().size();
         int asking = outcome.mustAsk().size();
         StringBuilder sb = new StringBuilder("시뮬레이터를 구성하겠습니다.");
@@ -511,6 +541,11 @@ public class ChatController {
         if (!outcome.modelDefaultFields().isEmpty()) {
             sb.append(" (그중 ").append(outcome.modelDefaultFields().size())
               .append("개는 시뮬레이터 기본값입니다)");
+        }
+        // 왜 시각부터 묻는지 말한다. 실행을 요청했는데 이유 없이 질문이 뜨면 사용자는
+        // 자기 문장이 무시된 줄 안다.
+        if (alwaysAsk.contains("collectionTime")) {
+            sb.append(" 실행 요청으로 읽었지만 수거 시각이 없어 그 값도 함께 여쭤봅니다.");
         }
         return sb.toString();
     }

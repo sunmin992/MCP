@@ -68,6 +68,15 @@ public class BlueprintComposer {
     }
 
     public Outcome compose(String sessionKey, String request) {
+        return compose(sessionKey, request, Set.of());
+    }
+
+    /**
+     * @param alwaysAsk 근거가 있어도 반드시 되물을 {@code answerField} 이름들. 실행 동사만
+     *                  있고 수거 시각이 없는 요청에서 {@code collectionTime}이 여기 들어간다 —
+     *                  기본값으로 조용히 채우면 사용자가 정하려던 값이 사라진다
+     */
+    public Outcome compose(String sessionKey, String request, Set<String> alwaysAsk) {
         // 필드 목록은 카탈로그에서 직접 얻는다. 세션을 먼저 시작해서 거기서 읽으면,
         // start()가 진행 중인 세션을 덮어쓰기 때문에 20문항을 답해 온 사용자가 범위
         // 밖 문장 하나를 보내는 순간 그 답을 모두 잃는다 — 거부될 수도 있는 요청으로
@@ -117,7 +126,7 @@ public class BlueprintComposer {
             if (id != null) settled.add(id);
         }
 
-        GapResolver.Resolution gaps = GapResolver.resolve(def, settled);
+        GapResolver.Resolution gaps = GapResolver.resolve(def, settled, alwaysAsk);
         for (Map.Entry<String, Object> e : gaps.autoFilled().entrySet()) {
             String id = idOfField(def, e.getKey());
             if (id == null) continue;

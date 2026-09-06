@@ -108,4 +108,42 @@ class GapResolverTest {
         assertFalse(r.mustAsk().contains("routeSequence"),
                 "해당없음으로 채워졌으므로 다시 물으면 안 된다");
     }
+
+    /**
+     * 부르는 쪽이 <b>반드시 물으라</b>고 지정한 필드는 근거가 있어도 채우지 않는다.
+     *
+     * <p>"장량동 26개 동으로 한 달 돌려줘"처럼 실행 동사만 있고 시각이 없는 요청에서
+     * 필요하다. {@code collectionTime}은 근거가 {@code MODEL_DEFAULT}라 그냥 두면 12:00으로
+     * 자동으로 채워지고 넘어간다 — 그러면 사용자가 실행을 요청했는데 정작 자기가 정하려던
+     * 시각은 물어보지도 않은 채 기본값으로 돈다.
+     */
+    @Test
+    void alwaysAskFieldIsAskedEvenThoughItHasADefault() {
+        GapResolver.Resolution r = GapResolver.resolve(v4(), Set.of(), Set.of("collectionTime"));
+
+        assertTrue(r.mustAsk().contains("collectionTime"),
+                "지정한 필드를 묻지 않으면 부르는 쪽의 요구가 조용히 무시된다");
+        assertFalse(r.autoFilled().containsKey("collectionTime"),
+                "물을 필드를 동시에 채우면 사용자의 답이 기본값에 덮인다");
+        assertFalse(r.modelDefaultFields().contains("collectionTime"),
+                "채우지 않은 값을 기본값으로 세면 결과 표시가 사실과 달라진다");
+    }
+
+    /** 지정은 그 필드에만 닿는다 — 나머지 자동 채움은 그대로여야 한다. */
+    @Test
+    void alwaysAskDoesNotDisturbOtherFields() {
+        GapResolver.Resolution before = resolveNothing();
+        GapResolver.Resolution after = GapResolver.resolve(v4(), Set.of(), Set.of("collectionTime"));
+
+        assertEquals(before.autoFilled().size() - 1, after.autoFilled().size(),
+                "지정한 하나 말고 다른 필드까지 되묻기로 내려가면 안 된다");
+        assertTrue(after.autoFilled().containsKey("numBuildings"));
+    }
+
+    /** 기존 2인자 호출은 아무것도 강제하지 않는 것과 같아야 한다. */
+    @Test
+    void twoArgResolveForcesNothing() {
+        assertEquals(resolveNothing().mustAsk(),
+                GapResolver.resolve(v4(), Set.of(), Set.of()).mustAsk());
+    }
 }

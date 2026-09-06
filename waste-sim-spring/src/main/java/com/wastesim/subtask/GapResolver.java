@@ -47,8 +47,30 @@ public final class GapResolver {
      * @param answeredSubtaskIds 이미 답이 있는 서브태스크 id. 이 필드들은 건드리지 않는다 —
      *                           답한 값을 기본값으로 덮으면 사용자 입력이 사라진다
      */
+    /**
+     * 부르는 쪽이 지정한 필드는 근거가 있어도 채우지 않고 되묻는다.
+     *
+     * <p>"장량동 26개 동으로 한 달 돌려줘"처럼 실행 동사만 있고 시각이 없는 요청에 필요하다.
+     * {@code collectionTime}은 근거가 {@code MODEL_DEFAULT}라 그냥 두면 기본값으로 채워지고
+     * 넘어간다 — 사용자가 실행을 요청했는데 정작 자기가 정하려던 시각은 물어보지도 않은 채
+     * 도는 상태가 된다.
+     *
+     * @param alwaysAsk 반드시 물을 {@code answerField} 이름들
+     */
+    public static Resolution resolve(JangnyangSubtaskDefinition def,
+                                     Set<String> answeredSubtaskIds,
+                                     Set<String> alwaysAsk) {
+        return split(def, answeredSubtaskIds, alwaysAsk);
+    }
+
     public static Resolution resolve(JangnyangSubtaskDefinition def,
                                      Set<String> answeredSubtaskIds) {
+        return split(def, answeredSubtaskIds, Set.of());
+    }
+
+    private static Resolution split(JangnyangSubtaskDefinition def,
+                                    Set<String> answeredSubtaskIds,
+                                    Set<String> alwaysAsk) {
         Map<String, Object> filled = new LinkedHashMap<>();
         List<AppliedDefault> defaults = new ArrayList<>();
         List<String> mustAsk = new ArrayList<>();
@@ -60,7 +82,9 @@ public final class GapResolver {
             // 선언이 없으면 근거를 모르는 것이다. 모르는 값을 채우지 않는다.
             FieldBasis b = s.basis() != null ? s.basis() : FieldBasis.unknown();
 
-            if (!b.kind().canFillWithoutAsking()) {
+            // 부르는 쪽의 지정이 근거보다 앞선다. 근거가 있다는 것은 "채워도 된다"는 뜻이지
+            // "채워야 한다"는 뜻이 아니다 — 이 요청에서는 물어야 하는 값일 수 있다.
+            if (alwaysAsk.contains(s.answerField()) || !b.kind().canFillWithoutAsking()) {
                 mustAsk.add(s.answerField());
                 continue;
             }
