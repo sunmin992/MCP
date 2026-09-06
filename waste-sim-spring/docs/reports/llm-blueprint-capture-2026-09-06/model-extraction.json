@@ -1,0 +1,11 @@
+{
+  "_note": "로컬 qwen2.5:7b가 실제 지시문에 대해 낸 응답. 2026-09-06.",
+  "_request": "장량동 26개 동으로 한 달치 시뮬레이터 만들어 줘",
+  "values": [
+    {"field": "numBuildings", "value": 26, "span": "장량동 26개 동"},
+    {"field": "days",         "value": 30, "span": "한 달치"}
+  ],
+  "targetRegion": "장량동",
+  "targetDomain": "",
+  "requestedConclusion": ""
+}

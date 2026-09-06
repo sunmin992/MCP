@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>범위 밖 요청 거부</title>
+<link rel="stylesheet" href="../../../src/main/resources/static/css/app.css">
+<style>body{background:#12141a;margin:0;padding:24px}
+.messages{max-width:900px;margin:0 auto}
+.capture-note{max-width:900px;margin:0 auto 20px;color:#9aa4b2;font:14px/1.6 system-ui;
+ border-left:3px solid #4c6ef5;padding-left:12px}</style></head>
+<body>
+<div class="capture-note">2026-09-06 · 기준 커밋 faf2efd · 브라우저에서 실제로 렌더링된 마크업을 그대로 옮긴 것이다. 입력: <b>부산 시뮬레이터 만들어 줘</b>. 수집 세션은 시작되지 않았다.</div>
+<div class="messages" id="messages"><div class="msg system"><div class="bubble">대화 이력이 초기화되었습니다.</div></div><div class="msg user"><div class="bubble">부산 시뮬레이터 만들어 줘</div></div><div class="msg bot"><div class="bubble">이 시뮬레이터는 포항시 북구 장량동만 다룹니다.
+
+필요한 것:
+· 교통 구역 정의 — 사람이 채워야 함: 장량동 A~D는 교통량 CSV 링크 매핑과 랜드마크로 정했습니다. 대상 지역에 그 자료가 없으면 사람이 구역을 정해야 합니다.
+· 주민 배출 모델 — 사람이 채워야 함: 0.9kg/인·일과 직업별 외출·귀가 시각은 원룸촌 논문 모델입니다. 주거 형태가 다르면 맞지 않습니다.
+· 도로 자유주행시간 — 자동 수집 가능: OSRM — 구역이 정해지면 자동 수집
+· 시간대 혼잡 — 자동 수집 가능: TMAP — 프로파일 1개당 288회 호출
+· 수거 일정·미수거일 — 자동 수집 가능: 생활쓰레기 배출정보 표준데이터(시군구별, 채움 편차 있음)
+· 인구·세대수 — 자동 수집 가능: 주민등록 통계</div></div></div>
+</body></html>
