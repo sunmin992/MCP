@@ -113,9 +113,9 @@
       "retryQuestion": "어떤 시뮬레이션 엔진을 사용할까요? java는 재구현 엔진, python은 논문 재현 pyevsim 참조 엔진입니다.",
       "completionCondition": "허용 값 하나가 저장되면 완료. 지원 여부는 조립 단계에서 설정과 함께 판정한다.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": "java",
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -137,9 +137,9 @@
       "retryQuestion": "건물을 몇 개 포함할까요?",
       "completionCondition": "1~26 범위의 정수가 저장되면 완료. 수거 지점 목록과 총 주민 수는 이 값으로 자동 계산해 보여준다.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 4,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -161,9 +161,9 @@
       "retryQuestion": "건물 한 곳당 몇 명이 살고 있나요? (모든 건물에 같은 인원이 적용됩니다)",
       "completionCondition": "1~500 범위의 정수가 저장되면 완료. 총 주민 수는 건물 수 × 이 값으로 자동 계산한다.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 25,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -189,9 +189,9 @@
       "retryQuestion": "어떤 직업 구성으로 계산할까요? (BALANCED 균형형 · UNIVERSITY 대학가형 · INDUSTRIAL 공단인근형 · FAMILY 가족주거형)",
       "completionCondition": "허용 값 하나가 저장되면 완료. 프리셋의 직업 배정 목록이 그대로 엔진에 넘어간다.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": "BALANCED",
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -213,9 +213,9 @@
       "retryQuestion": "며칠 동안 시뮬레이션할까요?",
       "completionCondition": "1~365 범위의 정수가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 30,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -237,9 +237,9 @@
       "retryQuestion": "같은 조건을 몇 번 반복할까요? (반복 횟수가 많으면 결과가 안정되지만 실행이 느려집니다)",
       "completionCondition": "1~100 범위의 정수가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 30,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -261,9 +261,9 @@
       "retryQuestion": "한 사람이 하루에 버리는 평균 쓰레기 양은 몇 kg인가요?",
       "completionCondition": "허용 범위의 수가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 0.9,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -285,9 +285,9 @@
       "retryQuestion": "하루 배출량의 변동 정도(표준편차 비율)는 얼마인가요?",
       "completionCondition": "허용 범위의 수가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 0.3,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -309,9 +309,9 @@
       "retryQuestion": "주민 외출 시각의 변동 정도(표준편차)는 몇 분인가요?",
       "completionCondition": "허용 범위의 수가 저장되면 완료. 배출 시각 모델이 POHANG_ACTUAL이면 배출 시각에는 영향을 주지 않는다.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 30.0,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -386,9 +386,9 @@
       "retryQuestion": "수거장 한 곳의 용량은 몇 kg인가요?",
       "completionCondition": "허용 범위의 수가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 30.0,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -410,9 +410,9 @@
       "retryQuestion": "적재율이 몇 %일 때 민원 기준으로 볼까요?",
       "completionCondition": "0~1 범위의 비율이 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 0.8,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -434,9 +434,9 @@
       "retryQuestion": "기준 수거 시각을 24시간 형식으로 입력해 주세요. (예: 08:30)",
       "completionCondition": "00:00~23:59 범위의 HH:MM 값이 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 720,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -458,9 +458,9 @@
       "retryQuestion": "하루에 여러 번 수거한다면 각각 몇 시인가요? (한 번만 수거하면 해당 없음)",
       "completionCondition": "2~6개의 서로 다른 시각이 저장되거나 해당 없음으로 표시되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": null,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -521,9 +521,9 @@
       "retryQuestion": "어떤 크기의 트럭을 사용할까요? (LARGE_5TON · MEDIUM_2P5T · SMALL_1TON)",
       "completionCondition": "허용 값 하나가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": "LARGE_5TON",
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -545,9 +545,9 @@
       "retryQuestion": "트럭을 몇 대 사용할까요?",
       "completionCondition": "1~26 범위의 정수가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 1,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -569,9 +569,9 @@
       "retryQuestion": "차량 한 대가 이번 경로에서 수거할 수 있는 양은 몇 kg인가요? (차종 정격용량을 그대로 쓰려면 해당 없음)",
       "completionCondition": "허용 범위의 수가 저장되거나 해당 없음으로 표시되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": null,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -593,9 +593,9 @@
       "retryQuestion": "출발할 때 차량에 이미 실린 양은 몇 kg인가요?",
       "completionCondition": "허용 범위의 수가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 0.0,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -617,9 +617,9 @@
       "retryQuestion": "차량 사이의 출발 간격은 몇 분인가요? (동시에 출발하면 0, 트럭이 한 대면 해당 없음)",
       "completionCondition": "0~720 범위의 정수가 저장되거나 해당 없음으로 표시되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 0,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -643,9 +643,9 @@
       "retryQuestion": "교통량을 반영할까요? (APPLY 반영 · NONE 미반영)",
       "completionCondition": "허용 값 하나가 저장되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": "NONE",
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -720,9 +720,9 @@
       "retryQuestion": "지점 사이의 기본 이동시간은 몇 분인가요? (LEGACY_CONSTANT에서만 쓰입니다)",
       "completionCondition": "0~240 범위의 정수가 저장되거나 해당 없음으로 표시되면 완료.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": 0,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {
@@ -816,9 +816,9 @@
       "retryQuestion": "수거장을 어떤 순서로 방문할까요? (예: Node_A, Node_B, Node_C. 자동 생성 순서를 쓰려면 해당 없음)",
       "completionCondition": "지점 ID 목록이 저장되거나 해당 없음으로 표시되면 완료. 해당 없음이면 건물 수만큼 자동 생성한 순서를 쓰고 그 사실을 가정으로 남긴다.",
       "basis": {
-        "kind": "UNVERIFIED",
+        "kind": "MODEL_DEFAULT",
         "value": null,
-        "source": "코드 기본값 — 개별 출처 미확인"
+        "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
       }
     },
     {

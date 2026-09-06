@@ -122,31 +122,30 @@ public class JangnyangScenarioBuilder {
                 def.subtaskSetId(), def.version(), def.hash(),
                 scenarioType, toolName, engineId,
                 records, List.copyOf(defaults), List.copyOf(assumptions),
-                unverifiedDefaultsOf(def, answers), cfg);
+                modelDefaultsOf(def, answers), cfg);
         return BuildOutcome.built(spec);
     }
 
     /**
-     * 서버가 채운 값 중 <b>출처를 확인하지 않은</b> 필드들.
+     * 서버가 <b>시뮬레이터 기본값으로</b> 채운 필드들.
      *
      * <p>원장(누가 넣었나)과 근거 선언(무엇에 기대나)을 대조해서 유도한다. 컴포저가 계산한
      * 목록을 여기까지 끌고 오지 않는 이유는, 같은 사실이 두 곳에 살면 어긋나기 때문이다 —
      * 이 프로젝트는 그 모양으로 이미 두 번 물렸다(검증기가 엔진과 다른 경로를 검사했고,
      * 요약이 실행 하나가 지닌 출처를 떨어뜨렸다).
      *
-     * <p>사용자가 직접 답한 값은 세지 않는다. 서버가 채운 것이 아니고, 거기에 "출처 미확인"을
-     * 붙이면 사용자를 탓하는 표시가 된다.
+     * <p>사용자가 직접 답한 값은 세지 않는다. 서버가 채운 것이 아니다.
      *
-     * <p>근거 선언이 없는 세트(v3 이하)는 빈 목록이다 — 확인했는지 여부를 말할 수 없는 것과
-     * 확인하지 않았다고 단정하는 것은 다르다.
+     * <p>근거 선언이 없는 세트(v3 이하)는 빈 목록이다 — 그 세트는 어느 값이 기본값인지
+     * 자체를 말하지 않으므로 여기서 단정할 수 없다.
      */
-    public static List<String> unverifiedDefaultsOf(
+    public static List<String> modelDefaultsOf(
             JangnyangSubtaskDefinition def,
             java.util.Map<String, JangnyangSubtaskAnswer> answers) {
         List<String> out = new ArrayList<>();
         for (JangnyangSubtask s : def.subtasks()) {
             FieldBasis basis = s.basis();
-            if (basis == null || !basis.kind().needsUnverifiedWarning()) continue;
+            if (basis == null || !basis.kind().needsModelDefaultNotice()) continue;
             JangnyangSubtaskAnswer a = answers.get(s.id());
             if (a != null && a.source() == SubtaskAnswerSource.SERVER_DEFAULT) {
                 out.add(s.answerField());

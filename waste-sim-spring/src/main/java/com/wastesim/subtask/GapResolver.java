@@ -26,12 +26,12 @@ public final class GapResolver {
      *                         {@code null} 값을 정상 상태로 받아들여야 한다
      * @param defaults         채운 값의 근거 기록. 결과에 함께 실린다
      * @param mustAsk          반드시 물어야 하는 필드
-     * @param unverifiedFields 채웠지만 출처를 확인하지 않은 필드. 결과에 표시가 붙는다
+     * @param modelDefaultFields 시뮬레이터 기본값으로 채운 필드. 결과에 표시가 붙는다
      */
     public record Resolution(Map<String, Object> autoFilled,
                              List<AppliedDefault> defaults,
                              List<String> mustAsk,
-                             List<String> unverifiedFields) {
+                             List<String> modelDefaultFields) {
         public Resolution {
             // Map.copyOf는 null 값을 거부한다. "해당없음"으로 확정된 필드는 value가
             // null인 채로 자동 채움에 들어와야 하므로(그 자체가 결론이다) null을 허용하는
@@ -39,7 +39,7 @@ public final class GapResolver {
             autoFilled = Collections.unmodifiableMap(new LinkedHashMap<>(autoFilled));
             defaults = List.copyOf(defaults);
             mustAsk = List.copyOf(mustAsk);
-            unverifiedFields = List.copyOf(unverifiedFields);
+            modelDefaultFields = List.copyOf(modelDefaultFields);
         }
     }
 
@@ -52,7 +52,7 @@ public final class GapResolver {
         Map<String, Object> filled = new LinkedHashMap<>();
         List<AppliedDefault> defaults = new ArrayList<>();
         List<String> mustAsk = new ArrayList<>();
-        List<String> unverified = new ArrayList<>();
+        List<String> modelDefaults = new ArrayList<>();
 
         for (JangnyangSubtask s : def.subtasks()) {
             if (answeredSubtaskIds.contains(s.id())) continue;
@@ -66,11 +66,11 @@ public final class GapResolver {
             }
             filled.put(s.answerField(), b.value());
             defaults.add(new AppliedDefault(s.answerField(), b.value(),
-                    b.source() != null ? b.source() : "출처 미확인"));
-            if (b.kind().needsUnverifiedWarning()) {
-                unverified.add(s.answerField());
+                    b.source() != null ? b.source() : "시뮬레이터 기본값"));
+            if (b.kind().needsModelDefaultNotice()) {
+                modelDefaults.add(s.answerField());
             }
         }
-        return new Resolution(filled, defaults, mustAsk, unverified);
+        return new Resolution(filled, defaults, mustAsk, modelDefaults);
     }
 }

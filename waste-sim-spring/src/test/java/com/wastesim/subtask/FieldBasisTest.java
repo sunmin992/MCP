@@ -26,23 +26,22 @@ class FieldBasisTest {
     /** 자동 채움 가능 여부는 두 종류만 거짓이다. */
     @Test
     void onlyTwoKindsBlockAutomaticFilling() {
-        assertTrue(BasisKind.PAPER.canFillWithoutAsking());
         assertTrue(BasisKind.REGULATION.canFillWithoutAsking());
         assertTrue(BasisKind.MEASURED.canFillWithoutAsking());
-        assertTrue(BasisKind.UNVERIFIED.canFillWithoutAsking());
+        assertTrue(BasisKind.MODEL_DEFAULT.canFillWithoutAsking());
         assertFalse(BasisKind.NONE.canFillWithoutAsking(),
                 "근거 없는 값을 기본값으로 채우면 조용한 가정이 된다");
         assertFalse(BasisKind.EXPERIMENT_INTENT.canFillWithoutAsking(),
                 "실험 목적은 사용자가 정해야 한다");
     }
 
-    /** 경고가 필요한 것은 UNVERIFIED뿐이다 — 경고를 남발하면 읽히지 않는다. */
+    /** 표시가 필요한 것은 MODEL_DEFAULT뿐이다 — 경고를 남발하면 읽히지 않는다. */
     @Test
     void onlyUnverifiedNeedsAWarning() {
-        assertTrue(BasisKind.UNVERIFIED.needsUnverifiedWarning());
+        assertTrue(BasisKind.MODEL_DEFAULT.needsModelDefaultNotice());
         for (BasisKind k : BasisKind.values()) {
-            if (k != BasisKind.UNVERIFIED) {
-                assertFalse(k.needsUnverifiedWarning(), k + "에 출처 미확인 경고를 붙이면 안 된다");
+            if (k != BasisKind.MODEL_DEFAULT) {
+                assertFalse(k.needsModelDefaultNotice(), k + "에 출처 미확인 경고를 붙이면 안 된다");
             }
         }
     }
@@ -100,12 +99,16 @@ class FieldBasisTest {
         assertEquals(List.of(), broken, "자동 채움이라면서 기본값이 없는 필드");
     }
 
-    /** 출처를 주장하는 필드는 출처 문자열을 함께 내야 한다. */
+    /**
+     * 밖에서 대조할 수 있다고 주장하는 필드는 그 출처를 함께 내야 한다.
+     *
+     * <p>{@code MODEL_DEFAULT}는 여기 들지 않는다 — 찾아갈 곳이 없다는 것이 그 종류의
+     * 뜻이므로, 출처 문자열을 요구하면 없는 것을 적게 만든다.
+     */
     @Test
     void citedFieldsCarryTheirSource() {
         List<String> broken = v4().subtasks().stream()
-                .filter(s -> s.basis().kind() == BasisKind.PAPER
-                        || s.basis().kind() == BasisKind.REGULATION
+                .filter(s -> s.basis().kind() == BasisKind.REGULATION
                         || s.basis().kind() == BasisKind.MEASURED)
                 .filter(s -> s.basis().source() == null || s.basis().source().isBlank())
                 .map(JangnyangSubtask::answerField)

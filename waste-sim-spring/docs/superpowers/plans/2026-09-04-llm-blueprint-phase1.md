@@ -2,6 +2,13 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
+> **이후 변경 (2026-09-06):** 이 계획이 지시한 `BasisKind.PAPER`는 제거됐고
+> `UNVERIFIED`는 `MODEL_DEFAULT`로, `DataQualityFlag.DEFAULT_BASIS_UNVERIFIED`는
+> `MODEL_DEFAULT_USED`로 바뀌었다. 저장소에 논문이 없어 대조할 대상이 없고, "확인하지
+> 않았다"는 이름이 있지도 않은 숙제를 가리켰기 때문이다. **아래 본문은 실행 당시의 기록
+> 그대로 두었다** — 고쳐 쓰면 무엇을 지시했고 무엇이 바뀌었는지 알 수 없게 된다.
+> 현행 설계는 스펙 문서를 본다.
+
 **Goal:** 사용자의 자유 문장에서 LLM이 시뮬레이션 설계도를 채우고, 근거 없는 값은 지어내지 않고 되묻고, 만들 수 없는 요청은 무엇이 필요한지와 함께 거부한다.
 
 **Architecture:** LLM은 값을 뽑기만 하고(`RequestInterpreter`) 판정은 전부 결정적 코드가 한다(`SpanVerifier`, `FeasibilityGate`, `GapResolver`). LLM이 뽑은 값은 기존 `JangnyangSubtaskValidator`를 그대로 통과해야 하며 원장에 `LLM_NORMALIZED`로 남는다. 필드마다 근거(`FieldBasis`)를 선언해 자동 채움과 되묻기를 데이터로 가른다.

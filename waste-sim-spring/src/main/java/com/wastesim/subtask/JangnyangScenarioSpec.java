@@ -39,15 +39,15 @@ public record JangnyangScenarioSpec(
         Map<String, AnswerRecord> answers,
         List<AppliedDefault> appliedDefaults,
         List<String> assumptions,
-        List<String> unverifiedDefaults,
+        List<String> modelDefaults,
         SimulationConfig simulationConfig) {
 
     public JangnyangScenarioSpec {
         answers = Ordered.copyOf(answers);
         appliedDefaults = List.copyOf(appliedDefaults);
         assumptions = List.copyOf(assumptions);
-        unverifiedDefaults = unverifiedDefaults == null ? List.of()
-                                                       : List.copyOf(unverifiedDefaults);
+        modelDefaults = modelDefaults == null ? List.of()
+                                                       : List.copyOf(modelDefaults);
     }
 
     /** 단일 실행인가 — 시나리오 실험이 아니라 {@code run_waste_simulation} 경로다. */

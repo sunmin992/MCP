@@ -11,9 +11,6 @@ package com.wastesim.subtask;
  */
 public enum BasisKind {
 
-    /** 논문 DEVS 모델에서 온 값. 출처(절·표)를 함께 적는다. */
-    PAPER,
-
     /** 포항시 규정·표준데이터에서 온 값. */
     REGULATION,
 
@@ -21,12 +18,16 @@ public enum BasisKind {
     MEASURED,
 
     /**
-     * 기본값은 있는데 <b>출처를 확인하지 않았다.</b>
+     * 이 시뮬레이터가 <b>기본으로 정한 값</b>이다. 밖에서 확인할 출처가 없다.
      *
-     * <p>채우기는 하지만 결과에 표시를 붙인다. 보기 싫은 표시지만 사실이고, 출처를 확인해
-     * 승격시키는 만큼 줄어든다 — 남은 일이 결과에 드러나는 구조다.
+     * <p>{@link #REGULATION}·{@link #MEASURED}와 갈라 두는 기준은 하나다 — <b>읽는 사람이
+     * 찾아가서 대조할 곳이 있는가.</b> 포항시 표준데이터나 TMAP 측정 기록은 있고, 모델
+     * 기본값은 없다.
+     *
+     * <p>채우기는 하되 결과에 표시를 붙인다. "아직 확인하지 않았다"가 아니라 "확인할 대상이
+     * 없다"는 뜻이므로, 언젠가 사라질 표시가 아니라 그 값의 성질이다.
      */
-    UNVERIFIED,
+    MODEL_DEFAULT,
 
     /**
      * 근거가 없다. <b>반드시 묻는다.</b>
@@ -44,8 +45,8 @@ public enum BasisKind {
         return this != NONE && this != EXPERIMENT_INTENT;
     }
 
-    /** 채우되 출처 미확인 표시를 붙여야 하는가. */
-    public boolean needsUnverifiedWarning() {
-        return this == UNVERIFIED;
+    /** 채우되 "모델 기본값" 표시를 붙여야 하는가. */
+    public boolean needsModelDefaultNotice() {
+        return this == MODEL_DEFAULT;
     }
 }

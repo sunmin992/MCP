@@ -163,14 +163,14 @@ class BlueprintComposerTest {
                 stub(new RequestExtraction(List.of(), "장량동", null, null)));
 
         BlueprintComposer.Outcome o = composer.compose("s7", "장량동 시뮬레이터 만들어 줘");
-        assertFalse(o.unverifiedFields().isEmpty(), "days 같은 UNVERIFIED 근거 필드가 있어야 한다");
-        assertTrue(o.unverifiedFields().contains("days"), "" + o.unverifiedFields());
+        assertFalse(o.modelDefaultFields().isEmpty(), "days 같은 MODEL_DEFAULT 근거 필드가 있어야 한다");
+        assertTrue(o.modelDefaultFields().contains("days"), "" + o.modelDefaultFields());
 
         JangnyangSubtaskCatalog catalogFallback = new JangnyangSubtaskCatalog();
         SubtaskSessionService svcFallback = sessions(catalogFallback);
         BlueprintComposer fallbackComposer = new BlueprintComposer(svcFallback, catalogFallback, failing());
         BlueprintComposer.Outcome fallback = fallbackComposer.compose("s8", "장량동 시뮬레이터 만들어 줘");
-        assertTrue(fallback.unverifiedFields().isEmpty(),
+        assertTrue(fallback.modelDefaultFields().isEmpty(),
                 "폴백은 아무것도 채우지 않으므로 출처 미확인 필드도 없어야 한다");
     }
 

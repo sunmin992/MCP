@@ -49,7 +49,7 @@ public class BlueprintComposer {
     /**
      * @param usedFallback     LLM 추출을 쓰지 못해 문항 흐름으로 갔는가
      * @param fallbackNotice   사용자에게 알릴 문구. 조용히 넘기면 이유를 알 수 없다
-     * @param unverifiedFields 자동으로 채웠지만 그 출처를 확인하지 않은 필드 목록. 시뮬레이션
+     * @param modelDefaultFields 시뮬레이터 기본값으로 채운 필드 목록. 시뮬레이션
      *                         결과에 붙이는 것은 실행 경로의 일이라 이 태스크에서는 다루지
      *                         않는다 — 여기서는 값을 만들어 넘기기만 한다
      * @param appliedDefaults  서버가 채운 값과 그 근거. 채운 사실만 남고 <b>왜 그 값인지</b>가
@@ -58,11 +58,11 @@ public class BlueprintComposer {
      */
     public record Outcome(FeasibilityVerdict verdict, List<String> mustAsk,
                           boolean usedFallback, String fallbackNotice,
-                          List<String> unverifiedFields,
+                          List<String> modelDefaultFields,
                           List<AppliedDefault> appliedDefaults) {
         public Outcome {
             mustAsk = mustAsk == null ? List.of() : List.copyOf(mustAsk);
-            unverifiedFields = unverifiedFields == null ? List.of() : List.copyOf(unverifiedFields);
+            modelDefaultFields = modelDefaultFields == null ? List.of() : List.copyOf(modelDefaultFields);
             appliedDefaults = appliedDefaults == null ? List.of() : List.copyOf(appliedDefaults);
         }
     }
@@ -82,7 +82,7 @@ public class BlueprintComposer {
             requireWellFormed(extraction);
         } catch (InterpreterException | IllegalArgumentException e) {
             // 조용히 기본값으로 채우지 않는다. 무엇으로 계산한 값인지 구별할 수 없게 된다.
-            // 그래서 unverifiedFields와 appliedDefaults도 비운다 — 폴백에서는 아무것도
+            // 그래서 modelDefaultFields와 appliedDefaults도 비운다 — 폴백에서는 아무것도
             // 자동으로 채우지 않는다.
             JangnyangSubtaskSession fresh = startFresh(sessionKey);
             return new Outcome(FeasibilityVerdict.ok(), remainingFields(fresh), true,
@@ -134,7 +134,7 @@ public class BlueprintComposer {
         // 되묻기 대상이 된다(조용히 통과했다고 적지 않는다).
         List<String> mustAsk = remainingFields(sessions.activeSession(sessionKey));
         return new Outcome(verdict, mustAsk, false, null,
-                gaps.unverifiedFields(), gaps.defaults());
+                gaps.modelDefaultFields(), gaps.defaults());
     }
 
     /** 새 수집을 시작한다 — 판정을 통과한 뒤에만 부른다. */

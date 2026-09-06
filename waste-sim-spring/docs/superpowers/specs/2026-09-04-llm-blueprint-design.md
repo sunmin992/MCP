@@ -79,8 +79,10 @@ LLM이 잘하는 것은 자연어에서 값을 뽑는 것이고, 믿을 수 없�
 `wasteMeanKg`·`capacity`·`threshold`는 "논문 원본 재현"이라는 **공통 주석에 묶여 있을 뿐
 개별 출처(절·표)가 없다.** `days`·`seeds`·`wasteSigma`·`leaveSigma`는 아무 근거 표시도 없다.
 
-그래서 근거 선언(§4.2)을 만들면 **실제로 논문을 대조하는 작업이 따라온다.** 이 설계는 그
-사실을 숨기지 않고 `UNVERIFIED` 종류로 드러낸다.
+그리고 **그 출처를 되짚을 방법이 없다.** 저장소에 논문도 참고문헌도 없고 남은 것은 주석
+문장 하나뿐이다. 그래서 이 값들은 "확인하지 않은 값"이 아니라 **이 시뮬레이터가 정해 둔
+값**이다 — 언젠가 확인될 것처럼 표시하면 있지도 않은 숙제를 가리키게 되므로, `MODEL_DEFAULT`
+종류로 그 성질을 그대로 적는다.
 
 ## 4. 설계
 
@@ -139,7 +141,8 @@ LLM이 잘하는 것은 자연어에서 값을 뽑는 것이고, 믿을 수 없�
 ```json
 {
   "answerField": "wasteMeanKg",
-  "basis": { "kind": "PAPER", "value": 0.9, "source": "논문 §4.2 표 3" }
+  "basis": { "kind": "MODEL_DEFAULT", "value": 0.9,
+             "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다" }
 }
 {
   "answerField": "collectionSchedule",
@@ -153,7 +156,8 @@ LLM이 잘하는 것은 자연어에서 값을 뽑는 것이고, 믿을 수 없�
 }
 {
   "answerField": "days",
-  "basis": { "kind": "UNVERIFIED", "value": 30, "source": "관행 — 출처 미확인" }
+  "basis": { "kind": "MODEL_DEFAULT", "value": 30,
+             "source": "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다" }
 }
 {
   "answerField": "serviceMinutesPerSite",
@@ -165,19 +169,23 @@ LLM이 잘하는 것은 자연어에서 값을 뽑는 것이고, 믿을 수 없�
 }
 ```
 
-여섯 종류이고 동작은 셋이다.
+다섯 종류이고 동작은 셋이다.
 
 | kind | GapResolver 동작 |
 |---|---|
-| `PAPER` · `REGULATION` · `MEASURED` | 기본값 + `AppliedDefault`에 출처 기록 |
-| `UNVERIFIED` | 기본값을 쓰되 결과에 `DEFAULT_BASIS_UNVERIFIED` 표시 |
+| `REGULATION` · `MEASURED` | 기본값 + `AppliedDefault`에 출처 기록 |
+| `MODEL_DEFAULT` | 기본값을 쓰되 결과에 `MODEL_DEFAULT_USED` 표시 |
 | `NONE` · `EXPERIMENT_INTENT` | **반드시 되묻는다** |
 
-#### `UNVERIFIED`가 이 설계의 정직한 부분
+가르는 기준은 하나다 — **읽는 사람이 찾아가서 대조할 곳이 있는가.** 포항시 표준데이터와
+TMAP 측정 기록은 있고, 모델 기본값은 없다.
 
-§3에서 확인한 대로 지금 22개 중 상당수가 여기 들어간다. 그러면 결과에 "기본값의 출처를
-확인하지 않았다"가 붙는다. 보기 싫은 표시지만 사실이다. 논문을 대조해 `PAPER`로 승격시키는
-만큼 표시가 줄어든다 — **남은 일이 결과에 드러나는 구조다.**
+#### `MODEL_DEFAULT`가 이 설계의 정직한 부분
+
+§3에서 확인한 대로 지금 21개가 여기 들어간다. 그러면 결과에 "시뮬레이터 기본값으로
+채웠다"가 붙는다. 보기 싫은 표시지만 사실이고, **줄어들 표시가 아니다** — 그 값들은 원래
+밖에서 대조할 곳이 없다. 표시의 목적은 숙제를 알리는 것이 아니라, 대조할 수 있는 값과 그냥
+정해 둔 값을 결과에서 구별하는 것이다.
 
 #### `NONE`은 현재 정확히 셋
 
@@ -367,7 +375,7 @@ LLM이 뽑는 것은 "무엇의 영향을 보고 싶은가" 하나다.
 | 2 | `FeasibilityGate` | 거부 판정 + 부족한 것 목록. 결정적 | 추출 결과만 |
 | 3 | `FieldBasis` + `GapResolver` | 근거 선언을 읽고 자동 채움 / 되묻기를 가름 | 서브태스크 JSON v4 |
 | 4 | `ParameterSweep` | 축을 여러 값으로 돌려 범위를 낸다 | `SimulationService` |
-| 5 | `DataQualityFlag.DEFAULT_BASIS_UNVERIFIED` | 출처 미확인 기본값 표시 | 기존 enum 확장 |
+| 5 | `DataQualityFlag.MODEL_DEFAULT_USED` | 출처 미확인 기본값 표시 | 기존 enum 확장 |
 
 ## 6. 검증 규칙 (신설)
 
@@ -430,7 +438,7 @@ LLM이 뽑는 것은 "무엇의 영향을 보고 싶은가" 하나다.
 
 | 항목 | 성격 |
 |---|---|
-| 논문 대조로 `UNVERIFIED` → `PAPER` 승격 | 문헌 작업. 결과 표시가 그만큼 줄어든다 |
+| ~~논문 대조~~ | **하지 않기로 했다**(2026-09-06). 저장소에 논문이 없고, 21개 중 절반 이상은 애초에 논문에서 올 수 있는 값이 아니다(`days`·`seeds`·`engine` 등). `MODEL_DEFAULT`가 그 사실을 그대로 적는다 |
 | 현장 정차시간 20~30건 (도착/수거 시작/출발) | 현장 작업. 중앙값과 상위 90% |
 | 수거 지점 좌표 | 현장 작업. `OSRM_HYBRID`가 막혀 있는 원인 |
 | 장량동 실제 세대수·배출량 | 조사. `JANGRYANG_CAPACITY`의 40명/동은 용량 축이 작동하는 구간을 찾아 고른 값이다 |
