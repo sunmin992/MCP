@@ -472,15 +472,26 @@ public class ChatController {
 
         SubtaskSessionService.Step step = subtasks.currentStep(subtaskKey.get());
         if (outcome.usedFallback()) {
-            // 조용히 문항으로 넘어가지 않는다 — 아무 말 없이 34문항이 시작되면 사용자는
-            // 자기 문장이 무시된 줄 모른다.
             metrics.counter("waste.chat.subtask", "event", "fallback").increment();
-            sendSubtaskQuestion(step,
-                    outcome.fallbackNotice() + " 필요한 값을 순서대로 여쭤보겠습니다.",
-                    userText, history);
-            return;
+            notice(outcome.fallbackNotice() + " 필요한 값을 순서대로 여쭤보겠습니다.");
+        } else {
+            notice(composedIntro(outcome));
         }
-        sendSubtaskQuestion(step, composedIntro(outcome), userText, history);
+        sendSubtaskQuestion(step, null, userText, history);
+    }
+
+    /**
+     * 사용자에게 보이는 안내를 보낸다.
+     *
+     * <p>문항 카드(SUBTASK)에 실어 보내면 <b>전송은 되지만 화면이 그리지 않는다</b> — 카드
+     * 렌더러는 {@code question}만 찍고 {@code content}는 무시한다. 폴백 사유가 정확히 그런
+     * 상태였다: 해석기가 죽어도 화면에는 그냥 문항이 뜨고, 사용자는 자기 문장이 무시된 줄
+     * 몰랐다. 그래서 안내는 일반 메시지로 따로 보낸다.
+     */
+    private void notice(String text) {
+        ChatMessage msg = new ChatMessage(ChatMessage.MessageType.BOT, text);
+        msg.setDomain("waste");
+        messaging.convertAndSend("/topic/messages", msg);
     }
 
     /**

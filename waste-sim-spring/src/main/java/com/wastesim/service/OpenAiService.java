@@ -310,6 +310,29 @@ public class OpenAiService {
     }
 
     /** 실행 요청이 아닐 때 순수 대화형 답변을 생성한다. JSON을 내지 않는다. */
+    /**
+     * 지시문을 시스템 프롬프트로 주고 <b>JSON 모드로</b> 한 번 묻는다.
+     *
+     * <p>{@link #answerPlain}과 갈라 둔 이유는 그쪽이 산문 답변용 시스템 프롬프트에 JSON
+     * 모드를 끈 호출이기 때문이다. 구조화된 추출에 그것을 쓰면 모델이 문장을 돌려주고
+     * 호출부는 매번 파싱에 실패한다 — 기능이 켜져 있어도 한 번도 동작하지 않는 상태가 되고,
+     * 폴백이 조용하면 그 사실조차 드러나지 않는다.
+     *
+     * <p>사용자 문장은 {@code userText}로 따로 보낸다. 지시문에 섞으면 모델이 지시문 자체를
+     * 인용 조각으로 집을 수 있다.
+     *
+     * @param instruction 시스템 프롬프트로 쓸 지시문(출력 형식 포함)
+     * @param userText    해석할 사용자 문장 — 가공하지 않고 그대로 넘긴다
+     */
+    public String extractJson(String instruction, String userText) {
+        try {
+            return callChat(instruction, List.of(), userText, 0.1, 800, true);
+        } catch (Exception e) {
+            log.error("구조화 추출 실패", e);
+            return null;
+        }
+    }
+
     public String answerPlain(List<Map<String, String>> history, String userText) {
         try {
             String raw = callChat(PLAIN_ANSWER_SYSTEM_PROMPT, history, userText, 0.2, 1024, false);

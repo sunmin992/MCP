@@ -30,24 +30,26 @@ public class OpenAiRequestInterpreter implements RequestInterpreter {
     @Override
     public RequestExtraction extract(String request, List<String> answerFields)
             throws InterpreterException {
-        String prompt = """
-                아래 요청에서 시뮬레이션 설정값을 뽑아 JSON으로만 답하라.
+        // 지시문은 시스템 프롬프트로, 사용자 문장은 따로 보낸다 — 섞으면 모델이 지시문
+        // 자체를 인용 조각으로 집을 수 있고, 그러면 SpanVerifier가 검사할 대상이 흐려진다.
+        String instruction = """
+                사용자 요청에서 시뮬레이션 설정값을 뽑아 JSON으로만 답하라.
 
                 규칙:
                 - 요청에 없는 값은 절대 만들지 마라. 확실하지 않으면 빼라.
                 - 값마다 근거가 된 요청의 원문 조각을 span에 그대로 옮겨라.
-                - span은 요청 문장에 실제로 있는 문자열이어야 한다.
+                - span은 요청 문장에 실제로 있는 문자열이어야 한다. 두 글자 이상이어야 한다.
+                - targetRegion은 요청이 가리키는 지역, targetDomain은 분야,
+                  requestedConclusion은 알고 싶어 하는 결론을 그대로 옮긴다. 없으면 빈 문자열.
 
                 형식:
                 {"values":[{"field":"...","value":...,"span":"..."}],
                  "targetRegion":"","targetDomain":"","requestedConclusion":""}
 
                 쓸 수 있는 field: %s
-
-                요청: %s
-                """.formatted(String.join(", ", answerFields), request);
+                """.formatted(String.join(", ", answerFields));
         try {
-            String raw = openAi.answerPlain(List.of(), prompt);
+            String raw = openAi.extractJson(instruction, request);
             JsonNode n = MAPPER.readTree(raw);
             List<ExtractedValue> values = new ArrayList<>();
             for (JsonNode v : n.path("values")) {

@@ -168,6 +168,31 @@ class BlueprintChatPathTest {
                 "꺼져 있으면 예전처럼 문항을 시작해야 한다");
     }
 
+    /**
+     * <b>안내는 사용자에게 실제로 보이는 메시지로 나가야 한다.</b>
+     *
+     * <p>SUBTASK 메시지의 {@code content}는 화면이 그리지 않는다 — 문항 카드는
+     * {@code question}만 찍는다. 그래서 안내를 그 카드에 실어 보내면 전송은 되지만 아무도
+     * 읽지 못한다. 폴백 사유가 바로 그런 상태였다: 해석기가 죽어도 화면에는 그냥 34문항이
+     * 뜨고, 사용자는 자기 문장이 무시된 줄 모른다.
+     */
+    @Test
+    void theNoticeArrivesAsAMessageTheScreenActuallyRenders() {
+        Rig r = rig(broken(), true);
+
+        r.controller().handleMessage(userMsg("장량동 시뮬레이터 만들어 줘"));
+
+        ArgumentCaptor<Object> sent = ArgumentCaptor.forClass(Object.class);
+        verify(r.messaging(), atLeastOnce()).convertAndSend(anyString(), sent.capture());
+        boolean visible = sent.getAllValues().stream()
+                .filter(o -> o instanceof ChatMessage)
+                .map(o -> (ChatMessage) o)
+                .anyMatch(m -> m.getType() != ChatMessage.MessageType.SUBTASK
+                        && m.getContent() != null && m.getContent().contains("해석"));
+        assertTrue(visible,
+                "안내가 SUBTASK 카드에만 실리면 화면이 그리지 않아 사용자에게 닿지 않는다");
+    }
+
     /** 꺼져 있으면 해석기를 아예 부르지 않는다 — 끈 기능이 비용을 쓰면 안 된다. */
     @Test
     void disabledPropertyDoesNotCallTheInterpreter() {
