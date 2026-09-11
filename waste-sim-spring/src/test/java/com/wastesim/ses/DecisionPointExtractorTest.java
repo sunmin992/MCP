@@ -63,6 +63,12 @@ class DecisionPointExtractorTest {
     }
 
     @Test
+    void observationBranchAttributesAreNotDecisionPoints() {
+        assertFalse(points().stream().anyMatch(p -> p.id().equals("attr:민원 통계:총민원")),
+                "관측은 시뮬레이션이 만들어 내는 값이지 사용자가 정하는 값이 아니다");
+    }
+
+    @Test
     void idsAreUnique() {
         List<DecisionPoint> ps = points();
         Set<String> ids = ps.stream().map(DecisionPoint::id).collect(Collectors.toSet());
