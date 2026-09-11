@@ -149,7 +149,7 @@ public final class SesSubtaskDerivation {
         }
 
         // SES 밖 결정과 절차 제어. 트리에서 나오지 않지만 물어야 하는 것들이라,
-        // 마지막 그룹에 모아 둔다 — 어디서 왔는지가 순서에 드러나야 한다.
+        // 마지막 그룹(원래 번호 기준)에 모아 둔다 — 어디서 왔는지가 순서에 드러나야 한다.
         for (SesFieldMapping.NonSesField f : SesFieldMapping.nonSesFields()) {
             ProseEntry p = require(prose, f.answerField());
             subtasks.add(new JangnyangSubtask("ST-S" + pad(order), order, GROUP_NAMES.size(),
@@ -159,14 +159,35 @@ public final class SesSubtaskDerivation {
             order++;
         }
 
+        // "관측" 가지는 관측값(시뮬레이션이 만들어 내는 값)만 있어 결정 지점이 없다 —
+        // 그 자체는 옳다(관측값을 사용자에게 물으면 안 된다). 하지만 그대로 두면 문항이
+        // 하나도 없는 화면 단계가 생기고, 사용자는 "3/4단계"에서 빈 화면을 보게 된다.
+        // 그래서 실제로 문항이 붙은 원래 그룹 번호만 골라 1부터 다시 매긴다 — 그룹
+        // 번호는 화면 단계 번호이므로 빈 자리가 있으면 안 된다.
+        List<Integer> usedRawGroups = subtasks.stream()
+                .map(JangnyangSubtask::group).distinct().sorted().toList();
+        Map<Integer, Integer> renumber = new LinkedHashMap<>();
+        for (int i = 0; i < usedRawGroups.size(); i++) {
+            renumber.put(usedRawGroups.get(i), i + 1);
+        }
+
+        List<JangnyangSubtask> renumbered = new ArrayList<>();
+        for (JangnyangSubtask s : subtasks) {
+            int newGroup = renumber.get(s.group());
+            renumbered.add(new JangnyangSubtask(s.id(), s.order(), newGroup, s.stage(),
+                    s.question(), s.answerField(), s.answerType(), s.required(),
+                    s.allowsNotApplicable(), s.allowedRange(), s.validationRule(),
+                    s.retryQuestion(), s.completionCondition(), s.basis()));
+        }
+
         List<SubtaskGroup> groups = new ArrayList<>();
-        for (int i = 0; i < GROUP_NAMES.size(); i++) {
-            groups.add(new SubtaskGroup(i + 1, GROUP_NAMES.get(i),
-                    GROUP_NAMES.get(i) + "에 관한 결정을 받습니다."));
+        for (int rawGroup : usedRawGroups) {
+            String name = GROUP_NAMES.get(rawGroup - 1);
+            groups.add(new SubtaskGroup(renumber.get(rawGroup), name, name + "에 관한 결정을 받습니다."));
         }
 
         return new JangnyangSubtaskDefinition("jangnyang-simulator-v5", 5, true,
-                groups, List.copyOf(subtasks));
+                groups, List.copyOf(renumbered));
     }
 
     private static ProseEntry require(Map<String, ProseEntry> prose, String field) {

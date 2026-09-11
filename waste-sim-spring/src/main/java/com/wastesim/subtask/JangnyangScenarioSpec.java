@@ -1,6 +1,7 @@
 package com.wastesim.subtask;
 
 import com.wastesim.model.SimulationConfig;
+import com.wastesim.ses.PrunedStructure;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -28,6 +29,14 @@ import java.util.Map;
  * @param answers         감사용 답변 사본(서브태스크 ID → 원문·값·출처)
  * @param appliedDefaults 서버가 채운 값과 근거(D-53)
  * @param assumptions     사람이 읽는 가정 문장 — 미리보기와 최종 결과에 함께 실린다
+ * @param prunedStructure 같은 답변으로 SES 트리를 가지친 결과(PES). <b>계산에는 쓰이지
+ *                        않는다</b> — 설정은 여전히 {@link #toSimulationConfig()}가
+ *                        조립 시점에 만들어 둔 것을 그대로 쓴다. 미리보기가 "이 답으로
+ *                        트리가 어떻게 접혔는가"를 보여 주기 위해서만 붙인다. v5(유도된
+ *                        세트)가 아니면 {@code null}이다 — v2~v4는 사람이 고른 질문
+ *                        목록이라 SES 트리의 결정 지점을 다 덮는다는 보장이 없고, 그런
+ *                        세트의 답변을 가지치려 하면 "안 물은 지점"이 "안 정해진 지점"
+ *                        으로 오인되어 헛되이 예외가 난다.
  */
 public record JangnyangScenarioSpec(
         String subtaskSetId,
@@ -40,7 +49,8 @@ public record JangnyangScenarioSpec(
         List<AppliedDefault> appliedDefaults,
         List<String> assumptions,
         List<String> modelDefaults,
-        SimulationConfig simulationConfig) {
+        SimulationConfig simulationConfig,
+        PrunedStructure prunedStructure) {
 
     public JangnyangScenarioSpec {
         answers = Ordered.copyOf(answers);

@@ -35,6 +35,22 @@ class BlueprintComposerTest {
         return (request, fields) -> { throw new InterpreterException("서비스 없음"); };
     }
 
+    /**
+     * 세트가 바뀌어도 이 테스트가 함께 깨지지 않게, 주어진 서브태스크의 자료형에 맞는
+     * 검증 통과 값을 만들어 준다. 이 테스트가 확인하려는 것은 "답이 살아남는가"이지
+     * 어떤 값을 답했느냐가 아니므로, 값 자체의 의미는 중요하지 않다.
+     */
+    private static String validAnswerFor(JangnyangSubtask st) {
+        return switch (st.answerType()) {
+            case ENUM, ENUM_LIST -> st.allowedRange().valuesOrEmpty().isEmpty()
+                    ? "1" : st.allowedRange().valuesOrEmpty().get(0);
+            case INTEGER, NUMBER -> "1";
+            case BOOLEAN -> "예";
+            case TIME -> "08:30";
+            default -> "민원이 가장 적은 수거 시각 찾기";
+        };
+    }
+
     /** 거부 사유가 있으면 세션을 만들지 않고 끝낸다. */
     @Test
     void refusedRequestDoesNotStartASession() {
@@ -286,7 +302,11 @@ class BlueprintComposerTest {
         JangnyangSubtaskDefinition def = svc.definitionOf(before);
         JangnyangSubtask first = before.nextSubtask(def, svc.checker());
         assertNotNull(first, "테스트 픽스처의 첫 질문을 찾지 못했다");
-        svc.submit("s9", first.id(), "민원이 가장 적은 수거 시각 찾기", null,
+        // 이 테스트가 보는 것은 "답이 살아남는가"이지 답의 내용이 아니다 — 그런데도
+        // 값이 검증을 통과해야 원장에 남으므로, 세트가 바뀌어 첫 질문의 자료형이
+        // 달라져도(v5의 첫 질문은 자유 문장이 아니라 ENUM이다) 항상 통과하는 값을
+        // 골라 쓴다.
+        svc.submit("s9", first.id(), validAnswerFor(first), null,
                 SubtaskAnswerSource.USER_DIRECT);
 
         JangnyangSubtaskAnswer answered = svc.activeSession("s9").answers().get(first.id());
@@ -329,5 +349,29 @@ class BlueprintComposerTest {
                 "묻기로 한 값을 채운 것으로 세면 화면의 개수가 사실과 달라진다: " + o.appliedDefaults());
         assertFalse(o.modelDefaultFields().contains("collectionTime"),
                 "채우지 않은 값에 기본값 표시를 붙이면 결과 표시가 무의미해진다");
+    }
+
+    /** 범위 밖 LLM 값은 템플릿 정책에 따라 기본값으로 덮지 않고 다시 묻는다. */
+    @Test
+    void invalidExtractedValueIsReaskedInsteadOfReplacedByDefault() {
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, stub(
+                new RequestExtraction(List.of(
+                        new ExtractedValue("truckCount", 0, "차량 0대")),
+                        "장량동", "생활폐기물 수거", null)));
+
+        BlueprintComposer.Outcome o = composer.compose(
+                "s-invalid", "장량동 생활폐기물 수거 차량 0대로 만들어 줘");
+
+        JangnyangSubtaskDefinition def = catalog.latest();
+        JangnyangSubtask truckCount = def.byAnswerField("truckCount");
+        assertNotNull(truckCount);
+        assertTrue(o.mustAsk().contains("truckCount"),
+                "검증 실패 필드는 템플릿의 REASK 정책에 따라 다시 물어야 한다");
+        assertFalse(svc.activeSession("s-invalid").answers().containsKey(truckCount.id()),
+                "범위 밖 0이나 서버 기본값 1이 원장에 들어가면 안 된다");
+        assertFalse(o.appliedDefaults().stream().anyMatch(d -> "truckCount".equals(d.field())),
+                "검증 실패 필드를 기본값으로 채웠다고 보고하면 안 된다");
     }
 }

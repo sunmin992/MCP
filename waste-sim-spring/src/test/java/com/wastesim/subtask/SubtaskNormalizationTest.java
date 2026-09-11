@@ -196,7 +196,9 @@ class SubtaskNormalizationTest {
                 step.errors().get(0).retryQuestion());
         assertNotNull(step.progress(), "진행 상태는 정상적으로 나와야 한다");
         // 재질문이므로 수거 시각은 아직 비어 있고, 세션은 첫 미답 질문에 머문다.
-        assertEquals("ST-001", step.progress().currentSubtaskId());
+        // "ST-001"을 못박지 않는다 — v5의 ID 체계는 "ST-Sxxx"라 세트가 바뀌면 문자열이
+        // 달라진다. 이 테스트가 보려는 것은 "첫 질문에 머문다"이지 ID 표기가 아니다.
+        assertEquals(catalog.latest().ordered().get(0).id(), step.progress().currentSubtaskId());
         assertTrue(step.progress().answers().isEmpty());
 
         // 형식에 맞는 원문은 LLM 없이도 그대로 통과한다.
