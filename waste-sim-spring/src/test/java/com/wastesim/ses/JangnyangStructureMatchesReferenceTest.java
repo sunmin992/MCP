@@ -58,7 +58,20 @@ class JangnyangStructureMatchesReferenceTest {
             assertEquals(refDecs, decDecs, name + "의 분해가 다르다");
         }
 
-        assertEquals(ref.get("couplings").size(), declared.couplings().size(), "결합 개수가 다르다");
+        JsonNode refCouplings = ref.get("couplings");
+        List<Coupling> declaredCouplings = declared.couplings();
+        assertEquals(refCouplings.size(), declaredCouplings.size(), "결합 개수가 다르다");
+
+        for (int i = 0; i < refCouplings.size(); i++) {
+            JsonNode rc = refCouplings.get(i);
+            Coupling dc = declaredCouplings.get(i);
+            String label = "결합[" + i + "](" + rc.get("from").asText() + " -> " + rc.get("to").asText() + ")";
+            assertEquals(rc.get("from").asText(), dc.from(), label + "의 from이 다르다");
+            assertEquals(rc.get("to").asText(), dc.to(), label + "의 to가 다르다");
+            assertEquals(rc.get("mechanism").asText(), dc.mechanism(), label + "의 mechanism이 다르다");
+            String refActiveWhen = rc.has("active_when") ? rc.get("active_when").asText() : null;
+            assertEquals(refActiveWhen, dc.activeWhen(), label + "의 activeWhen이 다르다");
+        }
     }
 
     private static List<String> textList(JsonNode node) {
