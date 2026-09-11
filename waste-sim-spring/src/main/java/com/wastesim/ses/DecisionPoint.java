@@ -29,8 +29,15 @@ public sealed interface DecisionPoint {
         }
     }
 
-    /** 동종 개체를 몇 개 둘 것인가. */
-    record MultiCount(String entity, String member) implements DecisionPoint {
+    /**
+     * 동종 개체를 몇 개 둘 것인가.
+     *
+     * <p>M1 — 이전에는 복제되는 개체 이름({@code member}, 예: "거주민")도 필드로 들고
+     * 있었지만 채우기만 하고 아무도 읽지 않았다(YAGNI). 필요해지면
+     * {@code DecisionPointExtractor}가 만드는 자리에서 {@code multi.children().get(0)}로
+     * 다시 얻을 수 있으니, 쓰지 않는 필드를 미리 들고 다니지 않는다.
+     */
+    record MultiCount(String entity) implements DecisionPoint {
         @Override
         public String id() {
             return "multi:" + entity;

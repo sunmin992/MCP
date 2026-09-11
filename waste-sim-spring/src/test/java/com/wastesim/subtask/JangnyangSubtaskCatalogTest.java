@@ -244,6 +244,23 @@ class JangnyangSubtaskCatalogTest {
         groupsAreWellFormed(def);
     }
 
+    @Test
+    @DisplayName("v5(유도본)도 34개가 단계 안에 고르게 나뉘고, 단계 번호가 역행하지 않는다(I1)")
+    void v5ShapeIsWellFormed() {
+        JangnyangSubtaskDefinition def = catalog.byVersion(5);
+        assertEquals(34, def.subtasks().size());
+        assertEquals(5, def.version());
+        // 확인 단계 둘(inputAndScenarioConfirmed·executionApproval)만 CONFIRM이고
+        // 나머지 32개는 COLLECT다(C1) — v4와 같은 모양이어야 승인 전에 미리보기를
+        // 요구하는 순서가 지켜진다.
+        assertEquals(32, def.collectSubtasks().size());
+        assertEquals(2, def.confirmSubtasks().size());
+        // I1 회귀 — SesFieldMapping.bindings()의 선언 순서를 그대로 order로 쓰면
+        // group이 1→2→1처럼 역행했다. groupsAreWellFormed가 v2·v3에만 걸려 있던
+        // 탓에 이 회귀가 눈에 띄지 않았다 — v5에도 같은 불변식을 건다.
+        groupsAreWellFormed(def);
+    }
+
     /** 단계 정의가 온전하고 질문의 단계 번호가 역행하지 않는가. */
     private static void groupsAreWellFormed(JangnyangSubtaskDefinition def) {
         for (int g = 1; g <= def.groupCount(); g++) {

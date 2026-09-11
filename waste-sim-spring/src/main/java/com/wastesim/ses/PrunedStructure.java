@@ -49,7 +49,16 @@ public record PrunedStructure(Map<String, String> chosenSpecs,
         return attributeValues.get(answerField);
     }
 
-    /** 이 답변 필드가 SES의 어느 지점이었는지 — 미리보기가 "이 값이 SES의 어느 자리인가"를 되찾는 통로다. */
+    /**
+     * 이 답변 필드가 SES의 어느 지점이었는지 — 미리보기가 "이 값이 SES의 어느 자리인가"를
+     * 되찾는 통로다.
+     *
+     * <p>M1 — 지금은 {@code SesPrunerTest} 말고 부르는 곳이 없다. 그래도 지우지 않는
+     * 이유는 위 문장이 이미 약속한 소비처(미리보기 화면)가 아직 이 태스크 범위 밖이라서다
+     * — {@code bindingsFor}·{@code MultiCount.member}처럼 "언젠가 필요할 것 같아서" 채워
+     * 두기만 한 필드가 아니라, PrunedStructure 자체의 존재 이유(SES와의 연결을 잃지
+     * 않는다)와 직접 닿아 있는 조회기라 남긴다.
+     */
     public String pointOf(String answerField) {
         return pointOfField.get(answerField);
     }

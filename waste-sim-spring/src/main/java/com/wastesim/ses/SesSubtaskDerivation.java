@@ -8,6 +8,7 @@ import com.wastesim.subtask.SubtaskGroup;
 import com.wastesim.subtask.SubtaskStage;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,9 +117,23 @@ public final class SesSubtaskDerivation {
         return List.copyOf(values);
     }
 
+    /**
+     * SES가 유도한 문항은 종류를 가리지 않고 전부 {@code required=true}다(I2, 코드
+     * 리뷰로 드러남).
+     *
+     * <p>왜 spec·multi만 걸러내면 안 되는가: {@code required}가 실제로 뜻하는 바는
+     * "이 항목이 없으면 조립이 진행되지 않는다"이고, 그 판정은 이 클래스가 아니라
+     * {@code JangnyangCompletenessChecker.check}가 내린다. 그런데 그 검사기는
+     * {@code required} 플래그를 보지 않는다 — {@code def.collectSubtasks()} <b>전부</b>에
+     * 답(또는 "해당 없음")이 있어야 한다고 요구한다. 그러니 spec·multi만 true로 두면
+     * "required=false"라고 적힌 attr 필드가 사실은 검사기 앞에서 여전히 필수인, 거짓
+     * 표시가 된다 — 그 값은 {@code ValidateJangnyangSubtaskAnswersTool}로 외부 MCP
+     * 클라이언트에게 그대로 나가므로, 클라이언트는 9개만 답해도 "complete"라고 믿게
+     * 되고 서버는 여전히 조립을 거부한다(I2). v4도 34개 전부 required=true다 — 사람이
+     * 세트를 적을 때도 같은 결론에 이르렀다는 뜻이다.
+     */
     private static boolean isRequired(DecisionPoint point) {
-        return point instanceof DecisionPoint.SpecChoice
-                || point instanceof DecisionPoint.MultiCount;
+        return true;
     }
 
     /** 루트 바로 아래 가지 이름으로 화면 단계를 정한다. 닿지 않으면 마지막 그룹에 둔다. */
@@ -139,7 +154,20 @@ public final class SesSubtaskDerivation {
         List<JangnyangSubtask> subtasks = new ArrayList<>();
         int order = 1;
 
-        for (SubtaskSkeleton s : deriveSkeletons()) {
+        // I1 — order는 group(트리 경로가 정한 화면 단계) 기준으로 매겨야 한다. 여기서
+        // 도는 것은 SesFieldMapping.bindings()의 선언 순서인데, group은 그 선언 순서와
+        // 무관하게 트리 경로로 따로 정해진다(deriveSkeletons의 groupOf) — 선언 순서를
+        // 그대로 order로 쓰면 "1단계 문항 다음에 2단계, 다시 1단계"처럼 화면 단계 번호가
+        // 역행한다(JangnyangSubtaskCatalogTest.groupsAreWellFormed가 지키는 불변식).
+        // group으로 안정 정렬하면 같은 group 안에서는 원래 순서(트리 자식 순서와 맞춰
+        // 적은 선언 순서)가 유지되면서, group 자체는 오름차순으로만 늘어난다 — order가
+        // 트리가 아니라 선언 순서에서 온다는 사실은 그대로지만(Ruling 7과 무관, 여기는
+        // "무엇을 묻는가"가 아니라 "몇 번째로 보여주는가"의 문제다), 결과적으로 order와
+        // group이 함께 단조 증가해 화면 단계가 역행하지 않는다.
+        List<SubtaskSkeleton> skeletons = new ArrayList<>(deriveSkeletons());
+        skeletons.sort(Comparator.comparingInt(SubtaskSkeleton::group));
+
+        for (SubtaskSkeleton s : skeletons) {
             ProseEntry p = require(prose, s.answerField());
             subtasks.add(new JangnyangSubtask("ST-S" + pad(order), order, s.group(),
                     SubtaskStage.COLLECT, p.question(), s.answerField(), s.answerType(),
@@ -150,10 +178,18 @@ public final class SesSubtaskDerivation {
 
         // SES 밖 결정과 절차 제어. 트리에서 나오지 않지만 물어야 하는 것들이라,
         // 마지막 그룹(원래 번호 기준)에 모아 둔다 — 어디서 왔는지가 순서에 드러나야 한다.
+        //
+        // C1 — 이 넷 중 inputAndScenarioConfirmed·executionApproval 둘은 CONFIRM
+        // 단계다(v4도 그렇다, ST-033·034). 나머지(engine·simulationGoal·defaultApproval)는
+        // COLLECT다. 전부 COLLECT로 두면 JangnyangCompletenessChecker.check가
+        // collectSubtasks() 전부에 답을 요구하면서 "미리보기를 확인했는가"까지
+        // 미리보기가 뜨기 전에 답하라고 요구하게 되고(승인 → 조립 → 미리보기로 순서가
+        // 뒤집힌다), JangnyangSubtaskSession.recordConfirmations가 도는
+        // def.confirmSubtasks()가 빈 목록이 되어 승인 시점에 아무것도 기록되지 않는다.
         for (SesFieldMapping.NonSesField f : SesFieldMapping.nonSesFields()) {
             ProseEntry p = require(prose, f.answerField());
             subtasks.add(new JangnyangSubtask("ST-S" + pad(order), order, GROUP_NAMES.size(),
-                    SubtaskStage.COLLECT, p.question(), f.answerField(), nonSesType(f),
+                    nonSesStage(f), p.question(), f.answerField(), nonSesType(f),
                     true, p.allowsNotApplicable(), nonSesRange(f), p.validationRule(),
                     p.retryQuestion(), p.completionCondition(), p.basis()));
             order++;
@@ -208,6 +244,21 @@ public final class SesSubtaskDerivation {
      * ({@code 유도본-v4-대조.md} defaultApproval·executionApproval·
      * inputAndScenarioConfirmed 항목).
      */
+    /**
+     * 절차 제어 4개 중 inputAndScenarioConfirmed·executionApproval 둘만 CONFIRM이다
+     * (v4의 ST-033·034). 미리보기 화면이 그 둘을 대신 채운다
+     * ({@code JangnyangSubtaskSession.recordConfirmations}) — COLLECT로 두면 사용자가
+     * 미리보기가 뜨기도 전에 "확인하셨습니까"에 답해야 하는 순서 역전이 생긴다(C1).
+     * defaultApproval은 v4에서도 COLLECT다 — 서버 기본값 적용에 동의하는가는 미리보기
+     * 이전에 실제로 사용자가 답해야 하는 질문이라 확인 단계가 아니다.
+     */
+    private static SubtaskStage nonSesStage(SesFieldMapping.NonSesField f) {
+        return switch (f.answerField()) {
+            case "inputAndScenarioConfirmed", "executionApproval" -> SubtaskStage.CONFIRM;
+            default -> SubtaskStage.COLLECT;
+        };
+    }
+
     private static AnswerType nonSesType(SesFieldMapping.NonSesField f) {
         return switch (f.answerField()) {
             case "engine", "defaultApproval", "inputAndScenarioConfirmed", "executionApproval" ->

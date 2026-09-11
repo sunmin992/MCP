@@ -220,8 +220,4 @@ public final class SesFieldMapping {
     public static List<NonSesField> nonSesFields() {
         return NON_SES;
     }
-
-    public static List<FieldBinding> bindingsFor(String pointId) {
-        return BINDINGS.stream().filter(b -> b.pointId().equals(pointId)).toList();
-    }
 }

@@ -1,6 +1,7 @@
 package com.wastesim.ses;
 
 import com.wastesim.subtask.AnswerType;
+import com.wastesim.subtask.JangnyangCompletenessChecker;
 import com.wastesim.subtask.JangnyangSubtask;
 import com.wastesim.subtask.JangnyangSubtaskDefinition;
 import org.junit.jupiter.api.Test;
@@ -65,6 +66,29 @@ class SesSubtaskDerivationTest {
         for (JangnyangSubtask st : def.subtasks()) {
             assertTrue(st.isFullySpecified(), st.answerField() + " 문항에 빈 항목이 있다");
         }
+    }
+
+    /**
+     * I2 — required가 실제 조립 필요와 어긋나면 외부 MCP 클라이언트가 거짓 "complete"를
+     * 받는다. {@code JangnyangCompletenessChecker.check}는 required 플래그를 보지 않고
+     * {@code def.collectSubtasks()} <b>전부</b>에 답을 요구하므로, 이 검사기가 실제로
+     * 요구하는 항목(=조립에 필요한 항목)은 required=true여야 {@code
+     * JangnyangSubtaskValidator}가 내는 "complete"와 뜻이 같아진다.
+     */
+    @Test
+    void everyCollectFieldTheCheckerNeedsIsMarkedRequired() {
+        JangnyangSubtaskDefinition def = SesSubtaskDerivation.derive(ProseCatalog.load());
+        JangnyangCompletenessChecker checker = new JangnyangCompletenessChecker();
+        List<JangnyangSubtask> neededForAssembly = checker.relevantSubtasks(def, null);
+
+        for (JangnyangSubtask s : neededForAssembly) {
+            assertTrue(s.required(),
+                    s.answerField() + "는 체크커가 실제로 답을 요구하는데 required=false다 — "
+                            + "외부 클라이언트가 9개만 답해도 complete=true로 오판한다(I2)");
+        }
+        // v5는 전부 required=true다(v4도 34개 전부 그렇다) — 결과적으로 이 세트에는
+        // "필요 없는데 required로 표시된" 항목도, "필요한데 required가 아닌" 항목도 없다.
+        assertTrue(def.subtasks().stream().allMatch(JangnyangSubtask::required));
     }
 
     @Test

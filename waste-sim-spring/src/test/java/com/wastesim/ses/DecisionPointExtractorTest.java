@@ -68,6 +68,28 @@ class DecisionPointExtractorTest {
                 "관측은 시뮬레이션이 만들어 내는 값이지 사용자가 정하는 값이 아니다");
     }
 
+    /**
+     * I4 — 이 연구가 재려는 숫자(총 결정 지점과 종류별 개수)를 못 박는다. 지금까지는
+     * 이 개수를 아무 테스트도 단언하지 않아서, 트리가 바뀌어 지점이 늘거나 줄어도
+     * 아무도 모르게 지나갔다. 값은 {@code 유도본-v4-대조.md}의 "SES에 자리가 있는데
+     * 묻지 않는 27곳" 절과 이 테스트가 서로를 지켜야 한다 — 트리가 바뀌면 둘 다
+     * 같이 갱신해야 한다.
+     */
+    @Test
+    void totalDecisionPointCountsArePinned() {
+        List<DecisionPoint> ps = points();
+        assertEquals(55, ps.size(), "총 결정 지점 수가 바뀌었다 — 트리가 바뀌었으면 "
+                + "유도본-v4-대조.md의 '묻지 않는 지점' 절도 함께 갱신해야 한다");
+        assertEquals(43, ps.stream().filter(DecisionPoint.AttributeValue.class::isInstance).count(),
+                "AttributeValue 개수");
+        assertEquals(5, ps.stream().filter(DecisionPoint.MultiCount.class::isInstance).count(),
+                "MultiCount 개수");
+        assertEquals(5, ps.stream().filter(DecisionPoint.SpecChoice.class::isInstance).count(),
+                "SpecChoice 개수");
+        assertEquals(2, ps.stream().filter(DecisionPoint.CouplingActivation.class::isInstance).count(),
+                "CouplingActivation 개수");
+    }
+
     @Test
     void idsAreUnique() {
         List<DecisionPoint> ps = points();

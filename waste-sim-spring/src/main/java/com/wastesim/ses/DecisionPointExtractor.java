@@ -31,7 +31,7 @@ public final class DecisionPointExtractor {
             boolean isMultiHolder = entity.multiAspect().isPresent();
 
             entity.multiAspect().ifPresent(multi -> points.add(
-                    new DecisionPoint.MultiCount(entity.name(), multi.children().get(0))));
+                    new DecisionPoint.MultiCount(entity.name())));
 
             for (Decomposition axis : entity.specAxes()) {
                 points.add(new DecisionPoint.SpecChoice(entity.name(), axis.name(), axis.children()));

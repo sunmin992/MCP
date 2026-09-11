@@ -64,7 +64,14 @@ public final class SesPruner {
                     throw new IllegalStateException("복제 수가 정해지지 않았다: " + multi.entity()
                             + " (필드 " + b.answerField() + ")");
                 }
-                counts.put(multi.id(), ((Number) answer).intValue());
+                // M4 — 숫자가 아닌 값이 들어오면 ClassCastException이 아니라 다른 갈래와
+                // 같은 문체(사유가 담긴 IllegalStateException)로 실패해야 한다. 검증을
+                // 통과한 값만 여기 도달한다는 전제가 깨졌다는 뜻이라 조용히 넘기지 않는다.
+                if (!(answer instanceof Number n)) {
+                    throw new IllegalStateException("복제 수가 숫자가 아니다: " + multi.entity()
+                            + " (필드 " + b.answerField() + ", 받은 값: " + answer + ")");
+                }
+                counts.put(multi.id(), n.intValue());
 
             } else if (point instanceof DecisionPoint.CouplingActivation) {
                 // 답이 없으면 켠 것으로 보지 않는다 — 끄는 쪽이 안전한 기본이다.
