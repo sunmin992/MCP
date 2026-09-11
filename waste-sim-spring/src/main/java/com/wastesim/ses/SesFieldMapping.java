@@ -19,7 +19,12 @@ import java.util.List;
  * {@code answerField}에서 그대로 옮겼다 — 지어내면 서브태스크 검증과 조용히 갈라진다.
  *
  * <p>{@code spec} 지점의 {@code range.values}는 <b>비워 둔다</b> — 허용값은 트리의 자식
- * 이름이고, 여기 또 적으면 트리를 고쳤을 때 조용히 갈라진다.
+ * 이름이고, 여기 또 적으면 트리를 고쳤을 때 조용히 갈라진다. 반대로 {@code spec}이 아닌
+ * ENUM/ENUM_LIST 필드는 트리에서 허용값을 얻을 길이 없다 — 속성에는 자료형도 허용값도
+ * 없다(이것이 이 연구가 측정하는 격차다). 그래서 그런 필드는 {@link #enumOf}로 v4의
+ * {@code allowedRange.values}를 그대로 옮겨 <b>여기서 선언</b>한다 — 안 그러면 다음 태스크의
+ * 유도기가 선택지 없는 선택형 문항을 만든다(유도기는 {@code SpecChoice} 지점에서만 트리의
+ * 자식 이름으로 값을 채우고, 속성 지점에는 그 경로가 없다).
  */
 public final class SesFieldMapping {
 
@@ -38,6 +43,15 @@ public final class SesFieldMapping {
 
     private static AllowedRange num(String description, double min, double max) {
         return new AllowedRange(description, min, max, null, null, null, null, null, null);
+    }
+
+    /**
+     * {@code spec}이 아닌 ENUM/ENUM_LIST 필드용. values는 v4의 allowedRange.values를
+     * 그대로 옮긴 것이지 여기서 새로 정한 것이 아니다 — 새 값을 지어내면 서버 검증
+     * (jangnyang-simulator-v4.json)과 조용히 갈라진다.
+     */
+    private static AllowedRange enumOf(String description, List<String> values) {
+        return new AllowedRange(description, null, null, null, null, null, null, null, values);
     }
 
     private static final List<FieldBinding> BINDINGS = List.of(
@@ -61,11 +75,12 @@ public final class SesFieldMapping {
 
             // ── 커플링 활성 1개 ────────────────────────────────────────────────
             new FieldBinding("coupling:교통 구역.혼잡계수->수거 경로.이동시간", "trafficMode",
-                    AnswerType.ENUM, desc("교통 혼잡을 반영할 것인가")),
+                    AnswerType.ENUM, enumOf("교통 혼잡을 반영할 것인가", List.of("APPLY", "NONE"))),
 
             // ── 속성 21개 ──────────────────────────────────────────────────────
             new FieldBinding("attr:거주민 집합:직업구성", "occupationPreset", AnswerType.ENUM,
-                    desc("직업 구성 프리셋")),
+                    enumOf("직업 구성 프리셋",
+                            List.of("BALANCED", "UNIVERSITY", "INDUSTRIAL", "FAMILY"))),
             new FieldBinding("attr:실험:기간", "days", AnswerType.INTEGER, num("1일 이상", 1, 365)),
             new FieldBinding("attr:실험:반복횟수", "seeds", AnswerType.INTEGER, num("1회 이상", 1, 100)),
             new FieldBinding("attr:대상 시스템:1인배출량", "wasteMeanKg", AnswerType.NUMBER,
@@ -85,7 +100,9 @@ public final class SesFieldMapping {
             new FieldBinding("attr:수거차량:수거시각", "collectionTimes", AnswerType.TIME_LIST,
                     desc("하루 여러 번 수거할 때의 시각 목록")),
             new FieldBinding("attr:수거차량:수거요일", "collectionSchedule", AnswerType.ENUM,
-                    desc("수거 주기 또는 요일 집합")),
+                    enumOf("수거 주기 또는 요일 집합", List.of(
+                            "EVERY_DAY", "EVERY_2_DAYS", "EVERY_3_DAYS", "EVERY_7_DAYS",
+                            "WEEKDAYS_MON_FRI", "MON_WED_FRI", "POHANG_MON_TUE_THU_FRI"))),
             new FieldBinding("attr:수거차량:적재용량", "routeAvailableCapacityKg", AnswerType.NUMBER,
                     num("한 운행에 실을 수 있는 양(kg)", 1, 20000)),
             new FieldBinding("attr:수거차량:초기적재량", "initialTruckLoadKg", AnswerType.NUMBER,
@@ -95,13 +112,15 @@ public final class SesFieldMapping {
             new FieldBinding("attr:수거차량:지점당수거시간", "serviceMinutesPerSite", AnswerType.INTEGER,
                     num("한 지점에 머무는 시간(분)", 0, 120)),
             new FieldBinding("attr:교통 구역:시간대프로파일", "trafficProfileId", AnswerType.ENUM,
-                    desc("교통 프로파일 식별자")),
+                    enumOf("교통 프로파일 식별자",
+                            List.of("jangryang-weekday", "jangryang-volume-weekday"))),
             new FieldBinding("attr:구간 상수:구간이동시간", "routeTravelMinutes", AnswerType.INTEGER,
                     num("지점 사이 고정 이동시간(분)", 0, 240)),
             new FieldBinding("attr:교통구역 근사:구역내이동시간", "intraZoneTravelMinutes",
                     AnswerType.INTEGER, num("같은 구역 안 이동시간(분)", 0, 120)),
             new FieldBinding("attr:교통구역 근사:구역배정가정", "zoneAssignmentRule", AnswerType.ENUM,
-                    desc("건물을 교통 구역에 배정하는 가정")),
+                    enumOf("건물을 교통 구역에 배정하는 가정",
+                            List.of("NONE", "CONTIGUOUS", "ROUND_ROBIN"))),
             new FieldBinding("attr:수거 경로:방문순서", "routeSequence", AnswerType.STRING_LIST,
                     desc("지점 ID를 방문 순서대로 적은 목록"))
     );

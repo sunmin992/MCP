@@ -52,6 +52,23 @@ class SesFieldMappingTest {
     }
 
     @Test
+    void nonSpecEnumBindingsDeclareTheirOwnValues() {
+        // spec 지점은 반대로 값이 비어 있어야 한다(specChoiceOptionsAreNotDeclaredHere) —
+        // 여기서 제외하는 것은 그 규칙과 짝을 맞추는 것이지 예외가 아니다.
+        // v4에도 목록이 없어 제외한 필드는 없다 — occupationPreset·collectionSchedule·
+        // zoneAssignmentRule·trafficMode·trafficProfileId 모두 v4에 values가 있었다.
+        List<String> emptyValued = SesFieldMapping.bindings().stream()
+                .filter(b -> !b.pointId().startsWith("spec:"))
+                .filter(b -> b.answerType() == AnswerType.ENUM || b.answerType() == AnswerType.ENUM_LIST)
+                .filter(b -> b.range().values() == null || b.range().values().isEmpty())
+                .map(SesFieldMapping.FieldBinding::answerField)
+                .sorted().toList();
+        assertEquals(List.of(), emptyValued,
+                "선택지 없는 선택형 문항은 검증할 수 없다 — spec이 아닌 ENUM/ENUM_LIST 필드는 "
+                        + "v4의 allowedRange.values를 여기서 선언해야 한다. 비어 있는 필드: " + emptyValued);
+    }
+
+    @Test
     void noFieldIsDeclaredTwice() {
         List<String> fields = SesFieldMapping.bindings().stream()
                 .map(SesFieldMapping.FieldBinding::answerField).toList();
