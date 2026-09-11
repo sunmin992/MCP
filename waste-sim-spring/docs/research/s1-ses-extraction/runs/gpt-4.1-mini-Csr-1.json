@@ -1,0 +1,530 @@
+{
+  "root": "SimulationConfig",
+  "entities": {
+    "SimulationConfig": {
+      "attrs": [
+        "collectionTimeMinutes",
+        "days",
+        "seeds",
+        "leaveSigma",
+        "wasteSigma",
+        "wasteMeanKg",
+        "capacity",
+        "threshold",
+        "scenarioScale",
+        "zoneAssignmentRule",
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "collectionTimesMinutes",
+        "collectionIntervalDays",
+        "collectionDaysOfWeek",
+        "dischargeTimeMode",
+        "dischargeWindowStartMinutes",
+        "dischargeWindowEndMinutes",
+        "skipWeekends",
+        "weekendCollectionTimeMinutes",
+        "holidays",
+        "numTrucks",
+        "routeTravelMinutes",
+        "travelTimeMode",
+        "serviceMinutesPerSite",
+        "intraZoneTravelMinutes",
+        "wasteTypes",
+        "returnDischarge",
+        "returnFraction",
+        "landlordEnabled",
+        "landlordInspectMinutes",
+        "landlordThreshold",
+        "monthlyWasteFactor",
+        "trafficEnabled",
+        "trafficProfileId",
+        "truckType",
+        "routeAvailableCapacityKg",
+        "initialTruckLoadKg",
+        "dispatchIntervalMinutes",
+        "routeSequence",
+        "trafficComplaintWeight"
+      ],
+      "decompositions": [
+        {
+          "kind": "ascpect",
+          "name": "simulation_structure",
+          "children": [
+            "ScenarioScale",
+            "ZoneAssignmentRule",
+            "OccupationType",
+            "WasteType",
+            "TruckType",
+            "TravelTimeMode",
+            "DischargeTimeMode",
+            "CoordinateQuality",
+            "DataQualityFlag"
+          ]
+        }
+      ]
+    },
+    "ScenarioScale": {
+      "attrs": [
+        "labelKo",
+        "numBuildings",
+        "residentsPerBuilding",
+        "capacityKg",
+        "truckType",
+        "numTrucks",
+        "note"
+      ],
+      "decompositions": []
+    },
+    "ZoneAssignmentRule": {
+      "attrs": [
+        "labelKo"
+      ],
+      "decompositions": []
+    },
+    "OccupationType": {
+      "attrs": [
+        "labelKo",
+        "leaveMeanMinutes",
+        "returnMeanMinutes"
+      ],
+      "decompositions": []
+    },
+    "WasteType": {
+      "attrs": [
+        "key",
+        "labelKo",
+        "fraction",
+        "capacity",
+        "threshold",
+        "intervalDays",
+        "collectionDaysOfWeek"
+      ],
+      "decompositions": []
+    },
+    "TruckType": {
+      "attrs": [
+        "labelKo",
+        "capacityKg",
+        "mobilityFactor",
+        "alleyAccess"
+      ],
+      "decompositions": []
+    },
+    "TravelTimeMode": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "DischargeTimeMode": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "CoordinateQuality": {
+      "attrs": [
+        "labelKo",
+        "warning"
+      ],
+      "decompositions": []
+    },
+    "DataQualityFlag": {
+      "attrs": [
+        "template"
+      ],
+      "decompositions": []
+    },
+    "SimulationResult": {
+      "attrs": [
+        "simulationConfig",
+        "coordinateQuality",
+        "dataQualityFlags",
+        "assumptionNotes",
+        "collectionTimeLabel",
+        "totalComplaints",
+        "wasteOverflowComplaints",
+        "landlordComplaints",
+        "byOccupation",
+        "byDay",
+        "peakFillKg",
+        "seed",
+        "wasteByMonth",
+        "generatedWasteKg",
+        "collectedWasteKg",
+        "residualWasteKg",
+        "availableCollectionCapacityKg",
+        "truckUtilizationPercent",
+        "collectionCapacityUtilizationPercent",
+        "partialPickupCount",
+        "unservedPickupCount",
+        "capacityExhaustedTripCount",
+        "uncollectedDemandKg",
+        "massBalanceErrorKg",
+        "tripMetrics",
+        "residualByBuilding",
+        "residualByWasteType",
+        "residualByTruck",
+        "maxResidualBuilding",
+        "maxResidualBuildingKg",
+        "meanComplaints",
+        "meanWasteOverflowComplaints",
+        "meanLandlordComplaints",
+        "stdComplaints",
+        "allTotals",
+        "byOccupationSummary",
+        "trafficPenalty",
+        "avgCompletionMinutes"
+      ],
+      "decompositions": []
+    },
+    "ScenarioResponse": {
+      "attrs": [
+        "scenarioType",
+        "title",
+        "xLabel",
+        "yLabel",
+        "yUnit",
+        "xCategories",
+        "series",
+        "insights"
+      ],
+      "decompositions": [
+        {
+          "kind": "multi",
+          "name": "series",
+          "children": ["ScenarioSeries"]
+        }
+      ]
+    },
+    "ScenarioSeries": {
+      "attrs": [
+        "name",
+        "values",
+        "stds"
+      ],
+      "decompositions": []
+    },
+    "Subtask": {
+      "attrs": [
+        "id",
+        "order",
+        "group",
+        "stage",
+        "question",
+        "answerField",
+        "answerType",
+        "required",
+        "allowsNotApplicable",
+        "allowedRange",
+        "validationRule",
+        "retryQuestion",
+        "completionCondition",
+        "basis"
+      ],
+      "decompositions": []
+    },
+    "AllowedRange": {
+      "attrs": [
+        "description",
+        "min",
+        "max",
+        "minLength",
+        "maxLength",
+        "minItems",
+        "maxItems",
+        "sumTo",
+        "values"
+      ],
+      "decompositions": []
+    },
+    "SubtaskGroup": {
+      "attrs": [
+        "order",
+        "name",
+        "description"
+      ],
+      "decompositions": []
+    },
+    "JangnyangSubtaskDefinition": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "immutable",
+        "invalidValuePolicy",
+        "groups",
+        "subtasks"
+      ],
+      "decompositions": [
+        {
+          "kind": "multi",
+          "name": "groups",
+          "children": ["SubtaskGroup"]
+        },
+        {
+          "kind": "multi",
+          "name": "subtasks",
+          "children": ["Subtask"]
+        }
+      ]
+    },
+    "JangnyangSubtaskSession": {
+      "attrs": [
+        "sessionKey",
+        "subtaskSetId",
+        "version",
+        "hash",
+        "answers",
+        "lastErrors",
+        "state",
+        "spec"
+      ],
+      "decompositions": []
+    },
+    "JangnyangScenarioSpec": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "setHash",
+        "scenarioType",
+        "toolName",
+        "engineId",
+        "answers",
+        "appliedDefaults",
+        "assumptions",
+        "modelDefaults",
+        "simulationConfig"
+      ],
+      "decompositions": []
+    },
+    "AppliedDefault": {
+      "attrs": [
+        "field",
+        "value",
+        "reason"
+      ],
+      "decompositions": []
+    },
+    "TrafficProfile": {
+      "attrs": [
+        "id",
+        "hourlyWeight",
+        "nodeHourlyWeight",
+        "congestionThresholdRed"
+      ],
+      "decompositions": []
+    },
+    "CollectionSite": {
+      "attrs": [
+        "id",
+        "longitude",
+        "latitude",
+        "name",
+        "adminDivision",
+        "source",
+        "snapMeters",
+        "trafficZone",
+        "largeTruckAllowed"
+      ],
+      "decompositions": []
+    }
+  },
+  "couplings": [],
+  "evidence": {
+    "SimulationConfig": "src/main/java/com/wastesim/model/SimulationConfig.java",
+    "SimulationConfig.collectionTimeMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field collectionTimeMinutes",
+    "SimulationConfig.days": "src/main/java/com/wastesim/model/SimulationConfig.java:field days",
+    "SimulationConfig.seeds": "src/main/java/com/wastesim/model/SimulationConfig.java:field seeds",
+    "SimulationConfig.leaveSigma": "src/main/java/com/wastesim/model/SimulationConfig.java:field leaveSigma",
+    "SimulationConfig.wasteSigma": "src/main/java/com/wastesim/model/SimulationConfig.java:field wasteSigma",
+    "SimulationConfig.wasteMeanKg": "src/main/java/com/wastesim/model/SimulationConfig.java:field wasteMeanKg",
+    "SimulationConfig.capacity": "src/main/java/com/wastesim/model/SimulationConfig.java:field capacity",
+    "SimulationConfig.threshold": "src/main/java/com/wastesim/model/SimulationConfig.java:field threshold",
+    "SimulationConfig.scenarioScale": "src/main/java/com/wastesim/model/SimulationConfig.java:field scenarioScale",
+    "SimulationConfig.zoneAssignmentRule": "src/main/java/com/wastesim/model/SimulationConfig.java:field zoneAssignmentRule",
+    "SimulationConfig.numBuildings": "src/main/java/com/wastesim/model/SimulationConfig.java:field numBuildings",
+    "SimulationConfig.residentsPerBuilding": "src/main/java/com/wastesim/model/SimulationConfig.java:field residentsPerBuilding",
+    "SimulationConfig.occupationMix": "src/main/java/com/wastesim/model/SimulationConfig.java:field occupationMix",
+    "SimulationConfig.collectionTimesMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field collectionTimesMinutes",
+    "SimulationConfig.collectionIntervalDays": "src/main/java/com/wastesim/model/SimulationConfig.java:field collectionIntervalDays",
+    "SimulationConfig.collectionDaysOfWeek": "src/main/java/com/wastesim/model/SimulationConfig.java:field collectionDaysOfWeek",
+    "SimulationConfig.dischargeTimeMode": "src/main/java/com/wastesim/model/SimulationConfig.java:field dischargeTimeMode",
+    "SimulationConfig.dischargeWindowStartMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field dischargeWindowStartMinutes",
+    "SimulationConfig.dischargeWindowEndMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field dischargeWindowEndMinutes",
+    "SimulationConfig.skipWeekends": "src/main/java/com/wastesim/model/SimulationConfig.java:field skipWeekends",
+    "SimulationConfig.weekendCollectionTimeMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field weekendCollectionTimeMinutes",
+    "SimulationConfig.holidays": "src/main/java/com/wastesim/model/SimulationConfig.java:field holidays",
+    "SimulationConfig.numTrucks": "src/main/java/com/wastesim/model/SimulationConfig.java:field numTrucks",
+    "SimulationConfig.routeTravelMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field routeTravelMinutes",
+    "SimulationConfig.travelTimeMode": "src/main/java/com/wastesim/model/SimulationConfig.java:field travelTimeMode",
+    "SimulationConfig.serviceMinutesPerSite": "src/main/java/com/wastesim/model/SimulationConfig.java:field serviceMinutesPerSite",
+    "SimulationConfig.intraZoneTravelMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field intraZoneTravelMinutes",
+    "SimulationConfig.wasteTypes": "src/main/java/com/wastesim/model/SimulationConfig.java:field wasteTypes",
+    "SimulationConfig.returnDischarge": "src/main/java/com/wastesim/model/SimulationConfig.java:field returnDischarge",
+    "SimulationConfig.returnFraction": "src/main/java/com/wastesim/model/SimulationConfig.java:field returnFraction",
+    "SimulationConfig.landlordEnabled": "src/main/java/com/wastesim/model/SimulationConfig.java:field landlordEnabled",
+    "SimulationConfig.landlordInspectMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field landlordInspectMinutes",
+    "SimulationConfig.landlordThreshold": "src/main/java/com/wastesim/model/SimulationConfig.java:field landlordThreshold",
+    "SimulationConfig.monthlyWasteFactor": "src/main/java/com/wastesim/model/SimulationConfig.java:field monthlyWasteFactor",
+    "SimulationConfig.trafficEnabled": "src/main/java/com/wastesim/model/SimulationConfig.java:field trafficEnabled",
+    "SimulationConfig.trafficProfileId": "src/main/java/com/wastesim/model/SimulationConfig.java:field trafficProfileId",
+    "SimulationConfig.truckType": "src/main/java/com/wastesim/model/SimulationConfig.java:field truckType",
+    "SimulationConfig.routeAvailableCapacityKg": "src/main/java/com/wastesim/model/SimulationConfig.java:field routeAvailableCapacityKg",
+    "SimulationConfig.initialTruckLoadKg": "src/main/java/com/wastesim/model/SimulationConfig.java:field initialTruckLoadKg",
+    "SimulationConfig.dispatchIntervalMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:field dispatchIntervalMinutes",
+    "SimulationConfig.routeSequence": "src/main/java/com/wastesim/model/SimulationConfig.java:field routeSequence",
+    "SimulationConfig.trafficComplaintWeight": "src/main/java/com/wastesim/model/SimulationConfig.java:field trafficComplaintWeight",
+    "ScenarioScale": "src/main/java/com/wastesim/model/ScenarioScale.java",
+    "ScenarioScale.labelKo": "src/main/java/com/wastesim/model/ScenarioScale.java:field labelKo",
+    "ScenarioScale.numBuildings": "src/main/java/com/wastesim/model/ScenarioScale.java:field numBuildings",
+    "ScenarioScale.residentsPerBuilding": "src/main/java/com/wastesim/model/ScenarioScale.java:field residentsPerBuilding",
+    "ScenarioScale.capacityKg": "src/main/java/com/wastesim/model/ScenarioScale.java:field capacityKg",
+    "ScenarioScale.truckType": "src/main/java/com/wastesim/model/ScenarioScale.java:field truckType",
+    "ScenarioScale.numTrucks": "src/main/java/com/wastesim/model/ScenarioScale.java:field numTrucks",
+    "ScenarioScale.note": "src/main/java/com/wastesim/model/ScenarioScale.java:field note",
+    "ZoneAssignmentRule": "src/main/java/com/wastesim/model/ZoneAssignmentRule.java",
+    "ZoneAssignmentRule.labelKo": "src/main/java/com/wastesim/model/ZoneAssignmentRule.java:field labelKo",
+    "OccupationType": "src/main/java/com/wastesim/model/OccupationType.java",
+    "OccupationType.labelKo": "src/main/java/com/wastesim/model/OccupationType.java:field labelKo",
+    "OccupationType.leaveMeanMinutes": "src/main/java/com/wastesim/model/OccupationType.java:field leaveMeanMinutes",
+    "OccupationType.returnMeanMinutes": "src/main/java/com/wastesim/model/OccupationType.java:field returnMeanMinutes",
+    "WasteType": "src/main/java/com/wastesim/model/WasteType.java",
+    "WasteType.key": "src/main/java/com/wastesim/model/WasteType.java:field key",
+    "WasteType.labelKo": "src/main/java/com/wastesim/model/WasteType.java:field labelKo",
+    "WasteType.fraction": "src/main/java/com/wastesim/model/WasteType.java:field fraction",
+    "WasteType.capacity": "src/main/java/com/wastesim/model/WasteType.java:field capacity",
+    "WasteType.threshold": "src/main/java/com/wastesim/model/WasteType.java:field threshold",
+    "WasteType.intervalDays": "src/main/java/com/wastesim/model/WasteType.java:field intervalDays",
+    "WasteType.collectionDaysOfWeek": "src/main/java/com/wastesim/model/WasteType.java:field collectionDaysOfWeek",
+    "TruckType": "src/main/java/com/wastesim/model/TruckType.java",
+    "TruckType.labelKo": "src/main/java/com/wastesim/model/TruckType.java:field labelKo",
+    "TruckType.capacityKg": "src/main/java/com/wastesim/model/TruckType.java:field capacityKg",
+    "TruckType.mobilityFactor": "src/main/java/com/wastesim/model/TruckType.java:field mobilityFactor",
+    "TruckType.alleyAccess": "src/main/java/com/wastesim/model/TruckType.java:field alleyAccess",
+    "SimulationResult": "src/main/java/com/wastesim/model/SimulationResult.java",
+    "SimulationResult.simulationConfig": "src/main/java/com/wastesim/model/SimulationResult.java:field simulationConfig",
+    "SimulationResult.coordinateQuality": "src/main/java/com/wastesim/model/SimulationResult.java:field coordinateQuality",
+    "SimulationResult.dataQualityFlags": "src/main/java/com/wastesim/model/SimulationResult.java:field dataQualityFlags",
+    "SimulationResult.assumptionNotes": "src/main/java/com/wastesim/model/SimulationResult.java:field assumptionNotes",
+    "SimulationResult.collectionTimeLabel": "src/main/java/com/wastesim/model/SimulationResult.java:field collectionTimeLabel",
+    "SimulationResult.totalComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:field totalComplaints",
+    "SimulationResult.wasteOverflowComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:field wasteOverflowComplaints",
+    "SimulationResult.landlordComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:field landlordComplaints",
+    "SimulationResult.byOccupation": "src/main/java/com/wastesim/model/SimulationResult.java:field byOccupation",
+    "SimulationResult.byDay": "src/main/java/com/wastesim/model/SimulationResult.java:field byDay",
+    "SimulationResult.peakFillKg": "src/main/java/com/wastesim/model/SimulationResult.java:field peakFillKg",
+    "SimulationResult.seed": "src/main/java/com/wastesim/model/SimulationResult.java:field seed",
+    "SimulationResult.wasteByMonth": "src/main/java/com/wastesim/model/SimulationResult.java:field wasteByMonth",
+    "SimulationResult.generatedWasteKg": "src/main/java/com/wastesim/model/SimulationResult.java:field generatedWasteKg",
+    "SimulationResult.collectedWasteKg": "src/main/java/com/wastesim/model/SimulationResult.java:field collectedWasteKg",
+    "SimulationResult.residualWasteKg": "src/main/java/com/wastesim/model/SimulationResult.java:field residualWasteKg",
+    "SimulationResult.availableCollectionCapacityKg": "src/main/java/com/wastesim/model/SimulationResult.java:field availableCollectionCapacityKg",
+    "SimulationResult.truckUtilizationPercent": "src/main/java/com/wastesim/model/SimulationResult.java:field truckUtilizationPercent",
+    "SimulationResult.collectionCapacityUtilizationPercent": "src/main/java/com/wastesim/model/SimulationResult.java:field collectionCapacityUtilizationPercent",
+    "SimulationResult.partialPickupCount": "src/main/java/com/wastesim/model/SimulationResult.java:field partialPickupCount",
+    "SimulationResult.unservedPickupCount": "src/main/java/com/wastesim/model/SimulationResult.java:field unservedPickupCount",
+    "SimulationResult.capacityExhaustedTripCount": "src/main/java/com/wastesim/model/SimulationResult.java:field capacityExhaustedTripCount",
+    "SimulationResult.uncollectedDemandKg": "src/main/java/com/wastesim/model/SimulationResult.java:field uncollectedDemandKg",
+    "SimulationResult.massBalanceErrorKg": "src/main/java/com/wastesim/model/SimulationResult.java:field massBalanceErrorKg",
+    "SimulationResult.tripMetrics": "src/main/java/com/wastesim/model/SimulationResult.java:field tripMetrics",
+    "SimulationResult.residualByBuilding": "src/main/java/com/wastesim/model/SimulationResult.java:field residualByBuilding",
+    "SimulationResult.residualByWasteType": "src/main/java/com/wastesim/model/SimulationResult.java:field residualByWasteType",
+    "SimulationResult.residualByTruck": "src/main/java/com/wastesim/model/SimulationResult.java:field residualByTruck",
+    "SimulationResult.maxResidualBuilding": "src/main/java/com/wastesim/model/SimulationResult.java:field maxResidualBuilding",
+    "SimulationResult.maxResidualBuildingKg": "src/main/java/com/wastesim/model/SimulationResult.java:field maxResidualBuildingKg",
+    "SimulationResult.meanComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:field meanComplaints",
+    "SimulationResult.meanWasteOverflowComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:field meanWasteOverflowComplaints",
+    "SimulationResult.meanLandlordComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:field meanLandlordComplaints",
+    "SimulationResult.stdComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:field stdComplaints",
+    "SimulationResult.allTotals": "src/main/java/com/wastesim/model/SimulationResult.java:field allTotals",
+    "SimulationResult.byOccupationSummary": "src/main/java/com/wastesim/model/SimulationResult.java:field byOccupationSummary",
+    "SimulationResult.trafficPenalty": "src/main/java/com/wastesim/model/SimulationResult.java:field trafficPenalty",
+    "SimulationResult.avgCompletionMinutes": "src/main/java/com/wastesim/model/SimulationResult.java:field avgCompletionMinutes",
+    "ScenarioResponse": "src/main/java/com/wastesim/model/ScenarioResponse.java",
+    "ScenarioResponse.scenarioType": "src/main/java/com/wastesim/model/ScenarioResponse.java:field scenarioType",
+    "ScenarioResponse.title": "src/main/java/com/wastesim/model/ScenarioResponse.java:field title",
+    "ScenarioResponse.xLabel": "src/main/java/com/wastesim/model/ScenarioResponse.java:field xLabel",
+    "ScenarioResponse.yLabel": "src/main/java/com/wastesim/model/ScenarioResponse.java:field yLabel",
+    "ScenarioResponse.yUnit": "src/main/java/com/wastesim/model/ScenarioResponse.java:field yUnit",
+    "ScenarioResponse.xCategories": "src/main/java/com/wastesim/model/ScenarioResponse.java:field xCategories",
+    "ScenarioResponse.series": "src/main/java/com/wastesim/model/ScenarioResponse.java:field series",
+    "ScenarioResponse.insights": "src/main/java/com/wastesim/model/ScenarioResponse.java:field insights",
+    "ScenarioSeries": "src/main/java/com/wastesim/model/ScenarioResponse.java#Series",
+    "ScenarioSeries.name": "src/main/java/com/wastesim/model/ScenarioResponse.java#Series:field name",
+    "ScenarioSeries.values": "src/main/java/com/wastesim/model/ScenarioResponse.java#Series:field values",
+    "ScenarioSeries.stds": "src/main/java/com/wastesim/model/ScenarioResponse.java#Series:field stds",
+    "Subtask": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java",
+    "Subtask.id": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field id",
+    "Subtask.order": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field order",
+    "Subtask.group": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field group",
+    "Subtask.stage": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field stage",
+    "Subtask.question": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field question",
+    "Subtask.answerField": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field answerField",
+    "Subtask.answerType": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field answerType",
+    "Subtask.required": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field required",
+    "Subtask.allowsNotApplicable": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field allowsNotApplicable",
+    "Subtask.allowedRange": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field allowedRange",
+    "Subtask.validationRule": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field validationRule",
+    "Subtask.retryQuestion": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field retryQuestion",
+    "Subtask.completionCondition": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field completionCondition",
+    "Subtask.basis": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:field basis",
+    "AllowedRange": "src/main/java/com/wastesim/subtask/AllowedRange.java",
+    "AllowedRange.description": "src/main/java/com/wastesim/subtask/AllowedRange.java:field description",
+    "AllowedRange.min": "src/main/java/com/wastesim/subtask/AllowedRange.java:field min",
+    "AllowedRange.max": "src/main/java/com/wastesim/subtask/AllowedRange.java:field max",
+    "AllowedRange.minLength": "src/main/java/com/wastesim/subtask/AllowedRange.java:field minLength",
+    "AllowedRange.maxLength": "src/main/java/com/wastesim/subtask/AllowedRange.java:field maxLength",
+    "AllowedRange.minItems": "src/main/java/com/wastesim/subtask/AllowedRange.java:field minItems",
+    "AllowedRange.maxItems": "src/main/java/com/wastesim/subtask/AllowedRange.java:field maxItems",
+    "AllowedRange.sumTo": "src/main/java/com/wastesim/subtask/AllowedRange.java:field sumTo",
+    "AllowedRange.values": "src/main/java/com/wastesim/subtask/AllowedRange.java:field values",
+    "SubtaskGroup": "src/main/java/com/wastesim/subtask/SubtaskGroup.java",
+    "SubtaskGroup.order": "src/main/java/com/wastesim/subtask/SubtaskGroup.java:field order",
+    "SubtaskGroup.name": "src/main/java/com/wastesim/subtask/SubtaskGroup.java:field name",
+    "SubtaskGroup.description": "src/main/java/com/wastesim/subtask/SubtaskGroup.java:field description",
+    "JangnyangSubtaskDefinition": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java",
+    "JangnyangSubtaskDefinition.subtaskSetId": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:field subtaskSetId",
+    "JangnyangSubtaskDefinition.version": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:field version",
+    "JangnyangSubtaskDefinition.immutable": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:field immutable",
+    "JangnyangSubtaskDefinition.invalidValuePolicy": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:field invalidValuePolicy",
+    "JangnyangSubtaskDefinition.groups": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:field groups",
+    "JangnyangSubtaskDefinition.subtasks": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:field subtasks",
+    "JangnyangSubtaskSession": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java",
+    "JangnyangSubtaskSession.sessionKey": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field sessionKey",
+    "JangnyangSubtaskSession.subtaskSetId": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field subtaskSetId",
+    "JangnyangSubtaskSession.version": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field version",
+    "JangnyangSubtaskSession.hash": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field hash",
+    "JangnyangSubtaskSession.answers": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field answers",
+    "JangnyangSubtaskSession.lastErrors": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field lastErrors",
+    "JangnyangSubtaskSession.state": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field state",
+    "JangnyangSubtaskSession.spec": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:field spec",
+    "JangnyangScenarioSpec": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java",
+    "JangnyangScenarioSpec.subtaskSetId": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field subtaskSetId",
+    "JangnyangScenarioSpec.version": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field version",
+    "JangnyangScenarioSpec.setHash": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field setHash",
+    "JangnyangScenarioSpec.scenarioType": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field scenarioType",
+    "JangnyangScenarioSpec.toolName": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field toolName",
+    "JangnyangScenarioSpec.engineId": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field engineId",
+    "JangnyangScenarioSpec.answers": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field answers",
+    "JangnyangScenarioSpec.appliedDefaults": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field appliedDefaults",
+    "JangnyangScenarioSpec.assumptions": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field assumptions",
+    "JangnyangScenarioSpec.modelDefaults": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field modelDefaults",
+    "JangnyangScenarioSpec.simulationConfig": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java:field simulationConfig",
+    "AppliedDefault": "src/main/java/com/wastesim/subtask/AppliedDefault.java",
+    "AppliedDefault.field": "src/main/java/com/wastesim/subtask/AppliedDefault.java:field field",
+    "AppliedDefault.value": "src/main/java/com/wastesim/subtask/AppliedDefault.java:field value",
+    "AppliedDefault.reason": "src/main/java/com/wastesim/subtask/AppliedDefault.java:field reason",
+    "TrafficProfile": "src/main/java/com/wastesim/model/TrafficProfile.java",
+    "TrafficProfile.id": "src/main/java/com/wastesim/model/TrafficProfile.java:field id",
+    "TrafficProfile.hourlyWeight": "src/main/java/com/wastesim/model/TrafficProfile.java:field hourlyWeight",
+    "TrafficProfile.nodeHourlyWeight": "src/main/java/com/wastesim/model/TrafficProfile.java:field nodeHourlyWeight",
+    "TrafficProfile.congestionThresholdRed": "src/main/java/com/wastesim/model/TrafficProfile.java:field congestionThresholdRed",
+    "CollectionSite": "src/main/java/com/wastesim/site/CollectionSite.java",
+    "CollectionSite.id": "src/main/java/com/wastesim/site/CollectionSite.java:field id",
+    "CollectionSite.longitude": "src/main/java/com/wastesim/site/CollectionSite.java:field longitude",
+    "CollectionSite.latitude": "src/main/java/com/wastesim/site/CollectionSite.java:field latitude",
+    "CollectionSite.name": "src/main/java/com/wastesim/site/CollectionSite.java:field name",
+    "CollectionSite.adminDivision": "src/main/java/com/wastesim/site/CollectionSite.java:field adminDivision",
+    "CollectionSite.source": "src/main/java/com/wastesim/site/CollectionSite.java:field source",
+    "CollectionSite.snapMeters": "src/main/java/com/wastesim/site/CollectionSite.java:field snapMeters",
+    "CollectionSite.trafficZone": "src/main/java/com/wastesim/site/CollectionSite.java:field trafficZone",
+    "CollectionSite.largeTruckAllowed": "src/main/java/com/wastesim/site/CollectionSite.java:field largeTruckAllowed"
+  }
+}

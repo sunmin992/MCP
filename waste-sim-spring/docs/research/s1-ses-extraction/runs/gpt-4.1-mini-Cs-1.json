@@ -1,0 +1,285 @@
+{
+  "root": "SimulationConfig",
+  "entities": {
+    "SimulationConfig": {
+      "attrs": [
+        "collectionTimeMinutes",
+        "days",
+        "seeds",
+        "leaveSigma",
+        "wasteSigma",
+        "wasteMeanKg",
+        "capacity",
+        "threshold",
+        "scenarioScale",
+        "zoneAssignmentRule",
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "collectionTimesMinutes",
+        "collectionIntervalDays",
+        "collectionDaysOfWeek",
+        "dischargeTimeMode",
+        "dischargeWindowStartMinutes",
+        "dischargeWindowEndMinutes",
+        "skipWeekends",
+        "weekendCollectionTimeMinutes",
+        "holidays",
+        "numTrucks",
+        "routeTravelMinutes",
+        "travelTimeMode",
+        "serviceMinutesPerSite",
+        "intraZoneTravelMinutes",
+        "wasteTypes",
+        "returnDischarge",
+        "returnFraction",
+        "landlordEnabled",
+        "landlordInspectMinutes",
+        "landlordThreshold",
+        "monthlyWasteFactor",
+        "trafficEnabled",
+        "trafficProfileId",
+        "truckType",
+        "routeAvailableCapacityKg",
+        "initialTruckLoadKg",
+        "dispatchIntervalMinutes",
+        "routeSequence",
+        "trafficComplaintWeight"
+      ],
+      "decompositions": [
+        {
+          "kind": "aspect",
+          "name": "scenario",
+          "children": [
+            "ScenarioScale",
+            "ZoneAssignmentRule",
+            "TruckType",
+            "WasteType",
+            "OccupationType"
+          ]
+        },
+        {
+          "kind": "multi",
+          "name": "wasteTypes",
+          "children": ["WasteType"]
+        },
+        {
+          "kind": "multi",
+          "name": "occupationMix",
+          "children": ["OccupationType"]
+        }
+      ]
+    },
+    "ScenarioScale": {
+      "attrs": [
+        "labelKo",
+        "numBuildings",
+        "residentsPerBuilding",
+        "capacityKg",
+        "truckType",
+        "numTrucks",
+        "note"
+      ]
+    },
+    "ZoneAssignmentRule": {
+      "attrs": ["labelKo"]
+    },
+    "TruckType": {
+      "attrs": [
+        "labelKo",
+        "capacityKg",
+        "mobilityFactor",
+        "alleyAccess"
+      ]
+    },
+    "WasteType": {
+      "attrs": [
+        "key",
+        "labelKo",
+        "fraction",
+        "capacity",
+        "threshold",
+        "intervalDays",
+        "collectionDaysOfWeek"
+      ]
+    },
+    "OccupationType": {
+      "attrs": [
+        "labelKo",
+        "leaveMeanMinutes",
+        "returnMeanMinutes"
+      ]
+    },
+    "SimulationResult": {
+      "attrs": [
+        "collectionTimeLabel",
+        "totalComplaints",
+        "wasteOverflowComplaints",
+        "landlordComplaints",
+        "byOccupation",
+        "byDay",
+        "peakFillKg",
+        "seed",
+        "wasteByMonth",
+        "generatedWasteKg",
+        "collectedWasteKg",
+        "residualWasteKg",
+        "availableCollectionCapacityKg",
+        "truckUtilizationPercent",
+        "collectionCapacityUtilizationPercent",
+        "partialPickupCount",
+        "unservedPickupCount",
+        "capacityExhaustedTripCount",
+        "uncollectedDemandKg",
+        "massBalanceErrorKg",
+        "tripMetrics",
+        "residualByBuilding",
+        "residualByWasteType",
+        "residualByTruck",
+        "maxResidualBuilding",
+        "maxResidualBuildingKg",
+        "meanComplaints",
+        "meanWasteOverflowComplaints",
+        "meanLandlordComplaints",
+        "stdComplaints",
+        "allTotals",
+        "byOccupationSummary",
+        "coordinateQuality",
+        "dataQualityFlags",
+        "assumptionNotes",
+        "trafficPenalty",
+        "avgCompletionMinutes"
+      ]
+    },
+    "TrafficProfile": {
+      "attrs": [
+        "id",
+        "hourlyWeight",
+        "nodeHourlyWeight",
+        "congestionThresholdRed"
+      ]
+    },
+    "CollectionSite": {
+      "attrs": [
+        "id",
+        "longitude",
+        "latitude",
+        "name",
+        "adminDivision",
+        "source",
+        "snapMeters",
+        "trafficZone",
+        "largeTruckAllowed"
+      ]
+    },
+    "JangnyangSubtask": {
+      "attrs": [
+        "id",
+        "order",
+        "group",
+        "stage",
+        "question",
+        "answerField",
+        "answerType",
+        "required",
+        "allowsNotApplicable",
+        "allowedRange",
+        "validationRule",
+        "retryQuestion",
+        "completionCondition",
+        "basis"
+      ]
+    },
+    "JangnyangSubtaskDefinition": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "immutable",
+        "invalidValuePolicy",
+        "groups",
+        "subtasks"
+      ],
+      "decompositions": [
+        {
+          "kind": "multi",
+          "name": "groups",
+          "children": ["SubtaskGroup"]
+        },
+        {
+          "kind": "multi",
+          "name": "subtasks",
+          "children": ["JangnyangSubtask"]
+        }
+      ]
+    },
+    "SubtaskGroup": {
+      "attrs": [
+        "order",
+        "name",
+        "description"
+      ]
+    },
+    "JangnyangSubtaskSession": {
+      "attrs": [
+        "sessionKey",
+        "subtaskSetId",
+        "version",
+        "hash",
+        "answers",
+        "lastErrors",
+        "state",
+        "spec"
+      ]
+    },
+    "JangnyangScenarioSpec": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "setHash",
+        "scenarioType",
+        "toolName",
+        "engineId",
+        "answers",
+        "appliedDefaults",
+        "assumptions",
+        "modelDefaults",
+        "simulationConfig"
+      ]
+    },
+    "TripMetric": {
+      "attrs": [
+        "truckId",
+        "tripId",
+        "allocatedCapacityKg",
+        "initialLoadKg",
+        "availablePickupCapacityKg",
+        "collectedKg",
+        "finalLoadKg",
+        "unusedCapacityKg",
+        "utilizationPercent",
+        "partialPickupCount"
+      ]
+    }
+  },
+  "couplings": [
+    { "from": "JangnyangScenarioSpec.simulationConfig", "to": "SimulationConfig" },
+    { "from": "JangnyangSubtaskSession.spec", "to": "JangnyangScenarioSpec" }
+  ],
+  "evidence": {
+    "SimulationConfig": "com.wastesim.model.SimulationConfig",
+    "ScenarioScale": "com.wastesim.model.ScenarioScale",
+    "ZoneAssignmentRule": "com.wastesim.model.ZoneAssignmentRule",
+    "TruckType": "com.wastesim.model.TruckType",
+    "WasteType": "com.wastesim.model.WasteType",
+    "OccupationType": "com.wastesim.model.OccupationType",
+    "SimulationResult": "com.wastesim.model.SimulationResult",
+    "TrafficProfile": "com.wastesim.model.TrafficProfile",
+    "CollectionSite": "com.wastesim.site.CollectionSite",
+    "JangnyangSubtask": "com.wastesim.subtask.JangnyangSubtask",
+    "JangnyangSubtaskDefinition": "com.wastesim.subtask.JangnyangSubtaskDefinition",
+    "SubtaskGroup": "com.wastesim.subtask.SubtaskGroup",
+    "JangnyangSubtaskSession": "com.wastesim.subtask.JangnyangSubtaskSession",
+    "JangnyangScenarioSpec": "com.wastesim.subtask.JangnyangScenarioSpec",
+    "TripMetric": "com.wastesim.model.TripMetric"
+  }
+}

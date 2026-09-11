@@ -1,0 +1,238 @@
+{
+  "root": "Simulation",
+  "entities": {
+    "Simulation": {
+      "attrs": [],
+      "decompositions": [
+        {
+          "kind": "aspect",
+          "name": "includes",
+          "children": ["SimulationConfig", "SimulationResult", "ScenarioResponse"]
+        }
+      ]
+    },
+    "SimulationConfig": {
+      "attrs": [
+        "collectionTimeMinutes",
+        "days",
+        "seeds",
+        "leaveSigma",
+        "wasteSigma",
+        "wasteMeanKg",
+        "capacity",
+        "threshold",
+        "scenarioScale",
+        "zoneAssignmentRule",
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "collectionTimesMinutes",
+        "collectionIntervalDays",
+        "collectionDaysOfWeek",
+        "dischargeTimeMode",
+        "dischargeWindowStartMinutes",
+        "dischargeWindowEndMinutes",
+        "skipWeekends",
+        "weekendCollectionTimeMinutes",
+        "holidays",
+        "numTrucks",
+        "routeTravelMinutes",
+        "travelTimeMode",
+        "serviceMinutesPerSite",
+        "wasteTypes",
+        "returnDischarge",
+        "returnFraction",
+        "landlordEnabled",
+        "landlordInspectMinutes",
+        "landlordThreshold",
+        "monthlyWasteFactor",
+        "trafficEnabled",
+        "trafficProfileId",
+        "truckType",
+        "routeAvailableCapacityKg",
+        "initialTruckLoadKg",
+        "dispatchIntervalMinutes",
+        "routeSequence",
+        "trafficComplaintWeight"
+      ],
+      "decompositions": []
+    },
+    "SimulationResult": {
+      "attrs": [
+        "simulationConfig",
+        "coordinateQuality",
+        "dataQualityFlags",
+        "assumptionNotes",
+        "collectionTimeLabel",
+        "totalComplaints",
+        "wasteOverflowComplaints",
+        "landlordComplaints",
+        "byOccupation",
+        "byDay",
+        "peakFillKg",
+        "seed",
+        "wasteByMonth",
+        "generatedWasteKg",
+        "collectedWasteKg",
+        "residualWasteKg",
+        "availableCollectionCapacityKg",
+        "truckUtilizationPercent",
+        "collectionCapacityUtilizationPercent",
+        "partialPickupCount",
+        "unservedPickupCount",
+        "capacityExhaustedTripCount",
+        "uncollectedDemandKg",
+        "massBalanceErrorKg",
+        "tripMetrics",
+        "residualByBuilding",
+        "residualByWasteType",
+        "residualByTruck",
+        "maxResidualBuilding",
+        "maxResidualBuildingKg",
+        "meanComplaints",
+        "meanWasteOverflowComplaints",
+        "meanLandlordComplaints",
+        "stdComplaints",
+        "allTotals",
+        "byOccupationSummary",
+        "trafficPenalty",
+        "avgCompletionMinutes"
+      ],
+      "decompositions": []
+    },
+    "ScenarioResponse": {
+      "attrs": [
+        "scenarioType",
+        "title",
+        "xLabel",
+        "yLabel",
+        "yUnit",
+        "xCategories",
+        "series",
+        "insights"
+      ],
+      "decompositions": []
+    },
+    "ScenarioPreset": {
+      "attrs": [
+        "labelKo",
+        "desc",
+        "mix"
+      ],
+      "decompositions": []
+    },
+    "TrafficProfile": {
+      "attrs": [
+        "id",
+        "hourlyWeight",
+        "nodeHourlyWeight",
+        "congestionThresholdRed"
+      ],
+      "decompositions": []
+    },
+    "TruckType": {
+      "attrs": [
+        "labelKo",
+        "capacityKg",
+        "mobilityFactor",
+        "alleyAccess"
+      ],
+      "decompositions": []
+    },
+    "WasteType": {
+      "attrs": [
+        "key",
+        "labelKo",
+        "fraction",
+        "capacity",
+        "threshold",
+        "intervalDays",
+        "collectionDaysOfWeek"
+      ],
+      "decompositions": []
+    },
+    "SubtaskSession": {
+      "attrs": [
+        "sessionKey",
+        "subtaskSetId",
+        "version",
+        "hash",
+        "answers",
+        "lastErrors",
+        "state",
+        "spec"
+      ],
+      "decompositions": []
+    },
+    "JangnyangSubtaskCatalog": {
+      "attrs": [
+        "byVersion"
+      ],
+      "decompositions": []
+    },
+    "JangnyangSubtaskDefinition": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "immutable",
+        "invalidValuePolicy",
+        "groups",
+        "subtasks"
+      ],
+      "decompositions": [
+        {
+          "kind": "multi",
+          "name": "groups",
+          "children": ["SubtaskGroup"]
+        },
+        {
+          "kind": "multi",
+          "name": "subtasks",
+          "children": ["JangnyangSubtask"]
+        }
+      ]
+    },
+    "JangnyangSubtask": {
+      "attrs": [
+        "id",
+        "order",
+        "group",
+        "stage",
+        "question",
+        "answerField",
+        "answerType",
+        "required",
+        "allowsNotApplicable",
+        "allowedRange",
+        "validationRule",
+        "retryQuestion",
+        "completionCondition",
+        "basis"
+      ],
+      "decompositions": []
+    },
+    "SubtaskGroup": {
+      "attrs": [
+        "order",
+        "name",
+        "description"
+      ],
+      "decompositions": []
+    }
+  },
+  "couplings": [],
+  "evidence": {
+    "SimulationConfig": "src/main/java/com/wastesim/model/SimulationConfig.java",
+    "SimulationResult": "src/main/java/com/wastesim/model/SimulationResult.java",
+    "ScenarioResponse": "src/main/java/com/wastesim/model/ScenarioResponse.java",
+    "ScenarioPreset": "src/main/java/com/wastesim/model/ScenarioPreset.java",
+    "TrafficProfile": "src/main/java/com/wastesim/model/TrafficProfile.java",
+    "TruckType": "src/main/java/com/wastesim/model/TruckType.java",
+    "WasteType": "src/main/java/com/wastesim/model/WasteType.java",
+    "SubtaskSession": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java",
+    "JangnyangSubtaskCatalog": "src/main/java/com/wastesim/subtask/JangnyangSubtaskCatalog.java",
+    "JangnyangSubtaskDefinition": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java",
+    "JangnyangSubtask": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java",
+    "SubtaskGroup": "src/main/java/com/wastesim/subtask/SubtaskGroup.java"
+  }
+}

@@ -1,0 +1,682 @@
+{
+  "root": "SimulationConfig",
+  "entities": {
+    "SimulationConfig": {
+      "attrs": [
+        "collectionTimeMinutes",
+        "days",
+        "seeds",
+        "leaveSigma",
+        "wasteSigma",
+        "wasteMeanKg",
+        "capacity",
+        "threshold",
+        "scenarioScale",
+        "zoneAssignmentRule",
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "collectionTimesMinutes",
+        "collectionIntervalDays",
+        "collectionDaysOfWeek",
+        "dischargeTimeMode",
+        "dischargeWindowStartMinutes",
+        "dischargeWindowEndMinutes",
+        "skipWeekends",
+        "weekendCollectionTimeMinutes",
+        "holidays",
+        "numTrucks",
+        "routeTravelMinutes",
+        "travelTimeMode",
+        "serviceMinutesPerSite",
+        "intraZoneTravelMinutes",
+        "wasteTypes",
+        "returnDischarge",
+        "returnFraction",
+        "landlordEnabled",
+        "landlordInspectMinutes",
+        "landlordThreshold",
+        "monthlyWasteFactor",
+        "trafficEnabled",
+        "trafficProfileId",
+        "truckType",
+        "routeAvailableCapacityKg",
+        "initialTruckLoadKg",
+        "dispatchIntervalMinutes",
+        "routeSequence",
+        "trafficComplaintWeight"
+      ],
+      "decompositions": [
+        {
+          "kind": "aspect",
+          "name": "simulation aspects",
+          "children": [
+            "WasteType",
+            "OccupationType",
+            "TruckType"
+          ]
+        },
+        {
+          "kind": "spec",
+          "name": "scenarioScale",
+          "children": [
+            "ScenarioScale.PAPER_BASELINE",
+            "ScenarioScale.JANGRYANG_CAPACITY"
+          ]
+        },
+        {
+          "kind": "spec",
+          "name": "dischargeTimeMode",
+          "children": [
+            "DischargeTimeMode.PAPER_BASELINE",
+            "DischargeTimeMode.POHANG_ACTUAL"
+          ]
+        },
+        {
+          "kind": "spec",
+          "name": "zoneAssignmentRule",
+          "children": [
+            "ZoneAssignmentRule.NONE",
+            "ZoneAssignmentRule.CONTIGUOUS",
+            "ZoneAssignmentRule.ROUND_ROBIN"
+          ]
+        },
+        {
+          "kind": "spec",
+          "name": "travelTimeMode",
+          "children": [
+            "TravelTimeMode.LEGACY_CONSTANT",
+            "TravelTimeMode.OSRM_HYBRID",
+            "TravelTimeMode.ZONE_PROXY_HYBRID"
+          ]
+        }
+      ]
+    },
+    "ScenarioScale.PAPER_BASELINE": {
+      "attrs": [
+        "labelKo",
+        "numBuildings",
+        "residentsPerBuilding",
+        "capacityKg",
+        "truckType",
+        "numTrucks",
+        "note"
+      ],
+      "decompositions": []
+    },
+    "ScenarioScale.JANGRYANG_CAPACITY": {
+      "attrs": [
+        "labelKo",
+        "numBuildings",
+        "residentsPerBuilding",
+        "capacityKg",
+        "truckType",
+        "numTrucks",
+        "note"
+      ],
+      "decompositions": []
+    },
+    "DischargeTimeMode.PAPER_BASELINE": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "DischargeTimeMode.POHANG_ACTUAL": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "ZoneAssignmentRule.NONE": {
+      "attrs": [
+        "labelKo"
+      ],
+      "decompositions": []
+    },
+    "ZoneAssignmentRule.CONTIGUOUS": {
+      "attrs": [
+        "labelKo"
+      ],
+      "decompositions": []
+    },
+    "ZoneAssignmentRule.ROUND_ROBIN": {
+      "attrs": [
+        "labelKo"
+      ],
+      "decompositions": []
+    },
+    "TravelTimeMode.LEGACY_CONSTANT": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "TravelTimeMode.OSRM_HYBRID": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "TravelTimeMode.ZONE_PROXY_HYBRID": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "WasteType": {
+      "attrs": [
+        "key",
+        "labelKo",
+        "fraction",
+        "capacity",
+        "threshold",
+        "intervalDays",
+        "collectionDaysOfWeek"
+      ],
+      "decompositions": []
+    },
+    "OccupationType": {
+      "attrs": [
+        "labelKo",
+        "leaveMeanMinutes",
+        "returnMeanMinutes"
+      ],
+      "decompositions": [
+        {
+          "kind": "spec",
+          "name": "occupationType",
+          "children": [
+            "BlueCollar",
+            "Student",
+            "Housewife",
+            "NightShift",
+            "OfficeWorker"
+          ]
+        }
+      ]
+    },
+    "TruckType": {
+      "attrs": [
+        "labelKo",
+        "capacityKg",
+        "mobilityFactor",
+        "alleyAccess"
+      ],
+      "decompositions": [
+        {
+          "kind": "spec",
+          "name": "truckType",
+          "children": [
+            "LARGE_5TON",
+            "MEDIUM_2P5T",
+            "SMALL_1TON"
+          ]
+        }
+      ]
+    },
+    "JangnyangSubtaskDefinition": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "immutable",
+        "invalidValuePolicy"
+      ],
+      "decompositions": [
+        {
+          "kind": "aspect",
+          "name": "groups and subtasks",
+          "children": [
+            "SubtaskGroup",
+            "JangnyangSubtask"
+          ]
+        }
+      ]
+    },
+    "JangnyangSubtask": {
+      "attrs": [
+        "id",
+        "order",
+        "group",
+        "stage",
+        "question",
+        "answerField",
+        "answerType",
+        "required",
+        "allowsNotApplicable",
+        "allowedRange",
+        "validationRule",
+        "retryQuestion",
+        "completionCondition",
+        "basis"
+      ],
+      "decompositions": []
+    },
+    "SubtaskGroup": {
+      "attrs": [
+        "order",
+        "name",
+        "description"
+      ],
+      "decompositions": []
+    },
+    "JangnyangSubtaskSession": {
+      "attrs": [
+        "sessionKey",
+        "subtaskSetId",
+        "version",
+        "hash",
+        "state",
+        "spec"
+      ],
+      "decompositions": [
+        {
+          "kind": "aspect",
+          "name": "answers with lastErrors",
+          "children": [
+            "JangnyangSubtaskAnswer",
+            "SubtaskError"
+          ]
+        }
+      ]
+    },
+    "JangnyangSubtaskAnswer": {
+      "attrs": [
+        "subtaskId",
+        "raw",
+        "value",
+        "source",
+        "error"
+      ],
+      "decompositions": []
+    },
+    "SubtaskError": {
+      "attrs": [
+        "subtaskId",
+        "code",
+        "reason",
+        "retryQuestion"
+      ],
+      "decompositions": []
+    },
+    "SubtaskProgress": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "hash",
+        "state",
+        "currentSubtaskId",
+        "order",
+        "total",
+        "progress",
+        "groupOrder",
+        "groupTotal",
+        "groupName",
+        "groupDescription",
+        "questionInGroup",
+        "questionsInGroup",
+        "answers",
+        "errors"
+      ],
+      "decompositions": []
+    },
+    "SimulationResult": {
+      "attrs": [
+        "simulationConfig",
+        "coordinateQuality",
+        "dataQualityFlags",
+        "assumptionNotes",
+        "collectionTimeLabel",
+        "totalComplaints",
+        "wasteOverflowComplaints",
+        "landlordComplaints",
+        "byOccupation",
+        "byDay",
+        "peakFillKg",
+        "seed",
+        "wasteByMonth",
+        "generatedWasteKg",
+        "collectedWasteKg",
+        "residualWasteKg",
+        "availableCollectionCapacityKg",
+        "truckUtilizationPercent",
+        "collectionCapacityUtilizationPercent",
+        "partialPickupCount",
+        "unservedPickupCount",
+        "capacityExhaustedTripCount",
+        "uncollectedDemandKg",
+        "massBalanceErrorKg",
+        "tripMetrics",
+        "residualByBuilding",
+        "residualByWasteType",
+        "residualByTruck",
+        "maxResidualBuilding",
+        "maxResidualBuildingKg",
+        "meanComplaints",
+        "meanWasteOverflowComplaints",
+        "meanLandlordComplaints",
+        "stdComplaints",
+        "allTotals",
+        "byOccupationSummary",
+        "trafficPenalty",
+        "avgCompletionMinutes"
+      ],
+      "decompositions": []
+    },
+    "ScenarioResponse": {
+      "attrs": [
+        "scenarioType",
+        "title",
+        "xLabel",
+        "yLabel",
+        "yUnit",
+        "xCategories",
+        "series",
+        "insights"
+      ],
+      "decompositions": [
+        {
+          "kind": "multi",
+          "name": "series",
+          "children": ["Series"]
+        }
+      ]
+    },
+    "Series": {
+      "attrs": [
+        "name",
+        "values",
+        "stds"
+      ],
+      "decompositions": []
+    },
+    "CollectionSite": {
+      "attrs": [
+        "id",
+        "longitude",
+        "latitude",
+        "name",
+        "adminDivision",
+        "source",
+        "snapMeters",
+        "trafficZone",
+        "largeTruckAllowed"
+      ],
+      "decompositions": []
+    },
+    "TrafficProfile": {
+      "attrs": [
+        "id",
+        "hourlyWeight",
+        "nodeHourlyWeight",
+        "congestionThresholdRed"
+      ],
+      "decompositions": []
+    }
+  },
+  "couplings": [
+    {
+      "from": "SimulationConfig.occupationMix",
+      "to": "OccupationType"
+    },
+    {
+      "from": "SimulationConfig.wasteTypes",
+      "to": "WasteType"
+    },
+    {
+      "from": "SimulationConfig.truckType",
+      "to": "TruckType"
+    },
+    {
+      "from": "SimulationConfig.scenarioScale",
+      "to": "ScenarioScale.PAPER_BASELINE"
+    },
+    {
+      "from": "SimulationConfig.scenarioScale",
+      "to": "ScenarioScale.JANGRYANG_CAPACITY"
+    },
+    {
+      "from": "SimulationConfig.zoneAssignmentRule",
+      "to": "ZoneAssignmentRule.NONE"
+    },
+    {
+      "from": "SimulationConfig.zoneAssignmentRule",
+      "to": "ZoneAssignmentRule.CONTIGUOUS"
+    },
+    {
+      "from": "SimulationConfig.zoneAssignmentRule",
+      "to": "ZoneAssignmentRule.ROUND_ROBIN"
+    },
+    {
+      "from": "SimulationConfig.dischargeTimeMode",
+      "to": "DischargeTimeMode.PAPER_BASELINE"
+    },
+    {
+      "from": "SimulationConfig.dischargeTimeMode",
+      "to": "DischargeTimeMode.POHANG_ACTUAL"
+    },
+    {
+      "from": "SimulationConfig.travelTimeMode",
+      "to": "TravelTimeMode.LEGACY_CONSTANT"
+    },
+    {
+      "from": "SimulationConfig.travelTimeMode",
+      "to": "TravelTimeMode.OSRM_HYBRID"
+    },
+    {
+      "from": "SimulationConfig.travelTimeMode",
+      "to": "TravelTimeMode.ZONE_PROXY_HYBRID"
+    },
+    {
+      "from": "JangnyangSubtaskDefinition.subtasks",
+      "to": "JangnyangSubtask"
+    },
+    {
+      "from": "JangnyangSubtaskDefinition.groups",
+      "to": "SubtaskGroup"
+    },
+    {
+      "from": "JangnyangSubtaskSession.answers",
+      "to": "JangnyangSubtaskAnswer"
+    },
+    {
+      "from": "JangnyangSubtaskSession.lastErrors",
+      "to": "SubtaskError"
+    },
+    {
+      "from": "SubtaskProgress.errors",
+      "to": "SubtaskError"
+    }
+  ],
+  "evidence": {
+    "SimulationConfig": "com.wastesim.model.SimulationConfig",
+    "SimulationConfig.collectionTimeMinutes": "com.wastesim.model.SimulationConfig.collectionTimeMinutes",
+    "SimulationConfig.days": "com.wastesim.model.SimulationConfig.days",
+    "SimulationConfig.seeds": "com.wastesim.model.SimulationConfig.seeds",
+    "SimulationConfig.leaveSigma": "com.wastesim.model.SimulationConfig.leaveSigma",
+    "SimulationConfig.wasteSigma": "com.wastesim.model.SimulationConfig.wasteSigma",
+    "SimulationConfig.wasteMeanKg": "com.wastesim.model.SimulationConfig.wasteMeanKg",
+    "SimulationConfig.capacity": "com.wastesim.model.SimulationConfig.capacity",
+    "SimulationConfig.threshold": "com.wastesim.model.SimulationConfig.threshold",
+    "SimulationConfig.scenarioScale": "com.wastesim.model.SimulationConfig.scenarioScale",
+    "SimulationConfig.zoneAssignmentRule": "com.wastesim.model.SimulationConfig.zoneAssignmentRule",
+    "SimulationConfig.numBuildings": "com.wastesim.model.SimulationConfig.numBuildings",
+    "SimulationConfig.residentsPerBuilding": "com.wastesim.model.SimulationConfig.residentsPerBuilding",
+    "SimulationConfig.occupationMix": "com.wastesim.model.SimulationConfig.occupationMix",
+    "SimulationConfig.collectionTimesMinutes": "com.wastesim.model.SimulationConfig.collectionTimesMinutes",
+    "SimulationConfig.collectionIntervalDays": "com.wastesim.model.SimulationConfig.collectionIntervalDays",
+    "SimulationConfig.collectionDaysOfWeek": "com.wastesim.model.SimulationConfig.collectionDaysOfWeek",
+    "SimulationConfig.dischargeTimeMode": "com.wastesim.model.SimulationConfig.dischargeTimeMode",
+    "SimulationConfig.dischargeWindowStartMinutes": "com.wastesim.model.SimulationConfig.dischargeWindowStartMinutes",
+    "SimulationConfig.dischargeWindowEndMinutes": "com.wastesim.model.SimulationConfig.dischargeWindowEndMinutes",
+    "SimulationConfig.skipWeekends": "com.wastesim.model.SimulationConfig.skipWeekends",
+    "SimulationConfig.weekendCollectionTimeMinutes": "com.wastesim.model.SimulationConfig.weekendCollectionTimeMinutes",
+    "SimulationConfig.holidays": "com.wastesim.model.SimulationConfig.holidays",
+    "SimulationConfig.numTrucks": "com.wastesim.model.SimulationConfig.numTrucks",
+    "SimulationConfig.routeTravelMinutes": "com.wastesim.model.SimulationConfig.routeTravelMinutes",
+    "SimulationConfig.travelTimeMode": "com.wastesim.model.SimulationConfig.travelTimeMode",
+    "SimulationConfig.serviceMinutesPerSite": "com.wastesim.model.SimulationConfig.serviceMinutesPerSite",
+    "SimulationConfig.intraZoneTravelMinutes": "com.wastesim.model.SimulationConfig.intraZoneTravelMinutes",
+    "SimulationConfig.wasteTypes": "com.wastesim.model.SimulationConfig.wasteTypes",
+    "SimulationConfig.returnDischarge": "com.wastesim.model.SimulationConfig.returnDischarge",
+    "SimulationConfig.returnFraction": "com.wastesim.model.SimulationConfig.returnFraction",
+    "SimulationConfig.landlordEnabled": "com.wastesim.model.SimulationConfig.landlordEnabled",
+    "SimulationConfig.landlordInspectMinutes": "com.wastesim.model.SimulationConfig.landlordInspectMinutes",
+    "SimulationConfig.landlordThreshold": "com.wastesim.model.SimulationConfig.landlordThreshold",
+    "SimulationConfig.monthlyWasteFactor": "com.wastesim.model.SimulationConfig.monthlyWasteFactor",
+    "SimulationConfig.trafficEnabled": "com.wastesim.model.SimulationConfig.trafficEnabled",
+    "SimulationConfig.trafficProfileId": "com.wastesim.model.SimulationConfig.trafficProfileId",
+    "SimulationConfig.truckType": "com.wastesim.model.SimulationConfig.truckType",
+    "SimulationConfig.routeAvailableCapacityKg": "com.wastesim.model.SimulationConfig.routeAvailableCapacityKg",
+    "SimulationConfig.initialTruckLoadKg": "com.wastesim.model.SimulationConfig.initialTruckLoadKg",
+    "SimulationConfig.dispatchIntervalMinutes": "com.wastesim.model.SimulationConfig.dispatchIntervalMinutes",
+    "SimulationConfig.routeSequence": "com.wastesim.model.SimulationConfig.routeSequence",
+    "SimulationConfig.trafficComplaintWeight": "com.wastesim.model.SimulationConfig.trafficComplaintWeight",
+    "ScenarioScale.PAPER_BASELINE": "com.wastesim.model.ScenarioScale.PAPER_BASELINE",
+    "ScenarioScale.JANGRYANG_CAPACITY": "com.wastesim.model.ScenarioScale.JANGRYANG_CAPACITY",
+    "DischargeTimeMode.PAPER_BASELINE": "com.wastesim.model.DischargeTimeMode.PAPER_BASELINE",
+    "DischargeTimeMode.POHANG_ACTUAL": "com.wastesim.model.DischargeTimeMode.POHANG_ACTUAL",
+    "ZoneAssignmentRule.NONE": "com.wastesim.model.ZoneAssignmentRule.NONE",
+    "ZoneAssignmentRule.CONTIGUOUS": "com.wastesim.model.ZoneAssignmentRule.CONTIGUOUS",
+    "ZoneAssignmentRule.ROUND_ROBIN": "com.wastesim.model.ZoneAssignmentRule.ROUND_ROBIN",
+    "TravelTimeMode.LEGACY_CONSTANT": "com.wastesim.model.TravelTimeMode.LEGACY_CONSTANT",
+    "TravelTimeMode.OSRM_HYBRID": "com.wastesim.model.TravelTimeMode.OSRM_HYBRID",
+    "TravelTimeMode.ZONE_PROXY_HYBRID": "com.wastesim.model.TravelTimeMode.ZONE_PROXY_HYBRID",
+    "WasteType": "com.wastesim.model.WasteType",
+    "WasteType.key": "com.wastesim.model.WasteType.key",
+    "WasteType.labelKo": "com.wastesim.model.WasteType.labelKo",
+    "WasteType.fraction": "com.wastesim.model.WasteType.fraction",
+    "WasteType.capacity": "com.wastesim.model.WasteType.capacity",
+    "WasteType.threshold": "com.wastesim.model.WasteType.threshold",
+    "WasteType.intervalDays": "com.wastesim.model.WasteType.intervalDays",
+    "WasteType.collectionDaysOfWeek": "com.wastesim.model.WasteType.collectionDaysOfWeek",
+    "OccupationType.BlueCollar": "com.wastesim.model.OccupationType.BlueCollar",
+    "OccupationType.Student": "com.wastesim.model.OccupationType.Student",
+    "OccupationType.Housewife": "com.wastesim.model.OccupationType.Housewife",
+    "OccupationType.NightShift": "com.wastesim.model.OccupationType.NightShift",
+    "OccupationType.OfficeWorker": "com.wastesim.model.OccupationType.OfficeWorker",
+    "TruckType.LARGE_5TON": "com.wastesim.model.TruckType.LARGE_5TON",
+    "TruckType.MEDIUM_2P5T": "com.wastesim.model.TruckType.MEDIUM_2P5T",
+    "TruckType.SMALL_1TON": "com.wastesim.model.TruckType.SMALL_1TON",
+    "JangnyangSubtaskDefinition": "com.wastesim.subtask.JangnyangSubtaskDefinition",
+    "JangnyangSubtaskDefinition.subtaskSetId": "com.wastesim.subtask.JangnyangSubtaskDefinition.subtaskSetId",
+    "JangnyangSubtaskDefinition.version": "com.wastesim.subtask.JangnyangSubtaskDefinition.version",
+    "JangnyangSubtaskDefinition.immutable": "com.wastesim.subtask.JangnyangSubtaskDefinition.immutable",
+    "JangnyangSubtaskDefinition.invalidValuePolicy": "com.wastesim.subtask.JangnyangSubtaskDefinition.invalidValuePolicy",
+    "JangnyangSubtaskDefinition.groups": "com.wastesim.subtask.JangnyangSubtaskDefinition.groups",
+    "JangnyangSubtaskDefinition.subtasks": "com.wastesim.subtask.JangnyangSubtaskDefinition.subtasks",
+    "JangnyangSubtask": "com.wastesim.subtask.JangnyangSubtask",
+    "JangnyangSubtask.id": "com.wastesim.subtask.JangnyangSubtask.id",
+    "JangnyangSubtask.order": "com.wastesim.subtask.JangnyangSubtask.order",
+    "JangnyangSubtask.group": "com.wastesim.subtask.JangnyangSubtask.group",
+    "JangnyangSubtask.stage": "com.wastesim.subtask.JangnyangSubtask.stage",
+    "JangnyangSubtask.question": "com.wastesim.subtask.JangnyangSubtask.question",
+    "JangnyangSubtask.answerField": "com.wastesim.subtask.JangnyangSubtask.answerField",
+    "JangnyangSubtask.answerType": "com.wastesim.subtask.JangnyangSubtask.answerType",
+    "JangnyangSubtask.required": "com.wastesim.subtask.JangnyangSubtask.required",
+    "JangnyangSubtask.allowsNotApplicable": "com.wastesim.subtask.JangnyangSubtask.allowsNotApplicable",
+    "JangnyangSubtask.allowedRange": "com.wastesim.subtask.JangnyangSubtask.allowedRange",
+    "JangnyangSubtask.validationRule": "com.wastesim.subtask.JangnyangSubtask.validationRule",
+    "JangnyangSubtask.retryQuestion": "com.wastesim.subtask.JangnyangSubtask.retryQuestion",
+    "JangnyangSubtask.completionCondition": "com.wastesim.subtask.JangnyangSubtask.completionCondition",
+    "JangnyangSubtask.basis": "com.wastesim.subtask.JangnyangSubtask.basis",
+    "SubtaskGroup": "com.wastesim.subtask.SubtaskGroup",
+    "SubtaskGroup.order": "com.wastesim.subtask.SubtaskGroup.order",
+    "SubtaskGroup.name": "com.wastesim.subtask.SubtaskGroup.name",
+    "SubtaskGroup.description": "com.wastesim.subtask.SubtaskGroup.description",
+    "JangnyangSubtaskSession": "com.wastesim.subtask.JangnyangSubtaskSession",
+    "JangnyangSubtaskSession.sessionKey": "com.wastesim.subtask.JangnyangSubtaskSession.sessionKey",
+    "JangnyangSubtaskSession.subtaskSetId": "com.wastesim.subtask.JangnyangSubtaskSession.subtaskSetId",
+    "JangnyangSubtaskSession.version": "com.wastesim.subtask.JangnyangSubtaskSession.version",
+    "JangnyangSubtaskSession.hash": "com.wastesim.subtask.JangnyangSubtaskSession.hash",
+    "JangnyangSubtaskSession.state": "com.wastesim.subtask.JangnyangSubtaskSession.state",
+    "JangnyangSubtaskSession.spec": "com.wastesim.subtask.JangnyangSubtaskSession.spec",
+    "JangnyangSubtaskSession.answers": "com.wastesim.subtask.JangnyangSubtaskSession.answers",
+    "JangnyangSubtaskSession.lastErrors": "com.wastesim.subtask.JangnyangSubtaskSession.lastErrors",
+    "JangnyangSubtaskAnswer": "com.wastesim.subtask.JangnyangSubtaskAnswer",
+    "JangnyangSubtaskAnswer.subtaskId": "com.wastesim.subtask.JangnyangSubtaskAnswer.subtaskId",
+    "JangnyangSubtaskAnswer.raw": "com.wastesim.subtask.JangnyangSubtaskAnswer.raw",
+    "JangnyangSubtaskAnswer.value": "com.wastesim.subtask.JangnyangSubtaskAnswer.value",
+    "JangnyangSubtaskAnswer.source": "com.wastesim.subtask.JangnyangSubtaskAnswer.source",
+    "JangnyangSubtaskAnswer.error": "com.wastesim.subtask.JangnyangSubtaskAnswer.error",
+    "SubtaskError": "com.wastesim.subtask.SubtaskError",
+    "SubtaskError.subtaskId": "com.wastesim.subtask.SubtaskError.subtaskId",
+    "SubtaskError.code": "com.wastesim.subtask.SubtaskError.code",
+    "SubtaskError.reason": "com.wastesim.subtask.SubtaskError.reason",
+    "SubtaskError.retryQuestion": "com.wastesim.subtask.SubtaskError.retryQuestion",
+    "SubtaskProgress": "com.wastesim.subtask.SubtaskProgress",
+    "SubtaskProgress.subtaskSetId": "com.wastesim.subtask.SubtaskProgress.subtaskSetId",
+    "SubtaskProgress.version": "com.wastesim.subtask.SubtaskProgress.version",
+    "SubtaskProgress.hash": "com.wastesim.subtask.SubtaskProgress.hash",
+    "SubtaskProgress.state": "com.wastesim.subtask.SubtaskProgress.state",
+    "SubtaskProgress.currentSubtaskId": "com.wastesim.subtask.SubtaskProgress.currentSubtaskId",
+    "SubtaskProgress.order": "com.wastesim.subtask.SubtaskProgress.order",
+    "SubtaskProgress.total": "com.wastesim.subtask.SubtaskProgress.total",
+    "SubtaskProgress.progress": "com.wastesim.subtask.SubtaskProgress.progress",
+    "SubtaskProgress.groupOrder": "com.wastesim.subtask.SubtaskProgress.groupOrder",
+    "SubtaskProgress.groupTotal": "com.wastesim.subtask.SubtaskProgress.groupTotal",
+    "SubtaskProgress.groupName": "com.wastesim.subtask.SubtaskProgress.groupName",
+    "SubtaskProgress.groupDescription": "com.wastesim.subtask.SubtaskProgress.groupDescription",
+    "SubtaskProgress.questionInGroup": "com.wastesim.subtask.SubtaskProgress.questionInGroup",
+    "SubtaskProgress.questionsInGroup": "com.wastesim.subtask.SubtaskProgress.questionsInGroup",
+    "SubtaskProgress.answers": "com.wastesim.subtask.SubtaskProgress.answers",
+    "SubtaskProgress.errors": "com.wastesim.subtask.SubtaskProgress.errors",
+    "SimulationResult": "com.wastesim.model.SimulationResult",
+    "SimulationResult.simulationConfig": "com.wastesim.model.SimulationResult.simulationConfig",
+    "SimulationResult.coordinateQuality": "com.wastesim.model.SimulationResult.coordinateQuality",
+    "SimulationResult.dataQualityFlags": "com.wastesim.model.SimulationResult.dataQualityFlags",
+    "SimulationResult.assumptionNotes": "com.wastesim.model.SimulationResult.assumptionNotes",
+    "SimulationResult.collectionTimeLabel": "com.wastesim.model.SimulationResult.collectionTimeLabel",
+    "SimulationResult.totalComplaints": "com.wastesim.model.SimulationResult.totalComplaints",
+    "SimulationResult.wasteOverflowComplaints": "com.wastesim.model.SimulationResult.wasteOverflowComplaints",
+    "SimulationResult.landlordComplaints": "com.wastesim.model.SimulationResult.landlordComplaints",
+    "SimulationResult.byOccupation": "com.wastesim.model.SimulationResult.byOccupation",
+    "SimulationResult.byDay": "com.wastesim.model.SimulationResult.byDay",
+    "SimulationResult.peakFillKg": "com.wastesim.model.SimulationResult.peakFillKg",
+    "SimulationResult.seed": "com.wastesim.model.SimulationResult.seed",
+    "SimulationResult.wasteByMonth": "com.wastesim.model.SimulationResult.wasteByMonth",
+    "SimulationResult.generatedWasteKg": "com.wastesim.model.SimulationResult.generatedWasteKg",
+    "SimulationResult.collectedWasteKg": "com.wastesim.model.SimulationResult.collectedWasteKg",
+    "SimulationResult.residualWasteKg": "com.wastesim.model.SimulationResult.residualWasteKg",
+    "SimulationResult.availableCollectionCapacityKg": "com.wastesim.model.SimulationResult.availableCollectionCapacityKg",
+    "SimulationResult.truckUtilizationPercent": "com.wastesim.model.SimulationResult.truckUtilizationPercent",
+    "SimulationResult.collectionCapacityUtilizationPercent": "com.wastesim.model.SimulationResult.collectionCapacityUtilizationPercent",
+    "SimulationResult.partialPickupCount": "com.wastesim.model.SimulationResult.partialPickupCount",
+    "SimulationResult.unservedPickupCount": "com.wastesim.model.SimulationResult.unservedPickupCount",
+    "SimulationResult.capacityExhaustedTripCount": "com.wastesim.model.SimulationResult.capacityExhaustedTripCount",
+    "SimulationResult.uncollectedDemandKg": "com.wastesim.model.SimulationResult.uncollectedDemandKg",
+    "SimulationResult.massBalanceErrorKg": "com.wastesim.model.SimulationResult.massBalanceErrorKg",
+    "SimulationResult.tripMetrics": "com.wastesim.model.SimulationResult.tripMetrics",
+    "SimulationResult.residualByBuilding": "com.wastesim.model.SimulationResult.residualByBuilding",
+    "SimulationResult.residualByWasteType": "com.wastesim.model.SimulationResult.residualByWasteType",
+    "SimulationResult.residualByTruck": "com.wastesim.model.SimulationResult.residualByTruck",
+    "SimulationResult.maxResidualBuilding": "com.wastesim.model.SimulationResult.maxResidualBuilding",
+    "SimulationResult.maxResidualBuildingKg": "com.wastesim.model.SimulationResult.maxResidualBuildingKg",
+    "SimulationResult.meanComplaints": "com.wastesim.model.SimulationResult.meanComplaints",
+    "SimulationResult.meanWasteOverflowComplaints": "com.wastesim.model.SimulationResult.meanWasteOverflowComplaints",
+    "SimulationResult.meanLandlordComplaints": "com.wastesim.model.SimulationResult.meanLandlordComplaints",
+    "SimulationResult.stdComplaints": "com.wastesim.model.SimulationResult.stdComplaints",
+    "SimulationResult.allTotals": "com.wastesim.model.SimulationResult.allTotals",
+    "SimulationResult.byOccupationSummary": "com.wastesim.model.SimulationResult.byOccupationSummary",
+    "SimulationResult.trafficPenalty": "com.wastesim.model.SimulationResult.trafficPenalty",
+    "SimulationResult.avgCompletionMinutes": "com.wastesim.model.SimulationResult.avgCompletionMinutes",
+    "ScenarioResponse": "com.wastesim.model.ScenarioResponse",
+    "ScenarioResponse.scenarioType": "com.wastesim.model.ScenarioResponse.scenarioType",
+    "ScenarioResponse.title": "com.wastesim.model.ScenarioResponse.title",
+    "ScenarioResponse.xLabel": "com.wastesim.model.ScenarioResponse.xLabel",
+    "ScenarioResponse.yLabel": "com.wastesim.model.ScenarioResponse.yLabel",
+    "ScenarioResponse.yUnit": "com.wastesim.model.ScenarioResponse.yUnit",
+    "ScenarioResponse.xCategories": "com.wastesim.model.ScenarioResponse.xCategories",
+    "ScenarioResponse.series": "com.wastesim.model.ScenarioResponse.series",
+    "ScenarioResponse.insights": "com.wastesim.model.ScenarioResponse.insights",
+    "Series": "com.wastesim.model.ScenarioResponse.Series",
+    "Series.name": "com.wastesim.model.ScenarioResponse.Series.name",
+    "Series.values": "com.wastesim.model.ScenarioResponse.Series.values",
+    "Series.stds": "com.wastesim.model.ScenarioResponse.Series.stds",
+    "CollectionSite": "com.wastesim.site.CollectionSite",
+    "CollectionSite.id": "com.wastesim.site.CollectionSite.id",
+    "CollectionSite.longitude": "com.wastesim.site.CollectionSite.longitude",
+    "CollectionSite.latitude": "com.wastesim.site.CollectionSite.latitude",
+    "CollectionSite.name": "com.wastesim.site.CollectionSite.name",
+    "CollectionSite.adminDivision": "com.wastesim.site.CollectionSite.adminDivision",
+    "CollectionSite.source": "com.wastesim.site.CollectionSite.source",
+    "CollectionSite.snapMeters": "com.wastesim.site.CollectionSite.snapMeters",
+    "CollectionSite.trafficZone": "com.wastesim.site.CollectionSite.trafficZone",
+    "CollectionSite.largeTruckAllowed": "com.wastesim.site.CollectionSite.largeTruckAllowed",
+    "TrafficProfile": "com.wastesim.model.TrafficProfile",
+    "TrafficProfile.id": "com.wastesim.model.TrafficProfile.id",
+    "TrafficProfile.hourlyWeight": "com.wastesim.model.TrafficProfile.hourlyWeight",
+    "TrafficProfile.nodeHourlyWeight": "com.wastesim.model.TrafficProfile.nodeHourlyWeight",
+    "TrafficProfile.congestionThresholdRed": "com.wastesim.model.TrafficProfile.congestionThresholdRed"
+  }
+}

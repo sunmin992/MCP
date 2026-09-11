@@ -1,0 +1,402 @@
+{
+  "root": "WasteCollectionSimulation",
+  "entities": {
+    "SimulationConfig": {
+      "attributes": [
+        "collectionTimeMinutes",
+        "days",
+        "seeds",
+        "leaveSigma",
+        "wasteSigma",
+        "wasteMeanKg",
+        "capacity",
+        "threshold",
+        "scenarioScale",
+        "zoneAssignmentRule",
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "collectionTimesMinutes",
+        "collectionIntervalDays",
+        "collectionDaysOfWeek",
+        "dischargeTimeMode",
+        "dischargeWindowStartMinutes",
+        "dischargeWindowEndMinutes",
+        "skipWeekends",
+        "weekendCollectionTimeMinutes",
+        "holidays",
+        "numTrucks",
+        "routeTravelMinutes",
+        "travelTimeMode",
+        "serviceMinutesPerSite",
+        "wasteTypes",
+        "returnDischarge",
+        "returnFraction",
+        "landlordEnabled",
+        "landlordInspectMinutes",
+        "landlordThreshold",
+        "monthlyWasteFactor",
+        "trafficEnabled",
+        "trafficProfileId",
+        "truckType",
+        "routeAvailableCapacityKg",
+        "initialTruckLoadKg",
+        "dispatchIntervalMinutes",
+        "routeSequence",
+        "trafficComplaintWeight"
+      ],
+      "evidence": ["SimulationConfig"]
+    },
+    "SimulationResult": {
+      "attributes": [
+        "collectionTimeLabel",
+        "totalComplaints",
+        "wasteOverflowComplaints",
+        "landlordComplaints",
+        "byOccupation",
+        "byDay",
+        "peakFillKg",
+        "seed",
+        "wasteByMonth",
+        "generatedWasteKg",
+        "collectedWasteKg",
+        "residualWasteKg",
+        "availableCollectionCapacityKg",
+        "truckUtilizationPercent",
+        "collectionCapacityUtilizationPercent",
+        "partialPickupCount",
+        "unservedPickupCount",
+        "capacityExhaustedTripCount",
+        "uncollectedDemandKg",
+        "massBalanceErrorKg",
+        "tripMetrics",
+        "residualByBuilding",
+        "residualByWasteType",
+        "residualByTruck",
+        "maxResidualBuilding",
+        "maxResidualBuildingKg",
+        "meanComplaints",
+        "meanWasteOverflowComplaints",
+        "meanLandlordComplaints",
+        "stdComplaints",
+        "allTotals",
+        "byOccupationSummary",
+        "coordinateQuality",
+        "dataQualityFlags",
+        "assumptionNotes",
+        "trafficPenalty",
+        "avgCompletionMinutes"
+      ],
+      "evidence": ["SimulationResult"]
+    },
+    "CollectionSite": {
+      "attributes": [
+        "id",
+        "longitude",
+        "latitude",
+        "name",
+        "adminDivision",
+        "source",
+        "snapMeters",
+        "trafficZone",
+        "largeTruckAllowed"
+      ],
+      "evidence": ["CollectionSite"]
+    },
+    "TrafficProfile": {
+      "attributes": [
+        "id",
+        "hourlyWeight",
+        "nodeHourlyWeight",
+        "congestionThresholdRed"
+      ],
+      "evidence": ["TrafficProfile"]
+    },
+    "TruckType": {
+      "attributes": [
+        "labelKo",
+        "capacityKg",
+        "mobilityFactor",
+        "alleyAccess"
+      ],
+      "evidence": ["TruckType"]
+    },
+    "WasteType": {
+      "attributes": [
+        "key",
+        "labelKo",
+        "fraction",
+        "capacity",
+        "threshold",
+        "intervalDays",
+        "collectionDaysOfWeek"
+      ],
+      "evidence": ["WasteType"]
+    },
+    "ScenarioPreset": {
+      "attributes": [
+        "labelKo",
+        "desc",
+        "mix"
+      ],
+      "evidence": ["ScenarioPreset"]
+    },
+    "ScenarioResponse": {
+      "attributes": [
+        "scenarioType",
+        "title",
+        "xLabel",
+        "yLabel",
+        "yUnit",
+        "xCategories",
+        "series",
+        "insights"
+      ],
+      "evidence": ["ScenarioResponse"]
+    },
+    "TripMetric": {
+      "attributes": [
+        "truckId",
+        "tripId",
+        "allocatedCapacityKg",
+        "initialLoadKg",
+        "availablePickupCapacityKg",
+        "collectedKg",
+        "finalLoadKg",
+        "unusedCapacityKg",
+        "utilizationPercent",
+        "partialPickupCount"
+      ],
+      "evidence": ["TripMetric"]
+    },
+    "JangnyangSubtaskDefinition": {
+      "attributes": [
+        "subtaskSetId",
+        "version",
+        "immutable",
+        "invalidValuePolicy",
+        "groups",
+        "subtasks"
+      ],
+      "evidence": ["JangnyangSubtaskDefinition"]
+    },
+    "JangnyangSubtask": {
+      "attributes": [
+        "id",
+        "order",
+        "group",
+        "stage",
+        "question",
+        "answerField",
+        "answerType",
+        "required",
+        "allowsNotApplicable",
+        "allowedRange",
+        "validationRule",
+        "retryQuestion",
+        "completionCondition",
+        "basis"
+      ],
+      "evidence": ["JangnyangSubtask"]
+    },
+    "JangnyangSubtaskSession": {
+      "attributes": [
+        "sessionKey",
+        "subtaskSetId",
+        "version",
+        "hash",
+        "answers",
+        "lastErrors",
+        "state",
+        "spec"
+      ],
+      "evidence": ["JangnyangSubtaskSession"]
+    },
+    "SimulationModelProvider": {
+      "attributes": [
+        "modelId",
+        "toolName",
+        "description"
+      ],
+      "evidence": ["SimulationModelProvider"]
+    },
+    "TrafficZone": {
+      "attributes": [
+        "zoneIds"
+      ],
+      "evidence": ["TrafficZoneRegistry"]
+    },
+    "ZoneAssignmentRule": {
+      "attributes": [
+        "labelKo"
+      ],
+      "evidence": ["ZoneAssignmentRule"]
+    },
+    "TravelTimeMode": {
+      "attributes": [],
+      "evidence": ["TravelTimeMode"]
+    },
+    "CoordinateQuality": {
+      "attributes": [
+        "labelKo",
+        "warning"
+      ],
+      "evidence": ["CoordinateQuality"]
+    },
+    "SubtaskError": {
+      "attributes": [
+        "subtaskId",
+        "code",
+        "reason",
+        "retryQuestion"
+      ],
+      "evidence": ["SubtaskError"]
+    }
+  },
+  "aspects": {
+    "WasteCollectionSimulation": {
+      "children": [
+        "SimulationConfig",
+        "SimulationResult",
+        "CollectionSiteRegistry",
+        "TrafficProfileRegistry",
+        "ScenarioPresetRegistry",
+        "TruckTypeRegistry",
+        "WasteTypeRegistry",
+        "JangnyangSubtaskDefinition",
+        "SimulationModelRegistry"
+      ]
+    },
+    "CollectionSiteRegistry": {
+      "children": ["CollectionSite"],
+      "evidence": ["CollectionSiteRegistry"]
+    },
+    "TrafficProfileRegistry": {
+      "children": ["TrafficProfile"],
+      "evidence": ["TrafficDataService"]
+    },
+    "ScenarioPresetRegistry": {
+      "children": ["ScenarioPreset"],
+      "evidence": ["ScenarioPreset"]
+    },
+    "TruckTypeRegistry": {
+      "children": ["TruckType"],
+      "evidence": ["TruckType"]
+    },
+    "WasteTypeRegistry": {
+      "children": ["WasteType"],
+      "evidence": ["WasteType"]
+    },
+    "SimulationModelRegistry": {
+      "children": ["SimulationModelProvider"],
+      "evidence": ["SimulationModelRegistry"]
+    }
+  },
+  "specializations": {
+    "TravelTimeMode": [
+      "LEGACY_CONSTANT",
+      "OSRM_HYBRID",
+      "ZONE_PROXY_HYBRID"
+    ],
+    "ZoneAssignmentRule": [
+      "NONE",
+      "CONTIGUOUS",
+      "ROUND_ROBIN"
+    ],
+    "SubtaskStage": [
+      "COLLECT",
+      "CONFIRM"
+    ],
+    "SubtaskState": [
+      "NOT_STARTED",
+      "COLLECTING",
+      "VALIDATING",
+      "READY",
+      "BUILT",
+      "RUNNING",
+      "COMPLETED",
+      "CANCELLED"
+    ],
+    "TruckType": [
+      "LARGE_5TON",
+      "MEDIUM_2P5T",
+      "SMALL_1TON"
+    ],
+    "DischargeTimeMode": [
+      "PAPER_BASELINE",
+      "POHANG_ACTUAL"
+    ],
+    "BasisKind": [
+      "REGULATION",
+      "MEASURED",
+      "MODEL_DEFAULT",
+      "NONE",
+      "EXPERIMENT_INTENT"
+    ],
+    "AnswerType": [
+      "STRING",
+      "INTEGER",
+      "NUMBER",
+      "BOOLEAN",
+      "TIME",
+      "ENUM",
+      "ENUM_LIST",
+      "STRING_LIST",
+      "TIME_LIST",
+      "TIME_RANGE",
+      "INTEGER_MAP",
+      "NUMBER_MAP"
+    ],
+    "SubtaskAnswerSource": [
+      "USER_DIRECT",
+      "LLM_NORMALIZED",
+      "SERVER_DEFAULT"
+    ],
+    "ErrorCode": [
+      "OK",
+      "BAD_REQUEST",
+      "UNKNOWN_TOOL",
+      "INVALID_ARGUMENTS",
+      "MISSING_FIELD",
+      "OUT_OF_RANGE",
+      "INVALID_ENUM",
+      "LLM_PARSE_ERROR",
+      "EXECUTION_ERROR",
+      "INTERNAL_ERROR",
+      "TRUCK_COUNT_ZERO",
+      "CRITICAL_WASTE_ACCUMULATION",
+      "TRAFFIC_INFEASIBLE"
+    ]
+  },
+  "evidence": {
+    "SimulationConfig": "SimulationConfig.java",
+    "SimulationResult": "SimulationResult.java",
+    "CollectionSite": "CollectionSite.java",
+    "TrafficProfile": "TrafficProfile.java",
+    "TruckType": "TruckType.java",
+    "WasteType": "WasteType.java",
+    "ScenarioPreset": "ScenarioPreset.java",
+    "ScenarioResponse": "ScenarioResponse.java",
+    "TripMetric": "TripMetric.java",
+    "JangnyangSubtaskDefinition": "JangnyangSubtaskDefinition.java",
+    "JangnyangSubtask": "JangnyangSubtask.java",
+    "JangnyangSubtaskSession": "JangnyangSubtaskSession.java",
+    "SimulationModelProvider": "SimulationModelProvider.java",
+    "CollectionSiteRegistry": "CollectionSiteRegistry.java",
+    "TrafficDataService": "TrafficDataService.java",
+    "ScenarioPresetRegistry": "ScenarioPreset.java",
+    "TruckTypeRegistry": "TruckType.java",
+    "WasteTypeRegistry": "WasteType.java",
+    "SimulationModelRegistry": "SimulationModelRegistry.java",
+    "TravelTimeMode": "TravelTimeMode.java",
+    "ZoneAssignmentRule": "ZoneAssignmentRule.java",
+    "SubtaskStage": "SubtaskStage.java",
+    "SubtaskState": "SubtaskState.java",
+    "DischargeTimeMode": "DischargeTimeMode.java",
+    "BasisKind": "FieldBasis.java",
+    "AnswerType": "AnswerType.java",
+    "SubtaskAnswerSource": "SubtaskAnswerSource.java",
+    "ErrorCode": "ErrorCode.java",
+    "SubtaskError": "SubtaskError.java"
+  }
+}

@@ -1,0 +1,452 @@
+{
+ "_meta": {
+  "name": "장량동 생활쓰레기 수거 시뮬레이터",
+  "version": "ref-v2",
+  "source": "LLM-SES-구성-실험-방법론 v2의 교정 구조",
+  "status": "초안 — 아직 코드와 대조하지 않았다. 특히 couplings의 포트 이름은 구조 이름에서 유추한 추정값이다.",
+  "note": "ses-overview.svg(이전 판)가 아니라 v2 교정판을 정답지로 쓴다. v1은 실행 엔진·이벤트 시스템을 구조 트리의 형제로 둔 명백한 오류를 포함한다."
+ },
+ "root": "장량동 생활쓰레기 수거 시뮬레이터",
+ "entities": {
+  "장량동 생활쓰레기 수거 시뮬레이터": {
+   "attrs": [
+    "대상지역",
+    "기준연도"
+   ],
+   "decompositions": [
+    {
+     "kind": "aspect",
+     "name": "최상위",
+     "children": [
+      "대상 시스템",
+      "실험",
+      "관측",
+      "실행 엔진"
+     ]
+    }
+   ]
+  },
+  "대상 시스템": {
+   "attrs": [
+    "대상지역",
+    "시간범위"
+   ],
+   "decompositions": [
+    {
+     "kind": "aspect",
+     "name": "구성",
+     "children": [
+      "거주민 집합",
+      "수거지점 집합",
+      "수거차량 집합",
+      "교통구역 집합",
+      "수거 경로",
+      "민원 판정"
+     ]
+    }
+   ]
+  },
+  "거주민 집합": {
+   "attrs": [],
+   "decompositions": [
+    {
+     "kind": "multi",
+     "name": "거주민 다중",
+     "children": [
+      "거주민"
+     ]
+    }
+   ]
+  },
+  "거주민": {
+   "attrs": [
+    "직업",
+    "외출시각",
+    "1인배출량",
+    "귀가시각"
+   ],
+   "decompositions": [
+    {
+     "kind": "spec",
+     "name": "직업 축",
+     "children": [
+      "생산직",
+      "학생",
+      "전업주부",
+      "기타 직업"
+     ]
+    },
+    {
+     "kind": "spec",
+     "name": "배출시각 모델 축",
+     "children": [
+      "직업별 외출시각 기반",
+      "포항시 배출시간대 기반"
+     ]
+    }
+   ]
+  },
+  "생산직": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "학생": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "전업주부": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "기타 직업": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "직업별 외출시각 기반": {
+   "attrs": [
+    "외출시각분포"
+   ],
+   "decompositions": []
+  },
+  "포항시 배출시간대 기반": {
+   "attrs": [
+    "시간대별비율"
+   ],
+   "decompositions": []
+  },
+  "수거지점 집합": {
+   "attrs": [],
+   "decompositions": [
+    {
+     "kind": "multi",
+     "name": "수거지점 다중",
+     "children": [
+      "수거지점"
+     ]
+    }
+   ]
+  },
+  "수거지점": {
+   "attrs": [
+    "용량",
+    "적재량",
+    "교통구역",
+    "차량진입가능",
+    "민원임계값"
+   ],
+   "decompositions": []
+  },
+  "수거차량 집합": {
+   "attrs": [],
+   "decompositions": [
+    {
+     "kind": "multi",
+     "name": "수거차량 다중",
+     "children": [
+      "수거차량"
+     ]
+    }
+   ]
+  },
+  "수거차량": {
+   "attrs": [
+    "적재용량",
+    "지점당수거시간",
+    "수거시각",
+    "수거요일"
+   ],
+   "decompositions": [
+    {
+     "kind": "spec",
+     "name": "차종 축",
+     "children": [
+      "5톤 차량",
+      "2.5톤 차량",
+      "1톤 차량"
+     ]
+    }
+   ]
+  },
+  "5톤 차량": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "2.5톤 차량": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "1톤 차량": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "교통구역 집합": {
+   "attrs": [],
+   "decompositions": [
+    {
+     "kind": "multi",
+     "name": "교통구역 다중",
+     "children": [
+      "교통 구역"
+     ]
+    }
+   ]
+  },
+  "교통 구역": {
+   "attrs": [
+    "혼잡계수",
+    "시간대프로파일"
+   ],
+   "decompositions": []
+  },
+  "수거 경로": {
+   "attrs": [
+    "방문순서",
+    "총이동거리"
+   ],
+   "decompositions": [
+    {
+     "kind": "spec",
+     "name": "이동시간 방식 축",
+     "children": [
+      "구간 상수",
+      "교통구역 근사",
+      "실제 도로 기반"
+     ]
+    }
+   ]
+  },
+  "구간 상수": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "교통구역 근사": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "실제 도로 기반": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "민원 판정": {
+   "attrs": [],
+   "decompositions": [
+    {
+     "kind": "spec",
+     "name": "판정 구성",
+     "children": [
+      "적재초과 판정",
+      "임대인 점검 판정",
+      "교통혼잡 판정"
+     ]
+    }
+   ]
+  },
+  "적재초과 판정": {
+   "attrs": [
+    "임계값초과판정"
+   ],
+   "decompositions": []
+  },
+  "임대인 점검 판정": {
+   "attrs": [
+    "점검시각",
+    "잔류량"
+   ],
+   "decompositions": []
+  },
+  "교통혼잡 판정": {
+   "attrs": [
+    "차량정차시간"
+   ],
+   "decompositions": []
+  },
+  "실험": {
+   "attrs": [
+    "기간",
+    "반복횟수",
+    "난수시드"
+   ],
+   "decompositions": [
+    {
+     "kind": "spec",
+     "name": "실험 유형 축",
+     "children": [
+      "수거시각 실험",
+      "배출행동 실험",
+      "용량·임계값·밀도 실험",
+      "수거일정·다중차량 실험",
+      "분리배출·월별배출 실험",
+      "차종·방문순서 실험"
+     ]
+    }
+   ]
+  },
+  "수거시각 실험": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "배출행동 실험": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "용량·임계값·밀도 실험": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "수거일정·다중차량 실험": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "분리배출·월별배출 실험": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "차종·방문순서 실험": {
+   "attrs": [],
+   "decompositions": []
+  },
+  "관측": {
+   "attrs": [],
+   "decompositions": [
+    {
+     "kind": "aspect",
+     "name": "관측 구성",
+     "children": [
+      "민원 통계",
+      "적재량 통계",
+      "차량 통계",
+      "시간 통계",
+      "시나리오 비교",
+      "데이터 품질·가정"
+     ]
+    }
+   ]
+  },
+  "민원 통계": {
+   "attrs": [
+    "총민원",
+    "직업별",
+    "일별"
+   ],
+   "decompositions": []
+  },
+  "적재량 통계": {
+   "attrs": [
+    "최대적재",
+    "잔류적재"
+   ],
+   "decompositions": []
+  },
+  "차량 통계": {
+   "attrs": [
+    "수거량",
+    "이용률"
+   ],
+   "decompositions": []
+  },
+  "시간 통계": {
+   "attrs": [
+    "이동시간",
+    "수거완료시각"
+   ],
+   "decompositions": []
+  },
+  "시나리오 비교": {
+   "attrs": [
+    "최적",
+    "최악",
+    "개선폭"
+   ],
+   "decompositions": []
+  },
+  "데이터 품질·가정": {
+   "attrs": [
+    "좌표정확도",
+    "가정목록"
+   ],
+   "decompositions": []
+  },
+  "실행 엔진": {
+   "attrs": [
+    "Java DEVS 엔진"
+   ],
+   "decompositions": []
+  }
+ },
+ "couplings": [
+  {
+   "from": "거주민.배출",
+   "to": "수거지점.적재",
+   "verified": false
+  },
+  {
+   "from": "수거지점.적재량",
+   "to": "민원 판정.in",
+   "verified": false
+  },
+  {
+   "from": "수거차량.수거",
+   "to": "수거지점.비움",
+   "verified": false
+  },
+  {
+   "from": "교통 구역.지체",
+   "to": "수거 경로.이동시간",
+   "verified": false
+  }
+ ],
+ "critical_points": [
+  {
+   "id": "CP-1",
+   "where": "민원 판정",
+   "must_be": "aspect",
+   "why": "세 판정은 '이 중 하나'가 아니라 함께 돌아간다. spec으로 적으면 총 민원 수를 세 판정의 합으로 정의할 수 없다."
+  },
+  {
+   "id": "CP-2",
+   "where": "수거지점.민원임계값",
+   "must_be": "수거지점의 속성",
+   "why": "실험 조건이 아니라 지점이 지니는 성질이고 지점마다 달라야 한다."
+  },
+  {
+   "id": "CP-3",
+   "where": "폐기물 유형 집합",
+   "must_be": "독립 multi 개체",
+   "why": "분리배출 실험에서 유형 수가 변해야 한다. 수거지점의 속성으로 묻으면 구조가 아니라 코드를 고쳐야 한다."
+  },
+  {
+   "id": "CP-4",
+   "where": "이동시간 방식 축",
+   "must_be": "수거 경로 아래 spec",
+   "why": "경로를 어떻게 계산하느냐의 선택이지 차량의 성질이 아니다."
+  },
+  {
+   "id": "CP-5",
+   "where": "거주민",
+   "must_be": "spec 축 2개 (직업 축, 배출시각 모델 축)",
+   "why": "두 축은 곱집합이다. 하나로 합치면 4x2=8 조합을 표현할 수 없고 pruning이 축별 독립 선택으로 떨어지지 않는다."
+  }
+ ],
+ "evidence": {
+  "장량동 생활쓰레기 수거 시뮬레이터": "src/main/java/...",
+  "대상 시스템": "src/main/java/...",
+  "거주민 집합": "src/main/java/...",
+  "거주민": "src/main/java/...",
+  "생산직": "src/main/java/...",
+  "학생": "src/main/java/...",
+  "전업주부": "src/main/java/...",
+  "기타 직업": "src/main/java/...",
+  "직업별 외출시각 기반": "src/main/java/...",
+  "포항시 배출시간대 기반": "src/main/java/...",
+  "수거지점 집합": "src/main/java/...",
+  "수거지점": "src/main/java/...",
+  "수거차량 집합": "src/main/java/...",
+  "수거차량": "src/main/java/...",
+  "5톤 차량": "src/main/java/...",
+  "2.5톤 차량": "src/main/java/...",
+  "1톤 차량": "src/main/java/...",
+  "교통구역 집합": "src/main/java/...",
+  "교통 구역": "src/main/java/...",
+  "수거 경로": "src/main/java/..."
+ }
+}

@@ -1,0 +1,492 @@
+{
+  "root": "SimulationConfig",
+  "entities": {
+    "SimulationConfig": {
+      "attrs": [
+        "collectionTimeMinutes",
+        "days",
+        "seeds",
+        "leaveSigma",
+        "wasteSigma",
+        "wasteMeanKg",
+        "capacity",
+        "threshold",
+        "zoneAssignmentRule",
+        "scenarioScale",
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "collectionTimesMinutes",
+        "collectionIntervalDays",
+        "collectionDaysOfWeek",
+        "dischargeTimeMode",
+        "dischargeWindowStartMinutes",
+        "dischargeWindowEndMinutes",
+        "skipWeekends",
+        "weekendCollectionTimeMinutes",
+        "holidays",
+        "numTrucks",
+        "routeTravelMinutes",
+        "travelTimeMode",
+        "serviceMinutesPerSite",
+        "wasteTypes",
+        "returnDischarge",
+        "returnFraction",
+        "landlordEnabled",
+        "landlordInspectMinutes",
+        "landlordThreshold",
+        "monthlyWasteFactor",
+        "trafficEnabled",
+        "trafficProfileId",
+        "truckType",
+        "routeAvailableCapacityKg",
+        "initialTruckLoadKg",
+        "dispatchIntervalMinutes",
+        "routeSequence",
+        "trafficComplaintWeight"
+      ],
+      "decompositions": [
+        {
+          "kind": "aspect",
+          "name": "wasteCollectionSettings",
+          "children": [
+            "WasteType"
+          ]
+        },
+        {
+          "kind": "aspect",
+          "name": "trafficSettings",
+          "children": [
+            "TrafficProfile"
+          ]
+        },
+        {
+          "kind": "aspect",
+          "name": "scenarioScaleSettings",
+          "children": [
+            "ScenarioScale"
+          ]
+        },
+        {
+          "kind": "aspect",
+          "name": "zoneAssignmentRules",
+          "children": [
+            "ZoneAssignmentRule"
+          ]
+        }
+      ]
+    },
+    "SimulationResult": {
+      "attrs": [
+        "simulationConfig",
+        "coordinateQuality",
+        "dataQualityFlags",
+        "assumptionNotes",
+        "collectionTimeLabel",
+        "totalComplaints",
+        "wasteOverflowComplaints",
+        "landlordComplaints",
+        "byOccupation",
+        "byDay",
+        "peakFillKg",
+        "seed",
+        "wasteByMonth",
+        "generatedWasteKg",
+        "collectedWasteKg",
+        "residualWasteKg",
+        "availableCollectionCapacityKg",
+        "truckUtilizationPercent",
+        "collectionCapacityUtilizationPercent",
+        "partialPickupCount",
+        "unservedPickupCount",
+        "capacityExhaustedTripCount",
+        "uncollectedDemandKg",
+        "massBalanceErrorKg",
+        "tripMetrics",
+        "residualByBuilding",
+        "residualByWasteType",
+        "residualByTruck",
+        "maxResidualBuilding",
+        "maxResidualBuildingKg",
+        "meanComplaints",
+        "meanWasteOverflowComplaints",
+        "meanLandlordComplaints",
+        "stdComplaints",
+        "allTotals",
+        "byOccupationSummary",
+        "trafficPenalty",
+        "avgCompletionMinutes"
+      ]
+    },
+    "WasteType": {
+      "attrs": [
+        "key",
+        "labelKo",
+        "fraction",
+        "capacity",
+        "threshold",
+        "intervalDays",
+        "collectionDaysOfWeek"
+      ]
+    },
+    "TrafficProfile": {
+      "attrs": [
+        "id",
+        "hourlyWeight",
+        "nodeHourlyWeight",
+        "congestionThresholdRed"
+      ]
+    },
+    "ScenarioScale": {
+      "attrs": [
+        "labelKo",
+        "numBuildings",
+        "residentsPerBuilding",
+        "capacityKg",
+        "truckType",
+        "numTrucks",
+        "note"
+      ]
+    },
+    "ZoneAssignmentRule": {
+      "attrs": [
+        "labelKo"
+      ]
+    },
+    "TruckType": {
+      "attrs": [
+        "labelKo",
+        "capacityKg",
+        "mobilityFactor",
+        "alleyAccess"
+      ]
+    },
+    "TripMetric": {
+      "attrs": [
+        "truckId",
+        "tripId",
+        "allocatedCapacityKg",
+        "initialLoadKg",
+        "availablePickupCapacityKg",
+        "collectedKg",
+        "finalLoadKg",
+        "unusedCapacityKg",
+        "utilizationPercent",
+        "partialPickupCount"
+      ]
+    },
+    "JangnyangSubtaskSession": {
+      "attrs": [
+        "sessionKey",
+        "subtaskSetId",
+        "version",
+        "hash",
+        "answers",
+        "lastErrors",
+        "state",
+        "spec"
+      ]
+    },
+    "JangnyangScenarioSpec": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "setHash",
+        "scenarioType",
+        "toolName",
+        "engineId",
+        "answers",
+        "appliedDefaults",
+        "assumptions",
+        "modelDefaults",
+        "simulationConfig"
+      ]
+    },
+    "JangnyangSubtaskDefinition": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "immutable",
+        "invalidValuePolicy",
+        "groups",
+        "subtasks"
+      ]
+    },
+    "JangnyangSubtask": {
+      "attrs": [
+        "id",
+        "order",
+        "group",
+        "stage",
+        "question",
+        "answerField",
+        "answerType",
+        "required",
+        "allowsNotApplicable",
+        "allowedRange",
+        "validationRule",
+        "retryQuestion",
+        "completionCondition",
+        "basis"
+      ]
+    },
+    "SubtaskGroup": {
+      "attrs": [
+        "order",
+        "name",
+        "description"
+      ]
+    },
+    "AllowedRange": {
+      "attrs": [
+        "description",
+        "min",
+        "max",
+        "minLength",
+        "maxLength",
+        "minItems",
+        "maxItems",
+        "sumTo",
+        "values"
+      ]
+    },
+    "SubtaskValidationResult": {
+      "attrs": [
+        "valid",
+        "missing",
+        "errors",
+        "complete",
+        "accepted"
+      ]
+    },
+    "JangnyangSubtaskAnswer": {
+      "attrs": [
+        "subtaskId",
+        "raw",
+        "value",
+        "source",
+        "error"
+      ]
+    },
+    "AppliedDefault": {
+      "attrs": [
+        "field",
+        "value",
+        "reason"
+      ]
+    },
+    "SubtaskError": {
+      "attrs": [
+        "subtaskId",
+        "code",
+        "reason",
+        "retryQuestion"
+      ]
+    },
+    "SubtaskProgress": {
+      "attrs": [
+        "subtaskSetId",
+        "version",
+        "hash",
+        "state",
+        "currentSubtaskId",
+        "order",
+        "total",
+        "progress",
+        "groupOrder",
+        "groupTotal",
+        "groupName",
+        "groupDescription",
+        "questionInGroup",
+        "questionsInGroup",
+        "answers",
+        "errors"
+      ]
+    },
+    "SimulationModelProvider": {
+      "attrs": [
+        "modelId",
+        "toolName",
+        "description",
+        "inputSchemaJson"
+      ]
+    },
+    "McpToolProvider": {
+      "attrs": [
+        "toolName",
+        "description",
+        "inputSchemaJson"
+      ]
+    },
+    "RequestExtraction": {
+      "attrs": [
+        "values",
+        "targetRegion",
+        "targetDomain",
+        "requestedConclusion"
+      ]
+    },
+    "ExtractedValue": {
+      "attrs": [
+        "field",
+        "value",
+        "span"
+      ]
+    },
+    "FeasibilityVerdict": {
+      "attrs": [
+        "feasible",
+        "reason",
+        "message",
+        "whatWouldBeNeeded"
+      ]
+    },
+    "FeasibilityVerdict.Missing": {
+      "attrs": [
+        "item",
+        "obtainable",
+        "note"
+      ]
+    },
+    "ChatMessage": {
+      "attrs": [
+        "type",
+        "content",
+        "simulationResult",
+        "simulationConfig",
+        "scenarioResponse",
+        "scenarioType",
+        "domain",
+        "subtaskSetId",
+        "subtaskVersion",
+        "currentSubtaskId",
+        "subtaskOrder",
+        "subtaskTotal",
+        "question",
+        "inputSchema",
+        "validationErrors",
+        "progress",
+        "groupOrder",
+        "groupTotal",
+        "groupName",
+        "groupDescription",
+        "questionInGroup",
+        "questionsInGroup",
+        "scenarioPreview"
+      ]
+    },
+    "ScenarioResponse": {
+      "attrs": [
+        "scenarioType",
+        "title",
+        "xLabel",
+        "yLabel",
+        "yUnit",
+        "xCategories",
+        "series",
+        "insights"
+      ],
+      "decompositions": [
+        {
+          "kind": "multi",
+          "name": "series",
+          "children": ["ScenarioResponse.Series"]
+        }
+      ]
+    },
+    "ScenarioResponse.Series": {
+      "attrs": [
+        "name",
+        "values",
+        "stds"
+      ]
+    },
+    "SimulationEngine.Evt": {
+      "attrs": [
+        "time"
+      ]
+    },
+    "SimulationEngine.CollectEvt": {
+      "attrs": [
+        "time",
+        "building",
+        "day",
+        "tripId",
+        "stopOrder"
+      ]
+    },
+    "SimulationEngine.DischargeEvt": {
+      "attrs": [
+        "time",
+        "occ",
+        "building",
+        "day",
+        "amount"
+      ]
+    },
+    "SimulationEngine.InspectEvt": {
+      "attrs": [
+        "time",
+        "building",
+        "day"
+      ]
+    },
+    "SimulationEngine.TripAcc": {
+      "attrs": [
+        "truckId",
+        "tripId",
+        "allocatedCapacityKg",
+        "initialLoadKg",
+        "availablePickupCapacityKg",
+        "collectedKg",
+        "partialPickupCount"
+      ]
+    },
+    "RoutePlanner": {
+      "decompositions": [
+        {
+          "kind": "multi",
+          "name": "routes",
+          "children": ["RoutePlanner.Route"]
+        }
+      ]
+    }
+  },
+  "couplings": [],
+  "evidence": {
+    "SimulationConfig": "src/main/java/com/wastesim/model/SimulationConfig.java",
+    "SimulationResult": "src/main/java/com/wastesim/model/SimulationResult.java",
+    "WasteType": "src/main/java/com/wastesim/model/WasteType.java",
+    "TrafficProfile": "src/main/java/com/wastesim/model/TrafficProfile.java",
+    "ScenarioScale": "src/main/java/com/wastesim/model/ScenarioScale.java",
+    "ZoneAssignmentRule": "src/main/java/com/wastesim/model/ZoneAssignmentRule.java",
+    "TruckType": "src/main/java/com/wastesim/model/TruckType.java",
+    "TripMetric": "src/main/java/com/wastesim/model/TripMetric.java",
+    "JangnyangSubtaskSession": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java",
+    "JangnyangScenarioSpec": "src/main/java/com/wastesim/subtask/JangnyangScenarioSpec.java",
+    "JangnyangSubtaskDefinition": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java",
+    "JangnyangSubtask": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java",
+    "SubtaskGroup": "src/main/java/com/wastesim/subtask/SubtaskGroup.java",
+    "AllowedRange": "src/main/java/com/wastesim/subtask/AllowedRange.java",
+    "SubtaskValidationResult": "src/main/java/com/wastesim/subtask/SubtaskValidationResult.java",
+    "JangnyangSubtaskAnswer": "src/main/java/com/wastesim/subtask/JangnyangSubtaskAnswer.java",
+    "AppliedDefault": "src/main/java/com/wastesim/subtask/AppliedDefault.java",
+    "SubtaskError": "src/main/java/com/wastesim/subtask/SubtaskError.java",
+    "SubtaskProgress": "src/main/java/com/wastesim/subtask/SubtaskProgress.java",
+    "SimulationModelProvider": "src/main/java/com/wastesim/mcp/SimulationModelProvider.java",
+    "McpToolProvider": "src/main/java/com/wastesim/mcp/McpToolProvider.java",
+    "RequestExtraction": "src/main/java/com/wastesim/llm/RequestExtraction.java",
+    "ExtractedValue": "src/main/java/com/wastesim/llm/ExtractedValue.java",
+    "FeasibilityVerdict": "src/main/java/com/wastesim/llm/FeasibilityVerdict.java",
+    "FeasibilityVerdict.Missing": "src/main/java/com/wastesim/llm/FeasibilityVerdict.java",
+    "ChatMessage": "src/main/java/com/wastesim/model/ChatMessage.java",
+    "ScenarioResponse": "src/main/java/com/wastesim/model/ScenarioResponse.java",
+    "ScenarioResponse.Series": "src/main/java/com/wastesim/model/ScenarioResponse.java",
+    "SimulationEngine.Evt": "src/main/java/com/wastesim/simulation/SimulationEngine.java",
+    "SimulationEngine.CollectEvt": "src/main/java/com/wastesim/simulation/SimulationEngine.java",
+    "SimulationEngine.DischargeEvt": "src/main/java/com/wastesim/simulation/SimulationEngine.java",
+    "SimulationEngine.InspectEvt": "src/main/java/com/wastesim/simulation/SimulationEngine.java",
+    "SimulationEngine.TripAcc": "src/main/java/com/wastesim/simulation/SimulationEngine.java",
+    "RoutePlanner": "src/main/java/com/wastesim/simulation/RoutePlanner.java"
+  }
+}
