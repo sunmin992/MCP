@@ -1,0 +1,24 @@
+{
+  "실행시각": "2026-09-11T11:59:17",
+  "모델": "gpt-4o-mini",
+  "temperature": 0.2,
+  "시스템프롬프트": null,
+  "조건": "프로젝트 맥락·시뮬레이터 정보를 일절 주지 않음",
+  "소요초": 6.61,
+  "usage": {
+    "prompt_tokens": 57,
+    "completion_tokens": 733,
+    "total_tokens": 790,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "응답길이": 1683
+}

@@ -1,0 +1,123 @@
+<title>LLM 베이스라인 — 정보 없이 요청했을 때</title>
+<style>
+  :root{
+    --ink:#14171a; --dim:#5b6470; --line:#d9dee5; --bg:#fbfcfd; --panel:#fff;
+    --bad:#c0392b; --bad-bg:#fdf0ee; --ok:#1f7a4d; --code:#f4f6f8;
+  }
+  *{box-sizing:border-box}
+  body{background:var(--bg);color:var(--ink);
+       font:15px/1.6 "Malgun Gothic","맑은 고딕",-apple-system,Segoe UI,sans-serif;
+       margin:0;padding:28px 32px;width:1280px}
+  h1{font-size:26px;margin:0 0 4px;letter-spacing:-.4px}
+  .sub{color:var(--dim);font-size:13.5px;margin-bottom:20px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:16px 18px}
+  .panel h2{font-size:12px;letter-spacing:.9px;color:var(--dim);text-transform:uppercase;
+            margin:0 0 10px;font-weight:700}
+  .req{font-size:16.5px;line-height:1.65;background:#fff;border-left:3px solid var(--ink);
+       padding:10px 14px;margin:0}
+  .note{color:var(--dim);font-size:13px;margin-top:10px}
+  pre{background:var(--code);border:1px solid var(--line);border-radius:7px;
+      padding:12px 14px;margin:0;overflow-x:auto;
+      font:12.5px/1.62 Consolas,"D2Coding",monospace}
+  mark{background:#ffe0dc;color:var(--bad);font-weight:700;border-radius:3px;padding:0 2px}
+  .out{font:14px/1.9 Consolas,"D2Coding",monospace;background:#111418;color:#e6edf3;
+       border-radius:7px;padding:12px 16px;margin:0}
+  .out b{color:#7ee2b8}
+  .verdict{margin-top:8px;font-size:15px;color:var(--bad);font-weight:700}
+  table{border-collapse:collapse;width:100%;font-size:13.5px;margin-top:2px}
+  th,td{border-bottom:1px solid var(--line);padding:6px 8px;text-align:left}
+  th{color:var(--dim);font-weight:700;font-size:11.5px;letter-spacing:.6px;text-transform:uppercase}
+  td.n{text-align:right;font-variant-numeric:tabular-nums;font-family:Consolas,monospace}
+  .tag{display:inline-block;background:var(--bad-bg);color:var(--bad);border:1px solid #f0c8c1;
+       border-radius:4px;padding:1px 7px;font-size:11.5px;font-weight:700}
+  .score{display:flex;gap:26px;margin-top:14px;padding-top:14px;border-top:2px solid var(--ink)}
+  .score div{flex:1}
+  .score .k{font-size:11.5px;color:var(--dim);letter-spacing:.6px;text-transform:uppercase}
+  .score .v{font-size:30px;font-weight:800;letter-spacing:-1px;line-height:1.25}
+  .score .v.red{color:var(--bad)}
+  footer{margin-top:18px;color:var(--dim);font-size:12px;border-top:1px solid var(--line);
+         padding-top:10px}
+  code{background:var(--code);padding:1px 5px;border-radius:3px;font-size:12.5px}
+</style>
+
+<h1>시뮬레이터 정보 없이 요청하면, LLM은 알아서 만들어 낸다</h1>
+<div class="sub">
+  베이스라인 조건 · 2026-09-11 · <code>gpt-4o-mini</code> · temperature 0.2 ·
+  <b>시스템 프롬프트 없음</b> · 프로젝트 맥락 일절 없음 · 응답 6.6초
+</div>
+
+<div class="grid">
+  <div>
+    <div class="panel">
+      <h2>① 던진 것 — 이 한 줄이 전부</h2>
+      <p class="req">포항시 장량동의 생활쓰레기 수거 시뮬레이터를 만들어줘.
+        수거 차량이 도는 시각을 바꿔가며 주민 민원이 얼마나 줄어드는지 보고 싶어.</p>
+      <div class="note">장량동 자료도, 문항도, 템플릿도 주지 않았다.</div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <h2>② 돌아온 것 — 실행되는 코드</h2>
+<pre>def simulate_waste_collection(collection_time,
+                              total_residents=<mark>1000</mark>,
+                              initial_complaints_rate=<mark>0.1</mark>):
+    initial_complaints = int(total_residents * initial_complaints_rate)
+
+    if collection_time &lt; <mark>8</mark>:
+        complaint_reduction_rate = <mark>0.5</mark>
+    elif <mark>8</mark> &lt;= collection_time &lt; <mark>18</mark>:
+        complaint_reduction_rate = <mark>0.2</mark>
+    else:
+        complaint_reduction_rate = <mark>0.1</mark>
+
+    return int(initial_complaints * (1 - complaint_reduction_rate))
+
+collection_times = <mark>[6, 8, 12, 18, 20]</mark></pre>
+      <div class="note">붉은 값이 모델이 스스로 정한 숫자다.</div>
+    </div>
+  </div>
+
+  <div>
+    <div class="panel">
+      <h2>③ 그대로 실행한 결과</h2>
+<pre class="out">수거 시간:  6시, 최종 민원 수: <b>50명</b>
+수거 시간:  8시, 최종 민원 수: <b>80명</b>
+수거 시간: 12시, 최종 민원 수: <b>80명</b>
+수거 시간: 18시, 최종 민원 수: <b>90명</b>
+수거 시간: 20시, 최종 민원 수: <b>90명</b></pre>
+      <div class="verdict">→ “이른 수거가 민원을 44% 줄인다”로 읽히는 숫자</div>
+      <div class="note">보고서에 그대로 넣어도 될 것처럼 생겼다. 그런데 이 숫자는
+        위의 붉은 값들을 산술로 옮긴 것일 뿐이다.</div>
+    </div>
+
+    <div class="panel" style="margin-top:18px">
+      <h2>④ 등장한 수치의 출처를 전수 확인</h2>
+      <table>
+        <tr><th>수치</th><th>코드에서의 역할</th><th class="n">출처</th></tr>
+        <tr><td><code>1000</code></td><td>주민 수</td><td class="n"><span class="tag">임의</span></td></tr>
+        <tr><td><code>0.1</code></td><td>초기 민원 발생률</td><td class="n"><span class="tag">임의</span></td></tr>
+        <tr><td><code>8</code> / <code>18</code></td><td>시간대 경계</td><td class="n"><span class="tag">임의</span></td></tr>
+        <tr><td><code>0.5</code></td><td>이른 수거 감소율</td><td class="n"><span class="tag">임의</span></td></tr>
+        <tr><td><code>0.2</code></td><td>주간 감소율</td><td class="n"><span class="tag">임의</span></td></tr>
+        <tr><td><code>0.1</code></td><td>야간 감소율</td><td class="n"><span class="tag">임의</span></td></tr>
+        <tr><td><code>[6,8,12,18,20]</code></td><td>비교할 수거 시각</td><td class="n"><span class="tag">임의</span></td></tr>
+      </table>
+
+      <div class="score">
+        <div><div class="k">전체 수치</div><div class="v">8</div></div>
+        <div><div class="k">임의 가정</div><div class="v red">8 <span style="font-size:17px">/ 100%</span></div></div>
+        <div><div class="k">장량동에 관한 사실</div><div class="v red">0</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <b>구조도 비어 있다.</b> 주민 개체·배출 행동·수거 지점 용량·트럭 경로·이동시간이 하나도 없다 —
+  DEVS 구조가 아니라 시각을 민원 수로 바꾸는 조회표다.
+  <b>모델은 거짓말하지 않았다</b>: 끝에서 “실제 데이터를 기반으로 더 정교한 모델을 만들 수 있습니다”라고
+  스스로 밝힌다. 문제는 모델의 정직성이 아니라 <b>자산에 닿을 경로가 없다는 것</b>이다.
+  &nbsp;·&nbsp; 원본: <code>docs/reports/llm-baseline-2026-09-11/</code>
+  (<code>request.txt</code> · <code>response.md</code> · <code>generated_simulator.py</code> ·
+  <code>metadata.json</code>)
+</footer>
