@@ -3,7 +3,10 @@ package com.wastesim.ses;
 import com.wastesim.subtask.AllowedRange;
 import com.wastesim.subtask.AnswerType;
 
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * SES 지점과 답변 필드를 잇는다.
@@ -28,8 +31,27 @@ import java.util.List;
  */
 public final class SesFieldMapping {
 
+    /**
+     * {@code optionCodes}: spec 축에서만 쓴다 — 트리의 자식 이름(키)을 v4가 이미 쓰고
+     * 있는 코드값(값)으로 옮긴다(Task 7 측정 1의 결론, Ruling 3). 이름 표기 차이(한글
+     * 자식 이름 vs 영문 코드)는 구조의 차이가 아니라서 대응에만 손을 댄다.
+     *
+     * <p>순서가 있는 {@link LinkedHashMap}이어야 한다 — {@link SesSubtaskDerivation}이
+     * 이 순서를 그대로 최종 허용값 목록의 순서로 쓴다. 대개는 트리의 자식 순서와 같지만,
+     * {@code travelTimeMode}처럼 트리 순서와 v4가 이미 굳힌 순서가 실제로 다른 자리는
+     * 여기서 v4의 순서로 바로잡는다 — 트리도 v4도 고칠 수 없는 자리이기 때문이다. 그래도
+     * <b>집합은 트리와 정확히 같아야 한다</b>(키 목록 == 트리의 자식 이름 집합) — 트리가
+     * 자식을 늘리거나 줄이면 {@code SesSubtaskDerivation}이 예외를 던져 이 대응이 곧바로
+     * 낡았다는 것을 드러낸다. spec이 아닌 지점에는 이 필드가 필요 없어 {@code null}이다.
+     */
     public record FieldBinding(String pointId, String answerField,
-                               AnswerType answerType, AllowedRange range) { }
+                               AnswerType answerType, AllowedRange range,
+                               Map<String, String> optionCodes) {
+        public FieldBinding(String pointId, String answerField,
+                             AnswerType answerType, AllowedRange range) {
+            this(pointId, answerField, answerType, range, null);
+        }
+    }
 
     public record NonSesField(String answerField, Reason reason, String why) {
         public enum Reason { OUTSIDE_SES, PROCEDURE_CONTROL }
@@ -54,16 +76,59 @@ public final class SesFieldMapping {
         return new AllowedRange(description, null, null, null, null, null, null, null, values);
     }
 
+    /**
+     * 트리의 자식 이름 → v4 코드값을 순서 있는 맵으로 만든다(짝수 인덱스가 이름, 홀수
+     * 인덱스가 코드). 인자 순서가 곧 출력 순서다 — 호출부의 주석을 함께 읽어야 그 순서가
+     * 트리를 따른 것인지 v4를 따른 것인지 알 수 있다.
+     */
+    private static Map<String, String> codes(String... nameThenCode) {
+        Map<String, String> m = new LinkedHashMap<>();
+        for (int i = 0; i < nameThenCode.length; i += 2) {
+            m.put(nameThenCode[i], nameThenCode[i + 1]);
+        }
+        return Collections.unmodifiableMap(m);
+    }
+
     private static final List<FieldBinding> BINDINGS = List.of(
-            // ── spec 축 4개 — 허용값은 트리에서 온다 ────────────────────────────
+            // ── spec 축 4개 — 허용값은 트리에서 온다. 이름은 한글, v4는 영문 코드라서
+            //    optionCodes로 옮긴다(Task 7 측정 1) ─────────────────────────────
             new FieldBinding("spec:실험:실험 유형 축", "scenarioType", AnswerType.ENUM,
-                    desc("서버가 실제로 구현한 실행 유형 중 하나")),
+                    desc("서버가 실제로 구현한 실행 유형 중 하나"),
+                    // 트리 순서 그대로 — v4도 같은 순서라 옮기기만 하면 된다.
+                    codes("단일 실행", "single-run",
+                            "직업 구성 실험", "occupation-mix",
+                            "수거시각 실험", "collection-sweep",
+                            "배출행동 실험", "behavior-grid",
+                            "용량·임계값 실험", "infra-grid",
+                            "밀도 실험", "density",
+                            "수거일정 실험", "collection-schedule",
+                            "다중차량 실험", "multi-truck",
+                            "분리배출 실험", "waste-separation",
+                            "확장직업 실험", "new-occupations",
+                            "결합변형 실험", "coupling-variants",
+                            "월별배출 실험", "monthly-waste",
+                            "차종·방문순서 실험", "truck-route")),
             new FieldBinding("spec:거주민:배출시각 모델 축", "dischargeTimeMode", AnswerType.ENUM,
-                    desc("배출 시각을 무엇으로 정하는가")),
+                    desc("배출 시각을 무엇으로 정하는가"),
+                    // 트리 순서 그대로 — v4도 같은 순서다.
+                    codes("직업별 외출시각 기반", "PAPER_BASELINE",
+                            "포항시 배출시간대 기반", "POHANG_ACTUAL")),
             new FieldBinding("spec:수거차량:차종 축", "truckType", AnswerType.ENUM,
-                    desc("수거에 쓰는 차종")),
+                    desc("수거에 쓰는 차종"),
+                    // 트리 순서 그대로 — v4도 같은 순서다(5톤·2.5톤·1톤 내림차순).
+                    codes("5톤 차량", "LARGE_5TON",
+                            "2.5톤 차량", "MEDIUM_2P5T",
+                            "1톤 차량", "SMALL_1TON")),
             new FieldBinding("spec:수거 경로:이동시간 방식 축", "travelTimeMode", AnswerType.ENUM,
-                    desc("지점 사이 이동시간을 무엇으로 계산하는가")),
+                    desc("지점 사이 이동시간을 무엇으로 계산하는가"),
+                    // 주의: 트리의 자식 순서는 [구간 상수, 교통구역 근사, 실제 도로 기반]인데
+                    // v4는 [LEGACY_CONSTANT, OSRM_HYBRID(실제 도로 기반), ZONE_PROXY_HYBRID
+                    // (교통구역 근사)] 순으로 뒤 두 개가 뒤바뀌어 있다(유도본-v4-대조.md
+                    // travelTimeMode 항목). 트리도 v4도 고칠 수 없는 값이라, 집합은 트리와
+                    // 맞추되(아래 검증) 순서만 여기서 v4에 맞춰 명시한다.
+                    codes("구간 상수", "LEGACY_CONSTANT",
+                            "실제 도로 기반", "OSRM_HYBRID",
+                            "교통구역 근사", "ZONE_PROXY_HYBRID")),
 
             // ── multi 복제 수 3개 ──────────────────────────────────────────────
             new FieldBinding("multi:수거지점 집합", "numBuildings", AnswerType.INTEGER,

@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * SES 가지치기 지점에서 서브태스크 세트를 만든다.
@@ -62,9 +63,34 @@ public final class SesSubtaskDerivation {
         AllowedRange declared = b.range();
         if (point instanceof DecisionPoint.SpecChoice spec) {
             return new AllowedRange(declared.description(), null, null, null, null, null, null, null,
-                    spec.options());
+                    optionValues(spec, b));
         }
         return declared;
+    }
+
+    /**
+     * spec 축의 최종 허용값 목록. {@code optionCodes}가 있으면 트리의 자식 이름을 v4의
+     * 코드값으로 옮긴 것을 쓴다 — v4가 이미 영문 코드로 답을 받고 검증하고 있어서, 한글
+     * 이름을 그대로 내보내면 서브태스크 검증이 v4와 다른 값을 허용하게 된다(측정 1,
+     * {@code 유도본-v4-대조.md}).
+     *
+     * <p>순서는 {@code optionCodes}가 선언한 순서를 그대로 쓴다 — 대부분 트리의 자식
+     * 순서와 같지만, travelTimeMode처럼 트리와 v4의 순서가 실제로 어긋나는 자리는
+     * {@code optionCodes}에서 v4 순서로 바로잡아 두었다. 그래도 <b>집합은 트리와 정확히
+     * 같아야 한다</b> — 트리가 자식을 늘리거나 줄이면 이 대응이 낡은 것이므로 조용히
+     * 빠뜨리지 않고 예외를 던진다.
+     */
+    private static List<String> optionValues(DecisionPoint.SpecChoice spec, SesFieldMapping.FieldBinding b) {
+        Map<String, String> optionCodes = b.optionCodes();
+        if (optionCodes == null) {
+            return spec.options();
+        }
+        Set<String> treeNames = Set.copyOf(spec.options());
+        if (!optionCodes.keySet().equals(treeNames)) {
+            throw new IllegalStateException("optionCodes가 트리의 자식과 어긋난다 — " + b.answerField()
+                    + ": 대응의 키=" + optionCodes.keySet() + " 트리의 자식=" + treeNames);
+        }
+        return List.copyOf(optionCodes.values());
     }
 
     private static boolean isRequired(DecisionPoint point) {
@@ -130,9 +156,18 @@ public final class SesSubtaskDerivation {
         return String.format("%03d", order);
     }
 
+    /**
+     * 절차 제어 3개(defaultApproval·inputAndScenarioConfirmed·executionApproval)는
+     * BOOLEAN(예/아니오)이 아니라 v4가 이미 쓰는 ENUM이다 — 측정 1에서 드러난 자리다.
+     * executionApproval은 RUN·REVISE·CANCEL 세 값이라 애초에 예/아니오로는 표현할 수
+     * 없다. 이 필드들은 트리 밖에 있어 유도할 근거가 없으므로, v4의 값을 그대로 옮긴다
+     * ({@code 유도본-v4-대조.md} defaultApproval·executionApproval·
+     * inputAndScenarioConfirmed 항목).
+     */
     private static AnswerType nonSesType(SesFieldMapping.NonSesField f) {
         return switch (f.answerField()) {
-            case "engine" -> AnswerType.ENUM;
+            case "engine", "defaultApproval", "inputAndScenarioConfirmed", "executionApproval" ->
+                    AnswerType.ENUM;
             case "simulationGoal" -> AnswerType.STRING;
             default -> AnswerType.BOOLEAN;
         };
@@ -144,6 +179,12 @@ public final class SesSubtaskDerivation {
                     null, null, List.of("java", "python"));
             case "simulationGoal" -> new AllowedRange("2자 이상 200자 이하의 한 문장", null, null,
                     2, 200, null, null, null, null);
+            case "defaultApproval" -> new AllowedRange("ALL 또는 NONE", null, null, null, null,
+                    null, null, null, List.of("ALL", "NONE"));
+            case "inputAndScenarioConfirmed" -> new AllowedRange("CONFIRMED 또는 NEEDS_CHANGE",
+                    null, null, null, null, null, null, null, List.of("CONFIRMED", "NEEDS_CHANGE"));
+            case "executionApproval" -> new AllowedRange("RUN · REVISE · CANCEL", null, null,
+                    null, null, null, null, null, List.of("RUN", "REVISE", "CANCEL"));
             default -> new AllowedRange("예/아니오", null, null, null, null, null, null, null, null);
         };
     }

@@ -16,9 +16,13 @@ class SesSubtaskDerivationTest {
         SubtaskSkeleton truckType = SesSubtaskDerivation.deriveSkeletons().stream()
                 .filter(s -> s.answerField().equals("truckType")).findFirst().orElseThrow();
         assertEquals(AnswerType.ENUM, truckType.answerType());
-        assertEquals(List.of("5톤 차량", "2.5톤 차량", "1톤 차량"),
+        // 허용값의 "개수와 순서"는 트리의 자식(5톤·2.5톤·1톤 차량)이 정하지만, 최종 표기는
+        // v4가 이미 쓰는 코드값이다 — Task 7 측정 1에서 v4가 한글 자식 이름이 아니라 영문
+        // 코드로 답을 받는다는 것이 드러나, SesFieldMapping의 optionCodes가 트리의 자식
+        // 이름을 코드값으로 옮긴다(유도본-v4-대조.md truckType 항목, Ruling 3).
+        assertEquals(List.of("LARGE_5TON", "MEDIUM_2P5T", "SMALL_1TON"),
                 truckType.allowedRange().valuesOrEmpty(),
-                "허용값은 선언이 아니라 트리의 자식 이름에서 채워져야 한다");
+                "허용값의 개수·순서는 트리가 정하고, 표기는 optionCodes가 v4의 코드값으로 옮긴다");
     }
 
     @Test
