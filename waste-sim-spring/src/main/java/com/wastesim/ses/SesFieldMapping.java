@@ -36,13 +36,20 @@ public final class SesFieldMapping {
      * 있는 코드값(값)으로 옮긴다(Task 7 측정 1의 결론, Ruling 3). 이름 표기 차이(한글
      * 자식 이름 vs 영문 코드)는 구조의 차이가 아니라서 대응에만 손을 댄다.
      *
-     * <p>순서가 있는 {@link LinkedHashMap}이어야 한다 — {@link SesSubtaskDerivation}이
-     * 이 순서를 그대로 최종 허용값 목록의 순서로 쓴다. 대개는 트리의 자식 순서와 같지만,
-     * {@code travelTimeMode}처럼 트리 순서와 v4가 이미 굳힌 순서가 실제로 다른 자리는
-     * 여기서 v4의 순서로 바로잡는다 — 트리도 v4도 고칠 수 없는 자리이기 때문이다. 그래도
-     * <b>집합은 트리와 정확히 같아야 한다</b>(키 목록 == 트리의 자식 이름 집합) — 트리가
-     * 자식을 늘리거나 줄이면 {@code SesSubtaskDerivation}이 예외를 던져 이 대응이 곧바로
-     * 낡았다는 것을 드러낸다. spec이 아닌 지점에는 이 필드가 필요 없어 {@code null}이다.
+     * <p><b>이 맵은 이름만 옮기는 사전이지 순서를 정하지 않는다(Ruling 7).</b> 최종
+     * 허용값의 순서는 {@link SesSubtaskDerivation#deriveSkeletons}가
+     * {@code spec.options()}(트리의 자식 순회 순서)를 그대로 따라 정한다 — 이 맵의
+     * 선언 순서는 읽기 편하라고 트리 순서를 그대로 옮겨 적었을 뿐, 실제로 읽히지 않는다.
+     * ({@code LinkedHashMap}을 쓰는 이유는 순서를 정하기 위해서가 아니라 이 클래스의
+     * 다른 헬퍼(enumOf 등)와 타입을 맞추기 위해서다.) 트리와 v4가 순서에 대해 실제로
+     * 어긋나는 자리(예: {@code travelTimeMode})가 있을 수 있는데, 그건 이 맵으로
+     * 조용히 바로잡을 자리가 아니라 측정으로 드러낼 자리다 — {@code 유도본-v4-대조.md}
+     * travelTimeMode 항목과 {@code DerivedSetVsV4ReportTest}를 보라.
+     *
+     * <p>구성원은 <b>트리와 정확히 같아야 한다</b>(키 목록 == 트리의 자식 이름 집합) —
+     * 트리가 자식을 늘리거나 줄이면 {@link SesSubtaskDerivation#deriveSkeletons}이
+     * 예외를 던져 이 대응이 곧바로 낡았다는 것을 드러낸다. spec이 아닌 지점에는 이 필드가
+     * 필요 없어 {@code null}이다.
      */
     public record FieldBinding(String pointId, String answerField,
                                AnswerType answerType, AllowedRange range,
@@ -78,8 +85,9 @@ public final class SesFieldMapping {
 
     /**
      * 트리의 자식 이름 → v4 코드값을 순서 있는 맵으로 만든다(짝수 인덱스가 이름, 홀수
-     * 인덱스가 코드). 인자 순서가 곧 출력 순서다 — 호출부의 주석을 함께 읽어야 그 순서가
-     * 트리를 따른 것인지 v4를 따른 것인지 알 수 있다.
+     * 인덱스가 코드). <b>인자 순서는 출력 순서가 아니다</b>(Ruling 7) — 최종 허용값의
+     * 순서는 {@link SesSubtaskDerivation}이 트리의 자식 순회 순서로 다시 정한다. 여기서는
+     * 읽기 편하도록 트리 순서 그대로 적는다.
      */
     private static Map<String, String> codes(String... nameThenCode) {
         Map<String, String> m = new LinkedHashMap<>();
@@ -121,14 +129,16 @@ public final class SesFieldMapping {
                             "1톤 차량", "SMALL_1TON")),
             new FieldBinding("spec:수거 경로:이동시간 방식 축", "travelTimeMode", AnswerType.ENUM,
                     desc("지점 사이 이동시간을 무엇으로 계산하는가"),
-                    // 주의: 트리의 자식 순서는 [구간 상수, 교통구역 근사, 실제 도로 기반]인데
-                    // v4는 [LEGACY_CONSTANT, OSRM_HYBRID(실제 도로 기반), ZONE_PROXY_HYBRID
-                    // (교통구역 근사)] 순으로 뒤 두 개가 뒤바뀌어 있다(유도본-v4-대조.md
-                    // travelTimeMode 항목). 트리도 v4도 고칠 수 없는 값이라, 집합은 트리와
-                    // 맞추되(아래 검증) 순서만 여기서 v4에 맞춰 명시한다.
+                    // 트리 순서 그대로 적는다: [구간 상수, 교통구역 근사, 실제 도로 기반].
+                    // 이름만 옮기면 최종 순서도 이 순서를 따른다(Ruling 7). 그런데 v4는
+                    // [LEGACY_CONSTANT, OSRM_HYBRID(실제 도로 기반), ZONE_PROXY_HYBRID
+                    // (교통구역 근사)] 순으로 뒤 두 개가 뒤바뀌어 있다 — 트리와 v4가 순서에
+                    // 대해 실제로 불일치한다는 뜻이고, 이 대응으로 조용히 맞출 자리가 아니라
+                    // 측정으로 드러낼 자리다(유도본-v4-대조.md travelTimeMode 항목,
+                    // DerivedSetVsV4ReportTest.specChoiceOptionOrderMismatchesAgainstV4AreOnlyTheKnownOnes).
                     codes("구간 상수", "LEGACY_CONSTANT",
-                            "실제 도로 기반", "OSRM_HYBRID",
-                            "교통구역 근사", "ZONE_PROXY_HYBRID")),
+                            "교통구역 근사", "ZONE_PROXY_HYBRID",
+                            "실제 도로 기반", "OSRM_HYBRID")),
 
             // ── multi 복제 수 3개 ──────────────────────────────────────────────
             new FieldBinding("multi:수거지점 집합", "numBuildings", AnswerType.INTEGER,

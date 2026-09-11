@@ -58,6 +58,14 @@ class DerivedSetVsV4ReportTest {
         assertEquals(List.of(), mismatches, "자료형이 어긋난 문항: " + mismatches);
     }
 
+    /**
+     * spec 축의 <b>구성원</b>이 v4와 같은가 — 표기(이름 vs 코드)는 {@code optionCodes}가
+     * 옮기므로 여기서는 집합으로 비교한다. <b>순서</b>는 이 테스트가 보지 않는다 — 순서는
+     * 별도로 {@link #specChoiceOptionOrderMismatchesAgainstV4AreOnlyTheKnownOnes}가 다룬다
+     * (Ruling 7). 구성원과 순서를 한 단언에 묶으면 순서만 다른 경우와 값 자체가 다른
+     * 경우를 구분할 수 없다 — 실패 메시지는 여전히 양쪽 목록을 다 찍어서 어느 경우인지
+     * 사람이 바로 판단할 수 있게 한다.
+     */
     @Test
     void specChoiceOptionsMatchV4Values() {
         Map<String, JangnyangSubtask> existing = v4().subtasks().stream()
@@ -66,13 +74,43 @@ class DerivedSetVsV4ReportTest {
         List<String> mismatches = SesSubtaskDerivation.deriveSkeletons().stream()
                 .filter(s -> s.pointId().startsWith("spec:"))
                 .filter(s -> existing.containsKey(s.answerField()))
-                .filter(s -> !s.allowedRange().valuesOrEmpty()
-                        .equals(existing.get(s.answerField()).allowedRange().valuesOrEmpty()))
+                .filter(s -> !Set.copyOf(s.allowedRange().valuesOrEmpty())
+                        .equals(Set.copyOf(existing.get(s.answerField()).allowedRange().valuesOrEmpty())))
                 .map(s -> s.answerField() + ": 트리=" + s.allowedRange().valuesOrEmpty()
                         + " v4=" + existing.get(s.answerField()).allowedRange().valuesOrEmpty())
                 .sorted().toList();
 
         assertEquals(List.of(), mismatches,
                 "트리의 자식 이름과 v4의 허용값이 다르다 — 가설이 가장 강하게 걸린 자리다: " + mismatches);
+    }
+
+    /**
+     * spec 축의 <b>순서</b>가 v4와 같은가 — 트리의 자식 순회 순서를 그대로 코드로 옮긴
+     * 목록({@link SesSubtaskDerivation#deriveSkeletons})과 v4의 순서를 비교한다.
+     *
+     * <p>순서 차이 자체로 빌드를 막지는 않는다 — 트리도 v4도 이 태스크에서 고칠 수 없는
+     * 기준선이고(전역 제약), travelTimeMode는 실제로 트리와 v4가 순서에 대해 불일치한다는
+     * 것이 측정 결과이기 때문이다(유도본-v4-대조.md travelTimeMode 항목). 대신 "지금
+     * 알려진 불일치가 정확히 이것뿐이다"를 고정해서, 새 불일치가 조용히 늘거나 알던
+     * 불일치가 조용히 사라지면(트리 순서가 바뀌었거나 v4가 갱신됐거나 대응이 잘못 고쳐졌거나)
+     * 이 테스트가 잡는다.
+     */
+    @Test
+    void specChoiceOptionOrderMismatchesAgainstV4AreOnlyTheKnownOnes() {
+        Map<String, JangnyangSubtask> existing = v4().subtasks().stream()
+                .collect(Collectors.toMap(JangnyangSubtask::answerField, Function.identity()));
+
+        List<String> orderMismatches = SesSubtaskDerivation.deriveSkeletons().stream()
+                .filter(s -> s.pointId().startsWith("spec:"))
+                .filter(s -> existing.containsKey(s.answerField()))
+                .filter(s -> !s.allowedRange().valuesOrEmpty()
+                        .equals(existing.get(s.answerField()).allowedRange().valuesOrEmpty()))
+                .map(s -> s.answerField())
+                .sorted().toList();
+
+        assertEquals(List.of("travelTimeMode"), orderMismatches,
+                "트리 순서와 v4 순서가 다른 spec 필드 목록이 바뀌었다 — 새 필드가 늘었으면 "
+                        + "원인을 확인하고 유도본-v4-대조.md에 반영해야 하고, 사라졌으면 트리나 "
+                        + "v4 중 하나가 바뀐 것이다: " + orderMismatches);
     }
 }

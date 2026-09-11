@@ -16,13 +16,35 @@ class SesSubtaskDerivationTest {
         SubtaskSkeleton truckType = SesSubtaskDerivation.deriveSkeletons().stream()
                 .filter(s -> s.answerField().equals("truckType")).findFirst().orElseThrow();
         assertEquals(AnswerType.ENUM, truckType.answerType());
-        // 허용값의 "개수와 순서"는 트리의 자식(5톤·2.5톤·1톤 차량)이 정하지만, 최종 표기는
-        // v4가 이미 쓰는 코드값이다 — Task 7 측정 1에서 v4가 한글 자식 이름이 아니라 영문
-        // 코드로 답을 받는다는 것이 드러나, SesFieldMapping의 optionCodes가 트리의 자식
-        // 이름을 코드값으로 옮긴다(유도본-v4-대조.md truckType 항목, Ruling 3).
+        // 허용값의 "구성원과 순서"는 트리의 자식(5톤·2.5톤·1톤 차량, 이 순서)이 정하지만,
+        // 최종 표기는 v4가 이미 쓰는 코드값이다 — Task 7 측정 1에서 v4가 한글 자식 이름이
+        // 아니라 영문 코드로 답을 받는다는 것이 드러나, SesFieldMapping의 optionCodes가
+        // 트리의 자식 이름을 코드값으로만 옮긴다(유도본-v4-대조.md truckType 항목,
+        // Ruling 3). truckType은 트리 순서와 v4 순서가 우연히 같아서 이 단언만으로는
+        // "표기가 트리 순서를 따른다"와 "표기가 v4 순서를 따른다"를 구분하지 못한다 —
+        // 그 구분은 아래 specChoiceOptionOrderFollowsTreeNotV4가 travelTimeMode로 한다.
         assertEquals(List.of("LARGE_5TON", "MEDIUM_2P5T", "SMALL_1TON"),
                 truckType.allowedRange().valuesOrEmpty(),
-                "허용값의 개수·순서는 트리가 정하고, 표기는 optionCodes가 v4의 코드값으로 옮긴다");
+                "허용값의 구성원·순서는 트리가 정하고, 표기는 optionCodes가 v4의 코드값으로 옮긴다");
+    }
+
+    /**
+     * Ruling 7 회귀 테스트 — {@code optionCodes}는 이름만 옮기는 사전이지 순서를 정하지
+     * 않는다는 것을 travelTimeMode로 확인한다. 트리의 자식 순서는 [구간 상수, 교통구역
+     * 근사, 실제 도로 기반]인데 v4의 값 순서는 뒤 두 개가 바뀐 [LEGACY_CONSTANT,
+     * OSRM_HYBRID, ZONE_PROXY_HYBRID]다(유도본-v4-대조.md travelTimeMode 항목). 만약
+     * {@code optionValues}가 v4 순서나 {@code optionCodes}의 선언 순서를 따랐다면 이
+     * 단언은 v4와 같은 순서를 기대했을 것이다 — 실제로는 <b>트리 순서를 그대로 코드로
+     * 옮긴</b> [LEGACY_CONSTANT, ZONE_PROXY_HYBRID, OSRM_HYBRID]가 나와야 트리가 순서를
+     * 정한다는 주장이 참임을 코드로 확인한 것이다.
+     */
+    @Test
+    void specChoiceOptionOrderFollowsTreeNotV4() {
+        SubtaskSkeleton travelTimeMode = SesSubtaskDerivation.deriveSkeletons().stream()
+                .filter(s -> s.answerField().equals("travelTimeMode")).findFirst().orElseThrow();
+        assertEquals(List.of("LEGACY_CONSTANT", "ZONE_PROXY_HYBRID", "OSRM_HYBRID"),
+                travelTimeMode.allowedRange().valuesOrEmpty(),
+                "순서는 optionCodes의 선언 순서나 v4의 순서가 아니라 트리의 자식 순회 순서를 따라야 한다");
     }
 
     @Test

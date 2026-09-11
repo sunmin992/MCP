@@ -74,23 +74,46 @@ public final class SesSubtaskDerivation {
      * 이름을 그대로 내보내면 서브태스크 검증이 v4와 다른 값을 허용하게 된다(측정 1,
      * {@code 유도본-v4-대조.md}).
      *
-     * <p>순서는 {@code optionCodes}가 선언한 순서를 그대로 쓴다 — 대부분 트리의 자식
-     * 순서와 같지만, travelTimeMode처럼 트리와 v4의 순서가 실제로 어긋나는 자리는
-     * {@code optionCodes}에서 v4 순서로 바로잡아 두었다. 그래도 <b>집합은 트리와 정확히
-     * 같아야 한다</b> — 트리가 자식을 늘리거나 줄이면 이 대응이 낡은 것이므로 조용히
-     * 빠뜨리지 않고 예외를 던진다.
+     * <p><b>Ruling 7 — {@code optionCodes}는 이름만 옮기는 사전이지 순서를 정하지
+     * 않는다.</b> 구성원과 순서는 여전히 트리, 즉 {@code spec.options()}가 순회하는
+     * 순서가 정한다. 그래서 여기서는 {@code optionCodes}의 값 컬렉션을 그대로 내지 않고
+     * {@code spec.options()}를 하나씩 돌면서 코드로 옮긴다 — 이전 구현은
+     * {@code optionCodes.values()}를 그대로 반환해 선언 순서가 순서의 출처가 돼
+     * 버렸고, travelTimeMode에서 v4에 맞춰 선언 순서를 손으로 바꿔 둔 탓에 그 사실이
+     * 가려져 있었다(코드 리뷰로 드러남). 트리의 자식 이름이 {@code optionCodes}에 없으면
+     * (대응이 낡았다는 뜻) 조용히 빠뜨리지 않고 예외를 던지고, 반대로 {@code optionCodes}에
+     * 트리에 없는 이름이 남아 있어도(트리가 자식을 줄였는데 대응을 안 지운 경우) 예외를
+     * 던진다 — 양쪽 다 트리와의 불일치이기 때문이다.
+     *
+     * <p>이렇게 고치면 travelTimeMode는 트리 순서([구간 상수, 교통구역 근사, 실제 도로
+     * 기반])를 그대로 코드로 옮긴 [LEGACY_CONSTANT, ZONE_PROXY_HYBRID, OSRM_HYBRID]를
+     * 내고, 이는 v4의 순서([LEGACY_CONSTANT, OSRM_HYBRID, ZONE_PROXY_HYBRID])와 실제로
+     * 다르다 — 이것을 지우는 것이 아니라 있는 그대로 드러내는 것이 측정이다
+     * ({@code DerivedSetVsV4ReportTest.specChoiceOptionOrderMismatchesAgainstV4AreOnlyTheKnownOnes},
+     * {@code 유도본-v4-대조.md} travelTimeMode 항목).
      */
     private static List<String> optionValues(DecisionPoint.SpecChoice spec, SesFieldMapping.FieldBinding b) {
         Map<String, String> optionCodes = b.optionCodes();
         if (optionCodes == null) {
             return spec.options();
         }
+        List<String> values = new ArrayList<>();
+        for (String treeName : spec.options()) {
+            String code = optionCodes.get(treeName);
+            if (code == null) {
+                throw new IllegalStateException("트리의 자식이 optionCodes에 없다(대응이 낡았다) — "
+                        + b.answerField() + ": 트리의 자식=" + treeName
+                        + " 대응의 키=" + optionCodes.keySet());
+            }
+            values.add(code);
+        }
         Set<String> treeNames = Set.copyOf(spec.options());
         if (!optionCodes.keySet().equals(treeNames)) {
-            throw new IllegalStateException("optionCodes가 트리의 자식과 어긋난다 — " + b.answerField()
-                    + ": 대응의 키=" + optionCodes.keySet() + " 트리의 자식=" + treeNames);
+            throw new IllegalStateException("optionCodes에 트리에 없는 이름이 남아 있다(대응이 낡았다) — "
+                    + b.answerField() + ": 대응의 키=" + optionCodes.keySet()
+                    + " 트리의 자식=" + treeNames);
         }
-        return List.copyOf(optionCodes.values());
+        return List.copyOf(values);
     }
 
     private static boolean isRequired(DecisionPoint point) {
