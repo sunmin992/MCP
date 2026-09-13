@@ -88,4 +88,60 @@ class ConfigBackVerifierTest {
 
         assertEquals(2, r.blocks().size());
     }
+
+    @Test
+    void 원장은_확정값인데_설정에_값이_없으면_막는다() {
+        // collectionDaysOfWeek는 기본값이 null인 List 필드다 — 설정하지 않으면 게터가
+        // 그대로 null을 돌려주므로, 컴파일러가 값을 누락시킨 상황을 그대로 재현한다.
+        SimulationConfig config = new SimulationConfig();
+
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(new ParameterDecision("sim::daysOfWeek#1", "sim::daysOfWeek",
+                DecisionState.CONFIRMED, "[1,3,5]", null, List.of(1, 3, 5), null,
+                new ValueSource("user_explicit", "ST-02", null, T),
+                null, List.of(), null, null, T));
+
+        BackVerificationResult r = new ConfigBackVerifier().verify(config, ledger,
+                Map.of("collectionDaysOfWeek", "sim::daysOfWeek"));
+
+        assertFalse(r.passed());
+        assertTrue(r.blocks().get(0).contains("sim::daysOfWeek"), r.blocks().get(0));
+    }
+
+    @Test
+    void 원장에_결정이_없고_설정도_값이_없으면_막지_않는다() {
+        SimulationConfig config = new SimulationConfig(); // collectionDaysOfWeek는 null 그대로
+
+        BackVerificationResult r = new ConfigBackVerifier().verify(config, new ParameterLedger(),
+                Map.of("collectionDaysOfWeek", "sim::daysOfWeek"));
+
+        assertTrue(r.passed(), r.blocks().toString());
+    }
+
+    @Test
+    void 필드에_해당하는_게터가_없으면_막는다() {
+        BackVerificationResult r = new ConfigBackVerifier()
+                .verify(configWithDays(7), ledgerWithDays(7),
+                        Map.of("noSuchField", "sim::noSuchField"));
+
+        assertFalse(r.passed());
+        assertTrue(r.blocks().get(0).contains("noSuchField"), r.blocks().get(0));
+    }
+
+    @Test
+    void is_접두사_게터를_통해_불리언_필드를_읽는다() {
+        SimulationConfig config = new SimulationConfig();
+        config.setTrafficEnabled(true);
+
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(new ParameterDecision("sim::traffic#1", "sim::traffic",
+                DecisionState.CONFIRMED, "true", null, true, null,
+                new ValueSource("user_explicit", "ST-02", null, T),
+                null, List.of(), null, null, T));
+
+        BackVerificationResult r = new ConfigBackVerifier()
+                .verify(config, ledger, Map.of("trafficEnabled", "sim::traffic"));
+
+        assertTrue(r.passed(), r.blocks().toString());
+    }
 }
