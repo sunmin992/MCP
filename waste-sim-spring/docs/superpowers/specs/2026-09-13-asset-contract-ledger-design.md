@@ -73,10 +73,13 @@ ParameterDecision
   transformation       ruleRef · inputEventRefs      (derived면 필수)
   evidenceRefs
   blockingReason       unresolved·conflicted·invalid·stale면 필수
-  supersededBy         stale면 필수
+  supersededBy         stale면 필수 — 이 결정을 낡게 만든 트리거나 대체 결정의 참조
 ```
 
-append-only다. 값을 고치면 덮어쓰지 않고 새 레코드를 쌓으며 이전 레코드를 `stale`로 표시한다.
+append-only다. 값을 고치면 덮어쓰지 않고 새 레코드를 쌓는다 — **현재 값은 저장하지 않고
+이력의 마지막으로 계산한다.** 두 사실을 하나로 줄이면 이력과 현재가 어긋날 자리가 없어진다.
+`stale`은 구조나 상위 값이 바뀌어 기존 결정을 더는 믿을 수 없을 때 쌓는 레코드이며,
+`supersededBy`가 무엇 때문인지를 가리킨다.
 덮어쓰면 "왜 이 값으로 바뀌었는가"가 사라지고, 그 질문은 결과가 이상할 때만 나오므로 그때는
 이미 늦다.
 
