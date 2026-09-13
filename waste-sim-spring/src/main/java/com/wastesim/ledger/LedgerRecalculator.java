@@ -1,5 +1,6 @@
 package com.wastesim.ledger;
 
+import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -69,7 +70,7 @@ public final class LedgerRecalculator {
                     current.rawValue(), current.rawUnit(),
                     current.normalizedValue(), current.normalizedUnit(),
                     current.source(), current.transformation(), current.evidenceRefs(),
-                    "upstream_value_changed", changedParameterId, now)));
+                    BlockingReasons.UPSTREAM_VALUE_CHANGED, changedParameterId, now)));
             staledInStep1.add(dependent);
         }
 
@@ -97,7 +98,8 @@ public final class LedgerRecalculator {
             case ACTIVE -> (current != null && current.state().executable()
                     && !ValueSource.NOT_APPLICABLE_BY_RULE.equals(current.source().type()))
                     ? null
-                    : blocked(ledger, parameterId, "required_value_unresolved", current, now);
+                    : blocked(ledger, parameterId,
+                            BlockingReasons.REQUIRED_VALUE_UNRESOLVED, current, now);
 
             // 비활성 가지는 묻지 않고 해당 없음으로 확정한다. 세트에서 지우지 않는 이유는
             // 50항목을 생략 없이 유지한다는 규약이 세트 해시의 전제이기 때문이다.
@@ -110,8 +112,79 @@ public final class LedgerRecalculator {
                             new ValueSource(ValueSource.NOT_APPLICABLE_BY_RULE, ruleId, null, now),
                             null, List.of(), null, null, now);
 
-            case UNKNOWN -> blocked(ledger, parameterId, "activation_unknown", current, now);
+            case UNKNOWN -> blocked(ledger, parameterId,
+                    BlockingReasons.ACTIVATION_UNKNOWN, current, now);
         };
+    }
+
+    /**
+     * 출처 만료. 허용 나이를 넘긴 확정값을 낡은 것으로 표시한다.
+     *
+     * <p><b>왜 값을 다시 조달하지 않는가</b>: 여기서 하는 일은 "더는 믿을 수 없다"를
+     * 드러내는 것뿐이다. 다시 얻는 것은 조달 계층의 일이고, 그 경계를 섞으면 만료 판정이
+     * 곧 도구 재호출이 되어 중복 실행 방지가 보증되지 않는 자리에서 같은 작업을 두 번
+     * 시키게 된다.
+     *
+     * @param maxAge 이보다 오래된 출처는 더 쓰지 않는다
+     * @return 이번에 새로 쌓인 결정들
+     */
+    public List<ParameterDecision> onSourceExpired(ParameterLedger ledger,
+                                                   Duration maxAge, Instant now) {
+        if (maxAge == null) {
+            throw new IllegalArgumentException("최대 허용 나이가 없습니다.");
+        }
+        List<ParameterDecision> appended = new ArrayList<>();
+        for (String parameterId : ledger.parameterIds()) {
+            ParameterDecision current = ledger.current(parameterId);
+            if (current == null || !current.state().executable()) continue;
+            Instant acquiredAt = current.source().acquiredAt();
+            // 시각이 없는 출처는 건너뛴다. 시각의 부재는 오래됐다는 증거가 아니므로,
+            // 그것을 만료로 읽으면 기록을 덜 남긴 값이 낡았다는 판정을 대신 받는다 —
+            // 규칙이 만든 "해당 없음" 자리표시자가 그런 값이다.
+            if (acquiredAt == null) continue;
+            if (Duration.between(acquiredAt, now).compareTo(maxAge) <= 0) continue;
+            appended.add(ledger.append(staleCopy(ledger, current,
+                    BlockingReasons.SOURCE_EXPIRED,
+                    BlockingReasons.SOURCE_EXPIRED + ":" + maxAge, now)));
+        }
+        return List.copyOf(appended);
+    }
+
+    /**
+     * 세트 버전 변경. <b>전체 재계산</b>이므로 지금 실행에 쓸 수 있는 결정을 모두 낡게 한다.
+     *
+     * <p>버전이 바뀌면 문항·허용값·활성 규칙이 통째로 달라졌을 수 있고, 무엇이 달라졌는지를
+     * 원장이 알 방법은 없다. 알 수 없는 것을 골라내려 하는 대신 전부 다시 묻는 쪽을 택한다 —
+     * 골라내기가 틀리면 낡은 값이 조용히 새 세트의 실행에 섞여 든다.
+     *
+     * @param newSetVersion 무엇 때문에 낡았는지 가리킬 새 세트 버전
+     * @return 이번에 새로 쌓인 결정들
+     */
+    public List<ParameterDecision> onSetVersionChanged(ParameterLedger ledger,
+                                                       String newSetVersion, Instant now) {
+        if (newSetVersion == null || newSetVersion.isBlank()) {
+            throw new IllegalArgumentException("새 세트 버전이 없습니다.");
+        }
+        List<ParameterDecision> appended = new ArrayList<>();
+        for (String parameterId : ledger.parameterIds()) {
+            ParameterDecision current = ledger.current(parameterId);
+            if (current == null || !current.state().executable()) continue;
+            appended.add(ledger.append(staleCopy(ledger, current,
+                    BlockingReasons.SET_VERSION_CHANGED, newSetVersion, now)));
+        }
+        return List.copyOf(appended);
+    }
+
+    /** 값은 그대로 두고 상태만 낡음으로 옮긴다 — 무엇이 있었는지 알아야 무엇이 바뀌었는지 말할 수 있다. */
+    private ParameterDecision staleCopy(ParameterLedger ledger, ParameterDecision current,
+                                        String reason, String supersededBy, Instant now) {
+        return new ParameterDecision(
+                ledger.nextDecisionId(current.parameterId()), current.parameterId(),
+                DecisionState.STALE,
+                current.rawValue(), current.rawUnit(),
+                current.normalizedValue(), current.normalizedUnit(),
+                current.source(), current.transformation(), current.evidenceRefs(),
+                reason, supersededBy, now);
     }
 
     private ParameterDecision blocked(ParameterLedger ledger, String parameterId,

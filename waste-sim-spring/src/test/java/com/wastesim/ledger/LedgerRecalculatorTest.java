@@ -141,4 +141,81 @@ class LedgerRecalculatorTest {
         assertEquals(1, ledger.history("sim::trafficProfileId").size());
         assertEquals(DecisionState.DEFAULTED, ledger.current("sim::trafficProfileId").state());
     }
+
+    // ---- 출처 만료 ----
+
+    @Test
+    void 허용_나이를_넘긴_출처는_낡는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::routeTravelMinutes#1", "sim::routeTravelMinutes", 12));
+
+        recalculator().onSourceExpired(ledger, java.time.Duration.ofDays(1),
+                T.plus(java.time.Duration.ofDays(30)));
+
+        ParameterDecision now = ledger.current("sim::routeTravelMinutes");
+        assertEquals(DecisionState.STALE, now.state());
+        assertEquals("source_expired", now.blockingReason());
+        assertTrue(now.supersededBy().startsWith("source_expired"), now.supersededBy());
+        assertEquals(12, ledger.history("sim::routeTravelMinutes").get(0).normalizedValue());
+    }
+
+    @Test
+    void 아직_젊은_출처는_낡지_않는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::routeTravelMinutes#1", "sim::routeTravelMinutes", 12));
+
+        assertEquals(List.of(), recalculator().onSourceExpired(ledger,
+                java.time.Duration.ofDays(30), T.plus(java.time.Duration.ofDays(1))));
+        assertEquals(DecisionState.CONFIRMED,
+                ledger.current("sim::routeTravelMinutes").state());
+    }
+
+    @Test
+    void 취득_시각이_없는_출처는_만료로_읽지_않는다() {
+        // 시각의 부재는 오래됐다는 증거가 아니다. 그렇게 읽으면 규칙이 만든 "해당 없음"
+        // 자리표시자처럼 시각을 남기지 않는 값이 대신 낡았다는 판정을 받는다.
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(new ParameterDecision("sim::days#1", "sim::days",
+                DecisionState.CONFIRMED, 7, null, 7, null,
+                new ValueSource("user_explicit", "ST-01", null, null),
+                null, List.of(), null, null, T));
+
+        assertEquals(List.of(), recalculator().onSourceExpired(ledger,
+                java.time.Duration.ofSeconds(1), T.plus(java.time.Duration.ofDays(365))));
+        assertEquals(DecisionState.CONFIRMED, ledger.current("sim::days").state());
+    }
+
+    @Test
+    void 실행할_수_없는_결정은_만료로_다시_낡히지_않는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(new ParameterDecision("sim::days#1", "sim::days",
+                DecisionState.UNRESOLVED, null, null, null, null, null, null,
+                List.of(), "required_value_unresolved", null, T));
+
+        assertEquals(List.of(), recalculator().onSourceExpired(ledger,
+                java.time.Duration.ofSeconds(1), T.plus(java.time.Duration.ofDays(1))));
+        assertEquals(1, ledger.history("sim::days").size());
+    }
+
+    // ---- 세트 버전 변경 ----
+
+    @Test
+    void 세트_버전이_바뀌면_실행_가능한_결정이_전부_낡는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::days#1", "sim::days", 7));
+        ledger.append(confirmed("sim::seeds#1", "sim::seeds", 3));
+
+        assertEquals(2, recalculator().onSetVersionChanged(ledger, "v6", T).size());
+        for (String id : List.of("sim::days", "sim::seeds")) {
+            assertEquals(DecisionState.STALE, ledger.current(id).state());
+            assertEquals("set_version_changed", ledger.current(id).blockingReason());
+            assertEquals("v6", ledger.current(id).supersededBy());
+        }
+    }
+
+    @Test
+    void 세트_버전이_없으면_재계산을_시작하지_않는다() {
+        assertThrows(IllegalArgumentException.class,
+                () -> recalculator().onSetVersionChanged(new ParameterLedger(), " ", T));
+    }
 }
