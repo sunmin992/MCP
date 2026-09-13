@@ -94,6 +94,7 @@ public final class RegistrationValidator {
         values.addAll(c.ruleRefs());
         values.addAll(c.adapterRefs());
         values.addAll(c.evidenceRefs());
+        values.addAll(c.boundInputFields());
         values.addAll(c.trialGuarantees());
         return values;
     }

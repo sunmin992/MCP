@@ -95,6 +95,14 @@ class RegistrationValidatorTest {
     }
 
     @Test
+    void boundInputFields에_숨은_placeholder도_등록을_거부한다() {
+        List<RegistrationIssue> issues = validate(
+                ok().boundInputFields(List.of("<actual-input-json-pointer>")).build());
+        assertEquals(List.of("rejectUnresolvedPlaceholders"),
+                rulesOf(issues, RegistrationIssue.Severity.REJECT));
+    }
+
+    @Test
     void 실제_입력_필드를_계약이_아니라_코드에서_읽는다() {
         Set<String> fields = SimulationConfigFields.all();
         assertTrue(fields.contains("days"));
