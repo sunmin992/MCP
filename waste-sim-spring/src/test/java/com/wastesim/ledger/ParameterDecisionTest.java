@@ -65,4 +65,14 @@ class ParameterDecisionTest {
         assertEquals("sim::days", d.parameterId());
         assertTrue(d.state().executable());
     }
+
+    @Test
+    void 기록_시각_없이는_만들_수_없다() {
+        // 원장의 "현재"는 쌓인 순서의 마지막이다. 시각이 없으면 이력은 남아도
+        // 무엇이 앞섰는지 말할 수 없고, 원장이 존재할 이유가 사라진다.
+        IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
+                new ParameterDecision("d1", "sim::days", DecisionState.CONFIRMED,
+                        "7", null, 7, "day", USER, null, List.of(), null, null, null));
+        assertTrue(e.getMessage().contains("언제"), e.getMessage());
+    }
 }
