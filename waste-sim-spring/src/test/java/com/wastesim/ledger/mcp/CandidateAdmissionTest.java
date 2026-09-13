@@ -21,7 +21,7 @@ class CandidateAdmissionTest {
     private static final Instant NOW = Instant.parse("2026-09-13T12:00:00Z");
 
     private static final ParameterExpectation EXPECT = new ParameterExpectation(
-            "sim::routeTravelMinutes", "travel_time", "minute", "daily_average",
+            "sim::routeTravelMinutes", "travel_time", Double.class, "minute", "daily_average",
             Duration.ofDays(30));
 
     private static ToolCandidate candidate(String unit, String semanticType,
@@ -110,8 +110,8 @@ class CandidateAdmissionTest {
         // 조각만 정확히 비교하면 그 값의 진짜 목적지("routeTravelMinutes")와
         // purposeField 전체가 다르므로 거부된다.
         ParameterExpectation wrongAsset = new ParameterExpectation(
-                "backupSim::depotA::routeTravelMinutes", "travel_time", "minute",
-                "daily_average", Duration.ofDays(30));
+                "backupSim::depotA::routeTravelMinutes", "travel_time", Double.class,
+                "minute", "daily_average", Duration.ofDays(30));
 
         ToolCandidate nestedPurpose = new ToolCandidate("depotA::routeTravelMinutes", 12.5,
                 "minute", "travel_time", "daily_average", NOW,
@@ -140,8 +140,43 @@ class CandidateAdmissionTest {
     @Test
     void 단위가_없는_기대는_생성되지_않는다() {
         assertThrows(IllegalArgumentException.class, () -> new ParameterExpectation(
-                "sim::routeTravelMinutes", "travel_time", null, "daily_average",
+                "sim::routeTravelMinutes", "travel_time", Double.class, null, "daily_average",
                 Duration.ofDays(30)));
+    }
+
+    @Test
+    void 실행_타입이_없는_기대는_생성되지_않는다() {
+        assertThrows(IllegalArgumentException.class, () -> new ParameterExpectation(
+                "sim::routeTravelMinutes", "travel_time", null, "minute", "daily_average",
+                Duration.ofDays(30)));
+    }
+
+    @Test
+    void 단위가_같아도_실행_타입이_다르면_확정하지_않는다() {
+        // 역검증은 equals로 대조하므로 Integer 7과 Double 7.0은 같은 값이 아니다.
+        ToolCandidate integerValue = new ToolCandidate("routeTravelMinutes", 12,
+                "minute", "travel_time", "daily_average", NOW,
+                new ValueSource("mcp_result", "tmap#call-1", "v1", NOW));
+
+        ParameterDecision d = new CandidateAdmission()
+                .admit(integerValue, EXPECT, "sim::routeTravelMinutes#1", NOW);
+
+        assertEquals(DecisionState.INVALID, d.state());
+        assertTrue(d.blockingReason().contains("실행 타입"), d.blockingReason());
+    }
+
+    @Test
+    void 출처가_없는_후보는_터지지_않고_무효로_기록된다() {
+        // 출처 없는 값은 ParameterDecision의 불변식에 걸리지만, 그 예외가 호출자에게
+        // 터지면 "검사에 걸린 값도 원장에 남긴다"는 이 계층의 규약이 깨진다.
+        ToolCandidate noSource = new ToolCandidate("routeTravelMinutes", 12.5,
+                "minute", "travel_time", "daily_average", NOW, null);
+
+        ParameterDecision d = assertDoesNotThrow(() -> new CandidateAdmission()
+                .admit(noSource, EXPECT, "sim::routeTravelMinutes#1", NOW));
+
+        assertEquals(DecisionState.INVALID, d.state());
+        assertTrue(d.blockingReason().contains("출처"), d.blockingReason());
     }
 
     @Test
