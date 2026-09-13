@@ -12,4 +12,23 @@ import java.time.Duration;
  * @param maxAge     이보다 오래된 관측은 받지 않는다
  */
 public record ParameterExpectation(String parameterId, String semanticType, String unit,
-                                   String timeWindow, Duration maxAge) { }
+                                   String timeWindow, Duration maxAge) {
+
+    public ParameterExpectation {
+        if (parameterId == null || parameterId.isBlank()) {
+            throw new IllegalArgumentException("매개변수 ID가 없습니다.");
+        }
+        if (semanticType == null || semanticType.isBlank()) {
+            throw new IllegalArgumentException("의미 타입이 없습니다.");
+        }
+        if (unit == null || unit.isBlank()) {
+            throw new IllegalArgumentException("단위가 없습니다.");
+        }
+        if (timeWindow == null || timeWindow.isBlank()) {
+            throw new IllegalArgumentException("시간창이 없습니다.");
+        }
+        if (maxAge == null) {
+            throw new IllegalArgumentException("최대 허용 나이가 없습니다.");
+        }
+    }
+}

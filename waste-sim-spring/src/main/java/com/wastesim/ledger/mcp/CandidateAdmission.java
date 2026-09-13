@@ -42,7 +42,19 @@ public final class CandidateAdmission {
 
     /** 막을 이유. 없으면 {@code null}. */
     private String reject(ToolCandidate c, ParameterExpectation e, Instant now) {
-        if (!e.parameterId().endsWith("::" + c.purposeField())) {
+        if (c.purposeField() == null || c.purposeField().isBlank()) {
+            return "쓸 곳이 없습니다: purposeField가 비어 있습니다 → " + e.parameterId();
+        }
+        // 접미사 일치(endsWith)는 "::" 경계를 문자열 끝에서만 확인하므로, purposeField가
+        // 조각을 하나 이상 담고 있으면(예: "depotA::x") 앞부분(자산)만 다른 parameterId도
+        // "뒤가 같다"는 이유로 통과시킬 수 있다. parameterId는 "<asset-id>::<input-field>"
+        // 두 조각이 원칙이지만, 그 원칙이 깨진 값이 들어와도 마지막 "::" 뒤 조각만 정확히
+        // 비교하면 다른 자산의 값이 조용히 잘못된 자리에 들어가는 일을 막을 수 있다.
+        int lastSeparator = e.parameterId().lastIndexOf("::");
+        String lastSegment = lastSeparator < 0
+                ? e.parameterId()
+                : e.parameterId().substring(lastSeparator + 2);
+        if (!lastSegment.equals(c.purposeField())) {
             return "쓸 곳이 다릅니다: " + c.purposeField() + " → " + e.parameterId();
         }
         if (!e.semanticType().equals(c.semanticType())) {
@@ -54,8 +66,13 @@ public final class CandidateAdmission {
         if (!e.timeWindow().equals(c.timeWindow())) {
             return "시간창이 다릅니다: " + c.timeWindow() + " ≠ " + e.timeWindow();
         }
-        if (c.observedAt() == null
-                || Duration.between(c.observedAt(), now).compareTo(e.maxAge()) > 0) {
+        if (c.observedAt() == null) {
+            return "최신성을 만족하지 않습니다: " + c.observedAt();
+        }
+        if (c.observedAt().isAfter(now)) {
+            return "최신성을 만족하지 않습니다: 관측 시각이 미래입니다 → " + c.observedAt();
+        }
+        if (Duration.between(c.observedAt(), now).compareTo(e.maxAge()) > 0) {
             return "최신성을 만족하지 않습니다: " + c.observedAt();
         }
         return null;

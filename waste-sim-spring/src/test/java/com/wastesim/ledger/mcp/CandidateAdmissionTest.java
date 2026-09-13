@@ -101,4 +101,56 @@ class CandidateAdmissionTest {
         assertEquals(DecisionState.UNRESOLVED, d.state());
         assertEquals("tool_timeout", d.blockingReason());
     }
+
+    @Test
+    void 끝_조각만_같고_앞이_다르면_확정하지_않는다() {
+        // purposeField가 "depotA::routeTravelMinutes"처럼 한 조각 이상을 담고 있으면,
+        // 옛 endsWith 검사는 "backupSim::depotA::routeTravelMinutes"처럼 앞부분(자산)만
+        // 다른 엉뚱한 parameterId도 "뒤가 같다"는 이유로 받아들였다. 마지막 "::" 뒤
+        // 조각만 정확히 비교하면 그 값의 진짜 목적지("routeTravelMinutes")와
+        // purposeField 전체가 다르므로 거부된다.
+        ParameterExpectation wrongAsset = new ParameterExpectation(
+                "backupSim::depotA::routeTravelMinutes", "travel_time", "minute",
+                "daily_average", Duration.ofDays(30));
+
+        ToolCandidate nestedPurpose = new ToolCandidate("depotA::routeTravelMinutes", 12.5,
+                "minute", "travel_time", "daily_average", NOW,
+                new ValueSource("mcp_result", "tmap#call-1", "v1", NOW));
+
+        ParameterDecision d = new CandidateAdmission().admit(
+                nestedPurpose, wrongAsset, "backupSim::depotA::routeTravelMinutes#1", NOW);
+
+        assertEquals(DecisionState.INVALID, d.state());
+        assertTrue(d.blockingReason().contains("쓸 곳"), d.blockingReason());
+    }
+
+    @Test
+    void 쓸_곳이_없으면_확정하지_않는다() {
+        ToolCandidate nullPurpose = new ToolCandidate(null, 12.5,
+                "minute", "travel_time", "daily_average", NOW,
+                new ValueSource("mcp_result", "tmap#call-1", "v1", NOW));
+
+        ParameterDecision d = new CandidateAdmission()
+                .admit(nullPurpose, EXPECT, "sim::routeTravelMinutes#1", NOW);
+
+        assertEquals(DecisionState.INVALID, d.state());
+        assertTrue(d.blockingReason().contains("쓸 곳"), d.blockingReason());
+    }
+
+    @Test
+    void 단위가_없는_기대는_생성되지_않는다() {
+        assertThrows(IllegalArgumentException.class, () -> new ParameterExpectation(
+                "sim::routeTravelMinutes", "travel_time", null, "daily_average",
+                Duration.ofDays(30)));
+    }
+
+    @Test
+    void 미래_시각의_관측은_확정하지_않는다() {
+        ParameterDecision d = new CandidateAdmission().admit(
+                candidate("minute", "travel_time", "daily_average", NOW.plus(Duration.ofDays(1))),
+                EXPECT, "sim::routeTravelMinutes#1", NOW);
+
+        assertEquals(DecisionState.INVALID, d.state());
+        assertTrue(d.blockingReason().contains("미래"), d.blockingReason());
+    }
 }
