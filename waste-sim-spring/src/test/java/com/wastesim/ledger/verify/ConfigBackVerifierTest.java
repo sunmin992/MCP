@@ -1,0 +1,91 @@
+package com.wastesim.ledger.verify;
+
+import com.wastesim.ledger.DecisionState;
+import com.wastesim.ledger.ParameterDecision;
+import com.wastesim.ledger.ParameterLedger;
+import com.wastesim.ledger.ValueSource;
+import com.wastesim.model.SimulationConfig;
+import org.junit.jupiter.api.Test;
+
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+/**
+ * 검증된 계획이 잘못된 실행 설정으로 바뀌는 오류는 계획 검증으로 잡히지 않는다 —
+ * 계획 쪽은 전부 통과하기 때문이다. 역검증은 변환 자체를 의심하는 유일한 자리다.
+ */
+class ConfigBackVerifierTest {
+
+    private static final Instant T = Instant.parse("2026-09-13T00:00:00Z");
+    private static final Map<String, String> BINDING = Map.of("days", "sim::days");
+
+    private static ParameterLedger ledgerWithDays(int value) {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(new ParameterDecision("sim::days#1", "sim::days", DecisionState.CONFIRMED,
+                String.valueOf(value), null, value, "day",
+                new ValueSource("user_explicit", "ST-02", null, T),
+                null, List.of(), null, null, T));
+        return ledger;
+    }
+
+    private static SimulationConfig configWithDays(int value) {
+        SimulationConfig config = new SimulationConfig();
+        config.setDays(value);
+        return config;
+    }
+
+    @Test
+    void 원장과_같은_값이면_통과한다() {
+        BackVerificationResult r = new ConfigBackVerifier()
+                .verify(configWithDays(7), ledgerWithDays(7), BINDING);
+        assertTrue(r.passed(), r.blocks().toString());
+    }
+
+    @Test
+    void 컴파일_결과가_한_필드라도_다르면_막는다() {
+        BackVerificationResult r = new ConfigBackVerifier()
+                .verify(configWithDays(14), ledgerWithDays(7), BINDING);
+
+        assertFalse(r.passed());
+        assertEquals(1, r.blocks().size());
+        assertTrue(r.blocks().get(0).contains("sim::days"), r.blocks().get(0));
+    }
+
+    @Test
+    void 원장에_결정이_없는_값은_막는다() {
+        BackVerificationResult r = new ConfigBackVerifier()
+                .verify(configWithDays(7), new ParameterLedger(), BINDING);
+
+        assertFalse(r.passed());
+        assertTrue(r.blocks().get(0).contains("결정이 없습니다"), r.blocks().get(0));
+    }
+
+    @Test
+    void 실행할_수_없는_상태의_값은_막는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(new ParameterDecision("sim::days#1", "sim::days", DecisionState.UNRESOLVED,
+                null, null, null, null, null, null, List.of(),
+                "required_value_unresolved", null, T));
+
+        BackVerificationResult r = new ConfigBackVerifier()
+                .verify(configWithDays(7), ledger, BINDING);
+
+        assertFalse(r.passed());
+        assertTrue(r.blocks().get(0).contains("UNRESOLVED"), r.blocks().get(0));
+    }
+
+    @Test
+    void 막힌_사유를_전부_모은다() {
+        SimulationConfig config = new SimulationConfig();
+        config.setDays(14);
+        config.setNumTrucks(3);
+
+        BackVerificationResult r = new ConfigBackVerifier().verify(config, ledgerWithDays(7),
+                Map.of("days", "sim::days", "numTrucks", "sim::numTrucks"));
+
+        assertEquals(2, r.blocks().size());
+    }
+}
