@@ -25,19 +25,17 @@ class LedgerGateIntegrationTest {
     private static final Instant T = Instant.parse("2026-09-13T00:00:00Z");
     private static final Map<String, String> BINDING = Map.of("days", "sim::days");
 
+    /**
+     * 조립은 운영 경로({@link AnswerDecisions})에 맡긴다 — 시험이 자기 사본으로 조립하면
+     * 운영 경로가 바뀌어도 이 시험은 통과하고, 그러면 시험이 실제로 도는 것을 시험하지 않는다.
+     */
     private static ParameterDecision answered(ParameterLedger ledger, String parameterId,
                                               Object value, SubtaskAnswerSource source,
                                               BasisKind basis) {
-        DecisionState state = DecisionStateMapper.map(source, basis);
-        return new ParameterDecision(
-                ledger.nextDecisionId(parameterId), parameterId, state,
-                value, null,
-                state.executable() ? value : null, null,
-                state.executable() ? new ValueSource("user_explicit", "ST-02", null, T) : null,
-                state == DecisionState.DERIVED
-                        ? new Transformation("normalize-days", List.of()) : null,
-                List.of(),
-                state.executable() ? null : "required_value_unresolved", null, T);
+        return AnswerDecisions.fromAnswer(
+                ledger.nextDecisionId(parameterId), parameterId, value, value, source, basis,
+                new ValueSource("user_explicit", "ST-02", null, T),
+                new Transformation("normalize-days", List.of()), T);
     }
 
     // ---- 과차단: 정상 구성은 막히지 않는다 ----
@@ -100,7 +98,7 @@ class LedgerGateIntegrationTest {
     }
 
     @Test
-    void 구조가_바뀌면_새_필수값이_드러나고_실행이_막힌다() {
+    void 활성_조건이_켜지면_새_필수값이_드러나고_실행이_막힌다() {
         ParameterLedger ledger = new ParameterLedger();
         LedgerRecalculator r = new LedgerRecalculator(JangnyangRules.registry(),
                 Map.of("sim::trafficProfileId", JangnyangRules.TRAFFIC_APPLY),
