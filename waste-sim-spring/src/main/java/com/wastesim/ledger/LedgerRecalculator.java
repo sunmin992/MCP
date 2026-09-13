@@ -58,11 +58,10 @@ public final class LedgerRecalculator {
         for (String dependent : dependents.getOrDefault(changedParameterId, List.of())) {
             ParameterDecision current = ledger.current(dependent);
             if (current == null || !current.state().executable()) continue;
-            // 규칙이 만든 "해당 없음" 자리표시자는 사용자가 실제로 입력한 값이 아니다 —
-            // 매번 낡혔다가 2단계에서 다시 같은 자리표시자로 되돌아올 뿐이므로, 같은 답을
-            // 거듭 반영해도 이력이 STALE↔DEFAULTED로 요동치지 않도록 여기서 걸러낸다.
+            // 규칙이 만든 "해당 없음" 자리표시자는 사용자가 실제로 입력해 낡을 수 있는
+            // 값이 아니다 — 따라서 낡혔다는 표시 자체가 성립하지 않으므로 건드리지 않는다.
             if (current.state() == DecisionState.DEFAULTED
-                    && "not_applicable_by_rule".equals(current.source().type())) {
+                    && ValueSource.NOT_APPLICABLE_BY_RULE.equals(current.source().type())) {
                 continue;
             }
             appended.add(ledger.append(new ParameterDecision(
@@ -96,19 +95,19 @@ public final class LedgerRecalculator {
 
         return switch (activation) {
             case ACTIVE -> (current != null && current.state().executable()
-                    && !"not_applicable_by_rule".equals(current.source().type()))
+                    && !ValueSource.NOT_APPLICABLE_BY_RULE.equals(current.source().type()))
                     ? null
                     : blocked(ledger, parameterId, "required_value_unresolved", current, now);
 
             // 비활성 가지는 묻지 않고 해당 없음으로 확정한다. 세트에서 지우지 않는 이유는
             // 50항목을 생략 없이 유지한다는 규약이 세트 해시의 전제이기 때문이다.
             case INACTIVE -> (current != null && current.state() == DecisionState.DEFAULTED
-                    && "not_applicable_by_rule".equals(current.source().type()))
+                    && ValueSource.NOT_APPLICABLE_BY_RULE.equals(current.source().type()))
                     ? null
                     : new ParameterDecision(
                             ledger.nextDecisionId(parameterId), parameterId,
                             DecisionState.DEFAULTED, null, null, null, null,
-                            new ValueSource("not_applicable_by_rule", ruleId, null, now),
+                            new ValueSource(ValueSource.NOT_APPLICABLE_BY_RULE, ruleId, null, now),
                             null, List.of(), null, null, now);
 
             case UNKNOWN -> blocked(ledger, parameterId, "activation_unknown", current, now);

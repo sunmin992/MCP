@@ -113,4 +113,32 @@ class LedgerRecalculatorTest {
         assertEquals(1, changed.size());
         assertEquals("sim::trafficProfileId", changed.get(0).parameterId());
     }
+
+    @Test
+    void 낡힌_매개변수는_2단계에서_다시_건드리지_않는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+
+        recalculator().onAnswerChanged(ledger, "sim::trafficMode",
+                Map.of("trafficMode", "APPLY"));
+
+        // 이 호출에서 이 매개변수에 대해 정확히 레코드 하나만 쌓여야 한다(1 -> 2) —
+        // 2단계가 같은 매개변수를 또 건드려 UNRESOLVED를 덧쌓으면(1 -> 3) 이 검사가 깨진다.
+        assertEquals(2, ledger.history("sim::trafficProfileId").size());
+        assertEquals(DecisionState.STALE, ledger.current("sim::trafficProfileId").state());
+    }
+
+    @Test
+    void 규칙이_만든_자리표시자는_같은_답을_반복해도_다시_낡지_않는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        LedgerRecalculator r = recalculator();
+
+        r.onAnswerChanged(ledger, "sim::trafficMode", Map.of("trafficMode", "IGNORE"));
+        r.onAnswerChanged(ledger, "sim::trafficMode", Map.of("trafficMode", "IGNORE"));
+
+        // 1단계의 자리표시자 가드가 사라지면 두 번째 호출이 이 자리표시자를 STALE로
+        // 덧쌓아 이력이 늘고 current()도 STALE로 바뀐다.
+        assertEquals(1, ledger.history("sim::trafficProfileId").size());
+        assertEquals(DecisionState.DEFAULTED, ledger.current("sim::trafficProfileId").state());
+    }
 }

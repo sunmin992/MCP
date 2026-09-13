@@ -16,6 +16,13 @@ import java.time.Instant;
  */
 public record ValueSource(String type, String reference, String version, Instant acquiredAt) {
 
+    /**
+     * 다른 출처 종류와 달리 이 값은 단순히 기록되고 끝나지 않는다 — 재계산기가 이 문자열을
+     * 다시 읽어 "이 값이 규칙이 만든 자리표시자인가"를 판단하는 분기 조건으로 쓴다.
+     * 오타 하나가 그 분기를 조용히 무력화할 수 있으므로 상수로 못박아 둔다.
+     */
+    public static final String NOT_APPLICABLE_BY_RULE = "not_applicable_by_rule";
+
     public ValueSource {
         if (type == null || type.isBlank()) {
             throw new IllegalArgumentException("출처 종류가 없습니다.");
