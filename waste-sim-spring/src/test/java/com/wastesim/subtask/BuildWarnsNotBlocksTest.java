@@ -23,6 +23,5 @@ class BuildWarnsNotBlocksTest {
   assertEquals(SubtaskState.READY, sessions.activeSession("k").state());
   var result = sessions.build("k");
   assertTrue(result.ok(), result.message());
-  assertTrue(result.ledgerWarnings().isEmpty());
  }
 }

@@ -158,9 +158,13 @@ public class SubtaskSessionService {
         if (session == null || !session.state().isActive()) {
             return BuildStep.rejected("진행 중인 수집 세션이 없습니다.");
         }
-        List<String> ledgerBlocks = ledgerWarningsOf(session);
+        List<String> ledgerBlocks = ledgerBlocksOf(session);
         if (!ledgerBlocks.isEmpty()) {
             session.attachSpec(null);
+            // 판정 도중 만료 처리로 원장과 답변이 바뀌었을 수 있다. 여기서 저장하지
+            // 않고 돌아가면 그 변경은 이 메서드 안에서만 참이고, 저장소가 메모리를
+            // 벗어나는 날 다음 요청은 만료되지 않은 값을 다시 읽는다.
+            store.save(session);
             return BuildStep.rejected("미해결 입력을 먼저 확인해 주세요: " + String.join("; ", ledgerBlocks));
         }
         if (!session.state().canBuild()) {
@@ -175,18 +179,25 @@ public class SubtaskSessionService {
             // 고쳐 다시 시도할 수 있다.
             return BuildStep.failed(outcome);
         }
-        ledgerBlocks = ledgerWarningsOf(session);
+        ledgerBlocks = ledgerBlocksOf(session);
         if (!ledgerBlocks.isEmpty()) {
+            store.save(session);
             return BuildStep.rejected("입력 유효성을 다시 확인해 주세요: " + String.join("; ", ledgerBlocks));
         }
         session.attachSpec(outcome.spec());
         session.transitionTo(SubtaskState.BUILT);
         store.save(session);
-        return BuildStep.built(outcome.spec(), List.of());
+        return BuildStep.built(outcome.spec());
     }
 
-    /** Current blocking reasons; used at both build and execution boundaries. */
-    private List<String> ledgerWarningsOf(JangnyangSubtaskSession session) {
+    /**
+     * 지금 조립·실행을 막는 사유들. 조립과 실행 두 경계에서 같은 판정을 쓴다.
+     *
+     * <p><b>이름이 "읽기"가 아닌 이유</b>: 만료된 외부 값을 여기서 낡은 것으로 찍고 그
+     * 답변을 세션에서 지운다 — 판정만 하는 것처럼 보이는 이름을 달아 두면 저장 없이
+     * 돌아가는 경로가 언제든 다시 생긴다. 부르는 쪽은 그 변경을 저장해야 한다.
+     */
+    private List<String> ledgerBlocksOf(JangnyangSubtaskSession session) {
         var def = definitionOf(session);
         for (var expiry : session.toolExpiries().entrySet()) {
             var current = session.ledger().current(expiry.getKey());
@@ -237,7 +248,7 @@ public class SubtaskSessionService {
             return RunApproval.blocked(List.of("아직 실행할 수 있는 상태가 아닙니다."));
         }
 
-        List<String> blocks = new java.util.ArrayList<>(ledgerWarningsOf(session));
+        List<String> blocks = new java.util.ArrayList<>(ledgerBlocksOf(session));
         if (session.spec() == null) blocks.add("생성된 시나리오가 없습니다.");
         else {
             if (!session.configUnchanged()) blocks.add("미리보기 이후 실행 설정이 변경됐습니다. 다시 생성해 주세요.");
@@ -245,6 +256,9 @@ public class SubtaskSessionService {
         }
         if (!blocks.isEmpty()) {
             // 상태를 올리지 않는다 — BUILT에 머물러야 사용자가 답을 고쳐 다시 시도할 수 있다.
+            // 다만 판정이 남긴 만료 처리는 저장한다. 막혔다고 버리면 다음 요청이 같은
+            // 만료를 다시 발견해야 하고, 그 사이에 만료 값이 실행에 섞일 수 있다.
+            store.save(session);
             return RunApproval.blocked(blocks);
         }
 
@@ -407,7 +421,11 @@ public class SubtaskSessionService {
     }
 
     /** Backend adapter boundary: expectations are fixed before invoking the registered tool.
-     * This is deliberately not a client-supplied MCP tool/contract registration endpoint. */
+     * This is deliberately not a client-supplied MCP tool/contract registration endpoint.
+     *
+     * <p>이 메서드는 <b>스스로 시간 제한을 걸지 않는다</b> — 넘겨받은 {@code call}이 던지는
+     * {@code TimeoutException}을 받아 낼 뿐이다. 그래서 실제 어댑터를 붙이는 쪽이 호출에
+     * 시간 제한을 두지 않으면, 도구가 응답하지 않는 동안 세션 전체가 여기서 멈춘다. */
     public Step resolveToolValue(String sessionKey, String answerField,
                                  com.wastesim.ledger.mcp.ParameterExpectation expectation,
                                  java.util.concurrent.Callable<com.wastesim.ledger.mcp.ToolCandidate> call) {
@@ -520,27 +538,22 @@ public class SubtaskSessionService {
     /**
      * 조립 한 걸음의 결과.
      *
-     * @param ledgerWarnings 원장이 막을 이유로 본 것들. <b>조립을 막지는 않는다</b> —
-     *                       원장과 기존 checker는 기준이 달라, 강제를 넓히기 전에 그
-     *                       차이가 실제로 얼마나 나는지 볼 데이터가 먼저 필요하다
+     * <p>원장이 막을 이유로 본 것을 따로 싣지 않는다 — 개정된 결정 3에서 그것들은
+     * 관찰 항목이 아니라 <b>거부 사유</b>가 됐고, 거부 사유는 {@code rejection}이
+     * 이미 문장으로 들고 있다.
      */
     public record BuildStep(JangnyangScenarioSpec spec,
                             JangnyangScenarioBuilder.BuildOutcome outcome,
-                            String rejection,
-                            List<String> ledgerWarnings) {
+                            String rejection) {
 
-        public BuildStep {
-            ledgerWarnings = ledgerWarnings == null ? List.of() : List.copyOf(ledgerWarnings);
-        }
-
-        static BuildStep built(JangnyangScenarioSpec spec, List<String> warnings) {
-            return new BuildStep(spec, null, null, warnings);
+        static BuildStep built(JangnyangScenarioSpec spec) {
+            return new BuildStep(spec, null, null);
         }
         static BuildStep failed(JangnyangScenarioBuilder.BuildOutcome o) {
-            return new BuildStep(null, o, null, List.of());
+            return new BuildStep(null, o, null);
         }
         static BuildStep rejected(String reason) {
-            return new BuildStep(null, null, reason, List.of());
+            return new BuildStep(null, null, reason);
         }
 
         public boolean ok() { return spec != null; }

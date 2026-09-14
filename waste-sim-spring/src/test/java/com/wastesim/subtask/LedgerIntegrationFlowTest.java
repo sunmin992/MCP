@@ -28,7 +28,6 @@ class LedgerIntegrationFlowTest {
 
         SubtaskSessionService.BuildStep build = sessions.build("k");
         assertTrue(build.ok(), build.message());
-        assertEquals(java.util.List.of(), build.ledgerWarnings());
 
         RunApproval approval = sessions.approveRunChecked("k");
         assertTrue(approval.approved(), approval.message());
