@@ -1,0 +1,407 @@
+{
+  "root": "쓰레기 수거 시뮬레이션",
+  "entities": {
+    "쓰레기 수거 시뮬레이션": {
+      "attrs": [
+        "trafficData",
+        "sites",
+        "travelTimes",
+        "zoneTravelTimes"
+      ],
+      "decompositions": [
+        {
+          "kind": "aspect",
+          "name": "구성 요소",
+          "children": [
+            "시뮬레이션 설정",
+            "시뮬레이션 결과",
+            "쓰레기 종류",
+            "트럭 종류",
+            "교통 프로파일",
+            "교통 구역",
+            "수거 지점",
+            "수거 지점 레지스트리",
+            "시뮬레이션 모델",
+            "시뮬레이션 구성",
+            "시나리오 설정",
+            "시나리오 실험 결과",
+            "수거 스케줄",
+            "수집 세션",
+            "서브태스크 세트",
+            "서브태스크",
+            "서브태스크 답변",
+            "서브태스크 진행 상태",
+            "서브태스크 세션 서비스"
+          ]
+        }
+      ]
+    },
+    "시뮬레이션 설정": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "시뮬레이션 결과": {
+      "attrs": [
+        "collectionTimeLabel",
+        "totalComplaints",
+        "wasteOverflowComplaints",
+        "landlordComplaints",
+        "byOccupation",
+        "byDay",
+        "peakFillKg",
+        "seed",
+        "wasteByMonth",
+        "generatedWasteKg",
+        "collectedWasteKg",
+        "residualWasteKg",
+        "availableCollectionCapacityKg",
+        "truckUtilizationPercent",
+        "collectionCapacityUtilizationPercent",
+        "partialPickupCount",
+        "unservedPickupCount",
+        "capacityExhaustedTripCount",
+        "uncollectedDemandKg",
+        "massBalanceErrorKg",
+        "tripMetrics",
+        "residualByBuilding",
+        "residualByWasteType",
+        "residualByTruck",
+        "maxResidualBuilding",
+        "maxResidualBuildingKg",
+        "meanComplaints",
+        "meanWasteOverflowComplaints",
+        "meanLandlordComplaints",
+        "stdComplaints",
+        "allTotals",
+        "byOccupationSummary",
+        "coordinateQuality",
+        "dataQualityFlags",
+        "assumptionNotes",
+        "trafficPenalty",
+        "avgCompletionMinutes"
+      ],
+      "decompositions": []
+    },
+    "쓰레기 종류": {
+      "attrs": [
+        "key",
+        "labelKo",
+        "fraction",
+        "capacity",
+        "threshold",
+        "intervalDays",
+        "collectionDaysOfWeek"
+      ],
+      "decompositions": []
+    },
+    "트럭 종류": {
+      "attrs": [
+        "labelKo",
+        "capacityKg",
+        "mobilityFactor",
+        "alleyAccess"
+      ],
+      "decompositions": []
+    },
+    "교통 프로파일": {
+      "attrs": [
+        "id",
+        "hourlyWeight",
+        "nodeHourlyWeight",
+        "congestionThresholdRed"
+      ],
+      "decompositions": []
+    },
+    "교통 구역": {
+      "attrs": [
+        "zoneIds"
+      ],
+      "decompositions": []
+    },
+    "수거 지점": {
+      "attrs": [
+        "id",
+        "longitude",
+        "latitude",
+        "name",
+        "adminDivision",
+        "source",
+        "snapMeters",
+        "trafficZone",
+        "largeTruckAllowed"
+      ],
+      "decompositions": []
+    },
+    "수거 지점 레지스트리": {
+      "attrs": [
+        "sites"
+      ],
+      "decompositions": []
+    },
+    "시뮬레이션 모델": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "시뮬레이션 구성": {
+      "attrs": [
+        "collectionTimeMinutes",
+        "days",
+        "seeds",
+        "leaveSigma",
+        "wasteSigma",
+        "wasteMeanKg",
+        "capacity",
+        "threshold",
+        "scenarioScale",
+        "zoneAssignmentRule",
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "collectionTimesMinutes",
+        "collectionIntervalDays",
+        "collectionDaysOfWeek",
+        "dischargeTimeMode",
+        "intraZoneTravelMinutes",
+        "dischargeWindowStartMinutes",
+        "dischargeWindowEndMinutes",
+        "skipWeekends",
+        "weekendCollectionTimeMinutes",
+        "holidays",
+        "numTrucks",
+        "routeTravelMinutes",
+        "travelTimeMode",
+        "serviceMinutesPerSite",
+        "wasteTypes",
+        "returnDischarge",
+        "returnFraction",
+        "landlordEnabled",
+        "landlordInspectMinutes",
+        "landlordThreshold",
+        "monthlyWasteFactor",
+        "trafficEnabled",
+        "trafficProfileId",
+        "truckType",
+        "routeAvailableCapacityKg",
+        "initialTruckLoadKg",
+        "dispatchIntervalMinutes",
+        "routeSequence",
+        "trafficComplaintWeight"
+      ],
+      "decompositions": []
+    },
+    "시나리오 설정": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "시나리오 실험 결과": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "수거 스케줄": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "수집 세션": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "서브태스크 세트": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "서브태스크": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "서브태스크 답변": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "서브태스크 진행 상태": {
+      "attrs": [],
+      "decompositions": []
+    },
+    "서브태스크 세션 서비스": {
+      "attrs": [],
+      "decompositions": []
+    }
+  },
+  "couplings": [
+    {
+      "from": "시뮬레이션 설정",
+      "to": "쓰레기 수거 시뮬레이션",
+      "evidence": "src/main/java/com/wastesim/controller/ChatController.java:class ChatController (handleMessageInternal, runSimulation)"
+    },
+    {
+      "from": "교통 프로파일",
+      "to": "쓰레기 수거 시뮬레이션",
+      "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (run)"
+    },
+    {
+      "from": "교통 구역",
+      "to": "쓰레기 수거 시뮬레이션",
+      "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (zoneOf)"
+    },
+    {
+      "from": "수거 지점 레지스트리",
+      "to": "쓰레기 수거 시뮬레이션",
+      "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (zoneOf)"
+    },
+    {
+      "from": "시뮬레이션 설정",
+      "to": "시나리오 실험 결과",
+      "evidence": "src/main/java/com/wastesim/service/ScenarioService.java:class ScenarioService (복수 메서드에서 base.copy() 후 실행)"
+    },
+    {
+      "from": "트럭 종류",
+      "to": "쓰레기 수거 시뮬레이션",
+      "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (run)"
+    },
+    {
+      "from": "시뮬레이션 설정",
+      "to": "시뮬레이션 결과",
+      "evidence": "src/main/java/com/wastesim/service/SimulationService.java:class SimulationService (runExperiment, runSingle)"
+    },
+    {
+      "from": "시나리오 설정",
+      "to": "시나리오 실험 결과",
+      "evidence": "src/main/java/com/wastesim/service/ScenarioService.java:class ScenarioService (occupationMixComparison 등 여러 메서드)"
+    },
+    {
+      "from": "시나리오 설정",
+      "to": "쓰레기 수거 시뮬레이션",
+      "evidence": "src/main/java/com/wastesim/subtask/JangnyangScenarioBuilder.java:class JangnyangScenarioBuilder (toConfig)"
+    }
+  ],
+  "evidence": {
+    "쓰레기 수거 시뮬레이션": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine",
+    "시뮬레이션 설정": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 결과": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "쓰레기 종류": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "트럭 종류": "src/main/java/com/wastesim/model/TruckType.java:class TruckType",
+    "교통 프로파일": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile",
+    "교통 구역": "src/main/java/com/wastesim/traffic/TrafficZoneRegistry.java:class TrafficZoneRegistry",
+    "수거 지점": "src/main/java/com/wastesim/site/CollectionSite.java:class CollectionSite",
+    "수거 지점 레지스트리": "src/main/java/com/wastesim/site/CollectionSiteRegistry.java:class CollectionSiteRegistry",
+    "시뮬레이션 모델": "src/main/java/com/wastesim/mcp/SimulationModelProvider.java:interface SimulationModelProvider",
+    "시뮬레이션 구성": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시나리오 설정": "src/main/java/com/wastesim/model/ScenarioPreset.java:enum ScenarioPreset",
+    "시나리오 실험 결과": "src/main/java/com/wastesim/model/ScenarioResponse.java:class ScenarioResponse",
+    "수거 스케줄": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "수집 세션": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:class JangnyangSubtaskSession",
+    "서브태스크 세트": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:class JangnyangSubtaskDefinition",
+    "서브태스크": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:record JangnyangSubtask",
+    "서브태스크 답변": "src/main/java/com/wastesim/subtask/JangnyangSubtaskAnswer.java:record JangnyangSubtaskAnswer",
+    "서브태스크 진행 상태": "src/main/java/com/wastesim/subtask/SubtaskProgress.java:record SubtaskProgress",
+    "서브태스크 세션 서비스": "src/main/java/com/wastesim/subtask/SubtaskSessionService.java:class SubtaskSessionService",
+    "쓰레기 종류.key": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "쓰레기 종류.labelKo": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "쓰레기 종류.fraction": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "쓰레기 종류.capacity": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "쓰레기 종류.threshold": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "쓰레기 종류.intervalDays": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "쓰레기 종류.collectionDaysOfWeek": "src/main/java/com/wastesim/model/WasteType.java:class WasteType",
+    "트럭 종류.labelKo": "src/main/java/com/wastesim/model/TruckType.java:class TruckType",
+    "트럭 종류.capacityKg": "src/main/java/com/wastesim/model/TruckType.java:class TruckType",
+    "트럭 종류.mobilityFactor": "src/main/java/com/wastesim/model/TruckType.java:class TruckType",
+    "트럭 종류.alleyAccess": "src/main/java/com/wastesim/model/TruckType.java:class TruckType",
+    "교통 프로파일.id": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile",
+    "교통 프로파일.hourlyWeight": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile",
+    "교통 프로파일.nodeHourlyWeight": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile",
+    "교통 프로파일.congestionThresholdRed": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile",
+    "교통 구역.zoneIds": "src/main/java/com/wastesim/traffic/TrafficZoneRegistry.java:class TrafficZoneRegistry",
+    "수거 지점.id": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.longitude": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.latitude": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.name": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.adminDivision": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.source": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.snapMeters": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.trafficZone": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점.largeTruckAllowed": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite",
+    "수거 지점 레지스트리.sites": "src/main/java/com/wastesim/site/CollectionSiteRegistry.java:class CollectionSiteRegistry",
+    "시뮬레이션 구성.collectionTimeMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.days": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.seeds": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.leaveSigma": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.wasteSigma": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.wasteMeanKg": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.capacity": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.threshold": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.scenarioScale": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.zoneAssignmentRule": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.numBuildings": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.residentsPerBuilding": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.occupationMix": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.collectionTimesMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.collectionIntervalDays": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.collectionDaysOfWeek": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.dischargeTimeMode": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.intraZoneTravelMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.dischargeWindowStartMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.dischargeWindowEndMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.skipWeekends": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.weekendCollectionTimeMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.holidays": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.numTrucks": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.routeTravelMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.travelTimeMode": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.serviceMinutesPerSite": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.wasteTypes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.returnDischarge": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.returnFraction": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.landlordEnabled": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.landlordInspectMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.landlordThreshold": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.monthlyWasteFactor": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.trafficEnabled": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.trafficProfileId": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.truckType": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.routeAvailableCapacityKg": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.initialTruckLoadKg": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.dispatchIntervalMinutes": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.routeSequence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 구성.trafficComplaintWeight": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig",
+    "시뮬레이션 결과.collectionTimeLabel": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.totalComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.wasteOverflowComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.landlordComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.byOccupation": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.byDay": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.peakFillKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.seed": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.wasteByMonth": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.generatedWasteKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.collectedWasteKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.residualWasteKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.availableCollectionCapacityKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.truckUtilizationPercent": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.collectionCapacityUtilizationPercent": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.partialPickupCount": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.unservedPickupCount": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.capacityExhaustedTripCount": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.uncollectedDemandKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.massBalanceErrorKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.tripMetrics": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.residualByBuilding": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.residualByWasteType": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.residualByTruck": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.maxResidualBuilding": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.maxResidualBuildingKg": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.meanComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.meanWasteOverflowComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.meanLandlordComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.stdComplaints": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.allTotals": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.byOccupationSummary": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.coordinateQuality": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.dataQualityFlags": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.assumptionNotes": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.trafficPenalty": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "시뮬레이션 결과.avgCompletionMinutes": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult",
+    "쓰레기 수거 시뮬레이션.trafficData": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine",
+    "쓰레기 수거 시뮬레이션.sites": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine",
+    "쓰레기 수거 시뮬레이션.travelTimes": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine",
+    "쓰레기 수거 시뮬레이션.zoneTravelTimes": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine"
+  }
+}

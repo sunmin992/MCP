@@ -25,6 +25,10 @@ ul:not(.root)::before{content:"";position:absolute}
     font-size:11px;color:#38414c}
 .at.new{background:#e6f4ec;color:#14603f;font-weight:600}
 .noev{color:var(--warn);font-size:10.5px;margin-left:4px}
+.spec-tag{display:inline-block;margin-left:4px;padding:0 4px;border-radius:2px;
+          background:#dbe7fb;color:#1a4d9c;font-size:9.5px;font-weight:700;letter-spacing:.2px}
+.cond{display:inline-block;background:#fdf0ee;color:#a5341f;border:1px solid #f0c8c1;
+      border-radius:3px;padding:0 5px;font-size:10.5px;font-weight:600}
 h2{font-size:13px;letter-spacing:.8px;color:var(--dim);text-transform:uppercase;
    margin:22px 0 9px;font-weight:700}
 table{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--panel)}
@@ -38,14 +42,14 @@ footer{margin-top:18px;padding-top:10px;border-top:1px solid var(--line);
        color:var(--dim);font-size:11.5px}
 </style>
 <h1>구성 결정 34개가 SES의 어디에 앉는가</h1>
-<div class='sub'>문항 세트 <code>jangnyang-simulator-v4</code> · ref-v6 · 자리를 가진 것 <b>28</b> / 34 · 대조 전에는 4개였다 · 대응 근거는 <code>JangnyangScenarioBuilder.toConfig()</code>의 소비 지점</div>
+<div class='sub'>문항 세트 <code>jangnyang-simulator-v4</code> · ref-v7 · 자리를 가진 것 <b>29</b> / 34 · 대조 전에는 4개였다 · 대응 근거는 <code>JangnyangScenarioBuilder.toConfig()</code>의 소비 지점</div>
 <table><tr><th class='n'>#</th><th>문항 필드</th><th>타입</th><th>SES 자리 · 또는 넣지 않은 사유</th></tr>
 <tr><td class='n'>1</td><td><code>simulationGoal</code></td><td style='color:#6b7480;font-size:11.5px'>STRING</td><td><span class='out'>—</span> 기록용 — 빌더가 “계산에 쓰이지 않는 항목”이라고 적는다</td></tr>
 <tr><td class='n'>2</td><td><code>scenarioType</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>실험</code> · <code>단일 실행</code> · <code>직업 구성 실험</code> · <code>수거시각 실험</code> · <code>배출행동 실험</code> · <code>용량·임계값 실험</code> · <code>밀도 실험</code> · <code>수거일정 실험</code> · <code>다중차량 실험</code> · <code>분리배출 실험</code> · <code>확장직업 실험</code> · <code>결합변형 실험</code> · <code>월별배출 실험</code> · <code>차종·방문순서 실험</code></td></tr>
 <tr><td class='n'>3</td><td><code>engine</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><span class='out'>—</span> 실행 수단 — java/python 어댑터 선택. 대상 시스템의 성질이 아니다</td></tr>
 <tr><td class='n'>4</td><td><code>numBuildings</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>수거지점 집합.개수</code></td></tr>
 <tr><td class='n'>5</td><td><code>residentsPerBuilding</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>거주민 집합.개수</code></td></tr>
-<tr><td class='n'>6</td><td><code>occupationPreset</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>거주민 집합.직업구성</code></td></tr>
+<tr><td class='n'>6</td><td><code>occupationPreset</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>거주민 집합.직업구성</code> · <code>거주민 집합.직업구성 (attr_spec)</code></td></tr>
 <tr><td class='n'>7</td><td><code>days</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>실험.기간</code></td></tr>
 <tr><td class='n'>8</td><td><code>seeds</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>실험.반복횟수</code></td></tr>
 <tr><td class='n'>9</td><td><code>wasteMeanKg</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>대상 시스템.1인배출량</code></td></tr>
@@ -55,15 +59,15 @@ footer{margin-top:18px;padding-top:10px;border-top:1px solid var(--line);
 <tr><td class='n'>13</td><td><code>dischargeWindow</code></td><td style='color:#6b7480;font-size:11.5px'>TIME_RANGE</td><td><code>포항시 배출시간대 기반.배출허용창</code></td></tr>
 <tr><td class='n'>14</td><td><code>capacity</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>폐기물 유형.용량</code></td></tr>
 <tr><td class='n'>15</td><td><code>threshold</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>폐기물 유형.임계값</code></td></tr>
-<tr><td class='n'>16</td><td><code>collectionTime</code></td><td style='color:#6b7480;font-size:11.5px'>TIME</td><td><code>수거차량.수거시각</code></td></tr>
-<tr><td class='n'>17</td><td><code>collectionTimes</code></td><td style='color:#6b7480;font-size:11.5px'>TIME_LIST</td><td><code>수거차량.수거시각</code></td></tr>
+<tr><td class='n'>16</td><td><code>collectionTime</code></td><td style='color:#6b7480;font-size:11.5px'>TIME</td><td><code>수거차량.수거시각</code> · <code>수거차량.수거시각 (attr_spec)</code></td></tr>
+<tr><td class='n'>17</td><td><code>collectionTimes</code></td><td style='color:#6b7480;font-size:11.5px'>TIME_LIST</td><td><code>수거차량.수거시각</code> · <code>수거차량.수거시각 (attr_spec)</code></td></tr>
 <tr><td class='n'>18</td><td><code>collectionSchedule</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>수거차량.수거요일</code></td></tr>
 <tr><td class='n'>19</td><td><code>truckType</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>수거차량</code></td></tr>
 <tr><td class='n'>20</td><td><code>truckCount</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>수거차량 집합.개수</code></td></tr>
 <tr><td class='n'>21</td><td><code>routeAvailableCapacityKg</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>수거차량.적재용량</code></td></tr>
 <tr><td class='n'>22</td><td><code>initialTruckLoadKg</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>수거차량.초기적재량</code></td></tr>
 <tr><td class='n'>23</td><td><code>dispatchIntervalMinutes</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>수거차량.배차간격</code></td></tr>
-<tr><td class='n'>24</td><td><code>trafficMode</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><span class='out'>—</span> 결합의 on/off — SES 스키마에 담을 슬롯이 없다(pruning의 영역)</td></tr>
+<tr><td class='n'>24</td><td><code>trafficMode</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>결합 활성 조건: 교통 구역.혼잡계수 -&gt; 수거 경로.이동시간</code> · <code>결합 활성 조건: 교통 구역.혼잡계수 -&gt; 교통혼잡 판정.판정</code></td></tr>
 <tr><td class='n'>25</td><td><code>trafficProfileId</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>교통 구역.시간대프로파일</code></td></tr>
 <tr><td class='n'>26</td><td><code>travelTimeMode</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>수거 경로</code></td></tr>
 <tr><td class='n'>27</td><td><code>routeTravelMinutes</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>구간 상수.구간이동시간</code></td></tr>
