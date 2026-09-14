@@ -1,9 +1,9 @@
 {
   "_meta": {
     "name": "장량동 생활쓰레기 수거 시뮬레이터",
-    "version": "ref-v6",
+    "version": "ref-v7",
     "source": "LLM-SES-구성-실험-방법론 v2의 교정 구조",
-    "status": "근거 대조 완료 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다. 구성 결정 34개 중 28개가 SES에 자리를 갖는다(넣지 않은 6개는 구성결정-SES-대응표.md 참조). 남은 판단: trafficMode(결합 on/off)를 담을 스키마 확장 여부, collectionTimes의 목록형 표현, occupationPreset의 구성비 표현.",
+    "status": "근거 대조 완료 + 스키마 확장 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다.",
     "note": "ses-overview.svg(이전 판)가 아니라 v2 교정판을 정답지로 쓴다. v1은 실행 엔진·이벤트 시스템을 구조 트리의 형제로 둔 명백한 오류를 포함한다.",
     "verified_against": "develop @ 8b3d67f · src/main/java/com/wastesim/**",
     "corrections": [
@@ -32,8 +32,15 @@
       "관측 하위 6종의 속성을 SimulationResult 전수와 맞추고 근거를 붙였다",
       "시간 통계에서 이동시간 제거 — 결과에 그 항목이 없다",
       "관측에 총배출량·미수거수요·질량수지오차·월별배출량·시드 추가",
-      "집합 4종·루트의 근거 추가"
-    ]
+      "집합 4종·루트의 근거 추가",
+      "결합 2개에 active_when 추가 — trafficMode가 결합 활성화의 선택자로 자리를 갖는다",
+      "attr_spec 추가 — 수거차량.수거시각(arity 1..6) · 거주민 집합.직업구성(composition over 직업 축)"
+    ],
+    "schema_extensions": {
+      "active_when": "결합이 어떤 선택에서만 활성인가. SES pruning을 결합에 명시하는 최소 표현이다. 없으면 항상 활성.",
+      "attr_spec": "속성의 성질. kind(타입) · arity(개수) · over(어느 축에 대한 분포인가). 선택적이며, 이름만으로 모호한 자리에만 적는다.",
+      "_주의": "S1-추출절차.md 3절 프롬프트에는 넣지 않았다(조건 (가)). 추출기는 이 구성물을 낼 수 없으므로 그만큼은 처음부터 재현 불가로 남는다 — 기존 실행 12건(C·Cs·Csr·Cd)과의 비교를 보존하기 위한 선택이다. score_ses.py도 이 둘을 채점하지 않는다."
+    }
   },
   "root": "장량동 생활쓰레기 수거 시뮬레이터",
   "entities": {
@@ -90,7 +97,14 @@
             "거주민"
           ]
         }
-      ]
+      ],
+      "attr_spec": {
+        "직업구성": {
+          "kind": "composition",
+          "over": "거주민.직업 축",
+          "evidence": "문항 6 occupationPreset — 프리셋이 직업 축 자식들의 반복 횟수로 비율을 표현한다(JangnyangScenarioBuilder:215). 축에서 하나를 고르는 spec 선택이 아니라 자식들에 대한 분포다"
+        }
+      }
     },
     "거주민": {
       "attrs": [
@@ -223,7 +237,14 @@
             "1톤 차량"
           ]
         }
-      ]
+      ],
+      "attr_spec": {
+        "수거시각": {
+          "kind": "TIME",
+          "arity": "1..6",
+          "evidence": "문항 16 collectionTime(단일, TIME) · 문항 17 collectionTimes(TIME_LIST, minItems 2 maxItems 6). 하루 한 번과 여러 번이 같은 결정의 단일형·목록형이다 — 코드도 단일 시각을 기본으로 두고 목록이 있으면 그것을 쓴다"
+        }
+      }
     },
     "5톤 차량": {
       "attrs": [],
@@ -524,13 +545,15 @@
       "from": "교통 구역.혼잡계수",
       "to": "수거 경로.이동시간",
       "verified": true,
-      "mechanism": "TrafficProfile.weightAt(도착분, 구역) -> congestionWeight -> hopMinutes(..., congestionWeight)로 다음 지점 도착 시각을 늦춘다(:336,:343). 공식은 TravelTimeCalculator에 고정돼 RouteDurationEstimator와 공유된다"
+      "mechanism": "TrafficProfile.weightAt(도착분, 구역) -> congestionWeight -> hopMinutes(..., congestionWeight)로 다음 지점 도착 시각을 늦춘다(:336,:343). 공식은 TravelTimeCalculator에 고정돼 RouteDurationEstimator와 공유된다",
+      "active_when": "trafficMode=APPLY (문항 24) — NONE이면 trafficProfile이 null이라 이 결합이 통째로 죽는다(SimulationEngine:271 · 330-339)"
     },
     {
       "from": "교통 구역.혼잡계수",
       "to": "교통혼잡 판정.판정",
       "verified": true,
-      "mechanism": "TrafficProfile.isRed(도착분, 구역)이면 cfg.trafficComplaintWeight를 누적한다(:337-339). 참조 초안에 없던 결합이다 — 교통 구역은 이동시간과 혼잡 판정 두 곳으로 간다"
+      "mechanism": "TrafficProfile.isRed(도착분, 구역)이면 cfg.trafficComplaintWeight를 누적한다(:337-339). 참조 초안에 없던 결합이다 — 교통 구역은 이동시간과 혼잡 판정 두 곳으로 간다",
+      "active_when": "trafficMode=APPLY (문항 24) — NONE이면 trafficProfile이 null이라 이 결합이 통째로 죽는다(SimulationEngine:271 · 330-339)"
     }
   ],
   "critical_points": [

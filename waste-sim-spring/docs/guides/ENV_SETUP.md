@@ -100,9 +100,8 @@ $env:OPENAI_MODEL="gemma2:9b"; mvn spring-boot:run
 
 ## 3-1. 벤치마크 스크립트 (`llm_benchmark.py`)
 
-> **주의: 이 스크립트는 Spring 프로파일을 읽지 않는다.** 앱과 완전히 별개로
-> 자기 환경변수만 보고, 비교 대상 모델 목록도 스크립트 안의 `MODELS`에 하드코딩돼
-> 있다. 즉 `SPRING_PROFILES_ACTIVE`를 바꿔도 벤치마크 동작은 달라지지 않는다.
+> **주의: 이 스크립트는 Spring 프로파일을 읽지 않는다.** 최신 장량동 서브태스크
+> 템플릿을 직접 읽어 추출·제약 검증·재질문·시나리오 구성을 평가한다.
 
 | 환경변수 | 용도 | 기본값 |
 |---|---|---|
@@ -110,22 +109,25 @@ $env:OPENAI_MODEL="gemma2:9b"; mvn spring-boot:run
 | `OPENAI_API_URL` | `gpt-4o-mini` 항목이 쓸 엔드포인트 | `https://api.openai.com/v1/chat/completions` |
 | `OPENAI_API_KEY` | 없으면 OpenAI 모델은 자동 건너뜀 | (없음) |
 | `EXCLUDE_MODELS` | 쉼표로 구분해 특정 모델 제외 | (없음) |
+| `BENCHMARK_MODELS` | 쉼표로 구분한 Ollama 모델 목록 | 로컬 모델 4종 |
+| `BENCHMARK_RUNS` | 요청별 반복 횟수 | `3` |
+| `BENCHMARK_TIMEOUT` | 모델 호출 제한 시간(초) | `240` |
 
 ### 윈도우 A (Ollama 설치된 머신)
 
 로컬 4개 모델만 돌리고 GPT는 비용·시간 때문에 건너뛸 때:
 
 ```powershell
-$env:EXCLUDE_MODELS="gpt-4o-mini"; python llm_benchmark.py
+$env:BENCHMARK_MODELS="llama3.2:3b,qwen2.5:7b,gemma:2b,gemma2:9b"; python llm_benchmark.py
 ```
 
 ### 맥북 / Ollama 없는 머신
 
-로컬 모델이 설치돼 있지 않으면 그 4개는 전부 연결 실패로 잡히므로 미리 제외한다.
+로컬 모델이 설치돼 있지 않으면 빈 목록으로 두고 OpenAI 키를 설정한다.
 맥에는 `python` 명령이 없으니 `python3`으로 실행할 것:
 
 ```bash
-EXCLUDE_MODELS="llama3.2:3b,qwen2.5:7b,gemma:2b,gemma2:9b" python3 llm_benchmark.py
+BENCHMARK_MODELS="" OPENAI_API_KEY="..." python3 llm_benchmark.py
 ```
 
 ### ⚠️ `OPENAI_API_URL`은 되도록 설정하지 말 것

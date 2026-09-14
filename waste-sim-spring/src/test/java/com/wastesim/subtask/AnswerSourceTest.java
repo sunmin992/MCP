@@ -17,13 +17,25 @@ class AnswerSourceTest {
         return TestSubtaskFixtures.service(new JangnyangSubtaskCatalog());
     }
 
+    /**
+     * "첫 번째 서브태스크"가 아니라 {@code simulationGoal}을 고른다 — 이 테스트가 보는
+     * 것은 출처 기록이지 어떤 필드가 순서상 첫 번째냐가 아니다. v5에서는 순서상 첫
+     * 서브태스크가 ENUM(scenarioType)이라 자유 문장을 답하면 검증에서 거부돼 원장에
+     * 아예 안 남는다 — 자유 문장을 허용하는 STRING 필드로 고정해야 이 테스트가 세트
+     * 버전이 바뀔 때마다 함께 깨지지 않는다.
+     */
+    private static String freeTextField(JangnyangSubtaskDefinition def) {
+        JangnyangSubtask st = def.byAnswerField("simulationGoal");
+        return (st != null ? st : def.subtasks().get(0)).id();
+    }
+
     /** LLM이 넣은 값은 원장에 LLM_NORMALIZED로 남아야 한다. */
     @Test
     void llmAnswerIsRecordedAsLlmNormalized() {
         SubtaskSessionService svc = service();
         svc.start("s1");
         JangnyangSubtaskDefinition def = svc.definitionOf(svc.activeSession("s1"));
-        String firstId = def.subtasks().get(0).id();
+        String firstId = freeTextField(def);
 
         svc.submit("s1", firstId, "민원 발생량 확인", null, SubtaskAnswerSource.LLM_NORMALIZED);
 
@@ -39,7 +51,7 @@ class AnswerSourceTest {
         SubtaskSessionService svc = service();
         svc.start("s2");
         JangnyangSubtaskDefinition def = svc.definitionOf(svc.activeSession("s2"));
-        String firstId = def.subtasks().get(0).id();
+        String firstId = freeTextField(def);
 
         svc.submit("s2", firstId, "민원 발생량 확인", null);
 

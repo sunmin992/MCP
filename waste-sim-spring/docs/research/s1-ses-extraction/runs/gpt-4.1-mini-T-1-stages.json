@@ -1,0 +1,734 @@
+{
+  "a": {
+    "changing": [
+      {
+        "name": "쓰레기 수거 환경 관련 수치(민원 수, 수거량, 잔류량 등)",
+        "what_changes": "시뮬레이션 실행을 통해 시간 경과에 따른 쓰레기 배출량, 트럭 운행, 민원 수 등의 결과 값이 변화한다. 시간은 분 단위로 다루며, 배출 이벤트와 수거 이벤트가 주기·스케줄·직업 유형·트럭 경로 및 이동시간에 따라 계획되고 처리되는 식으로 시뮬레이션이 진행된다.",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:run()"
+      },
+      {
+        "name": "시뮬레이션 설정의 진행 상태",
+        "what_changes": "사용자 수집 세션 내에서 서브태스크 질문과 답변, 세션 상태(COLLECTING, VALIDATING, READY, BUILT 등)가 사용자 입력에 따라 변화한다. 사용자는 질문에 답하며 세션의 상태가 진행되고 최종적으로 시나리오 조립과 실행 상태로 이동한다.",
+        "evidence": "src/main/java/com/wastesim/subtask/SubtaskSessionService.java#submit(), #build(), #approveRun(), #finishRun()"
+      },
+      {
+        "name": "시뮬레이션 구성의 설정 값들",
+        "what_changes": "사용자가 대화나 서브태스크 답변을 통해 수거 시각, 거주민 구성, 트럭 종류, 경로 순서, 교통 레이어 사용 여부 등 다양한 설정을 점진적으로 바꾸고 구성한다. 구성된 설정은 시뮬레이터 기본값이나 사용자 답변, 서버가 자동 채운 값의 조합이다.",
+        "evidence": "src/main/java/com/wastesim/controller/ChatController.java#handleMessageInternal(), src/main/java/com/wastesim/subtask/BlueprintComposer.java#compose(), src/main/java/com/wastesim/subtask/JangnyangScenarioBuilder.java#toConfig()"
+      }
+    ]
+  },
+  "b": {
+    "entities": [
+      {
+        "name": "쓰레기 수거 시뮬레이션",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine"
+      },
+      {
+        "name": "시뮬레이션 설정",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "name": "시뮬레이션 결과",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "name": "쓰레기 종류",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "name": "트럭 종류",
+        "evidence": "src/main/java/com/wastesim/model/TruckType.java:class TruckType"
+      },
+      {
+        "name": "교통 프로파일",
+        "evidence": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile"
+      },
+      {
+        "name": "교통 구역",
+        "evidence": "src/main/java/com/wastesim/traffic/TrafficZoneRegistry.java:class TrafficZoneRegistry"
+      },
+      {
+        "name": "수거 지점",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:class CollectionSite"
+      },
+      {
+        "name": "수거 지점 레지스트리",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSiteRegistry.java:class CollectionSiteRegistry"
+      },
+      {
+        "name": "시뮬레이션 모델",
+        "evidence": "src/main/java/com/wastesim/mcp/SimulationModelProvider.java:interface SimulationModelProvider"
+      },
+      {
+        "name": "시뮬레이션 구성",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "name": "시나리오 설정",
+        "evidence": "src/main/java/com/wastesim/model/ScenarioPreset.java:enum ScenarioPreset"
+      },
+      {
+        "name": "시나리오 실험 결과",
+        "evidence": "src/main/java/com/wastesim/model/ScenarioResponse.java:class ScenarioResponse"
+      },
+      {
+        "name": "수거 스케줄",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "name": "수집 세션",
+        "evidence": "src/main/java/com/wastesim/subtask/JangnyangSubtaskSession.java:class JangnyangSubtaskSession"
+      },
+      {
+        "name": "서브태스크 세트",
+        "evidence": "src/main/java/com/wastesim/subtask/JangnyangSubtaskDefinition.java:class JangnyangSubtaskDefinition"
+      },
+      {
+        "name": "서브태스크",
+        "evidence": "src/main/java/com/wastesim/subtask/JangnyangSubtask.java:record JangnyangSubtask"
+      },
+      {
+        "name": "서브태스크 답변",
+        "evidence": "src/main/java/com/wastesim/subtask/JangnyangSubtaskAnswer.java:record JangnyangSubtaskAnswer"
+      },
+      {
+        "name": "서브태스크 진행 상태",
+        "evidence": "src/main/java/com/wastesim/subtask/SubtaskProgress.java:record SubtaskProgress"
+      },
+      {
+        "name": "서브태스크 세션 서비스",
+        "evidence": "src/main/java/com/wastesim/subtask/SubtaskSessionService.java:class SubtaskSessionService"
+      }
+    ]
+  },
+  "c": {
+    "attrs": [
+      {
+        "entity": "쓰레기 종류",
+        "attr": "key",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "entity": "쓰레기 종류",
+        "attr": "labelKo",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "entity": "쓰레기 종류",
+        "attr": "fraction",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "entity": "쓰레기 종류",
+        "attr": "capacity",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "entity": "쓰레기 종류",
+        "attr": "threshold",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "entity": "쓰레기 종류",
+        "attr": "intervalDays",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "entity": "쓰레기 종류",
+        "attr": "collectionDaysOfWeek",
+        "evidence": "src/main/java/com/wastesim/model/WasteType.java:class WasteType"
+      },
+      {
+        "entity": "트럭 종류",
+        "attr": "labelKo",
+        "evidence": "src/main/java/com/wastesim/model/TruckType.java:class TruckType"
+      },
+      {
+        "entity": "트럭 종류",
+        "attr": "capacityKg",
+        "evidence": "src/main/java/com/wastesim/model/TruckType.java:class TruckType"
+      },
+      {
+        "entity": "트럭 종류",
+        "attr": "mobilityFactor",
+        "evidence": "src/main/java/com/wastesim/model/TruckType.java:class TruckType"
+      },
+      {
+        "entity": "트럭 종류",
+        "attr": "alleyAccess",
+        "evidence": "src/main/java/com/wastesim/model/TruckType.java:class TruckType"
+      },
+      {
+        "entity": "교통 프로파일",
+        "attr": "id",
+        "evidence": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile"
+      },
+      {
+        "entity": "교통 프로파일",
+        "attr": "hourlyWeight",
+        "evidence": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile"
+      },
+      {
+        "entity": "교통 프로파일",
+        "attr": "nodeHourlyWeight",
+        "evidence": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile"
+      },
+      {
+        "entity": "교통 프로파일",
+        "attr": "congestionThresholdRed",
+        "evidence": "src/main/java/com/wastesim/model/TrafficProfile.java:class TrafficProfile"
+      },
+      {
+        "entity": "교통 구역",
+        "attr": "zoneIds",
+        "evidence": "src/main/java/com/wastesim/traffic/TrafficZoneRegistry.java:class TrafficZoneRegistry"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "id",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "longitude",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "latitude",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "name",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "adminDivision",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "source",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "snapMeters",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "trafficZone",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점",
+        "attr": "largeTruckAllowed",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSite.java:record CollectionSite"
+      },
+      {
+        "entity": "수거 지점 레지스트리",
+        "attr": "sites",
+        "evidence": "src/main/java/com/wastesim/site/CollectionSiteRegistry.java:class CollectionSiteRegistry"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "collectionTimeMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "days",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "seeds",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "leaveSigma",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "wasteSigma",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "wasteMeanKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "capacity",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "threshold",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "scenarioScale",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "zoneAssignmentRule",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "numBuildings",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "residentsPerBuilding",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "occupationMix",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "collectionTimesMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "collectionIntervalDays",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "collectionDaysOfWeek",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "dischargeTimeMode",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "intraZoneTravelMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "dischargeWindowStartMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "dischargeWindowEndMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "skipWeekends",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "weekendCollectionTimeMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "holidays",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "numTrucks",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "routeTravelMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "travelTimeMode",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "serviceMinutesPerSite",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "wasteTypes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "returnDischarge",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "returnFraction",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "landlordEnabled",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "landlordInspectMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "landlordThreshold",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "monthlyWasteFactor",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "trafficEnabled",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "trafficProfileId",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "truckType",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "routeAvailableCapacityKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "initialTruckLoadKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "dispatchIntervalMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "routeSequence",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 구성",
+        "attr": "trafficComplaintWeight",
+        "evidence": "src/main/java/com/wastesim/model/SimulationConfig.java:class SimulationConfig"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "collectionTimeLabel",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "totalComplaints",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "wasteOverflowComplaints",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "landlordComplaints",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "byOccupation",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "byDay",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "peakFillKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "seed",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "wasteByMonth",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "generatedWasteKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "collectedWasteKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "residualWasteKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "availableCollectionCapacityKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "truckUtilizationPercent",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "collectionCapacityUtilizationPercent",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "partialPickupCount",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "unservedPickupCount",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "capacityExhaustedTripCount",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "uncollectedDemandKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "massBalanceErrorKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "tripMetrics",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "residualByBuilding",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "residualByWasteType",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "residualByTruck",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "maxResidualBuilding",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "maxResidualBuildingKg",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "meanComplaints",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "meanWasteOverflowComplaints",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "meanLandlordComplaints",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "stdComplaints",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "allTotals",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "byOccupationSummary",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "coordinateQuality",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "dataQualityFlags",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "assumptionNotes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "trafficPenalty",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "시뮬레이션 결과",
+        "attr": "avgCompletionMinutes",
+        "evidence": "src/main/java/com/wastesim/model/SimulationResult.java:class SimulationResult"
+      },
+      {
+        "entity": "쓰레기 수거 시뮬레이션",
+        "attr": "trafficData",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine"
+      },
+      {
+        "entity": "쓰레기 수거 시뮬레이션",
+        "attr": "sites",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine"
+      },
+      {
+        "entity": "쓰레기 수거 시뮬레이션",
+        "attr": "travelTimes",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine"
+      },
+      {
+        "entity": "쓰레기 수거 시뮬레이션",
+        "attr": "zoneTravelTimes",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine"
+      }
+    ]
+  },
+  "d": {
+    "couplings": [
+      {
+        "from": "시뮬레이션 설정",
+        "to": "쓰레기 수거 시뮬레이션",
+        "evidence": "src/main/java/com/wastesim/controller/ChatController.java:class ChatController (handleMessageInternal, runSimulation)"
+      },
+      {
+        "from": "교통 프로파일",
+        "to": "쓰레기 수거 시뮬레이션",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (run)"
+      },
+      {
+        "from": "교통 구역",
+        "to": "쓰레기 수거 시뮬레이션",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (zoneOf)"
+      },
+      {
+        "from": "수거 지점 레지스트리",
+        "to": "쓰레기 수거 시뮬레이션",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (zoneOf)"
+      },
+      {
+        "from": "시뮬레이션 설정",
+        "to": "시나리오 실험 결과",
+        "evidence": "src/main/java/com/wastesim/service/ScenarioService.java:class ScenarioService (복수 메서드에서 base.copy() 후 실행)"
+      },
+      {
+        "from": "트럭 종류",
+        "to": "쓰레기 수거 시뮬레이션",
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine (run)"
+      },
+      {
+        "from": "시뮬레이션 설정",
+        "to": "시뮬레이션 결과",
+        "evidence": "src/main/java/com/wastesim/service/SimulationService.java:class SimulationService (runExperiment, runSingle)"
+      },
+      {
+        "from": "시나리오 설정",
+        "to": "시나리오 실험 결과",
+        "evidence": "src/main/java/com/wastesim/service/ScenarioService.java:class ScenarioService (occupationMixComparison 등 여러 메서드)"
+      },
+      {
+        "from": "시나리오 설정",
+        "to": "쓰레기 수거 시뮬레이션",
+        "evidence": "src/main/java/com/wastesim/subtask/JangnyangScenarioBuilder.java:class JangnyangScenarioBuilder (toConfig)"
+      }
+    ]
+  },
+  "e": {
+    "decompositions": [
+      {
+        "parent": "쓰레기 수거 시뮬레이션",
+        "kind": "aspect",
+        "name": "구성 요소",
+        "children": [
+          "시뮬레이션 설정",
+          "시뮬레이션 결과",
+          "쓰레기 종류",
+          "트럭 종류",
+          "교통 프로파일",
+          "교통 구역",
+          "수거 지점",
+          "수거 지점 레지스트리",
+          "시뮬레이션 모델",
+          "시뮬레이션 구성",
+          "시나리오 설정",
+          "시나리오 실험 결과",
+          "수거 스케줄",
+          "수집 세션",
+          "서브태스크 세트",
+          "서브태스크",
+          "서브태스크 답변",
+          "서브태스크 진행 상태",
+          "서브태스크 세션 서비스"
+        ],
+        "evidence": "src/main/java/com/wastesim/simulation/SimulationEngine.java:class SimulationEngine"
+      }
+    ]
+  }
+}

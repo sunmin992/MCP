@@ -119,7 +119,7 @@ sealed interface DecisionPoint {
 **34문항은 이렇게 닫혀야 한다.**
 
 ```
-29  SES 가지치기 지점에서 유도       ← 가설이 주장하는 부분
+29  SES 가지치기 지점에서 유도한 필드     ← 가설이 주장하는 부분(지점 28개, 필드 29개)
  1  SES 밖 결정 (engine — 실행 수단)
  4  절차 제어 (simulationGoal · defaultApproval
              · inputAndScenarioConfirmed · executionApproval)
@@ -127,7 +127,11 @@ sealed interface DecisionPoint {
 34
 ```
 
-29라는 수는 `구성결정-SES-대응표.md`가 코드 대조로 세어 놓은 것이다.
+29라는 수는 `구성결정-SES-대응표.md`가 코드 대조로 세어 놓은 것이다. **지점 수와 필드 수는
+다르다(M3)** — `attr:수거차량:수거시각` 지점 하나가 `collectionTime`(단일값)·
+`collectionTimes`(목록) 두 답변 필드를 낸다(Ruling 2). 그래서 SES에서 유도되는 것은
+정확히는 **지점 28개, 필드 29개**다. "29 SES 가지치기 지점"이라는 표현은 지점과 필드를
+섞어 써서 실제보다 지점이 하나 많다고 말한다.
 
 ## 가지치기가 요청 처리 중에 일어난다
 

@@ -41,6 +41,10 @@ ul:not(.root)::before{content:"";position:absolute}
     font-size:11px;color:#38414c}
 .at.new{background:#e6f4ec;color:#14603f;font-weight:600}
 .noev{color:var(--warn);font-size:10.5px;margin-left:4px}
+.spec-tag{display:inline-block;margin-left:4px;padding:0 4px;border-radius:2px;
+          background:#dbe7fb;color:#1a4d9c;font-size:9.5px;font-weight:700;letter-spacing:.2px}
+.cond{display:inline-block;background:#fdf0ee;color:#a5341f;border:1px solid #f0c8c1;
+      border-radius:3px;padding:0 5px;font-size:10.5px;font-weight:600}
 h2{font-size:13px;letter-spacing:.8px;color:var(--dim);text-transform:uppercase;
    margin:22px 0 9px;font-weight:700}
 table{border-collapse:collapse;width:100%;font-size:12.5px;background:var(--panel)}
@@ -61,9 +65,20 @@ NEW_ATTRS = {"개수", "직업구성", "배출량변동", "외출시각변동", 
 
 def attrs_html(name):
     out = []
+    spec = E[name].get("attr_spec") or {}
     for a in E[name].get("attrs") or []:
         cls = "at new" if a in NEW_ATTRS else "at"
-        out.append(f'<span class="{cls}">{html.escape(a)}</span>')
+        sp = spec.get(a)
+        tag = ""
+        if sp:
+            # attr_spec — 이름만으로 모호한 자리에 붙는 성질(ref-v7 확장)
+            bits = [sp.get("kind", "")]
+            if sp.get("arity"):
+                bits.append(sp["arity"])
+            if sp.get("over"):
+                bits.append("over " + sp["over"])
+            tag = f'<span class="spec-tag">{html.escape(" · ".join(b for b in bits if b))}</span>'
+        out.append(f'<span class="{cls}">{html.escape(a)}{tag}</span>')
     return f'<span class="attrs">{"".join(out)}</span>' if out else ""
 
 
@@ -100,10 +115,15 @@ def tree_page():
             "</div>",
             f"<div class='tree'><ul class='root'>{node(ref['root'], frozenset())}</ul></div>",
             "<h2>결합 — 개체 사이에 오가는 것</h2><table>",
-            "<tr><th>from</th><th>to</th><th>코드에서의 기제</th></tr>"]
+            "<tr><th>from</th><th>to</th><th>활성 조건</th><th>코드에서의 기제</th></tr>"]
     for c in ref["couplings"]:
+        aw = c.get("active_when")
+        # active_when 이 없으면 항상 활성이다(ref-v7 확장의 기본값)
+        cond = f"<span class='cond'>{html.escape(aw.split(' — ')[0])}</span>" if aw else \
+               "<span style='color:#9aa3ad'>항상</span>"
         body.append(f"<tr><td class='flow'>{html.escape(c['from'])}</td>"
                     f"<td class='flow'>{html.escape(c['to'])}</td>"
+                    f"<td>{cond}</td>"
                     f"<td>{html.escape(c.get('mechanism',''))}</td></tr>")
     body.append("</table>")
     body.append("<h2>임계점 — 틀리면 의미가 바뀌는 자리</h2><table>"
@@ -138,11 +158,20 @@ def mapping_page():
     for slot, e in EV.items():
         for m in re.finditer(r"문항 (\d+)", e):
             placed[int(m.group(1))].append(slot)
+    # 결합의 active_when 도 자리다 — trafficMode 처럼 결합을 켜고 끄는 결정이 여기 앉는다.
+    for c in ref["couplings"]:
+        aw = c.get("active_when") or ""
+        for m in re.finditer(r"문항 (\d+)", aw):
+            placed[int(m.group(1))].append(f"결합 활성 조건: {c['from']} -> {c['to']}")
+    # attr_spec 의 evidence 도 훑는다
+    for ent, b in E.items():
+        for a, sp in (b.get("attr_spec") or {}).items():
+            for m in re.finditer(r"문항 (\d+)", sp.get("evidence", "")):
+                placed[int(m.group(1))].append(f"{ent}.{a} (attr_spec)")
 
     EXCLUDED = {
         1: "기록용 — 빌더가 “계산에 쓰이지 않는 항목”이라고 적는다",
         3: "실행 수단 — java/python 어댑터 선택. 대상 시스템의 성질이 아니다",
-        24: "결합의 on/off — SES 스키마에 담을 슬롯이 없다(pruning의 영역)",
         32: "구성 절차의 제어", 33: "구성 절차의 제어", 34: "구성 절차의 제어",
     }
     hit = sum(1 for o, _, _ in qs if placed.get(o))

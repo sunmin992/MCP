@@ -1,6 +1,8 @@
 package com.wastesim.subtask;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.wastesim.ses.ProseCatalog;
+import com.wastesim.ses.SesSubtaskDerivation;
 import org.springframework.stereotype.Component;
 
 import java.io.InputStream;
@@ -46,11 +48,20 @@ public class JangnyangSubtaskCatalog {
     private final Map<Integer, JangnyangSubtaskDefinition> byVersion = new LinkedHashMap<>();
 
     public JangnyangSubtaskCatalog() {
-        this(SET_RESOURCES);
+        this(true, SET_RESOURCES);
     }
 
-    /** 테스트가 다른 세트 파일을 끼워 넣을 수 있게 열어 둔 생성자. */
+    /**
+     * 테스트가 다른 세트 파일을 끼워 넣을 수 있게 열어 둔 생성자. 유도 세트(v5)는
+     * 넣지 않는다 — 이 생성자를 쓰는 테스트들은 {@code latest()}를 특정 파일 버전에
+     * 고정해 두려는 것이므로(예: v3Catalog()), 여기서 v5를 몰래 얹으면 그 의도가
+     * 깨진다.
+     */
     JangnyangSubtaskCatalog(String... resources) {
+        this(false, resources);
+    }
+
+    private JangnyangSubtaskCatalog(boolean includeDerivedV5, String... resources) {
         ObjectMapper mapper = new ObjectMapper();
         for (String path : resources) {
             try (InputStream in = getClass().getResourceAsStream(path)) {
@@ -66,6 +77,17 @@ public class JangnyangSubtaskCatalog {
                 throw new IllegalStateException("서브태스크 세트 로드 실패: " + path, e);
             }
         }
+
+        if (includeDerivedV5) {
+            // v5는 파일이 아니라 SES 트리에서 유도한다. 여기가 "질문을 서버가 소유한다"(D-44)의
+            // 다음 단계다 — 질문의 출처가 리소스 파일에서 구조 자체로 옮겨 간다. 문면은 여전히
+            // 파일(jangnyang-prose-v5.json)에 있으므로 말을 고치는 데 재컴파일은 필요 없다.
+            JangnyangSubtaskDefinition derived = SesSubtaskDerivation.derive(ProseCatalog.load());
+            // 유도본이라고 규약 검사를 봐주지 않는다 — 봐주면 잘못된 세트로 서버가 뜬다.
+            verify(derived, "SesSubtaskDerivation.derive()");
+            byVersion.put(derived.version(), derived);
+        }
+
         if (byVersion.isEmpty()) {
             throw new IllegalStateException("서브태스크 세트가 하나도 없다 — 구성 계층을 쓸 수 없다");
         }

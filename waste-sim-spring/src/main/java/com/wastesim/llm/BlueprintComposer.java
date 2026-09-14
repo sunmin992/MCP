@@ -110,14 +110,23 @@ public class BlueprintComposer {
         JangnyangSubtaskDefinition def = sessions.definitionOf(session);
 
         SpanVerifier.Verified verified = SpanVerifier.verify(request, extraction);
+        Set<String> rejectedByValueValidation = new LinkedHashSet<>();
         for (ExtractedValue v : verified.accepted()) {
             String id = idOfField(def, v.field());
             if (id == null) continue;   // 없는 필드를 낸 것은 버린다
             // 기존 검증기를 그대로 통과해야 한다. LLM 값에 예외를 두면 근거 없는 값이 흘러든다.
-            sessions.submit(sessionKey, id, v.value(), null, SubtaskAnswerSource.LLM_NORMALIZED);
+            SubtaskSessionService.Step submitted = sessions.submit(
+                    sessionKey, id, v.value(), null, SubtaskAnswerSource.LLM_NORMALIZED);
+            // 템플릿 정책이 REASK이면 검증 실패 자리를 기본값으로 덮지 않는다.
+            // 세션에는 실패값을 넣지 않되, GapResolver에는 이미 결정된 자리로 알려
+            // 자동 채움에서 제외한다. 그러면 아래 remainingFields가 같은 필드를 질문한다.
+            if (!submitted.errors().isEmpty() && def.invalidValuePolicy().mustReask()) {
+                rejectedByValueValidation.add(id);
+            }
         }
 
         Set<String> settled = new LinkedHashSet<>(sessions.activeSession(sessionKey).answers().keySet());
+        settled.addAll(rejectedByValueValidation);
         // 인용을 확인하지 못한 필드는 자동 채움 대상에서 뺀다. 지어낸 값을 버린 자리를
         // 서버 기본값으로 메우면 사용자는 자기 값이 버려진 것도, 그 자리에 다른 값이
         // 들어간 것도 모른 채 진행한다 — 그 필드는 채우지 말고 되물어야 한다.

@@ -42,6 +42,27 @@ class UnregisteredSubtaskToolsTest {
         return (Map<String, Object>) r.result();
     }
 
+    /**
+     * 첫·두 번째 서브태스크 ID를 세트에서 그대로 읽는다 — "ST-001"·"ST-002"를 못박으면
+     * 세트가 v4에서 v5로 바뀌어 ID 체계가 "ST-Sxxx"로 달라질 때마다 이 흐름 테스트가
+     * 함께 깨진다. 이 테스트가 보려는 것은 흐름(시작→답변→진행)이지 ID 문자열이 아니다.
+     */
+    private JangnyangSubtask firstSubtask() { return catalog.latest().ordered().get(0); }
+
+    private JangnyangSubtask secondSubtask() { return catalog.latest().ordered().get(1); }
+
+    /** 세트가 바뀌어 자료형이 달라져도 검증을 통과하는 값 — BlueprintComposerTest와 같은 이유. */
+    private static String validAnswerFor(JangnyangSubtask st) {
+        return switch (st.answerType()) {
+            case ENUM, ENUM_LIST -> st.allowedRange().valuesOrEmpty().isEmpty()
+                    ? "1" : st.allowedRange().valuesOrEmpty().get(0);
+            case INTEGER, NUMBER -> "1";
+            case BOOLEAN -> "예";
+            case TIME -> "08:30";
+            default -> "목적";
+        };
+    }
+
     @Test
     @DisplayName("세 도구가 McpToolProvider 규약(이름·설명·스키마·도메인)을 지킨다")
     void contractIsIntact() throws Exception {
@@ -59,21 +80,23 @@ class UnregisteredSubtaskToolsTest {
     @Test
     @DisplayName("start → submit → progress 흐름이 서버 세션을 그대로 몰고 간다")
     void collectionFlowWorksThroughTheTools() throws Exception {
+        JangnyangSubtask first = firstSubtask();
         Map<String, Object> started = result(submit.call(
                 json("{\"sessionKey\":\"ext-1\",\"start\":true}")));
         @SuppressWarnings("unchecked")
         Map<String, Object> q1 = (Map<String, Object>) started.get("question");
-        assertEquals("ST-001", q1.get("id"));
+        assertEquals(first.id(), q1.get("id"));
         assertEquals(Boolean.FALSE, started.get("readyToBuild"));
 
         // 질문 문장은 카탈로그의 것이어야 한다 — 도구가 문장을 다시 쓰지 않는다(D-44).
-        assertEquals(catalog.latest().byId("ST-001").question(), q1.get("question"));
+        assertEquals(catalog.latest().byId(first.id()).question(), q1.get("question"));
 
         result(submit.call(json(
-                "{\"sessionKey\":\"ext-1\",\"subtaskId\":\"ST-001\",\"value\":\"목적\"}")));
+                "{\"sessionKey\":\"ext-1\",\"subtaskId\":\"" + first.id() + "\",\"value\":\""
+                        + validAnswerFor(first) + "\"}")));
 
         Map<String, Object> p = result(progress.call(json("{\"sessionKey\":\"ext-1\"}")));
-        assertEquals("ST-002", p.get("currentSubtaskId"));
+        assertEquals(secondSubtask().id(), p.get("currentSubtaskId"));
         assertEquals(catalog.latest().subtaskSetId(), p.get("subtaskSetId"));
         assertEquals(SubtaskState.COLLECTING.name(), p.get("state"));
         assertEquals(1, ((Map<?, ?>) p.get("answers")).size());
@@ -95,9 +118,11 @@ class UnregisteredSubtaskToolsTest {
     @Test
     @DisplayName("reset은 상태만 바꾸지 않고 누적 답변까지 지운다(UT-315)")
     void resetClearsAccumulatedAnswers() throws Exception {
+        JangnyangSubtask first = firstSubtask();
         result(submit.call(json("{\"sessionKey\":\"ext-2\",\"start\":true}")));
         result(submit.call(json(
-                "{\"sessionKey\":\"ext-2\",\"subtaskId\":\"ST-001\",\"value\":\"지난 목적\"}")));
+                "{\"sessionKey\":\"ext-2\",\"subtaskId\":\"" + first.id() + "\",\"value\":\""
+                        + validAnswerFor(first) + "\"}")));
 
         Map<String, Object> out = result(reset.call(json("{\"sessionKey\":\"ext-2\"}")));
         assertEquals(SubtaskState.CANCELLED.name(), out.get("state"));
@@ -113,9 +138,11 @@ class UnregisteredSubtaskToolsTest {
     @Test
     @DisplayName("세션이 시작한 버전과 다른 버전의 답변을 거부한다(FR-138)")
     void versionMismatchIsRejected() throws Exception {
+        JangnyangSubtask first = firstSubtask();
         result(submit.call(json("{\"sessionKey\":\"ext-3\",\"start\":true}")));
         ToolResult wrong = submit.call(json(
-                "{\"sessionKey\":\"ext-3\",\"subtaskId\":\"ST-001\",\"value\":\"목적\",\"version\":1}"));
+                "{\"sessionKey\":\"ext-3\",\"subtaskId\":\"" + first.id() + "\",\"value\":\""
+                        + validAnswerFor(first) + "\",\"version\":1}"));
         assertFalse(wrong.ready());
         assertTrue(wrong.errors().get(0).message().contains("버전"));
     }

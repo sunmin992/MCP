@@ -118,11 +118,31 @@ public class JangnyangScenarioBuilder {
                     st.answerField(), a.value(), a.raw(), a.source(), st.answerType()));
         }
 
+        // 같은 답변으로 SES 트리를 가지친 기록(PES)을 명세에 붙인다 — 계산 경로는
+        // 바꾸지 않는다. cfg는 이미 toConfig()가 만들었고, 여기서는 그 결과에 미리보기용
+        // 기록만 더한다.
+        //
+        // v5(유도된 세트)에서만 가지친다. SesPruner는 SES 트리의 결정 지점을 <b>전부</b>
+        // 답해야 트리가 닫힌다고 본다 — 그것이 맞다, 트리에서 유도된 세트는 결정 지점을
+        // 빠짐없이 묻기 때문이다. 하지만 v2~v4는 사람이 손으로 골라 적은 질문 목록이라
+        // SES 트리의 지점을 전부 덮지 않는다(예: v2는 dischargeTimeMode를 묻지 않는다).
+        // 그런 옛 세트의 완전한 답변 조합을 그대로 SesPruner에 넘기면 "안 물은 지점"이
+        // "안 정해진 지점"으로 오인되어 매번 예외가 난다 — 옛 세션은 애초에 완전할 수
+        // 없는 검사를 통과해야 하는 셈이 된다. 그래서 옛 세트는 가지치지 않고 명세에
+        // {@code null}을 싣는다(인터페이스 계약 — 없으면 null).
+        //
+        // v5에서 가지치기가 예외를 던지면(spec 축 미정 등) 그대로 올린다 — v5는 결정
+        // 지점을 전부 묻도록 유도됐으므로, 그런데도 예외가 나면 답이 실제로 빠졌다는
+        // 뜻이고 실행 전에 드러나야 한다(삼키지 않는다).
+        com.wastesim.ses.PrunedStructure pruned = def.version() == 5
+                ? com.wastesim.ses.SesPruner.prune(answersByFieldForPruning(def, answers))
+                : null;
+
         JangnyangScenarioSpec spec = new JangnyangScenarioSpec(
                 def.subtaskSetId(), def.version(), def.hash(),
                 scenarioType, toolName, engineId,
                 records, List.copyOf(defaults), List.copyOf(assumptions),
-                modelDefaultsOf(def, answers), cfg);
+                modelDefaultsOf(def, answers), cfg, pruned);
         return BuildOutcome.built(spec);
     }
 
@@ -398,6 +418,32 @@ public class JangnyangScenarioBuilder {
         }
 
         return c;
+    }
+
+    /**
+     * {@link com.wastesim.ses.SesPruner#prune}에 넘길 답변 맵을 만든다 — 키를 서브태스크
+     * ID에서 답변 필드명으로 바꾸는 것 말고도, "해당 없음"을 걸러낸다.
+     *
+     * <p>{@code SesPruner}는 이 표식을 모른다 — SES 가지치기는 트리 지식만 갖고, 세트가
+     * "해당 없음"이라는 관례를 쓰는지는 서브태스크 계층의 사정이기 때문이다. 그래서
+     * 걸러내는 일은 두 계층이 만나는 이 자리(연결부)에서 한다 — {@code toConfig()}의
+     * {@code Fields.value()}가 같은 값을 같은 이유로 걸러내는 것과 대칭이다. 여기서
+     * 거르지 않으면 "해당 없음" 문자열이 그대로 PES 값에 들어가, 답하지 않기로 한 것이
+     * 마치 답한 값처럼 미리보기에 나온다.
+     */
+    private static Map<String, Object> answersByFieldForPruning(
+            JangnyangSubtaskDefinition def, Map<String, JangnyangSubtaskAnswer> answers) {
+        Map<String, Object> byField = new LinkedHashMap<>();
+        for (Map.Entry<String, JangnyangSubtaskAnswer> e : answers.entrySet()) {
+            JangnyangSubtask st = def.byId(e.getKey());
+            if (st == null) continue;
+            JangnyangSubtaskAnswer a = e.getValue();
+            if (a == null || !a.valid()) continue;
+            Object value = a.value();
+            if (JangnyangSubtaskValidator.NOT_APPLICABLE.equals(value)) continue;
+            byField.put(st.answerField(), value);
+        }
+        return byField;
     }
 
     /**

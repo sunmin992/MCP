@@ -50,7 +50,9 @@ class JangnyangSubtaskCatalogTest {
     void countAndOrderMatchResource() throws Exception {
         // 등록된 <b>모든</b> 버전을 본다. 최신 세트만 보면 v2를 남겨 둔 이유(진행된 세션을
         // 되짚는 것)가 검증에서 빠져, 옛 세트가 깨진 채로 남아 있어도 통과한다.
-        for (int version : catalog.versions()) {
+        // v5는 리소스 파일이 아니라 SES 트리에서 유도되므로 대조할 리소스 파일 자체가
+        // 없다 — 이 루프에서는 뺀다(v5의 order 연속성은 SesSubtaskDerivationTest가 본다).
+        for (int version : fileBackedVersions()) {
         JsonNode resource = readResource(version);
         JangnyangSubtaskDefinition def = catalog.byVersion(version);
 
@@ -75,7 +77,8 @@ class JangnyangSubtaskCatalogTest {
     @Test
     @DisplayName("UT-297 question·retryQuestion이 리소스 문자열과 문자 단위로 동일하다")
     void questionsAreVerbatimFromResource() throws Exception {
-        for (int version : catalog.versions()) {
+        // v5는 리소스 파일에서 오지 않는다 — 대조할 파일이 없으므로 뺀다.
+        for (int version : fileBackedVersions()) {
         JsonNode resource = readResource(version);
         JangnyangSubtaskDefinition def = catalog.byVersion(version);
 
@@ -114,7 +117,11 @@ class JangnyangSubtaskCatalogTest {
     @Test
     @DisplayName("UT-299 해시가 세트 내용과 일치하고, 한 글자만 바꿔도 달라진다")
     void hashMatchesContentAndChangesOnEdit() {
-        JangnyangSubtaskDefinition def = catalog.latest();
+        // catalog.latest()가 아니라 v4를 명시적으로 가리킨다. 이 테스트가 지키려는
+        // 것은 "리소스 파일을 몰래 고칠 수 없다"이고, v5는 파일이 아니라 SES 트리에서
+        // 유도되므로 애초에 "몰래 고친 파일"이라는 게 성립하지 않는다 — v5가 최신이
+        // 됐다고 이 테스트의 대상까지 따라 옮길 이유가 없다.
+        JangnyangSubtaskDefinition def = catalog.byVersion(4);
         // 같은 내용으로 다시 만든 세트의 해시가 같아야 한다 — 해시가 객체 식별자가
         // 아니라 <b>내용</b>을 가리킨다는 확인이다.
         JangnyangSubtaskDefinition copy = new JangnyangSubtaskDefinition(
@@ -150,12 +157,15 @@ class JangnyangSubtaskCatalogTest {
         assertNotNull(catalog.byVersion(2), "v2는 덮어쓰지 않고 보존한다");
         assertNotNull(catalog.byVersion(3));
         assertNotNull(catalog.byVersion(4));
-        assertEquals(List.of(2, 3, 4), catalog.versions());
-        assertEquals(4, catalog.latest().version(), "버전을 지정하지 않은 조회는 최신 세트를 준다");
+        // v5는 파일이 아니라 SES 트리에서 유도돼 등록된다(Task 11) — 그래도 목록에서는
+        // 다른 버전과 똑같이 하나의 등록된 버전이다.
+        assertNotNull(catalog.byVersion(5));
+        assertEquals(List.of(2, 3, 4, 5), catalog.versions());
+        assertEquals(5, catalog.latest().version(), "버전을 지정하지 않은 조회는 최신 세트를 준다");
         // v1은 삭제했다 — 진행 중인 세션도, 그 버전을 핀한 클라이언트도 없었다.
         // 없는 버전을 가까운 것으로 대체하지 않는다는 규칙은 그대로다(FR-138·D-45).
         assertNull(catalog.byVersion(1), "지운 버전을 v2로 대신 주면 안 된다");
-        assertNull(catalog.byVersion(5), "없는 버전에 최신 세트를 대신 주면 안 된다");
+        assertNull(catalog.byVersion(6), "없는 버전에 최신 세트를 대신 주면 안 된다");
         assertNull(catalog.byVersion(0));
         assertNull(catalog.byVersion(-1));
 
@@ -186,7 +196,8 @@ class JangnyangSubtaskCatalogTest {
     @Test
     @DisplayName("UT-302 required 플래그가 정의와 일치하고 응답을 통해 바꿀 수 없다")
     void requiredFlagsAreImmutable() throws Exception {
-        for (int version : catalog.versions()) {
+        // v5는 리소스 파일이 아니라서 대조할 파일이 없다 — 뺀다.
+        for (int version : fileBackedVersions()) {
             JsonNode resource = readResource(version);
             JangnyangSubtaskDefinition def = catalog.byVersion(version);
             for (JsonNode node : resource.path("subtasks")) {
@@ -233,6 +244,23 @@ class JangnyangSubtaskCatalogTest {
         groupsAreWellFormed(def);
     }
 
+    @Test
+    @DisplayName("v5(유도본)도 34개가 단계 안에 고르게 나뉘고, 단계 번호가 역행하지 않는다(I1)")
+    void v5ShapeIsWellFormed() {
+        JangnyangSubtaskDefinition def = catalog.byVersion(5);
+        assertEquals(34, def.subtasks().size());
+        assertEquals(5, def.version());
+        // 확인 단계 둘(inputAndScenarioConfirmed·executionApproval)만 CONFIRM이고
+        // 나머지 32개는 COLLECT다(C1) — v4와 같은 모양이어야 승인 전에 미리보기를
+        // 요구하는 순서가 지켜진다.
+        assertEquals(32, def.collectSubtasks().size());
+        assertEquals(2, def.confirmSubtasks().size());
+        // I1 회귀 — SesFieldMapping.bindings()의 선언 순서를 그대로 order로 쓰면
+        // group이 1→2→1처럼 역행했다. groupsAreWellFormed가 v2·v3에만 걸려 있던
+        // 탓에 이 회귀가 눈에 띄지 않았다 — v5에도 같은 불변식을 건다.
+        groupsAreWellFormed(def);
+    }
+
     /** 단계 정의가 온전하고 질문의 단계 번호가 역행하지 않는가. */
     private static void groupsAreWellFormed(JangnyangSubtaskDefinition def) {
         for (int g = 1; g <= def.groupCount(); g++) {
@@ -247,6 +275,15 @@ class JangnyangSubtaskCatalogTest {
             assertTrue(s.group() >= prev, "단계가 역행한다: " + s.id());
             prev = s.group();
         }
+    }
+
+    /**
+     * 리소스 파일로 존재하는 버전만. v5는 파일이 아니라 SES 트리에서 유도되므로
+     * (Task 11) {@code /subtask/jangnyang-simulator-v5.json} 같은 파일 자체가 없다 —
+     * "카탈로그가 리소스를 그대로 옮기는가"를 보는 테스트들은 이 목록만 본다.
+     */
+    private List<Integer> fileBackedVersions() {
+        return catalog.versions().stream().filter(v -> v != 5).toList();
     }
 
     private JsonNode readResource(int version) throws Exception {

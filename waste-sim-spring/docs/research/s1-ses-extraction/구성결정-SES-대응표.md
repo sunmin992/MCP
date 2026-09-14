@@ -45,7 +45,7 @@
 | 21 | `routeAvailableCapacityKg` | `setRouteAvailableCapacityKg` | `수거차량.적재용량` |
 | 22 | `initialTruckLoadKg` | `setInitialTruckLoadKg` | `수거차량.초기적재량` **(신설)** |
 | 23 | `dispatchIntervalMinutes` | `setDispatchIntervalMinutes` | `수거차량.배차간격` **(신설)** |
-| 24 | `trafficMode` | 분기 → `setTrafficEnabled` | — **결합의 on/off**다. 아래 참조 |
+| 24 | `trafficMode` | 분기 → `setTrafficEnabled` | 교통 구역발 결합 2개의 **`active_when`** — ref-v7에서 자리를 얻었다 |
 | 25 | `trafficProfileId` | 분기 → `setTrafficProfileId` | `교통 구역.시간대프로파일` |
 | 26 | `travelTimeMode` | 분기 → `TravelTimeCalculator` | `수거 경로` **spec 이동시간 방식 축** — **CP-4가 이것으로 확정된다** |
 | 27 | `routeTravelMinutes` | `hopMinutes`의 상수 항 | `구간 상수.구간이동시간` **(신설)** |
@@ -57,7 +57,8 @@
 | 33 | `inputAndScenarioConfirmed` | **계산에 쓰이지 않음** | — 구성 절차의 제어 |
 | 34 | `executionApproval` | **계산에 쓰이지 않음** | — 구성 절차의 제어 |
 
-**앉은 것 28개 · 넣지 않은 것 6개.** 대조 전 4개에서 28개가 됐다.
+**앉은 것 29개 · 넣지 않은 것 5개.** 대조 전 4개에서 29개가 됐다
+(`trafficMode`는 ref-v7의 스키마 확장으로 자리를 얻었다).
 
 > 처음에 이 줄을 "30개 · 4개"로 적었다. 표의 `—` 행을 세면 여섯이다 — `simulationGoal`·`engine`·`trafficMode`·`defaultApproval`·`inputAndScenarioConfirmed`·`executionApproval`. `engine`과 `trafficMode`를 빼먹고 셌다.
 
@@ -95,23 +96,32 @@ if (cfg.resolveDischargeTimeMode() == DischargeTimeMode.POHANG_ACTUAL) {
 multi-aspect는 정의상 "개수를 정해 같은 유형을 복제한다"이므로 개수가 그 자리에 있어야 한다.
 세 집합에 `개수`를 신설했다.
 
-### `trafficMode`는 SES에 자리가 없다 — 그대로 기록한다
+### `trafficMode` — 스키마를 늘려 자리를 만들었다 (ref-v7)
 
-`APPLY`/`NONE`은 **교통 구역 → 수거 경로 결합과 교통 구역 → 교통혼잡 판정 결합을 켜고 끈다.**
-SES는 엔티티·속성·분해·결합을 표현하지만 **결합의 on/off를 담는 슬롯이 없다.** 억지로
-어딘가의 속성으로 넣으면 그것이 구조를 바꾼다는 사실이 사라진다.
+`APPLY`/`NONE`은 **교통 구역 → 수거 경로 결합과 교통 구역 → 교통혼잡 판정 결합을 켜고 끈다**
+(`trafficMode=NONE`이면 `trafficProfile`이 null이라 `congestionWeight`가 1.0으로 남고
+`trafficComplaintAccum`도 늘지 않는다 — `SimulationEngine:271 · 330-339`).
 
-SES pruning(가지치기)에서 결합을 포함/배제하는 선택으로 다루는 것이 형식론상 맞다. 지금
-정답지 스키마에는 그 표현이 없으므로 **표에 `—`로 두고 사유를 남긴다.** 스키마를 늘릴지는
-따로 판단할 일이다.
+`ref-v6`까지 SES 스키마에는 **결합의 on/off를 담는 슬롯이 없어** 표에 `—`로 두었다.
+`ref-v7`에서 결합에 `active_when`을 더해 자리를 만들었다 — SES pruning(어떤 선택이 어떤
+결합을 포함·배제하는가)을 결합에 명시하는 최소 표현이다.
 
-## 남은 판단 둘
+억지로 어딘가의 속성으로 넣지 않은 이유는 그렇게 하면 **그 값이 구조를 바꾼다는 사실이
+사라지기** 때문이다. `active_when`은 그것이 결합의 존재 조건임을 그대로 적는다.
 
-**17번 `collectionTimes`를 `수거시각`과 같은 자리로 두었다.** 하루 한 번과 여러 번은 같은
-결정의 단일형·목록형이고, 코드도 단일 시각을 기본으로 두고 목록이 있으면 그것을 쓴다. 다만
-SES에서 "값이 하나인가 목록인가"를 구별해 적고 싶다면 별 자리가 되어야 한다.
+## 남은 판단 둘 — ref-v7에서 `attr_spec`으로 적었다
 
-**6번 `occupationPreset`을 `거주민 집합.직업구성`으로 두었다.** 프리셋은 직업 축 자식들의
-**구성비**를 정한다 — 축에서 하나를 고르는 spec 선택이 아니다. 그래서 축이 아니라 집합의
-속성으로 두었다. SES에서 multi-aspect 구성원의 유형 분포를 어떻게 적는지는 형식론 쪽 논의가
-필요한 부분이다.
+속성에 **이름만 있고 성질이 없던** 것이 원인이었다. 둘 다 같은 확장으로 풀린다.
+
+**17번 `collectionTimes`**는 `수거차량.수거시각`과 같은 자리다. 하루 한 번과 여러 번은 같은
+결정의 단일형·목록형이고, 코드도 단일 시각을 기본으로 두고 목록이 있으면 그것을 쓴다.
+`attr_spec`에 `arity: "1..6"`으로 적었다 — 문항 16(TIME)과 문항 17(TIME_LIST, 2~6개)이
+한 속성의 두 형태임을 이름 밖에서 말한다.
+
+**6번 `occupationPreset`**은 `거주민 집합.직업구성`이다. 프리셋은 직업 축 자식들의
+**구성비**를 정한다 — 축에서 하나를 고르는 spec 선택이 아니다.
+`attr_spec`에 `kind: "composition", over: "거주민.직업 축"`으로 적었다. 이것이 spec 선택과
+분포를 구별하는 표현이다.
+
+**`score_ses.py`는 둘을 채점하지 않는다.** 결합이 채점되지 않는 것과 같은 상태다 — 지표를
+넣을지는 따로 판단할 일이고, 여기서는 정답지가 사실을 담는 것까지만 했다.

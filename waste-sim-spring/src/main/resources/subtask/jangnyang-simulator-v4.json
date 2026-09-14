@@ -2,6 +2,10 @@
   "subtaskSetId": "jangnyang-simulator-v4",
   "version": 4,
   "immutable": true,
+  "invalidValuePolicy": {
+    "action": "REASK",
+    "allowDefaultReplacement": false
+  },
   "groups": [
     {
       "order": 1,
