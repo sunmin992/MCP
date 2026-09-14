@@ -57,18 +57,6 @@ class BuildWarnsNotBlocksTest {
     @Test
     void 막을_것이_없으면_경고도_없다() {
         SubtaskTestSupport.answerEverything(sessions, "k");
-        // v5는 trafficProfileId(order 21)를 trafficMode(order 29)보다 먼저 묻는다. 이제
-        // UNKNOWN 통과가 그 답을 지우지는 않지만(LedgerRecalculator 수정), trafficMode가
-        // "미답"에서 실제 값으로 바뀌는 그 자체가 상위 값 변경이다 — onAnswerChanged의
-        // 1단계가 trafficProfileId를 STALE로 표시해 재확인을 요구하는 것은 의도된 동작이지
-        // 버그가 아니다(사용자가 그 답을 낸 시점에는 그 값이 실제로 쓰일지 몰랐으므로).
-        // trafficMode가 결국 APPLY로 굳으면(answerEverything이 고르는 첫 허용값) 그 STALE은
-        // "필수값 미해결"로 넘어가 경고가 남는다. 반대로 NONE으로 확정하면 INACTIVE 분기가
-        // STALE 여부와 무관하게 "규칙에 의해 해당 없음"으로 무조건 덮어써 실행 가능 상태로
-        // 돌아온다 — 그래서 "막을 것이 없는" 정상 구성이 되려면 교통을 꺼야 한다.
-        sessions.submit("k",
-                SubtaskTestSupport.idOfField(sessions, "k", JangnyangRules.TRAFFIC_MODE_FIELD),
-                "NONE", null);
 
         SubtaskSessionService.BuildStep build = sessions.build("k");
 

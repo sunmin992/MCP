@@ -55,8 +55,19 @@ public final class LedgerRecalculator {
 
         // 1) 종속 결정을 낡은 것으로 표시한다. 값은 지우지 않는다 —
         //    무엇이 있었는지 알아야 무엇이 바뀌었는지 말할 수 있다.
+        //
+        //    단, 값이 <b>도착</b>한 것과 값이 <b>바뀐</b> 것은 다른 사실이다. 이번이
+        //    changedParameterId의 첫 결정이거나, 이전 실행 가능한 값과 새 값이 같다면
+        //    아무것도 바뀌지 않았다 — 그런데도 종속 결정을 STALE(upstream_value_changed,
+        //    supersededBy=changedParameterId)로 찍으면 "상위 값이 바뀌어 이 결정을
+        //    슈퍼시드했다"는 거짓 기록이 지우지 못하는 원장에 영구히 남는다. 첫 답을
+        //    "바뀜"으로 잘못 읽으면, 그 답보다 먼저 나온 답이 아직 활성 여부를 몰라
+        //    실행 가능한 상태로 남아 있던 종속 결정까지 이 시점에 낡혀 버려, 사용자가
+        //    이미 정직하게 낸 답을 다시는 되묻지 않고 영원히 미해결로 남긴다.
+        boolean upstreamGenuinelyChanged = upstreamGenuinelyChanged(ledger, changedParameterId);
         Set<String> staledInStep1 = new HashSet<>();
         for (String dependent : dependents.getOrDefault(changedParameterId, List.of())) {
+            if (!upstreamGenuinelyChanged) continue;
             ParameterDecision current = ledger.current(dependent);
             if (current == null || !current.state().executable()) continue;
             // 규칙이 만든 "해당 없음" 자리표시자는 사용자가 실제로 입력해 낡을 수 있는
@@ -87,6 +98,26 @@ public final class LedgerRecalculator {
         }
 
         return List.copyOf(appended);
+    }
+
+    /**
+     * changedParameterId의 새 값이 이전 값과 실제로 다른가.
+     *
+     * <p>{@code recordDecision}이 이미 새 결정을 원장에 쌓아 둔 뒤 이 메서드가 불린다 —
+     * 그래서 이력의 마지막(head)은 언제나 이번 답이고, "이전 값"은 그 앞에서 찾아야
+     * 한다. 실행 가능하지 않은 과거 결정(예: 아직 활성 여부를 몰라 막혀 있던 자리)은
+     * 비교 대상이 아니다 — 그런 결정에는 애초에 "값"이랄 것이 없다.
+     */
+    private static boolean upstreamGenuinelyChanged(ParameterLedger ledger, String changedParameterId) {
+        List<ParameterDecision> history = ledger.history(changedParameterId);
+        if (history.size() < 2) return false; // 이번이 첫 결정이면 바뀔 이전 값이 없다.
+        ParameterDecision newHead = history.get(history.size() - 1);
+        for (int i = history.size() - 2; i >= 0; i--) {
+            ParameterDecision prior = history.get(i);
+            if (!prior.state().executable()) continue;
+            return !java.util.Objects.equals(prior.normalizedValue(), newHead.normalizedValue());
+        }
+        return false; // 실행 가능한 이전 값이 없었다 — 사실상 이번이 첫 값이다.
     }
 
     /** 이미 같은 결론이면 {@code null} — 같은 레코드를 거듭 쌓으면 이력이 잡음이 된다. */

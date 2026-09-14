@@ -23,6 +23,19 @@ class LedgerRecalculatorTest {
                 null, List.of(), null, null, T);
     }
 
+    /**
+     * changedParameterId 자신에게 "이전 값 → 새 값"이 실제로 이미 쌓여 있는 상태를
+     * 만든다. 운영 경로에서는 {@code recordDecision}이 {@code onAnswerChanged}보다
+     * 먼저 새 결정을 원장에 쌓아 두므로, "값이 바뀌었다"를 확인하려면 이 헬퍼처럼
+     * 이전 값과 새 값 둘 다 이미 원장에 있어야 한다 — 그래야 도착과 변경을 가르는
+     * 새 판정을 이 테스트에서도 그대로 재현할 수 있다.
+     */
+    private static void seedGenuineChange(ParameterLedger ledger, String parameterId,
+                                          Object oldValue, Object newValue) {
+        ledger.append(confirmed(parameterId + "#1", parameterId, oldValue));
+        ledger.append(confirmed(parameterId + "#2", parameterId, newValue));
+    }
+
     private LedgerRecalculator recalculator() {
         return new LedgerRecalculator(
                 JangnyangRules.registry(),
@@ -34,6 +47,9 @@ class LedgerRecalculatorTest {
     void 상위_값이_바뀌면_종속_결정이_낡는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+        // trafficMode가 처음 답해진 것이 아니라 이전 값(NONE)에서 실제로 바뀌었다 —
+        // "도착"이 아니라 "변경"이어야 종속 결정이 낡는다는 새 규칙이 겨냥하는 경우다.
+        seedGenuineChange(ledger, "sim::trafficMode", "NONE", "APPLY");
 
         recalculator().onAnswerChanged(ledger, "sim::trafficMode",
                 Map.of("trafficMode", "APPLY"));
@@ -48,6 +64,7 @@ class LedgerRecalculatorTest {
     void 낡은_값은_지워지지_않고_이력에_남는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+        seedGenuineChange(ledger, "sim::trafficMode", "NONE", "APPLY");
 
         recalculator().onAnswerChanged(ledger, "sim::trafficMode",
                 Map.of("trafficMode", "APPLY"));
@@ -112,6 +129,41 @@ class LedgerRecalculatorTest {
     }
 
     @Test
+    void 상위_값이_처음_도착한_것은_변경이_아니라_종속_결정을_낡히지_않는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+        // trafficMode 자신은 이번이 첫 결정이다 — 이전 값이 아예 없다. "도착"을
+        // "변경"으로 잘못 읽으면 사용자가 이미 정직하게 낸 trafficProfileId 답이
+        // 활성 여부를 알기도 전에 STALE로 지워진다.
+        ledger.append(confirmed("sim::trafficMode#1", "sim::trafficMode", "APPLY"));
+
+        recalculator().onAnswerChanged(ledger, "sim::trafficMode",
+                Map.of("trafficMode", "APPLY"));
+
+        ParameterDecision now = ledger.current("sim::trafficProfileId");
+        assertEquals(DecisionState.CONFIRMED, now.state(),
+                "첫 답이 변경으로 오인돼 이미 받은 답이 낡았다");
+        assertEquals(1, ledger.history("sim::trafficProfileId").size());
+    }
+
+    @Test
+    void 상위_값이_같은_값으로_다시_답해도_종속_결정을_낡히지_않는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+        // 이전 값과 새 값이 둘 다 APPLY다 — 같은 값으로 다시 답한 것은 아무것도
+        // 바꾸지 않았다.
+        seedGenuineChange(ledger, "sim::trafficMode", "APPLY", "APPLY");
+
+        recalculator().onAnswerChanged(ledger, "sim::trafficMode",
+                Map.of("trafficMode", "APPLY"));
+
+        ParameterDecision now = ledger.current("sim::trafficProfileId");
+        assertEquals(DecisionState.CONFIRMED, now.state(),
+                "같은 값으로 재확인한 것이 변경으로 오인돼 이미 받은 답이 낡았다");
+        assertEquals(1, ledger.history("sim::trafficProfileId").size());
+    }
+
+    @Test
     void 이미_같은_상태면_같은_레코드를_거듭_쌓지_않는다() {
         ParameterLedger ledger = new ParameterLedger();
         LedgerRecalculator r = recalculator();
@@ -136,6 +188,7 @@ class LedgerRecalculatorTest {
     void 낡힌_매개변수는_2단계에서_다시_건드리지_않는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+        seedGenuineChange(ledger, "sim::trafficMode", "NONE", "APPLY");
 
         recalculator().onAnswerChanged(ledger, "sim::trafficMode",
                 Map.of("trafficMode", "APPLY"));
