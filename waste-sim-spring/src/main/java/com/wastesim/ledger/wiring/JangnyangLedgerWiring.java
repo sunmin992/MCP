@@ -35,7 +35,8 @@ public final class JangnyangLedgerWiring {
     public static final Map<String, String> TRANSFORMED_FIELDS = Map.of(
             "scenarioType", "실행 규모·도구 선택으로 갈라진다 — 같은 이름의 설정 필드가 없다",
             "collectionSchedule", "값에 따라 collectionIntervalDays 또는 collectionDaysOfWeek로 갈라진다",
-            "collectionTime", "수거 시각 목록(collectionTimesMinutes)으로 합쳐진다",
+            "collectionTime", "값은 그대로 collectionTimeMinutes로 옮겨진다(개명) — 이름이 달라 지금은"
+                    + " 유도되지 않는다. 이름 대응 경로가 생기기 전까지 여기 남긴다",
             "collectionTimes", "수거 시각 목록(collectionTimesMinutes)으로 합쳐진다",
             "occupationPreset", "프리셋 키가 비율 목록(occupationMix)이 된다",
             "dischargeWindow", "두 원소 목록이 dischargeWindowStartMinutes와 dischargeWindowEndMinutes 두 필드로 갈라진다",
