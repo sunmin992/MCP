@@ -281,6 +281,32 @@ class JangnyangSubtaskV3Test {
     }
 
     @Test
+    @DisplayName("기본값은 동의 없이 적용하지 않는다 — 채울 값이 있는데 NONE이면 무엇을 채우려 했는지 알려준다")
+    void serverDefaultsNeedConsent() {
+        // 구역 근사 방식이라 기본 이동시간은 "해당 없음"으로 넘어간다. 그런데 교통을
+        // 켜면 이동시간 0에는 혼잡 가중치가 걸릴 자리가 없어 서버가 15분을 채운다 —
+        // 사용자가 답하지 않은 값이 실행에 들어가는 자리이므로 동의가 필요하다.
+        Map<String, Object> needsDefault = V3Answers.all();
+        needsDefault.put(idOf("travelTimeMode"), "ZONE_PROXY_HYBRID");
+        needsDefault.put(idOf("intraZoneTravelMinutes"), 2);
+        needsDefault.put(idOf("routeTravelMinutes"), V3Answers.NA);
+        needsDefault.put(idOf("trafficMode"), "APPLY");
+        needsDefault.put(idOf("trafficProfileId"), "jangryang-weekday");
+
+        JangnyangScenarioBuilder.BuildOutcome approved = build(needsDefault);
+        assertTrue(approved.ok(), message(approved));
+        assertTrue(approved.spec().appliedDefaults().stream()
+                        .anyMatch(d -> d.field().equals("routeTravelMinutes")),
+                "채운 값이 기록돼야 한다(D-53)");
+
+        Map<String, Object> rejected = new java.util.LinkedHashMap<>(needsDefault);
+        rejected.put(idOf("defaultApproval"), "NONE");
+        JangnyangScenarioBuilder.BuildOutcome blocked = build(rejected);
+        assertFalse(blocked.ok(), "동의하지 않았는데 기본값을 적용하면 안 된다");
+        assertTrue(message(blocked).contains("routeTravelMinutes"), message(blocked));
+    }
+
+    @Test
     @DisplayName("직업 구성 프리셋의 비율이 배정 목록으로 그대로 반영된다")
     void occupationPresetKeepsItsRatio() {
         SimulationConfig university = build(withField("occupationPreset", "UNIVERSITY"))

@@ -220,7 +220,18 @@ class PesFlattenerDifferentialTest {
         assertSameExceptTrafficProfileId(viaBuilder, viaSes);
     }
 
-    /** Explicit zero is now preserved by both construction paths. */
+    /**
+     * (b) {@code trafficMode=APPLY}이고 {@code routeTravelMinutes}를 0으로 답한 경우.
+     *
+     * <p>0을 <b>명시적으로</b> 답해야 완전성 판정을 통과한다(미답이면 그 자체로 막힌다 —
+     * {@code JangnyangCompletenessChecker.travelTimeInputMissing}). 그렇게 답한 0은 이제
+     * 두 경로 모두 그대로 둔다. {@code toConfig()}의 15분 하한은 <b>묻지 않아 비어 있던
+     * 자리</b>에만 걸린다 — 사용자가 직접 적어 넣은 값을 조립기가 덮으면, 화면에는 자기가
+     * 낸 조건이 적혀 있는데 결과는 다른 조건으로 계산된 것이 된다.
+     *
+     * <p>그래서 이 테스트가 지키는 것은 "두 경로가 같다"가 아니라 <b>왜 같아졌는가</b>다 —
+     * 한쪽만 답을 덮기 시작하면 여기서 갈라진다.
+     */
     @Test
     void explicitZeroTravelTimeMatchesBothPaths() throws Exception {
         Map<String, Object> answers = answers(m -> {
