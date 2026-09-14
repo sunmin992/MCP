@@ -159,7 +159,19 @@ public class SubtaskSessionService {
         session.attachSpec(outcome.spec());
         session.transitionTo(SubtaskState.BUILT);
         store.save(session);
-        return BuildStep.built(outcome.spec());
+        return BuildStep.built(outcome.spec(), ledgerWarningsOf(session));
+    }
+
+    /**
+     * 원장이 막을 이유로 보는 것들을 사람이 읽는 문장으로.
+     *
+     * <p>조립을 막지 않고 실어 보내기만 한다. 이 경고가 상시로 뜬다면 원장과 기존 checker의
+     * 기준 차이가 크다는 뜻이고, 그때는 강제를 넓히기 전에 그 차이를 먼저 읽어야 한다.
+     */
+    private static List<String> ledgerWarningsOf(JangnyangSubtaskSession session) {
+        return session.ledger().blocking().stream()
+                .map(d -> d.parameterId() + ": " + d.blockingReason())
+                .toList();
     }
 
     /**
@@ -338,14 +350,31 @@ public class SubtaskSessionService {
         }
     }
 
-    /** 조립 한 걸음의 결과. */
+    /**
+     * 조립 한 걸음의 결과.
+     *
+     * @param ledgerWarnings 원장이 막을 이유로 본 것들. <b>조립을 막지는 않는다</b> —
+     *                       원장과 기존 checker는 기준이 달라, 강제를 넓히기 전에 그
+     *                       차이가 실제로 얼마나 나는지 볼 데이터가 먼저 필요하다
+     */
     public record BuildStep(JangnyangScenarioSpec spec,
                             JangnyangScenarioBuilder.BuildOutcome outcome,
-                            String rejection) {
+                            String rejection,
+                            List<String> ledgerWarnings) {
 
-        static BuildStep built(JangnyangScenarioSpec spec) { return new BuildStep(spec, null, null); }
-        static BuildStep failed(JangnyangScenarioBuilder.BuildOutcome o) { return new BuildStep(null, o, null); }
-        static BuildStep rejected(String reason) { return new BuildStep(null, null, reason); }
+        public BuildStep {
+            ledgerWarnings = ledgerWarnings == null ? List.of() : List.copyOf(ledgerWarnings);
+        }
+
+        static BuildStep built(JangnyangScenarioSpec spec, List<String> warnings) {
+            return new BuildStep(spec, null, null, warnings);
+        }
+        static BuildStep failed(JangnyangScenarioBuilder.BuildOutcome o) {
+            return new BuildStep(null, o, null, List.of());
+        }
+        static BuildStep rejected(String reason) {
+            return new BuildStep(null, null, reason, List.of());
+        }
 
         public boolean ok() { return spec != null; }
 
