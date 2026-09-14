@@ -350,4 +350,28 @@ class BlueprintComposerTest {
         assertFalse(o.modelDefaultFields().contains("collectionTime"),
                 "채우지 않은 값에 기본값 표시를 붙이면 결과 표시가 무의미해진다");
     }
+
+    /** 범위 밖 LLM 값은 템플릿 정책에 따라 기본값으로 덮지 않고 다시 묻는다. */
+    @Test
+    void invalidExtractedValueIsReaskedInsteadOfReplacedByDefault() {
+        JangnyangSubtaskCatalog catalog = new JangnyangSubtaskCatalog();
+        SubtaskSessionService svc = sessions(catalog);
+        BlueprintComposer composer = new BlueprintComposer(svc, catalog, stub(
+                new RequestExtraction(List.of(
+                        new ExtractedValue("truckCount", 0, "차량 0대")),
+                        "장량동", "생활폐기물 수거", null)));
+
+        BlueprintComposer.Outcome o = composer.compose(
+                "s-invalid", "장량동 생활폐기물 수거 차량 0대로 만들어 줘");
+
+        JangnyangSubtaskDefinition def = catalog.latest();
+        JangnyangSubtask truckCount = def.byAnswerField("truckCount");
+        assertNotNull(truckCount);
+        assertTrue(o.mustAsk().contains("truckCount"),
+                "검증 실패 필드는 템플릿의 REASK 정책에 따라 다시 물어야 한다");
+        assertFalse(svc.activeSession("s-invalid").answers().containsKey(truckCount.id()),
+                "범위 밖 0이나 서버 기본값 1이 원장에 들어가면 안 된다");
+        assertFalse(o.appliedDefaults().stream().anyMatch(d -> "truckCount".equals(d.field())),
+                "검증 실패 필드를 기본값으로 채웠다고 보고하면 안 된다");
+    }
 }

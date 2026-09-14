@@ -22,12 +22,22 @@ public record JangnyangSubtaskDefinition(
         String subtaskSetId,
         int version,
         boolean immutable,
+        InvalidValuePolicy invalidValuePolicy,
         List<SubtaskGroup> groups,
         List<JangnyangSubtask> subtasks) {
 
     public JangnyangSubtaskDefinition {
+        invalidValuePolicy = invalidValuePolicy == null
+                ? InvalidValuePolicy.failClosed() : invalidValuePolicy;
         groups = groups == null ? List.of() : List.copyOf(groups);
         subtasks = List.copyOf(subtasks);
+    }
+
+    /** 이전 세트·테스트 생성 코드와의 호환용. 정책을 생략하면 안전한 재질문 정책이다. */
+    public JangnyangSubtaskDefinition(String subtaskSetId, int version, boolean immutable,
+                                      List<SubtaskGroup> groups,
+                                      List<JangnyangSubtask> subtasks) {
+        this(subtaskSetId, version, immutable, InvalidValuePolicy.failClosed(), groups, subtasks);
     }
 
     /** 단계 번호로 조회. 없으면 {@code null}. */
@@ -108,7 +118,9 @@ public record JangnyangSubtaskDefinition(
      */
     String canonicalForm() {
         StringBuilder sb = new StringBuilder();
-        sb.append(subtaskSetId).append('␟').append(version).append('␟').append(immutable);
+        sb.append(subtaskSetId).append('␟').append(version).append('␟').append(immutable)
+          .append('␟').append(invalidValuePolicy.action())
+          .append('␟').append(invalidValuePolicy.allowDefaultReplacement());
         for (SubtaskGroup g : groups) {
             sb.append('␞').append(g.order()).append('␟')
               .append(g.name()).append('␟').append(g.description());
