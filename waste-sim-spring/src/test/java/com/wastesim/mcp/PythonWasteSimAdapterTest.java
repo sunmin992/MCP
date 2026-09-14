@@ -65,6 +65,39 @@ class PythonWasteSimAdapterTest {
     }
 
     @Test
+    void preservesZeroAndPositiveTravelTimeInBridgeRequest() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        for (boolean traffic : new boolean[] { false, true }) {
+            for (int minutes : new int[] { 0, 15 }) {
+                SimulationConfig cfg = new SimulationConfig();
+                cfg.setTrafficEnabled(traffic);
+                cfg.setRouteTravelMinutes(minutes);
+                String request = ReflectionTestUtils.invokeMethod(adapter(), "toBridgeJson", cfg);
+                JsonNode json = mapper.readTree(request);
+                assertTrue(json.has("routeTravelMinutes"), "0을 생략하면 브리지 기본값이 적용된다");
+                assertEquals(minutes, json.get("routeTravelMinutes").intValue());
+            }
+        }
+    }
+
+    @Test
+    void realPythonEnginePreservesExplicitZeroWhenAvailable() {
+        assumeTrue(new File(DEFAULT_PROJECT_ROOT, "waste_sim").isDirectory(),
+                "waste_sim 프로젝트가 이 머신에 없어 스킵");
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setDays(1);
+        cfg.setSeeds(1);
+        cfg.setTrafficEnabled(true);
+        cfg.setTrafficProfileId("jangryang-weekday");
+        cfg.setRouteTravelMinutes(0);
+        ToolResult result = adapter().run(cfg);
+        assertTrue(result.ready(), () -> result.errors().toString());
+        JsonNode json = new com.fasterxml.jackson.databind.ObjectMapper().valueToTree(result.result());
+        assertTrue(json.has("routeTravelMinutes"));
+        assertEquals(0, json.get("routeTravelMinutes").intValue());
+    }
+
+    @Test
     void runsRealPythonEngineWhenAvailable() {
         assumeTrue(new File(DEFAULT_PROJECT_ROOT, "waste_sim").isDirectory(),
                 "waste_sim 프로젝트가 이 머신에 없어 스킵");

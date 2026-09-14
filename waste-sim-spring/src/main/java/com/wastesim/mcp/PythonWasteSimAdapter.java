@@ -218,9 +218,8 @@ public class PythonWasteSimAdapter implements SimulationModelProvider {
         if (cfg.getTrafficProfileId() != null) {
             node.put("trafficProfileId", cfg.getTrafficProfileId());
         }
-        if (cfg.getRouteTravelMinutes() > 0) {
-            node.put("routeTravelMinutes", cfg.getRouteTravelMinutes());
-        }
+        // 0도 확정된 실행값이다. 생략하면 브리지가 기본값 8분을 적용해 미리보기와 달라진다.
+        node.put("routeTravelMinutes", cfg.getRouteTravelMinutes());
         return MAPPER.writeValueAsString(node);
     }
 
