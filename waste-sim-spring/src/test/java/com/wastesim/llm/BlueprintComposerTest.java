@@ -89,15 +89,15 @@ class BlueprintComposerTest {
         assertNotNull(session);
         boolean anyLlm = session.answers().values().stream()
                 .anyMatch(a -> a.source() == SubtaskAnswerSource.LLM_NORMALIZED);
-        assertTrue(anyLlm, "LLM이 채운 값이 원장에 그 출처로 남아야 한다");
+        assertTrue(anyLlm, "LLM이 채운 값이 결정기록에 그 출처로 남아야 한다");
 
-        // 원장은 필드명이 아니라 서브태스크 id로 키가 잡혀 있으므로, "seeds"가 가리키는
+        // 결정기록은 필드명이 아니라 서브태스크 id로 키가 잡혀 있으므로, "seeds"가 가리키는
         // id를 먼저 찾아야 한다 — 정의는 세션이 아니라 정의(definition)가 갖고 있다.
         JangnyangSubtaskDefinition def = svc.definitionOf(session);
         JangnyangSubtask seedsSubtask = def.byAnswerField("seeds");
         assertNotNull(seedsSubtask, "테스트 픽스처에 seeds 서브태스크가 없다");
         assertFalse(session.answers().containsKey(seedsSubtask.id()),
-                "인용을 확인하지 못한 값이 원장에 들어가면, 지어낸 값이 시뮬레이션 입력이 될 수 있다: "
+                "인용을 확인하지 못한 값이 결정기록에 들어가면, 지어낸 값이 시뮬레이션 입력이 될 수 있다: "
                         + session.answers().keySet());
     }
 
@@ -192,7 +192,7 @@ class BlueprintComposerTest {
     }
 
     /**
-     * {@link GapResolver}가 낸 자동 채움 값이 세션 원장에 <b>실제로</b> 들어간다.
+     * {@link GapResolver}가 낸 자동 채움 값이 세션 결정기록에 <b>실제로</b> 들어간다.
      *
      * <p>결과(Outcome)만 보면 충분하지 않다 — 결과에는 값이 실려도 세션에 제출되지
      * 않으면, 다음 답변 제출에서 세션은 여전히 그 필드를 묻는다(이 클래스 상단 javadoc이
@@ -256,7 +256,7 @@ class BlueprintComposerTest {
     /**
      * 근거가 없는(NONE) 세 필드는 자동 채움 대상이 아니다.
      *
-     * <p>이 셋은 되묻기 목록에 있어야 하고, 동시에 세션 원장에는 없어야 한다 — 채우면
+     * <p>이 셋은 되묻기 목록에 있어야 하고, 동시에 세션 결정기록에는 없어야 한다 — 채우면
      * 근거 없는 값이 조용한 가정으로 흘러든다.
      */
     @Test
@@ -303,7 +303,7 @@ class BlueprintComposerTest {
         JangnyangSubtask first = before.nextSubtask(def, svc.checker());
         assertNotNull(first, "테스트 픽스처의 첫 질문을 찾지 못했다");
         // 이 테스트가 보는 것은 "답이 살아남는가"이지 답의 내용이 아니다 — 그런데도
-        // 값이 검증을 통과해야 원장에 남으므로, 세트가 바뀌어 첫 질문의 자료형이
+        // 값이 검증을 통과해야 결정기록에 남으므로, 세트가 바뀌어 첫 질문의 자료형이
         // 달라져도(v5의 첫 질문은 자유 문장이 아니라 ENUM이다) 항상 통과하는 값을
         // 골라 쓴다.
         svc.submit("s9", first.id(), validAnswerFor(first), null,
@@ -370,7 +370,7 @@ class BlueprintComposerTest {
         assertTrue(o.mustAsk().contains("truckCount"),
                 "검증 실패 필드는 템플릿의 REASK 정책에 따라 다시 물어야 한다");
         assertFalse(svc.activeSession("s-invalid").answers().containsKey(truckCount.id()),
-                "범위 밖 0이나 서버 기본값 1이 원장에 들어가면 안 된다");
+                "범위 밖 0이나 서버 기본값 1이 결정기록에 들어가면 안 된다");
         assertFalse(o.appliedDefaults().stream().anyMatch(d -> "truckCount".equals(d.field())),
                 "검증 실패 필드를 기본값으로 채웠다고 보고하면 안 된다");
     }

@@ -8,8 +8,8 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 답변이 원장에 남는가. 남지 않으면 나머지 모든 검사가 빈 원장 위에서 돌고,
- * 빈 원장은 아무것도 막지 않는다.
+ * 답변이 결정기록에 남는가. 남지 않으면 나머지 모든 검사가 빈 결정기록 위에서 돌고,
+ * 빈 결정기록은 아무것도 막지 않는다.
  */
 class SubmitRecordsDecisionTest {
 
@@ -24,13 +24,13 @@ class SubmitRecordsDecisionTest {
         ParameterDecision d = sessions.activeSession("k").ledger()
                 .current(JangnyangLedgerWiring.parameterIdOf("days"));
 
-        assertNotNull(d, "답변이 원장에 남지 않았다");
+        assertNotNull(d, "답변이 결정기록에 남지 않았다");
         assertEquals(DecisionState.CONFIRMED, d.state());
         assertEquals(7, d.normalizedValue());
     }
 
     @Test
-    void 출처가_원장에_남는다() {
+    void 출처가_결정기록에_남는다() {
         sessions.start("k");
         String subtaskId = SubtaskTestSupport.idOfField(sessions, "k", "days");
         sessions.submit("k", subtaskId, 7, null);
@@ -54,7 +54,7 @@ class SubmitRecordsDecisionTest {
 
         if (d != null) {
             assertNotEquals(DecisionState.CONFIRMED, d.state(),
-                    "검증기가 거부한 값이 원장에서 확정값이 되면 fail-closed가 무너진다");
+                    "검증기가 거부한 값이 결정기록에서 확정값이 되면 fail-closed가 무너진다");
         }
     }
 

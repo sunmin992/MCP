@@ -9,7 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 레코드가 자기 불변식을 지키는가. 생성 시점에 막지 않으면 근거 없는 결정이
- * 원장에 들어앉고, 원장에 들어앉은 뒤에는 실행 직전 검사가 그것을 근거 있는
+ * 결정기록에 들어앉고, 결정기록에 들어앉은 뒤에는 실행 직전 검사가 그것을 근거 있는
  * 것으로 읽는다.
  */
 class ParameterDecisionTest {
@@ -68,8 +68,8 @@ class ParameterDecisionTest {
 
     @Test
     void 기록_시각_없이는_만들_수_없다() {
-        // 원장의 "현재"는 쌓인 순서의 마지막이다. 시각이 없으면 이력은 남아도
-        // 무엇이 앞섰는지 말할 수 없고, 원장이 존재할 이유가 사라진다.
+        // 결정기록의 "현재"는 쌓인 순서의 마지막이다. 시각이 없으면 이력은 남아도
+        // 무엇이 앞섰는지 말할 수 없고, 결정기록이 존재할 이유가 사라진다.
         IllegalArgumentException e = assertThrows(IllegalArgumentException.class, () ->
                 new ParameterDecision("d1", "sim::days", DecisionState.CONFIRMED,
                         "7", null, 7, "day", USER, null, List.of(), null, null, null));

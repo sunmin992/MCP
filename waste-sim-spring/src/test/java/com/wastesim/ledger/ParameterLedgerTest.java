@@ -8,7 +8,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 원장이 덮어쓰지 않는가. 덮어쓰면 "왜 이 값으로 바뀌었는가"가 사라지고,
+ * 결정기록이 덮어쓰지 않는가. 덮어쓰면 "왜 이 값으로 바뀌었는가"가 사라지고,
  * 그 질문은 결과가 이상할 때만 나오므로 그때는 이미 늦다.
  */
 class ParameterLedgerTest {

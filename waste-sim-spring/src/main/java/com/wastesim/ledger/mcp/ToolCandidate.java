@@ -15,7 +15,7 @@ public record ToolCandidate(String purposeField, Object value, String unit, Stri
     /**
      * <b>왜 형제 레코드들과 달리 던지지 않는가</b>: 이 레코드의 필드는 하나도 빠짐없이
      * {@link CandidateAdmission}의 판정 대상이고, 그 판정의 규약은 통과하지 못한 값도
-     * {@code INVALID}로 <b>원장에 기록한다</b>는 것이다. 여기서 먼저 던지면 기록되어야 할
+     * {@code INVALID}로 <b>결정기록에 기록한다</b>는 것이다. 여기서 먼저 던지면 기록되어야 할
      * 실패가 호출자에게 예외로 터져, 후보값 계층이 존재하는 이유 자체가 무너진다.
      *
      * <p>그래서 이 생성자가 하는 일은 빈 문자열을 {@code null}로 접는 것뿐이다 —

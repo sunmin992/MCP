@@ -10,9 +10,9 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * 후보값을 원장에 올릴지 판정한다.
+ * 후보값을 결정기록에 올릴지 판정한다.
  *
- * <p>검사를 통과하지 못한 값도 원장에 <b>들어간다</b> — {@link DecisionState#INVALID}로.
+ * <p>검사를 통과하지 못한 값도 결정기록에 <b>들어간다</b> — {@link DecisionState#INVALID}로.
  * 버리면 "물어봤는데 왜 값이 없는가"의 답이 사라지고, 다음 사람이 같은 도구를 다시 부른다.
  */
 public final class CandidateAdmission {

@@ -4,13 +4,13 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * 매개변수 하나에 대한 결정 한 건. 원장에 쌓이는 단위다.
+ * 매개변수 하나에 대한 결정 한 건. 결정기록에 쌓이는 단위다.
  *
- * <p><b>왜 불변식을 생성자에서 막는가</b>: 원장은 append-only라 한 번 들어간 레코드를
+ * <p><b>왜 불변식을 생성자에서 막는가</b>: 결정기록은 append-only라 한 번 들어간 레코드를
  * 고칠 수 없다. 들어간 뒤에 검사하면 고칠 방법이 없는 것을 발견하게 되므로, 들어가기
  * 전에 막는 자리가 여기뿐이다.
  *
- * @param decisionId       원장 안에서 유일한 ID. {@code supersededBy}가 이것을 가리킨다
+ * @param decisionId       결정기록 안에서 유일한 ID. {@code supersededBy}가 이것을 가리킨다
  * @param parameterId      {@code <asset-id>::<input-field>} — 규약은 {@link ParameterId}가 갖는다
  * @param rawValue         정규화 전 값. 사용자가 "7일"이라 답했으면 그 문자열
  * @param normalizedValue  정규화 후 값. 실행 설정에 들어갈 값.
@@ -49,7 +49,7 @@ public record ParameterDecision(
         if (state == null) {
             throw new IllegalArgumentException("결정 상태가 없습니다.");
         }
-        // 원장의 "현재"는 쌓인 순서의 마지막이고, 순서를 사람이 읽을 수 있게 만드는 것은
+        // 결정기록의 "현재"는 쌓인 순서의 마지막이고, 순서를 사람이 읽을 수 있게 만드는 것은
         // 이 시각뿐이다. 비어 있으면 이력이 남아도 언제 무엇이 앞섰는지 말할 수 없다.
         if (recordedAt == null) {
             throw new IllegalArgumentException(

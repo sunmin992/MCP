@@ -10,7 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 답변 하나를 원장 레코드로 만드는 운영 경로가 불변식을 스스로 채우는가.
+ * 답변 하나를 결정기록 레코드로 만드는 운영 경로가 불변식을 스스로 채우는가.
  *
  * <p>이 조립이 없으면 호출부마다 열세 개 인자를 다시 맞추게 되고, 사본은 본체가 바뀌어도
  * 컴파일이 통과하므로 갈라진 것을 아무도 모른다.
@@ -58,7 +58,7 @@ class AnswerDecisionsTest {
     }
 
     @Test
-    void 모델_기본값은_원장에서_규정_기본값과_구별된다() {
+    void 모델_기본값은_결정기록에서_규정_기본값과_구별된다() {
         ParameterDecision model = AnswerDecisions.fromAnswer("sim::days#1", "sim::days",
                 null, 7, SubtaskAnswerSource.SERVER_DEFAULT, BasisKind.MODEL_DEFAULT,
                 USER, RULE, T);

@@ -4,7 +4,7 @@ import com.wastesim.subtask.BasisKind;
 import com.wastesim.subtask.SubtaskAnswerSource;
 
 /**
- * 답변 시점의 두 사실을 원장의 상태로 옮긴다.
+ * 답변 시점의 두 사실을 결정기록의 상태로 옮긴다.
  *
  * <p><b>왜 판정을 다시 만들지 않는가</b>: {@link BasisKind#canFillWithoutAsking()}이
  * "묻지 않고 채울 수 있는가"를 이미 판정하고, 그 판정이 세트 해시가 덮는 자산이다.

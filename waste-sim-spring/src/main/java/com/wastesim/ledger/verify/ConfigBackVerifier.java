@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * 기존 빌더가 만든 실행 설정을 다시 열어 원장과 한 필드씩 맞춘다.
+ * 기존 빌더가 만든 실행 설정을 다시 열어 결정기록과 한 필드씩 맞춘다.
  *
  * <p><b>왜 새 컴파일러를 만들지 않고 결과만 보는가</b>: 컴파일 경로를 새로 내면
  * {@code DerivedSetVsV4ReportTest}가 고정한 대조 기준이 셋이 되고, 셋이 어긋났을 때 어느
@@ -25,7 +25,7 @@ import java.util.Map;
 public final class ConfigBackVerifier {
 
     /**
-     * @param fieldToParameterId 실행 설정의 필드명 → 원장의 매개변수 ID
+     * @param fieldToParameterId 실행 설정의 필드명 → 결정기록의 매개변수 ID
      */
     public BackVerificationResult verify(SimulationConfig config,
                                          ParameterLedger ledger,
@@ -54,20 +54,20 @@ public final class ConfigBackVerifier {
             ParameterDecision decision = ledger.current(parameterId);
 
             if (configValue == null) {
-                // 원장이 실행 가능한 확정값을 갖고 있는데 컴파일 결과에는 값이 없다면,
+                // 결정기록이 실행 가능한 확정값을 갖고 있는데 컴파일 결과에는 값이 없다면,
                 // 이것이 바로 이 클래스가 잡아야 할 변환 오류다 — 조용히 넘기지 않는다.
                 if (decision != null && decision.state().executable()
                         && decision.normalizedValue() != null) {
-                    blocks.add(parameterId + ": 설정에는 값이 없는데 원장은 "
+                    blocks.add(parameterId + ": 설정에는 값이 없는데 결정기록은 "
                             + decision.normalizedValue() + "이어야 합니다");
                 }
-                // 원장에 결정이 없거나 실행 불가 상태라면 애초에 설정이 값을 가질 이유가
+                // 결정기록에 결정이 없거나 실행 불가 상태라면 애초에 설정이 값을 가질 이유가
                 // 없으므로 대조 대상이 아니다.
                 continue;
             }
 
             if (decision == null) {
-                blocks.add(field + "=" + configValue + ": 원장에 결정이 없습니다 ("
+                blocks.add(field + "=" + configValue + ": 결정기록에 결정이 없습니다 ("
                         + parameterId + ")");
                 continue;
             }
@@ -79,7 +79,7 @@ public final class ConfigBackVerifier {
             // decision.source()는 여기서 null일 수 없다 — executable() 상태의 결정은
             // ParameterDecision의 컴팩트 생성자가 source == null이면 생성 자체를 막는다.
             if (!configValue.equals(decision.normalizedValue())) {
-                blocks.add(parameterId + ": 설정은 " + configValue + "인데 원장은 "
+                blocks.add(parameterId + ": 설정은 " + configValue + "인데 결정기록은 "
                         + decision.normalizedValue() + "입니다");
             }
         }

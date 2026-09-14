@@ -26,8 +26,8 @@ class LedgerRecalculatorTest {
     /**
      * changedParameterId 자신에게 "이전 값 → 새 값"이 실제로 이미 쌓여 있는 상태를
      * 만든다. 운영 경로에서는 {@code recordDecision}이 {@code onAnswerChanged}보다
-     * 먼저 새 결정을 원장에 쌓아 두므로, "값이 바뀌었다"를 확인하려면 이 헬퍼처럼
-     * 이전 값과 새 값 둘 다 이미 원장에 있어야 한다 — 그래야 도착과 변경을 가르는
+     * 먼저 새 결정을 결정기록에 쌓아 두므로, "값이 바뀌었다"를 확인하려면 이 헬퍼처럼
+     * 이전 값과 새 값 둘 다 이미 결정기록에 있어야 한다 — 그래야 도착과 변경을 가르는
      * 새 판정을 이 테스트에서도 그대로 재현할 수 있다.
      */
     private static void seedGenuineChange(ParameterLedger ledger, String parameterId,
@@ -61,9 +61,9 @@ class LedgerRecalculatorTest {
     }
 
     /**
-     * 거부는 변경이 아니다. 오타 하나로 검증이 막히면 원장에는 정규화 값이 빈
+     * 거부는 변경이 아니다. 오타 하나로 검증이 막히면 결정기록에는 정규화 값이 빈
      * INVALID 머리가 쌓이는데, 그것을 이전 값과 비교해 "바뀌었다"로 읽으면 사용자가
-     * 이미 낸 종속 답이 지우지 못하는 원장에서 거짓 사유로 낡는다.
+     * 이미 낸 종속 답이 지우지 못하는 결정기록에서 거짓 사유로 낡는다.
      */
     @Test
     void 거부된_상위_답변은_종속_결정을_낡히지_않는다() {

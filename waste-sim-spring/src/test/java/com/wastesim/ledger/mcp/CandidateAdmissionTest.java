@@ -168,7 +168,7 @@ class CandidateAdmissionTest {
     @Test
     void 출처가_없는_후보는_터지지_않고_무효로_기록된다() {
         // 출처 없는 값은 ParameterDecision의 불변식에 걸리지만, 그 예외가 호출자에게
-        // 터지면 "검사에 걸린 값도 원장에 남긴다"는 이 계층의 규약이 깨진다.
+        // 터지면 "검사에 걸린 값도 결정기록에 남긴다"는 이 계층의 규약이 깨진다.
         ToolCandidate noSource = new ToolCandidate("routeTravelMinutes", 12.5,
                 "minute", "travel_time", "daily_average", NOW, null);
 

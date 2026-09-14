@@ -7,7 +7,7 @@ import java.time.Instant;
 import java.util.List;
 
 /**
- * 답변 하나를 원장 레코드 하나로 만든다.
+ * 답변 하나를 결정기록 레코드 하나로 만든다.
  *
  * <p><b>왜 이 자리가 필요한가</b>: {@link DecisionStateMapper}는 상태만 돌려주고,
  * {@link ParameterDecision}은 그 상태에 따라 열세 개 인자 중 무엇이 필수이고 무엇이
@@ -36,7 +36,7 @@ public final class AnswerDecisions {
         return new ParameterDecision(
                 decisionId, parameterId, state,
                 rawValue, null,
-                // 실행할 수 없는 상태에 정규화 값을 남겨 두면 역검증이 그것을 "원장이 요구하는
+                // 실행할 수 없는 상태에 정규화 값을 남겨 두면 역검증이 그것을 "결정기록이 요구하는
                 // 값"으로 읽는다. 값이 실행에 쓰일 수 없다는 사실과 값이 비어 있다는 사실을
                 // 어긋나게 두지 않는다.
                 executable ? normalizedValue : null, null,
@@ -51,8 +51,8 @@ public final class AnswerDecisions {
      * 모델 기본값 표시를 출처 종류에 새긴다.
      *
      * <p>{@link BasisKind#needsModelDefaultNotice()}가 이미 "이 값은 밖에서 대조할 곳이
-     * 없다"를 판정해 두었는데 원장이 그 판정을 옮겨 적지 않으면, 규정 근거로 채운 값과
-     * 모델이 정한 값이 원장에서 구별되지 않는다. 둘 다 {@code DEFAULTED}이기 때문이다.
+     * 없다"를 판정해 두었는데 결정기록이 그 판정을 옮겨 적지 않으면, 규정 근거로 채운 값과
+     * 모델이 정한 값이 결정기록에서 구별되지 않는다. 둘 다 {@code DEFAULTED}이기 때문이다.
      */
     private static ValueSource noticed(ValueSource source, BasisKind basis) {
         if (source == null || basis == null || !basis.needsModelDefaultNotice()) return source;

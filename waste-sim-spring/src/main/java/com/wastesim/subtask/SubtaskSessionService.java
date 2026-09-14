@@ -36,7 +36,7 @@ public class SubtaskSessionService {
     private final SubtaskSessionStore store;
 
     /**
-     * 구조를 바꾸는 답변이 왔을 때 원장을 다시 계산한다.
+     * 구조를 바꾸는 답변이 왔을 때 결정기록을 다시 계산한다.
      *
      * <p>배선이 고정돼 있어 인스턴스를 매번 만들 이유가 없다. 생성자에서 미등록 규칙 ID를
      * 걸러 내므로, 배선이 낡으면 서비스 조립 시점에 드러난다 — 실행 중에 조용히
@@ -97,10 +97,10 @@ public class SubtaskSessionService {
     }
 
     /**
-     * 이 답을 누가 넣었는지 원장에 남긴다(FR-126 답변 출처).
+     * 이 답을 누가 넣었는지 결정기록에 남긴다(FR-126 답변 출처).
      *
      * <p>출처를 주지 않는 기존 4인자 호출은 {@code USER_DIRECT}로 위임한다 — 이미 쌓인
-     * 원장의 의미를 바꾸지 않기 위해서다.
+     * 결정기록의 의미를 바꾸지 않기 위해서다.
      */
     public Step submit(String sessionKey, String subtaskId, Object value, Integer version,
                        SubtaskAnswerSource source) {
@@ -161,7 +161,7 @@ public class SubtaskSessionService {
         List<String> ledgerBlocks = ledgerBlocksOf(session);
         if (!ledgerBlocks.isEmpty()) {
             session.attachSpec(null);
-            // 판정 도중 만료 처리로 원장과 답변이 바뀌었을 수 있다. 여기서 저장하지
+            // 판정 도중 만료 처리로 결정기록과 답변이 바뀌었을 수 있다. 여기서 저장하지
             // 않고 돌아가면 그 변경은 이 메서드 안에서만 참이고, 저장소가 메모리를
             // 벗어나는 날 다음 요청은 만료되지 않은 값을 다시 읽는다.
             store.save(session);
@@ -224,7 +224,7 @@ public class SubtaskSessionService {
             else if (decision.state().executable()
                     && !ValueSource.NOT_APPLICABLE_BY_RULE.equals(decision.source().type())
                     && !java.util.Objects.equals(answer.value(), decision.normalizedValue())) {
-                blocks.add(id + ": 답변과 원장 값이 다릅니다.");
+                blocks.add(id + ": 답변과 결정기록 값이 다릅니다.");
             }
         }
         return List.copyOf(blocks);
@@ -305,10 +305,10 @@ public class SubtaskSessionService {
     }
 
     /**
-     * 이번 답변을 원장에 남긴다.
+     * 이번 답변을 결정기록에 남긴다.
      *
      * <p><b>왜 검증 뒤에 남기는가</b>: 검증을 통과하지 못한 값을 확정으로 쌓으면, 세션은
-     * 거부했는데 원장은 받아들인 상태가 된다. 원장이 실행을 여는 근거가 되므로 그 어긋남은
+     * 거부했는데 결정기록은 받아들인 상태가 된다. 결정기록이 실행을 여는 근거가 되므로 그 어긋남은
      * 곧 잘못된 값의 실행 경로가 된다.
      *
      * <p>13인자 조립을 여기서 다시 쓰지 않고 {@link AnswerDecisions#fromAnswer}에 맡긴다 —
@@ -320,7 +320,7 @@ public class SubtaskSessionService {
         if (subtask == null) return;
 
         JangnyangSubtaskAnswer accepted = session.answers().get(subtaskId);
-        // 검증기가 거부했으면 세션에 통과한 답이 없다. 원장에도 확정값을 남기지 않는다.
+        // 검증기가 거부했으면 세션에 통과한 답이 없다. 결정기록에도 확정값을 남기지 않는다.
         if (accepted == null || !accepted.valid()) {
             String pid = JangnyangLedgerWiring.parameterIdOf(subtask.answerField());
             session.ledger().append(new com.wastesim.ledger.ParameterDecision(
@@ -410,7 +410,7 @@ public class SubtaskSessionService {
         return byField;
     }
 
-    /** 답변 출처를 원장의 출처 종류로 옮긴다. 없는 이름을 지어내지 않는다. */
+    /** 답변 출처를 결정기록의 출처 종류로 옮긴다. 없는 이름을 지어내지 않는다. */
     private static String sourceTypeOf(SubtaskAnswerSource source) {
         return switch (source) {
             case USER_DIRECT -> "user_explicit";
@@ -538,7 +538,7 @@ public class SubtaskSessionService {
     /**
      * 조립 한 걸음의 결과.
      *
-     * <p>원장이 막을 이유로 본 것을 따로 싣지 않는다 — 개정된 결정 3에서 그것들은
+     * <p>결정기록이 막을 이유로 본 것을 따로 싣지 않는다 — 개정된 결정 3에서 그것들은
      * 관찰 항목이 아니라 <b>거부 사유</b>가 됐고, 거부 사유는 {@code rejection}이
      * 이미 문장으로 들고 있다.
      */

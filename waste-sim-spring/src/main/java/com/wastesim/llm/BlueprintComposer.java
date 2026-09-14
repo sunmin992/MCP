@@ -166,7 +166,7 @@ public class BlueprintComposer {
     }
 
     /**
-     * 이 세션이 <b>실제로</b> 아직 묻고 있는 필드들. 세션의 질문 계획(plan)과 원장을 그대로
+     * 이 세션이 <b>실제로</b> 아직 묻고 있는 필드들. 세션의 질문 계획(plan)과 결정기록을 그대로
      * 읽으므로, 결과가 말하는 "물어야 할 것"과 세션이 다음에 낼 질문이 어긋날 수 없다.
      */
     private List<String> remainingFields(JangnyangSubtaskSession session,

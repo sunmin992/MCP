@@ -38,13 +38,13 @@ public class JangnyangSubtaskSession {
             new com.fasterxml.jackson.databind.ObjectMapper();
 
     /**
-     * 이 세션의 매개변수 결정 원장.
+     * 이 세션의 매개변수 결정기록.
      *
-     * <p><b>왜 세션이 들고 있는가</b>: 원장과 세션을 따로 저장하면 한쪽만 저장되는 순간이
+     * <p><b>왜 세션이 들고 있는가</b>: 결정기록과 세션을 따로 저장하면 한쪽만 저장되는 순간이
      * 생기고, 그 순간에 둘은 다른 사실을 말한다. 같은 객체에 매달아 두면 {@code store.save}
      * 한 번이 둘 다 저장하므로 어긋날 자리가 없다.
      *
-     * <p>{@code final}인 이유는 교체할 일이 없기 때문이다 — 원장은 append-only라 비우거나
+     * <p>{@code final}인 이유는 교체할 일이 없기 때문이다 — 결정기록은 append-only라 비우거나
      * 갈아 끼우는 연산 자체가 없다.
      */
     private final ParameterLedger ledger = new ParameterLedger();
@@ -71,10 +71,10 @@ public class JangnyangSubtaskSession {
     public JangnyangScenarioSpec spec() { return spec; }
 
     /**
-     * 이 세션의 원장. <b>복사본이 아니다</b> — 호출자가 여기에 결정을 쌓는다.
+     * 이 세션의 결정기록. <b>복사본이 아니다</b> — 호출자가 여기에 결정을 쌓는다.
      *
      * <p>{@link #answers()}가 복사본을 주는 것과 다른 이유는, 답변 맵은 세션이 소유하고
-     * 바깥이 읽기만 하는 반면 원장은 바깥(서비스)이 쓰는 자리이기 때문이다. 복사본을 주면
+     * 바깥이 읽기만 하는 반면 결정기록은 바깥(서비스)이 쓰는 자리이기 때문이다. 복사본을 주면
      * 쌓은 결정이 저장되지 않는다.
      */
     public ParameterLedger ledger() { return ledger; }

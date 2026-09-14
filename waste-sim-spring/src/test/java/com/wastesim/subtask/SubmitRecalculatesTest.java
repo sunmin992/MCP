@@ -31,7 +31,7 @@ class SubmitRecalculatesTest {
         sessions.start("k");
         // trafficMode의 허용값은 [APPLY, NONE] — APPLY가 먼저다. 그런데 ACTIVE 가지는
         // 이미 실행 가능한 결정이 있으면 손대지 않으므로, 한 번도 건드리지 않은 프로필에
-        // 곧바로 APPLY를 주면 원장에 아무 기록도 남지 않을 수 있다. NONE을 먼저 넣어
+        // 곧바로 APPLY를 주면 결정기록에 아무 기록도 남지 않을 수 있다. NONE을 먼저 넣어
         // "규칙이 만든 해당 없음" 자리로 만들고, 그 다음 APPLY로 되돌려 ACTIVE 가지가
         // 그 자리를 UNRESOLVED로 다시 여는 전이를 명시적으로 일으킨다.
         answer(JangnyangRules.TRAFFIC_MODE_FIELD, "NONE");

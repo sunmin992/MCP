@@ -38,7 +38,7 @@ class ConfigBackVerifierTest {
     }
 
     @Test
-    void 원장과_같은_값이면_통과한다() {
+    void 결정기록과_같은_값이면_통과한다() {
         BackVerificationResult r = new ConfigBackVerifier()
                 .verify(configWithDays(7), ledgerWithDays(7), BINDING);
         assertTrue(r.passed(), r.blocks().toString());
@@ -55,7 +55,7 @@ class ConfigBackVerifierTest {
     }
 
     @Test
-    void 원장에_결정이_없는_값은_막는다() {
+    void 결정기록에_결정이_없는_값은_막는다() {
         BackVerificationResult r = new ConfigBackVerifier()
                 .verify(configWithDays(7), new ParameterLedger(), BINDING);
 
@@ -90,7 +90,7 @@ class ConfigBackVerifierTest {
     }
 
     @Test
-    void 원장은_확정값인데_설정에_값이_없으면_막는다() {
+    void 결정기록은_확정값인데_설정에_값이_없으면_막는다() {
         // collectionDaysOfWeek는 기본값이 null인 List 필드다 — 설정하지 않으면 게터가
         // 그대로 null을 돌려주므로, 컴파일러가 값을 누락시킨 상황을 그대로 재현한다.
         SimulationConfig config = new SimulationConfig();
@@ -109,7 +109,7 @@ class ConfigBackVerifierTest {
     }
 
     @Test
-    void 원장에_결정이_없고_설정도_값이_없으면_막지_않는다() {
+    void 결정기록에_결정이_없고_설정도_값이_없으면_막지_않는다() {
         SimulationConfig config = new SimulationConfig(); // collectionDaysOfWeek는 null 그대로
 
         BackVerificationResult r = new ConfigBackVerifier().verify(config, new ParameterLedger(),

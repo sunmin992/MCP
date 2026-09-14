@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * 오류 주입과 과차단을 <b>짝으로</b> 시험한다.
  *
  * <p>차단만 늘리면 "필수값 누락 0"과 "실행 성공률"이 동시에 올라가는 착시가 생긴다.
- * 정상 구성이 막히지 않는다는 것을 같은 파일에서 지키지 않으면, 이 원장은 안전해 보이는
+ * 정상 구성이 막히지 않는다는 것을 같은 파일에서 지키지 않으면, 이 결정기록은 안전해 보이는
  * 방식으로 쓸모없어질 수 있다.
  */
 class LedgerGateIntegrationTest {
@@ -86,7 +86,7 @@ class LedgerGateIntegrationTest {
     }
 
     @Test
-    void 컴파일_결과가_원장과_다르면_막는다() {
+    void 컴파일_결과가_결정기록과_다르면_막는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(answered(ledger, "sim::days", 7,
                 SubtaskAnswerSource.USER_DIRECT, BasisKind.NONE));

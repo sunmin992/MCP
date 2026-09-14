@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * 이미 있는 선언을 다시 만들지 않고 읽는가. {@link BasisKind}가 "묻지 않고 채울 수
- * 있는가"를 이미 판정하고 있으므로, 원장은 그 판정을 <b>뒤집지 않는다</b>.
+ * 있는가"를 이미 판정하고 있으므로, 결정기록은 그 판정을 <b>뒤집지 않는다</b>.
  */
 class DecisionStateMapperTest {
 

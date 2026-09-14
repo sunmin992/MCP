@@ -7,13 +7,13 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
- * 부품이 아니라 <b>흐름</b>을 지킨다 — 답변 제출부터 조립·실행 승인까지 원장을 낀 전체
+ * 부품이 아니라 <b>흐름</b>을 지킨다 — 답변 제출부터 조립·실행 승인까지 결정기록을 낀 전체
  * 경로를 오류 주입과 과차단을 짝으로 둔다. 오류 주입만 있으면 "무엇이든 막는 문지기"가
  * 같은 점수를 받는다(필수값 누락 0, 실행 성공률 무관). 과차단 쪽 테스트가 그 착시를 깬다.
  *
  * <p>{@link BuildWarnsNotBlocksTest}가 이미 "조립이 막히고 다시 열리는" 경로와 "정상
  * 조립"을 각각 지킨다. 이 파일은 그 위에서 <b>조립 이후 실행 승인까지</b> 이어지는 것과,
- * 조립 단계에서 끝나지 않는 원장 고유의 성질(막힌 상태에서의 실행 차단, 재계산 후 실행
+ * 조립 단계에서 끝나지 않는 결정기록 고유의 성질(막힌 상태에서의 실행 차단, 재계산 후 실행
  * 재개, 이력 보존)만 더한다 — 같은 시나리오를 다시 조립하는 부분은 반복하지 않는다.
  */
 class LedgerIntegrationFlowTest {
@@ -52,7 +52,7 @@ class LedgerIntegrationFlowTest {
         SubtaskTestSupport.answerEverything(sessions, "k");
         // trafficMode를 NONE으로 돌렸다가 다시 APPLY로 바꿔야 확실히 "변경"으로 잡힌다 —
         // answerEverything이 이미 APPLY를 답했을 수 있어, 그 위에 그대로 APPLY를 다시
-        // 제출하면 원장이 값의 "도착"이 아니라 무변화로 읽어 아무 재계산도 일으키지 않는다.
+        // 제출하면 결정기록이 값의 "도착"이 아니라 무변화로 읽어 아무 재계산도 일으키지 않는다.
         sessions.submit("k",
                 SubtaskTestSupport.idOfField(sessions, "k", JangnyangRules.TRAFFIC_MODE_FIELD),
                 "NONE", null);
@@ -60,7 +60,7 @@ class LedgerIntegrationFlowTest {
                 SubtaskTestSupport.idOfField(sessions, "k", JangnyangRules.TRAFFIC_MODE_FIELD),
                 JangnyangRules.TRAFFIC_APPLY_VALUE, null);
 
-        // 조립은 이제 경고만 하지 않는다 — 원장에 미해결 필수값이 있으면 막는다(fail-closed).
+        // 조립은 이제 경고만 하지 않는다 — 결정기록에 미해결 필수값이 있으면 막는다(fail-closed).
         SubtaskSessionService.BuildStep build = sessions.build("k");
         assertFalse(build.ok(), "미해결 프로필을 두고 조립이 열리면 과차단 대신 오류 주입이 뚫린 것이다");
         assertTrue(build.message().contains("trafficProfileId"), build.message());
@@ -100,7 +100,7 @@ class LedgerIntegrationFlowTest {
     }
 
     @Test
-    void 답을_고치면_원장에_이력이_남는다() {
+    void 답을_고치면_결정기록에_이력이_남는다() {
         SubtaskTestSupport.answerEverything(sessions, "k");
         String daysId = SubtaskTestSupport.idOfField(sessions, "k", "days");
         sessions.submit("k", daysId, 3, null);
