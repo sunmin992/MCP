@@ -679,12 +679,13 @@ public class ChatController {
                 // 미리보기 화면이 확인 단계 셋을 대신한다 — 승인하는 순간 ST-048·049·050이
                 // 함께 기록된다. 화면에는 실행 승인만 보이지만 세트의 50개는 그대로 채워진다.
                 subtasks.recordConfirmations(subtaskKey.get(), "RUN");
-                JangnyangScenarioSpec spec = subtasks.approveRun(subtaskKey.get());
-                if (spec == null) {
+                var approval = subtasks.approveRunChecked(subtaskKey.get());
+                JangnyangScenarioSpec spec = approval.spec();
+                if (!approval.approved()) {
                     // BUILT가 아닌 세션의 실행 요청은 거부한다(FR-129·D-52·UT-317).
                     messaging.convertAndSend("/topic/messages", new ChatMessage(
                             ChatMessage.MessageType.SYSTEM,
-                            "실행할 수 있는 시나리오가 없습니다. 구성을 먼저 마쳐 주세요."));
+                            "실행을 보류했습니다: " + String.join("; ", approval.blocks())));
                     return;
                 }
                 boolean ok = false;

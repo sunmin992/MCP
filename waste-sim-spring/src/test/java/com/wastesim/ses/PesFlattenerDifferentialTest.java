@@ -220,32 +220,17 @@ class PesFlattenerDifferentialTest {
         assertSameExceptTrafficProfileId(viaBuilder, viaSes);
     }
 
-    /**
-     * (b) {@code trafficMode=APPLY}이고 {@code routeTravelMinutes}를 0으로 답한 경우.
-     *
-     * <p>0을 <b>명시적으로</b> 답해야 완전성 판정을 통과한다(미답이면 그 자체로 막힌다 —
-     * {@code JangnyangCompletenessChecker.travelTimeInputMissing}). {@code toConfig()}는
-     * 교통이 켜져 있는데 이동시간이 0이면 혼잡 가중치가 결과에 반영될 여지가 없다고 보고
-     * 15로 올려치지만, {@code PesFlattener}는 답한 값을 그대로 둔다 —
-     * routeTravelMinutes 딱 한 필드만 달라야 한다.
-     */
+    /** Explicit zero is now preserved by both construction paths. */
     @Test
-    void travelTimeFloorDiffersOnlyInRouteTravelMinutes() throws Exception {
+    void explicitZeroTravelTimeMatchesBothPaths() throws Exception {
         Map<String, Object> answers = answers(m -> {
             m.put("trafficMode", "APPLY");
             m.put("routeTravelMinutes", 0);
         });
-
         SimulationConfig viaSes = PesFlattener.flatten(SesPruner.prune(answers));
         SimulationConfig viaBuilder = ReferenceConfigPath.build(answers);
-
-        assertNotEquals(viaBuilder.getRouteTravelMinutes(), viaSes.getRouteTravelMinutes(),
-                "routeTravelMinutes가 갈라지는 게 이 테스트의 요점인데 같게 나왔다 — 조립기가 바뀌었을 수 있다");
-        assertEquals(0, viaSes.getRouteTravelMinutes(),
-                "PesFlattener는 답한 0을 그대로 둔다 — 계산된 기본값을 옮기지 않는다");
-        assertEquals(15, viaBuilder.getRouteTravelMinutes(),
-                "toConfig()는 교통이 켜진 채 이동시간이 0이면 15로 올려친다");
-
+        assertEquals(0, viaSes.getRouteTravelMinutes());
+        assertEquals(0, viaBuilder.getRouteTravelMinutes());
         assertSameExceptRouteTravelMinutes(viaBuilder, viaSes);
     }
 

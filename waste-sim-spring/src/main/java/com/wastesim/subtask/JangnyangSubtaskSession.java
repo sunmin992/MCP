@@ -33,6 +33,9 @@ public class JangnyangSubtaskSession {
     private SubtaskState state = SubtaskState.NOT_STARTED;
     /** 조립된 시나리오 명세. BUILT 이후에만 채워진다. */
     private JangnyangScenarioSpec spec;
+    private com.fasterxml.jackson.databind.JsonNode builtConfig;
+    private static final com.fasterxml.jackson.databind.ObjectMapper CONFIG_JSON =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
     /**
      * 이 세션의 매개변수 결정 원장.
@@ -45,6 +48,13 @@ public class JangnyangSubtaskSession {
      * 갈아 끼우는 연산 자체가 없다.
      */
     private final ParameterLedger ledger = new ParameterLedger();
+    private final Map<String, java.time.Instant> toolExpiries = new LinkedHashMap<>();
+
+    public void trackToolExpiry(String parameterId, java.time.Instant expiresAt) {
+        toolExpiries.put(parameterId, expiresAt);
+    }
+
+    public Map<String, java.time.Instant> toolExpiries() { return Map.copyOf(toolExpiries); }
 
     public JangnyangSubtaskSession(String sessionKey, JangnyangSubtaskDefinition def) {
         this.sessionKey = sessionKey;
@@ -108,6 +118,17 @@ public class JangnyangSubtaskSession {
     /** 조립 결과를 붙인다 — {@link SubtaskState#canBuild()}를 통과한 뒤에만 호출된다. */
     public void attachSpec(JangnyangScenarioSpec spec) {
         this.spec = spec;
+        builtConfig = spec == null ? null : CONFIG_JSON.valueToTree(spec.toSimulationConfig());
+    }
+
+    public boolean configUnchanged() {
+        return spec != null && builtConfig != null
+                && builtConfig.equals(CONFIG_JSON.valueToTree(spec.toSimulationConfig()));
+    }
+
+    /** Retain invalidated values in the ledger, but never feed them back to the builder. */
+    public void removeAnswer(String subtaskId) {
+        answers.remove(subtaskId);
     }
 
     /**
@@ -134,6 +155,17 @@ public class JangnyangSubtaskSession {
                                         JangnyangCompletenessChecker checker) {
         for (JangnyangSubtask s : plan(def, checker)) {
             JangnyangSubtaskAnswer a = answers.get(s.id());
+            var decision = ledger.current(com.wastesim.ledger.wiring.JangnyangLedgerWiring
+                    .parameterIdOf(s.answerField()));
+            if (decision != null && decision.state().executable() && decision.source() != null
+                    && com.wastesim.ledger.ValueSource.NOT_APPLICABLE_BY_RULE.equals(decision.source().type())) continue;
+            if (decision != null && !decision.state().executable()) {
+                if ("activation_unknown".equals(decision.blockingReason())) {
+                    var mode = def.byAnswerField("trafficMode");
+                    if (mode != null && !answers.containsKey(mode.id())) return mode;
+                }
+                return s;
+            }
             if (a == null || !a.valid()) return s;
         }
         return null;

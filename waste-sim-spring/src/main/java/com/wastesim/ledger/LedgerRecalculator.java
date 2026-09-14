@@ -91,8 +91,8 @@ public final class LedgerRecalculator {
         //    덮어써 버리게 된다.
         for (Map.Entry<String, String> e : activeWhenByParameter.entrySet()) {
             String parameterId = e.getKey();
-            if (staledInStep1.contains(parameterId)) continue;
             Activation activation = rules.evaluate(e.getValue(), answers);
+            if (staledInStep1.contains(parameterId) && activation != Activation.INACTIVE) continue;
             ParameterDecision next = decisionFor(ledger, parameterId, e.getValue(), activation, now);
             if (next != null) appended.add(ledger.append(next));
         }

@@ -143,6 +143,11 @@ public class JangnyangScenarioBuilder {
                 scenarioType, toolName, engineId,
                 records, List.copyOf(defaults), List.copyOf(assumptions),
                 modelDefaultsOf(def, answers), cfg, pruned);
+        List<String> ledgerBlocks = ScenarioLedgerGate.verify(def, answers, spec);
+        if (!ledgerBlocks.isEmpty()) {
+            return BuildOutcome.invalidConfig(ledgerBlocks.stream()
+                    .map(message -> new ValidationError(ErrorCode.INVALID_ARGUMENTS, "ledger", message)).toList());
+        }
         return BuildOutcome.built(spec);
     }
 
@@ -348,7 +353,7 @@ public class JangnyangScenarioBuilder {
 
         int travel = f.intOr("routeTravelMinutes", c.getRouteTravelMinutes());
         c.setRouteTravelMinutes(travel);
-        if (traffic && c.getRouteTravelMinutes() <= 0) {
+        if (traffic && f.intVal("routeTravelMinutes") == null && c.getRouteTravelMinutes() <= 0) {
             // 이동시간이 0이면 혼잡 가중치가 걸릴 자리가 없어 교통을 켠 효과가 결과에
             // 전혀 나타나지 않는다.
             c.setRouteTravelMinutes(15);

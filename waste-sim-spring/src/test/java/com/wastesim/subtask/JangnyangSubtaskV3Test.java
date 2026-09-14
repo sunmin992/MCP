@@ -268,21 +268,16 @@ class JangnyangSubtaskV3Test {
     }
 
     @Test
-    @DisplayName("기본값은 동의 없이 적용하지 않는다 — 채울 값이 있는데 NONE이면 무엇을 채우려 했는지 알려준다")
-    void serverDefaultsNeedConsent() {
-        // 교통을 켜고 프로파일을 기본값에 맡기면 서버가 채운다.
-        Map<String, Object> needsDefault = withField("trafficMode", "APPLY",
+    @DisplayName("명시한 0분은 기본값 동의 여부와 무관하게 15분으로 바꾸지 않는다")
+    void explicitZeroIsNotReplacedByDefault() {
+        Map<String, Object> input = withField("trafficMode", "APPLY",
                 "trafficProfileId", "jangryang-weekday");
-        needsDefault.put(idOf("routeTravelMinutes"), 0);   // 0이면 서버가 15분으로 채운다
-        JangnyangScenarioBuilder.BuildOutcome approved = build(needsDefault);
-        assertTrue(approved.ok());
-        assertFalse(approved.spec().appliedDefaults().isEmpty(), "채운 값이 기록돼야 한다(D-53)");
-
-        Map<String, Object> rejected = new java.util.LinkedHashMap<>(needsDefault);
-        rejected.put(idOf("defaultApproval"), "NONE");
-        JangnyangScenarioBuilder.BuildOutcome blocked = build(rejected);
-        assertFalse(blocked.ok(), "동의하지 않았는데 기본값을 적용하면 안 된다");
-        assertTrue(message(blocked).contains("routeTravelMinutes"), message(blocked));
+        input.put(idOf("routeTravelMinutes"), 0);
+        var built = build(input);
+        assertTrue(built.ok(), message(built));
+        assertEquals(0, built.spec().toSimulationConfig().getRouteTravelMinutes());
+        assertTrue(built.spec().appliedDefaults().stream()
+                .noneMatch(d -> d.field().equals("routeTravelMinutes")));
     }
 
     @Test

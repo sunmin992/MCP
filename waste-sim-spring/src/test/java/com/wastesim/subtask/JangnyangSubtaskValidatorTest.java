@@ -173,13 +173,14 @@ class JangnyangSubtaskValidatorTest {
         SubtaskSessionService sessions = TestSubtaskFixtures.service(catalog);
         sessions.start("k1");
 
-        SubtaskSessionService.Step wrongVersion = sessions.submit("k1", "ST-001", "목적", 1);
+        String currentId = catalog.latest().collectSubtasks().get(0).id();
+        SubtaskSessionService.Step wrongVersion = sessions.submit("k1", currentId, "목적", 1);
         assertFalse(wrongVersion.ok());
         assertTrue(wrongVersion.rejection().contains("버전"),
                 "조용히 맞춰 주면 어떤 세트로 시작했는지 재구성할 수 없다(NFR-20)");
 
         // 대조군 — 세션이 시작한 버전(최신 세트)이면 정상 처리된다.
-        assertTrue(sessions.submit("k1", "ST-001", "목적", catalog.latest().version()).ok());
+        assertTrue(sessions.submit("k1", currentId, "목적", catalog.latest().version()).ok());
     }
 
     @Test
