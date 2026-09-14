@@ -60,6 +60,31 @@ class LedgerRecalculatorTest {
         assertEquals("upstream_value_changed", now.blockingReason());
     }
 
+    /**
+     * 거부는 변경이 아니다. 오타 하나로 검증이 막히면 원장에는 정규화 값이 빈
+     * INVALID 머리가 쌓이는데, 그것을 이전 값과 비교해 "바뀌었다"로 읽으면 사용자가
+     * 이미 낸 종속 답이 지우지 못하는 원장에서 거짓 사유로 낡는다.
+     */
+    @Test
+    void 거부된_상위_답변은_종속_결정을_낡히지_않는다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+        ledger.append(confirmed("sim::trafficMode#1", "sim::trafficMode", "APPLY"));
+        // recordDecision이 거부된 답에 남기는 것과 같은 모양의 머리.
+        ledger.append(new ParameterDecision("sim::trafficMode#2", "sim::trafficMode",
+                DecisionState.INVALID, "APLLY", null, null, null,
+                null, null, List.of(), "invalid_answer", null, T));
+
+        recalculator().onAnswerChanged(ledger, "sim::trafficMode",
+                Map.of("trafficMode", "APPLY"));
+
+        ParameterDecision now = ledger.current("sim::trafficProfileId");
+        assertEquals(DecisionState.CONFIRMED, now.state(),
+                "거절된 답 하나가 이미 받은 종속 값을 낡히면 안 된다");
+        assertNull(now.supersededBy());
+        assertEquals(1, ledger.history("sim::trafficProfileId").size());
+    }
+
     @Test
     void 낡은_값은_지워지지_않고_이력에_남는다() {
         ParameterLedger ledger = new ParameterLedger();

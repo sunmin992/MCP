@@ -112,6 +112,11 @@ public final class LedgerRecalculator {
         List<ParameterDecision> history = ledger.history(changedParameterId);
         if (history.size() < 2) return false; // 이번이 첫 결정이면 바뀔 이전 값이 없다.
         ParameterDecision newHead = history.get(history.size() - 1);
+        // 거부당한 답(INVALID)은 상위 값을 바꾸지 못한다. 그 머리의 정규화 값은 비어
+        // 있을 수밖에 없으므로 이전 값과 비교하면 언제나 "바뀌었다"가 나오고, 종속
+        // 결정에는 "상위 값이 바뀌어 슈퍼시드했다"는 거짓이 지우지 못하는 원장에
+        // 영구히 남는다 — 실제로는 아무것도 바뀌지 않았고 답 하나가 거절됐을 뿐이다.
+        if (!newHead.state().executable()) return false;
         for (int i = history.size() - 2; i >= 0; i--) {
             ParameterDecision prior = history.get(i);
             if (!prior.state().executable()) continue;
