@@ -268,15 +268,67 @@ class JangnyangSubtaskV3Test {
     }
 
     @Test
+    @DisplayName("명시한 0분은 기본값 동의 여부와 무관하게 15분으로 바꾸지 않는다")
+    void explicitZeroIsNotReplacedByDefault() {
+        Map<String, Object> input = withField("trafficMode", "APPLY",
+                "trafficProfileId", "jangryang-weekday");
+        input.put(idOf("routeTravelMinutes"), 0);
+        var built = build(input);
+        assertTrue(built.ok(), message(built));
+        assertEquals(0, built.spec().toSimulationConfig().getRouteTravelMinutes());
+        assertTrue(built.spec().appliedDefaults().stream()
+                .noneMatch(d -> d.field().equals("routeTravelMinutes")));
+        assertTrue(built.spec().assumptions().stream()
+                        .anyMatch(a -> a.contains("이동시간이 0")),
+                "값을 그대로 두는 대신, 교통이 결과에 나타나지 않는다는 것은 밝혀야 한다: "
+                        + built.spec().assumptions());
+    }
+
+    @Test
+    @DisplayName("혼합 모드에서는 이동시간 0에 교통 무력화 경고를 붙이지 않는다")
+    void zeroTravelWarningIsConstantModeOnly() {
+        // 혼합 모드 둘은 routeTravelMinutes를 아예 읽지 않는다 — 자유주행시간에 혼잡을
+        // 곱하므로 0이어도 교통 효과가 살아 있다. 여기까지 경고를 붙이면 사실이 아닌
+        // 문장이 미리보기에 실리고, 경고 자체가 잡음이 된다.
+        Map<String, Object> input = V3Answers.all();
+        input.put(idOf("travelTimeMode"), "ZONE_PROXY_HYBRID");
+        input.put(idOf("intraZoneTravelMinutes"), 2);
+        input.put(idOf("routeTravelMinutes"), 0);
+        input.put(idOf("trafficMode"), "APPLY");
+        input.put(idOf("trafficProfileId"), "jangryang-weekday");
+
+        var built = build(input);
+        assertTrue(built.ok(), message(built));
+        assertTrue(built.spec().assumptions().stream()
+                        .noneMatch(a -> a.contains("이동시간이 0")),
+                "혼합 모드는 이 값을 읽지 않는데 교통이 무력해진다고 알리면 거짓이다: "
+                        + built.spec().assumptions());
+    }
+
+    @Test
     @DisplayName("기본값은 동의 없이 적용하지 않는다 — 채울 값이 있는데 NONE이면 무엇을 채우려 했는지 알려준다")
     void serverDefaultsNeedConsent() {
-        // 교통을 켜고 프로파일을 기본값에 맡기면 서버가 채운다.
-        Map<String, Object> needsDefault = withField("trafficMode", "APPLY",
-                "trafficProfileId", "jangryang-weekday");
-        needsDefault.put(idOf("routeTravelMinutes"), 0);   // 0이면 서버가 15분으로 채운다
+        // 이동시간을 "해당 없음"으로 넘기고 교통을 켜면 서버가 15분을 채운다. 채우는
+        // 조건은 모드와 무관하다 — 구역 근사 모드를 고른 것은 이 조합이 v3에서 완결된
+        // 답변으로 성립하기 때문이지, 이 모드가 그 값을 쓰기 때문이 아니다. 실제로
+        // 구역 근사 모드는 routeTravelMinutes를 읽지 않는다.
+        //
+        // 이 테스트가 지키는 것은 그 값의 쓰임이 아니라 D-53이다: 사용자가 답하지 않은
+        // 값이 실행에 들어가려면 동의가 있어야 한다. v3의 완결성 검사가 나머지 서버
+        // 기본값을 전부 도달 불가능하게 만들어서, 지금 이 경로가 D-53을 실제로 밟는
+        // 유일한 자리다 — 지우면 동의 강제가 통째로 시험되지 않는다.
+        Map<String, Object> needsDefault = V3Answers.all();
+        needsDefault.put(idOf("travelTimeMode"), "ZONE_PROXY_HYBRID");
+        needsDefault.put(idOf("intraZoneTravelMinutes"), 2);
+        needsDefault.put(idOf("routeTravelMinutes"), V3Answers.NA);
+        needsDefault.put(idOf("trafficMode"), "APPLY");
+        needsDefault.put(idOf("trafficProfileId"), "jangryang-weekday");
+
         JangnyangScenarioBuilder.BuildOutcome approved = build(needsDefault);
-        assertTrue(approved.ok());
-        assertFalse(approved.spec().appliedDefaults().isEmpty(), "채운 값이 기록돼야 한다(D-53)");
+        assertTrue(approved.ok(), message(approved));
+        assertTrue(approved.spec().appliedDefaults().stream()
+                        .anyMatch(d -> d.field().equals("routeTravelMinutes")),
+                "채운 값이 기록돼야 한다(D-53)");
 
         Map<String, Object> rejected = new java.util.LinkedHashMap<>(needsDefault);
         rejected.put(idOf("defaultApproval"), "NONE");

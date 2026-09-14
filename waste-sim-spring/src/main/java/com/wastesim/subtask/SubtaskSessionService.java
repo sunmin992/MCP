@@ -1,8 +1,16 @@
 package com.wastesim.subtask;
 
+import com.wastesim.ledger.AnswerDecisions;
+import com.wastesim.ledger.JangnyangRules;
+import com.wastesim.ledger.LedgerRecalculator;
+import com.wastesim.ledger.ParameterLedger;
+import com.wastesim.ledger.Transformation;
+import com.wastesim.ledger.ValueSource;
+import com.wastesim.ledger.wiring.JangnyangLedgerWiring;
 import com.wastesim.tool.ErrorCode;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +34,18 @@ public class SubtaskSessionService {
     private final JangnyangCompletenessChecker checker;
     private final JangnyangScenarioBuilder builder;
     private final SubtaskSessionStore store;
+
+    /**
+     * 구조를 바꾸는 답변이 왔을 때 원장을 다시 계산한다.
+     *
+     * <p>배선이 고정돼 있어 인스턴스를 매번 만들 이유가 없다. 생성자에서 미등록 규칙 ID를
+     * 걸러 내므로, 배선이 낡으면 서비스 조립 시점에 드러난다 — 실행 중에 조용히
+     * {@code UNKNOWN}으로 떨어지는 것보다 낫다.
+     */
+    private final LedgerRecalculator recalculator = new LedgerRecalculator(
+            JangnyangRules.registry(),
+            JangnyangLedgerWiring.activeWhenByParameter(),
+            JangnyangLedgerWiring.dependents());
 
     public SubtaskSessionService(JangnyangSubtaskCatalog catalog,
                                  JangnyangSubtaskValidator validator,
@@ -84,6 +104,9 @@ public class SubtaskSessionService {
      */
     public Step submit(String sessionKey, String subtaskId, Object value, Integer version,
                        SubtaskAnswerSource source) {
+        if (source == null || source == SubtaskAnswerSource.MCP_RESULT) {
+            return Step.rejected("외부 도구 결과는 계약 검사 경로로 제출해야 합니다.");
+        }
         JangnyangSubtaskSession session = store.find(sessionKey);
         if (session == null || !session.state().isActive()) {
             return Step.rejected("진행 중인 수집 세션이 없습니다. 시뮬레이터 구성을 먼저 요청해 주세요.");
@@ -100,14 +123,25 @@ public class SubtaskSessionService {
         if (targetId == null) {
             return Step.rejected("더 답할 서브태스크가 없습니다.");
         }
+        var target = def.byId(targetId);
+        if (target == null) target = def.byAnswerField(targetId);
+        if (target == null) return Step.rejected("현재 세트에 없는 답변 필드입니다: " + targetId);
+        targetId = target.id();
 
+        if (session.state() == SubtaskState.READY || session.state() == SubtaskState.BUILT) {
+            session.transitionTo(SubtaskState.COLLECTING);
+        }
+        session.attachSpec(null);
         session.transitionTo(SubtaskState.VALIDATING);
         SubtaskValidationResult result = validator.validate(
                 def, Map.of(targetId, value == null ? "" : value), session.answers(), source);
         session.apply(result);
+        recordDecision(session, def, targetId, value, source);
+        recalculate(session, def, targetId);
 
         if (session.nextSubtask(def, checker) == null
-                && checker.check(def, session.answers()).sufficient()) {
+                && checker.check(def, session.answers()).sufficient()
+                && session.ledger().blocking().isEmpty()) {
             session.transitionTo(SubtaskState.READY);
         } else {
             session.transitionTo(SubtaskState.COLLECTING);
@@ -124,16 +158,31 @@ public class SubtaskSessionService {
         if (session == null || !session.state().isActive()) {
             return BuildStep.rejected("진행 중인 수집 세션이 없습니다.");
         }
+        List<String> ledgerBlocks = ledgerBlocksOf(session);
+        if (!ledgerBlocks.isEmpty()) {
+            session.attachSpec(null);
+            // 판정 도중 만료 처리로 원장과 답변이 바뀌었을 수 있다. 여기서 저장하지
+            // 않고 돌아가면 그 변경은 이 메서드 안에서만 참이고, 저장소가 메모리를
+            // 벗어나는 날 다음 요청은 만료되지 않은 값을 다시 읽는다.
+            store.save(session);
+            return BuildStep.rejected("미해결 입력을 먼저 확인해 주세요: " + String.join("; ", ledgerBlocks));
+        }
         if (!session.state().canBuild()) {
             return BuildStep.rejected("아직 시나리오를 만들 수 없습니다(현재 상태: "
                     + session.state() + "). 남은 질문에 먼저 답해 주세요.");
         }
         JangnyangSubtaskDefinition def = definitionOf(session);
+        session.attachSpec(null);
         JangnyangScenarioBuilder.BuildOutcome outcome = builder.build(def, session.answers());
         if (!outcome.ok()) {
             // 조립이 거부되면 상태를 올리지 않는다 — READY에 머물러야 사용자가 답을
             // 고쳐 다시 시도할 수 있다.
             return BuildStep.failed(outcome);
+        }
+        ledgerBlocks = ledgerBlocksOf(session);
+        if (!ledgerBlocks.isEmpty()) {
+            store.save(session);
+            return BuildStep.rejected("입력 유효성을 다시 확인해 주세요: " + String.join("; ", ledgerBlocks));
         }
         session.attachSpec(outcome.spec());
         session.transitionTo(SubtaskState.BUILT);
@@ -142,15 +191,80 @@ public class SubtaskSessionService {
     }
 
     /**
+     * 지금 조립·실행을 막는 사유들. 조립과 실행 두 경계에서 같은 판정을 쓴다.
+     *
+     * <p><b>이름이 "읽기"가 아닌 이유</b>: 만료된 외부 값을 여기서 낡은 것으로 찍고 그
+     * 답변을 세션에서 지운다 — 판정만 하는 것처럼 보이는 이름을 달아 두면 저장 없이
+     * 돌아가는 경로가 언제든 다시 생긴다. 부르는 쪽은 그 변경을 저장해야 한다.
+     */
+    private List<String> ledgerBlocksOf(JangnyangSubtaskSession session) {
+        var def = definitionOf(session);
+        for (var expiry : session.toolExpiries().entrySet()) {
+            var current = session.ledger().current(expiry.getKey());
+            if (current == null || !current.state().executable() || current.source() == null
+                    || !"mcp_result".equals(current.source().type()) || !Instant.now().isAfter(expiry.getValue())) continue;
+            session.ledger().append(new com.wastesim.ledger.ParameterDecision(
+                    session.ledger().nextDecisionId(current.parameterId()), current.parameterId(),
+                    com.wastesim.ledger.DecisionState.STALE, current.rawValue(), current.rawUnit(),
+                    current.normalizedValue(), current.normalizedUnit(), current.source(), current.transformation(),
+                    current.evidenceRefs(), "source_expired", "tool_contract_expiry", Instant.now()));
+            var task = def.byAnswerField(com.wastesim.ledger.ParameterId.fieldOf(current.parameterId()));
+            if (task != null) session.removeAnswer(task.id());
+        }
+        List<String> blocks = new java.util.ArrayList<>(session.ledger().blocking().stream()
+                .map(d -> d.parameterId() + ": " + d.blockingReason())
+                .toList());
+        if (!session.hash().equals(def.hash())) blocks.add("세션 시작 이후 입력 계약이 변경됐습니다. 새 세션을 시작해 주세요.");
+        for (var task : def.collectSubtasks()) {
+            var answer = session.answers().get(task.id());
+            if (answer == null || !answer.valid()) continue;
+            String id = JangnyangLedgerWiring.parameterIdOf(task.answerField());
+            var decision = session.ledger().current(id);
+            if (decision == null) blocks.add(id + ": 결정 기록이 없습니다.");
+            else if (decision.state().executable()
+                    && !ValueSource.NOT_APPLICABLE_BY_RULE.equals(decision.source().type())
+                    && !java.util.Objects.equals(answer.value(), decision.normalizedValue())) {
+                blocks.add(id + ": 답변과 원장 값이 다릅니다.");
+            }
+        }
+        return List.copyOf(blocks);
+    }
+
+    /**
      * 실행 승인. BUILT가 아니면 거부한다 — 조립을 거치지 않은 세션에는 실행할 설정이 없다
      * (FR-129·UT-317).
+     *
+     * <p>반환 계약은 그대로다 — 막히면 {@code null}. 사유가 필요하면
+     * {@link #approveRunChecked(String)}을 쓴다.
      */
     public JangnyangScenarioSpec approveRun(String sessionKey) {
+        return approveRunChecked(sessionKey).spec();
+    }
+
+    /** Revalidate the ledger and the built configuration immediately before execution. */
+    public RunApproval approveRunChecked(String sessionKey) {
         JangnyangSubtaskSession session = store.find(sessionKey);
-        if (session == null || !session.state().canRun()) return null;
+        if (session == null || !session.state().canRun()) {
+            return RunApproval.blocked(List.of("아직 실행할 수 있는 상태가 아닙니다."));
+        }
+
+        List<String> blocks = new java.util.ArrayList<>(ledgerBlocksOf(session));
+        if (session.spec() == null) blocks.add("생성된 시나리오가 없습니다.");
+        else {
+            if (!session.configUnchanged()) blocks.add("미리보기 이후 실행 설정이 변경됐습니다. 다시 생성해 주세요.");
+            blocks.addAll(ScenarioLedgerGate.verify(definitionOf(session), session.answers(), session.spec()));
+        }
+        if (!blocks.isEmpty()) {
+            // 상태를 올리지 않는다 — BUILT에 머물러야 사용자가 답을 고쳐 다시 시도할 수 있다.
+            // 다만 판정이 남긴 만료 처리는 저장한다. 막혔다고 버리면 다음 요청이 같은
+            // 만료를 다시 발견해야 하고, 그 사이에 만료 값이 실행에 섞일 수 있다.
+            store.save(session);
+            return RunApproval.blocked(blocks);
+        }
+
         session.transitionTo(SubtaskState.RUNNING);
         store.save(session);
-        return session.spec();
+        return RunApproval.approved(session.spec());
     }
 
     /** 실행이 끝났다. 성공이면 COMPLETED, 실패면 BUILT로 되돌려 다시 시도할 수 있게 한다. */
@@ -188,6 +302,188 @@ public class SubtaskSessionService {
 
     private static String idOf(JangnyangSubtask s) {
         return s == null ? null : s.id();
+    }
+
+    /**
+     * 이번 답변을 원장에 남긴다.
+     *
+     * <p><b>왜 검증 뒤에 남기는가</b>: 검증을 통과하지 못한 값을 확정으로 쌓으면, 세션은
+     * 거부했는데 원장은 받아들인 상태가 된다. 원장이 실행을 여는 근거가 되므로 그 어긋남은
+     * 곧 잘못된 값의 실행 경로가 된다.
+     *
+     * <p>13인자 조립을 여기서 다시 쓰지 않고 {@link AnswerDecisions#fromAnswer}에 맡긴다 —
+     * 그 사본이 테스트에만 있던 것이 앞 작업에서 지적된 자리다.
+     */
+    private void recordDecision(JangnyangSubtaskSession session, JangnyangSubtaskDefinition def,
+                                String subtaskId, Object rawValue, SubtaskAnswerSource source) {
+        JangnyangSubtask subtask = def.byId(subtaskId);
+        if (subtask == null) return;
+
+        JangnyangSubtaskAnswer accepted = session.answers().get(subtaskId);
+        // 검증기가 거부했으면 세션에 통과한 답이 없다. 원장에도 확정값을 남기지 않는다.
+        if (accepted == null || !accepted.valid()) {
+            String pid = JangnyangLedgerWiring.parameterIdOf(subtask.answerField());
+            session.ledger().append(new com.wastesim.ledger.ParameterDecision(
+                    session.ledger().nextDecisionId(pid), pid, com.wastesim.ledger.DecisionState.INVALID,
+                    rawValue, null, null, null, null, null, List.of(), "invalid_answer", null, Instant.now()));
+            return;
+        }
+
+        String parameterId = JangnyangLedgerWiring.parameterIdOf(subtask.answerField());
+        ParameterLedger ledger = session.ledger();
+        Instant now = Instant.now();
+
+        // v3까지는 basis 선언이 없어 null이다(JangnyangSubtask 문서) — 선언이 없다는 뜻이지
+        // 근거가 있다는 뜻이 아니므로 GapResolver와 같은 기준으로 FieldBasis.unknown()을 쓴다.
+        FieldBasis basis = subtask.basis() != null ? subtask.basis() : FieldBasis.unknown();
+
+        ledger.append(AnswerDecisions.fromAnswer(
+                ledger.nextDecisionId(parameterId), parameterId,
+                rawValue, accepted.value(),
+                source, basis.kind(),
+                new ValueSource(sourceTypeOf(source), subtaskId,
+                        String.valueOf(def.version()), now),
+                transformationOf(source, subtaskId), now));
+    }
+
+    /**
+     * {@code LLM_NORMALIZED} 값이 실제로 겪은 변환을 규칙 ID로 남긴다.
+     *
+     * <p>{@code DecisionStateMapper}가 이 출처를 {@code DERIVED}로 옮기고,
+     * {@code ParameterDecision}은 {@code DERIVED}면 변환 규칙이 반드시 있어야 한다고
+     * 강제한다 — 유도했다고 적어 놓고 어떻게 유도했는지를 비워 두면 그 값의 출처를
+     * 감사할 수 없기 때문이다. 여기서 말할 수 있는 사실은 딱 하나, "이 서브태스크의
+     * 자유 문장 답을 그 서브태스크가 정한 단 하나의 답변 필드로 정규화했다"는 것뿐이다
+     * — 그 이상(예: 어떤 모델을 썼는지, 무엇을 근거로 판단했는지)은 이 계층이 아는
+     * 사실이 아니므로 규칙 이름에 넣지 않는다. {@code inputEventRefs}는 이 변환이 읽은
+     * 것이 다른 결정이 아니라 사용자가 이 서브태스크에 낸 원문 그 자체라는 뜻으로
+     * 서브태스크 ID를 담는다.
+     */
+    private static Transformation transformationOf(SubtaskAnswerSource source, String subtaskId) {
+        if (source != SubtaskAnswerSource.LLM_NORMALIZED) return null;
+        return new Transformation("llm_free_text_to_answer_field", List.of(subtaskId));
+    }
+
+    /**
+     * 이번 답변을 기준으로 활성 구조와 종속 값을 다시 계산한다.
+     *
+     * <p>{@link SubtaskState}는 손대지 않는다 — {@code READY → COLLECTING} 전이가 이미
+     * 허용돼 있다. 여기서 하는 일은 그 전이를 일으켜야 할 때를 알아내는 것이다.
+     */
+    private void recalculate(JangnyangSubtaskSession session, JangnyangSubtaskDefinition def,
+                             String subtaskId) {
+        JangnyangSubtask subtask = def.byId(subtaskId);
+        if (subtask == null) return;
+        var changes = recalculator.onAnswerChanged(session.ledger(),
+                JangnyangLedgerWiring.parameterIdOf(subtask.answerField()),
+                answersByField(session, def));
+        for (var decision : changes) {
+            String field = com.wastesim.ledger.ParameterId.fieldOf(decision.parameterId());
+            var target = def.byAnswerField(field);
+            if (target == null) continue;
+            if (!decision.state().executable()) {
+                session.removeAnswer(target.id());
+            } else if (decision.source() != null
+                    && ValueSource.NOT_APPLICABLE_BY_RULE.equals(decision.source().type())) {
+                session.apply(validator.validate(def,
+                        Map.of(target.id(), JangnyangSubtaskValidator.NOT_APPLICABLE),
+                        session.answers(), SubtaskAnswerSource.SERVER_DEFAULT));
+            }
+        }
+    }
+
+    /**
+     * 세션의 답변을 <b>답변 필드명</b>으로 펼친다.
+     *
+     * <p>등록된 활성 규칙은 {@code trafficMode} 같은 필드명을 본다. 서브태스크 ID를 그대로
+     * 넘기면 규칙이 언제나 {@code UNKNOWN}을 돌려주고, 그러면 모든 조건부 가지가 영원히
+     * 미해결로 남아 아무것도 실행할 수 없게 된다.
+     */
+    private static Map<String, Object> answersByField(JangnyangSubtaskSession session,
+                                                      JangnyangSubtaskDefinition def) {
+        Map<String, Object> byField = new LinkedHashMap<>();
+        for (Map.Entry<String, JangnyangSubtaskAnswer> e : session.answers().entrySet()) {
+            JangnyangSubtask s = def.byId(e.getKey());
+            if (s == null || !e.getValue().valid()) continue;
+            byField.put(s.answerField(), e.getValue().value());
+        }
+        return byField;
+    }
+
+    /** 답변 출처를 원장의 출처 종류로 옮긴다. 없는 이름을 지어내지 않는다. */
+    private static String sourceTypeOf(SubtaskAnswerSource source) {
+        return switch (source) {
+            case USER_DIRECT -> "user_explicit";
+            case LLM_NORMALIZED -> "llm_normalized";
+            case SERVER_DEFAULT -> "asset_contract";
+            case MCP_RESULT -> "mcp_result";
+        };
+    }
+
+    /** Backend adapter boundary: expectations are fixed before invoking the registered tool.
+     * This is deliberately not a client-supplied MCP tool/contract registration endpoint.
+     *
+     * <p>이 메서드는 <b>스스로 시간 제한을 걸지 않는다</b> — 넘겨받은 {@code call}이 던지는
+     * {@code TimeoutException}을 받아 낼 뿐이다. 그래서 실제 어댑터를 붙이는 쪽이 호출에
+     * 시간 제한을 두지 않으면, 도구가 응답하지 않는 동안 세션 전체가 여기서 멈춘다. */
+    public Step resolveToolValue(String sessionKey, String answerField,
+                                 com.wastesim.ledger.mcp.ParameterExpectation expectation,
+                                 java.util.concurrent.Callable<com.wastesim.ledger.mcp.ToolCandidate> call) {
+        var session = activeSession(sessionKey);
+        if (session == null) return Step.rejected("진행 중인 수집 세션이 없습니다.");
+        var def = definitionOf(session);
+        var task = def.byAnswerField(answerField);
+        String pid = JangnyangLedgerWiring.parameterIdOf(answerField);
+        if (task == null || !pid.equals(expectation.parameterId())) {
+            return Step.rejected("도구 계약의 목적 필드가 현재 세션과 다릅니다.");
+        }
+        var before = session.answers();
+        var admission = new com.wastesim.ledger.mcp.CandidateAdmission();
+        com.wastesim.ledger.ParameterDecision decision;
+        Instant expiresAt = null;
+        try {
+            var candidate = call.call();
+            decision = admission.admit(candidate, expectation, session.ledger().nextDecisionId(pid), Instant.now());
+            if (decision.state().executable() && !"mcp_result".equals(decision.source().type())) {
+                return Step.rejected("외부 도구의 출처 종류가 올바르지 않습니다.");
+            }
+            if (decision.state().executable()) expiresAt = candidate.observedAt().plus(expectation.maxAge());
+        } catch (java.util.concurrent.TimeoutException timeout) {
+            decision = admission.onTimeout(expectation, session.ledger().nextDecisionId(pid), Instant.now());
+        } catch (Exception failure) {
+            if (failure instanceof InterruptedException) Thread.currentThread().interrupt();
+            decision = new com.wastesim.ledger.ParameterDecision(session.ledger().nextDecisionId(pid), pid,
+                    com.wastesim.ledger.DecisionState.UNRESOLVED, null, null, null, null, null, null,
+                    List.of(), "tool_failure", null, Instant.now());
+        }
+        if (activeSession(sessionKey) != session || !before.equals(session.answers())) {
+            return Step.rejected("도구 호출 중 입력이 변경되어 이전 결과를 적용하지 않았습니다.");
+        }
+        if (session.state() == SubtaskState.READY || session.state() == SubtaskState.BUILT) {
+            session.transitionTo(SubtaskState.COLLECTING);
+        }
+        session.attachSpec(null);
+        session.transitionTo(SubtaskState.VALIDATING);
+        List<SubtaskError> errors = List.of();
+        if (decision.state().executable()) {
+            var validated = validator.validate(def, Map.of(task.id(), decision.normalizedValue()),
+                    session.answers(), SubtaskAnswerSource.MCP_RESULT);
+            session.apply(validated);
+            errors = validated.errors();
+            if (!errors.isEmpty()) {
+                decision = new com.wastesim.ledger.ParameterDecision(decision.decisionId(), pid,
+                        com.wastesim.ledger.DecisionState.INVALID, decision.rawValue(), decision.rawUnit(),
+                        null, null, decision.source(), null, List.of(), "invalid_tool_answer", null, Instant.now());
+            }
+        } else session.removeAnswer(task.id());
+        session.ledger().append(decision);
+        if (expiresAt != null && decision.state().executable()) session.trackToolExpiry(pid, expiresAt);
+        recalculate(session, def, task.id());
+        boolean ready = session.nextSubtask(def, checker) == null
+                && checker.check(def, session.answers()).sufficient() && session.ledger().blocking().isEmpty();
+        session.transitionTo(ready ? SubtaskState.READY : SubtaskState.COLLECTING);
+        store.save(session);
+        return step(session, def, errors);
     }
 
     /**
@@ -239,14 +535,26 @@ public class SubtaskSessionService {
         }
     }
 
-    /** 조립 한 걸음의 결과. */
+    /**
+     * 조립 한 걸음의 결과.
+     *
+     * <p>원장이 막을 이유로 본 것을 따로 싣지 않는다 — 개정된 결정 3에서 그것들은
+     * 관찰 항목이 아니라 <b>거부 사유</b>가 됐고, 거부 사유는 {@code rejection}이
+     * 이미 문장으로 들고 있다.
+     */
     public record BuildStep(JangnyangScenarioSpec spec,
                             JangnyangScenarioBuilder.BuildOutcome outcome,
                             String rejection) {
 
-        static BuildStep built(JangnyangScenarioSpec spec) { return new BuildStep(spec, null, null); }
-        static BuildStep failed(JangnyangScenarioBuilder.BuildOutcome o) { return new BuildStep(null, o, null); }
-        static BuildStep rejected(String reason) { return new BuildStep(null, null, reason); }
+        static BuildStep built(JangnyangScenarioSpec spec) {
+            return new BuildStep(spec, null, null);
+        }
+        static BuildStep failed(JangnyangScenarioBuilder.BuildOutcome o) {
+            return new BuildStep(null, o, null);
+        }
+        static BuildStep rejected(String reason) {
+            return new BuildStep(null, null, reason);
+        }
 
         public boolean ok() { return spec != null; }
 

@@ -5,6 +5,7 @@ import com.wastesim.mcp.SimulationModelRegistry;
 import com.wastesim.model.DischargeTimeMode;
 import com.wastesim.model.ScenarioPreset;
 import com.wastesim.model.SimulationConfig;
+import com.wastesim.model.TravelTimeMode;
 import com.wastesim.service.EngineSelectionDetector;
 import com.wastesim.service.TrafficDataService;
 import com.wastesim.tool.ErrorCode;
@@ -143,6 +144,11 @@ public class JangnyangScenarioBuilder {
                 scenarioType, toolName, engineId,
                 records, List.copyOf(defaults), List.copyOf(assumptions),
                 modelDefaultsOf(def, answers), cfg, pruned);
+        List<String> ledgerBlocks = ScenarioLedgerGate.verify(def, answers, spec);
+        if (!ledgerBlocks.isEmpty()) {
+            return BuildOutcome.invalidConfig(ledgerBlocks.stream()
+                    .map(message -> new ValidationError(ErrorCode.INVALID_ARGUMENTS, "ledger", message)).toList());
+        }
         return BuildOutcome.built(spec);
     }
 
@@ -348,12 +354,24 @@ public class JangnyangScenarioBuilder {
 
         int travel = f.intOr("routeTravelMinutes", c.getRouteTravelMinutes());
         c.setRouteTravelMinutes(travel);
-        if (traffic && c.getRouteTravelMinutes() <= 0) {
+        if (traffic && f.intVal("routeTravelMinutes") == null && c.getRouteTravelMinutes() <= 0) {
             // 이동시간이 0이면 혼잡 가중치가 걸릴 자리가 없어 교통을 켠 효과가 결과에
             // 전혀 나타나지 않는다.
             c.setRouteTravelMinutes(15);
             defaults.add(new AppliedDefault("routeTravelMinutes", 15,
                     "이동시간이 0이면 혼잡 가중치가 결과에 반영될 물리적 여지가 없다"));
+        } else if (traffic && c.getRouteTravelMinutes() <= 0
+                && c.resolveTravelTimeMode() == TravelTimeMode.LEGACY_CONSTANT) {
+            // 사용자가 직접 0을 넣었으므로 값은 그대로 둔다 — 묻지 않고 덮으면 답한 것이
+            // 사라진다. 다만 상수 모드의 공식은 이동시간 × 혼잡이라 0에는 혼잡이 곱해질
+            // 자리가 없고, 교통을 켠 실행이 끈 실행과 같은 숫자를 낸다. 아무 말도 하지
+            // 않으면 사용자는 교통을 반영한 결과를 받았다고 믿는다.
+            //
+            // 혼합 모드에는 이 문장을 붙이지 않는다. 두 모드는 routeTravelMinutes를 아예
+            // 읽지 않고 자유주행시간에 혼잡을 곱하므로, 0이어도 교통 효과가 살아 있다.
+            assumptions.add("교통 레이어를 켰지만 구간 이동시간이 0이다 — 상수 모드는 "
+                    + "이동시간에 혼잡 가중치를 곱하므로 결과가 교통을 끈 것과 같아진다. "
+                    + "직접 답한 값이라 그대로 두었다.");
         }
 
         List<String> route = f.list("routeSequence");

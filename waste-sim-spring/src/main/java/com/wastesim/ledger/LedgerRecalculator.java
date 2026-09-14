@@ -55,8 +55,19 @@ public final class LedgerRecalculator {
 
         // 1) 종속 결정을 낡은 것으로 표시한다. 값은 지우지 않는다 —
         //    무엇이 있었는지 알아야 무엇이 바뀌었는지 말할 수 있다.
+        //
+        //    단, 값이 <b>도착</b>한 것과 값이 <b>바뀐</b> 것은 다른 사실이다. 이번이
+        //    changedParameterId의 첫 결정이거나, 이전 실행 가능한 값과 새 값이 같다면
+        //    아무것도 바뀌지 않았다 — 그런데도 종속 결정을 STALE(upstream_value_changed,
+        //    supersededBy=changedParameterId)로 찍으면 "상위 값이 바뀌어 이 결정을
+        //    슈퍼시드했다"는 거짓 기록이 지우지 못하는 원장에 영구히 남는다. 첫 답을
+        //    "바뀜"으로 잘못 읽으면, 그 답보다 먼저 나온 답이 아직 활성 여부를 몰라
+        //    실행 가능한 상태로 남아 있던 종속 결정까지 이 시점에 낡혀 버려, 사용자가
+        //    이미 정직하게 낸 답을 다시는 되묻지 않고 영원히 미해결로 남긴다.
+        boolean upstreamGenuinelyChanged = upstreamGenuinelyChanged(ledger, changedParameterId);
         Set<String> staledInStep1 = new HashSet<>();
         for (String dependent : dependents.getOrDefault(changedParameterId, List.of())) {
+            if (!upstreamGenuinelyChanged) continue;
             ParameterDecision current = ledger.current(dependent);
             if (current == null || !current.state().executable()) continue;
             // 규칙이 만든 "해당 없음" 자리표시자는 사용자가 실제로 입력해 낡을 수 있는
@@ -80,13 +91,38 @@ public final class LedgerRecalculator {
         //    덮어써 버리게 된다.
         for (Map.Entry<String, String> e : activeWhenByParameter.entrySet()) {
             String parameterId = e.getKey();
-            if (staledInStep1.contains(parameterId)) continue;
             Activation activation = rules.evaluate(e.getValue(), answers);
+            if (staledInStep1.contains(parameterId) && activation != Activation.INACTIVE) continue;
             ParameterDecision next = decisionFor(ledger, parameterId, e.getValue(), activation, now);
             if (next != null) appended.add(ledger.append(next));
         }
 
         return List.copyOf(appended);
+    }
+
+    /**
+     * changedParameterId의 새 값이 이전 값과 실제로 다른가.
+     *
+     * <p>{@code recordDecision}이 이미 새 결정을 원장에 쌓아 둔 뒤 이 메서드가 불린다 —
+     * 그래서 이력의 마지막(head)은 언제나 이번 답이고, "이전 값"은 그 앞에서 찾아야
+     * 한다. 실행 가능하지 않은 과거 결정(예: 아직 활성 여부를 몰라 막혀 있던 자리)은
+     * 비교 대상이 아니다 — 그런 결정에는 애초에 "값"이랄 것이 없다.
+     */
+    private static boolean upstreamGenuinelyChanged(ParameterLedger ledger, String changedParameterId) {
+        List<ParameterDecision> history = ledger.history(changedParameterId);
+        if (history.size() < 2) return false; // 이번이 첫 결정이면 바뀔 이전 값이 없다.
+        ParameterDecision newHead = history.get(history.size() - 1);
+        // 거부당한 답(INVALID)은 상위 값을 바꾸지 못한다. 그 머리의 정규화 값은 비어
+        // 있을 수밖에 없으므로 이전 값과 비교하면 언제나 "바뀌었다"가 나오고, 종속
+        // 결정에는 "상위 값이 바뀌어 슈퍼시드했다"는 거짓이 지우지 못하는 원장에
+        // 영구히 남는다 — 실제로는 아무것도 바뀌지 않았고 답 하나가 거절됐을 뿐이다.
+        if (!newHead.state().executable()) return false;
+        for (int i = history.size() - 2; i >= 0; i--) {
+            ParameterDecision prior = history.get(i);
+            if (!prior.state().executable()) continue;
+            return !java.util.Objects.equals(prior.normalizedValue(), newHead.normalizedValue());
+        }
+        return false; // 실행 가능한 이전 값이 없었다 — 사실상 이번이 첫 값이다.
     }
 
     /** 이미 같은 결론이면 {@code null} — 같은 레코드를 거듭 쌓으면 이력이 잡음이 된다. */
@@ -112,8 +148,14 @@ public final class LedgerRecalculator {
                             new ValueSource(ValueSource.NOT_APPLICABLE_BY_RULE, ruleId, null, now),
                             null, List.of(), null, null, now);
 
-            case UNKNOWN -> blocked(ledger, parameterId,
-                    BlockingReasons.ACTIVATION_UNKNOWN, current, now);
+            // 활성 여부를 아직 모른다고 해서 이미 받은 답을 지우지 않는다. "미확정을
+            // 비활성으로 접지 않는다"는 규약은 질문을 건너뛰지 말라는 뜻이었지, 손에 든
+            // 값을 버리라는 뜻이 아니었다 — 필요한지와 값이 있는지는 다른 사실이다. 뒤에
+            // 조건이 INACTIVE로 밝혀지면 그 분기가 해당 없음으로 정리하고, ACTIVE로
+            // 밝혀지면 이미 확정된 값이 그대로 선다.
+            case UNKNOWN -> (current != null && current.state().executable())
+                    ? null
+                    : blocked(ledger, parameterId, BlockingReasons.ACTIVATION_UNKNOWN, current, now);
         };
     }
 
