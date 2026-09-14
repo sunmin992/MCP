@@ -1,0 +1,145 @@
+# 원장을 실제 수집·조립·실행 경로에 잇는다 — 설계
+
+2026-09-14 · 코드 `feature/ledger-session-integration @ 97246bf` · 선행 스펙 `2026-09-13-asset-contract-ledger-design.md`
+
+## 왜 하는가
+
+앞 작업은 부품을 만들었다. `ParameterLedger`·`LedgerRecalculator`·`ConfigBackVerifier`가 있고
+전부 테스트가 붙어 있다. 그런데 **아무도 그것들을 부르지 않는다.**
+
+`SubtaskSessionService.submit()`은 기존 검증기와 세션을 갱신하고, `build()`는 기존 빌더를
+호출하고, `approveRun()`은 `SubtaskState`만 본다. 원장은 그 경로 어디에도 없다.
+
+그래서 지금 상태는 이렇다.
+
+| 앞 스펙이 약속한 것 | 실제 |
+|---|---|
+| 구조를 바꾸는 답변이 오면 종속 값을 낡은 것으로 표시한다 | 기능은 있으나 답변 수정 시 호출되지 않는다 |
+| 미해결 필수값이 있으면 실행 패키지를 발행하지 않는다 | 차단 판정은 여전히 기존 checker가 한다 |
+| 컴파일 결과를 원장과 대조한다 | 역검증기가 생성·실행 경로에 연결돼 있지 않다 |
+
+**부품이 있다는 것과 그 부품이 실행을 막는다는 것은 다른 사실이다.** 이 설계는 그 둘 사이를 잇는다.
+
+## 무엇을 하지 않는가
+
+**MCP 실제 도구 호출은 연결하지 않는다.** `CandidateAdmission`은 후보값을 받는 쪽만 구현돼
+있고, 브로커·호출·타임아웃 처리는 만들지 않았다. 이 설계의 범위는 사용자 답변 경로다.
+
+**기존 판정자를 걷어내지 않는다.** `JangnyangCompletenessChecker`와 `SubtaskState`는 그대로
+남는다. 원장이 그것들을 대체하는 것이 아니라, 그것들이 보지 않는 것을 본다.
+
+## 결정 1 — 원장은 세션이 들고, 함께 저장된다
+
+`JangnyangSubtaskSession`에 `ParameterLedger` 필드를 추가한다.
+
+**왜 별도 저장소를 두지 않는가**: 세션과 원장을 각각 저장하면 한쪽만 저장되는 순간이 생기고,
+그 순간에 둘은 다른 사실을 말한다. 원장 설계가 "현재 값을 따로 저장하지 않고 이력의 마지막으로
+계산한다"고 정한 것과 같은 이유다 — 두 자리에 같은 것을 적으면 갈라질 자리가 생긴다.
+
+`store.save(session)` 한 번이 둘 다 저장한다.
+
+이 결정은 앞 계획이 금지했던 `com.wastesim.subtask` 수정을 요구한다. 그 금지는 부품을 만드는
+동안 기존 경로를 흔들지 않기 위한 것이었고, 잇는 것이 이번 작업의 목적이므로 여기서 풀린다.
+
+## 결정 2 — 답변마다 결정을 쌓고, 그 자리에서 재계산한다
+
+`submit()`이 기존 검증과 `session.apply()`를 마친 뒤:
+
+1. 그 답변을 `AnswerDecisions.fromAnswer(...)`로 결정 레코드로 만들어 원장에 붙인다
+2. `LedgerRecalculator.onAnswerChanged(ledger, parameterId, answers)`를 호출한다
+
+`AnswerDecisions`는 앞 작업의 마지막 fix wave에서 만든 운영 팩토리다. 13인자 조립을 여기서
+다시 쓰지 않는다 — 그 사본이 테스트에만 있던 것이 앞 리뷰의 지적이었다.
+
+### 실제 배선
+
+```
+activeWhenByParameter = { jangnyang-simulator::trafficProfileId → traffic-apply }
+dependents            = { jangnyang-simulator::trafficMode → [jangnyang-simulator::trafficProfileId] }
+```
+
+`SesFieldMapping`이 `trafficMode`를 커플링 활성 지점(`coupling:교통 구역.혼잡계수->수거 경로.이동시간`)에,
+`trafficProfileId`를 교통 구역의 속성에 묶어 두고 있다. 배선은 그 대응표에서 읽은 것이지
+새로 정한 것이 아니다.
+
+지금은 교통을 껐다 켜도 이전 프로필 답변이 그대로 남는다. 이 연결 뒤에는 그 답변이 `stale`이
+되어 다시 물어야 할 자리로 드러난다.
+
+`onAnswerChanged`에 넘기는 `answers`는 `session.answers()`를 **answerField 키로 펼친** 맵이다 —
+등록된 규칙이 `trafficMode` 같은 필드명을 보기 때문이다. 서브태스크 ID를 그대로 넘기면 규칙이
+언제나 `UNKNOWN`을 돌려주고, 그러면 모든 조건부 가지가 영원히 미해결로 남는다.
+
+## 결정 3 — 조립은 보고하고, 실행은 막는다
+
+강제를 한꺼번에 켜지 않는다.
+
+| 지점 | 원장의 역할 |
+|---|---|
+| `build()` | `ledger.blocking()`을 읽어 **경고로 싣는다.** 판정은 기존 checker가 한다 |
+| `approveRun()` | **차단한다.** ① 원장 차단 상태 → 거부 ② 역검증 불일치 → 거부 |
+
+**왜 조립부터 막지 않는가**: 원장과 기존 checker는 서로 다른 기준을 쓴다. 원장은
+`BasisKind.NONE`을 미해결로 막지만 checker는 그 필드를 `required=false`로 보고 통과시킬 수
+있다. 조립부터 강제하면 지금 통과하던 구성이 갑자기 막히고, 그것이 진짜 결함인지 두 기준의
+차이인지 구분할 데이터가 없다. 실행만 막으면 앞 스펙의 요구("미해결 필수값이 있으면 실행
+패키지를 발행하지 않는다")는 달성되면서, 조립 단계의 경고가 그 데이터를 모아 준다.
+
+### 반환 계약을 바꾸지 않는다
+
+`approveRun()`은 지금 `JangnyangScenarioSpec` 아니면 `null`을 돌려주고, `ChatController`와
+테스트 넷이 그 계약에 기대고 있다. 차단은 **지금과 같은 `null`**로 표현한다 — BUILT가 아닐 때
+`null`인 것과 같은 자리다.
+
+다만 `null`은 사유를 잃는다. 그래서 spec과 차단 사유를 함께 돌려주는 `RunApproval`을 반환하는
+메서드를 하나 두고, `approveRun()`은 거기에 위임해 spec만 꺼내 준다. 기존 호출부는 손대지 않고
+새 호출부는 사유를 읽을 수 있다.
+
+## 결정 4 — 역검증 맵은 유도하고, 변환되는 것만 선언한다
+
+답변 필드와 `SimulationConfig` 필드를 대조하면 이렇게 갈린다.
+
+| | 개수 | 예 |
+|---|---|---|
+| 이름이 같다 | 21 | `days` · `capacity` · `truckType` · `trafficProfileId` |
+| 이름이 다르다 | 5 | `scenarioType` · `collectionSchedule` · `collectionTime` · `collectionTimes` · `occupationPreset` |
+
+**다른 5개는 빌더가 값을 옮기는 게 아니라 변환하는 자리다.** `scenarioType`은 `scenarioScale`이
+되고, `collectionSchedule`은 요일 목록과 주기로 갈라진다. 즉 역검증이 가장 필요한 곳이 바로
+이름이 안 맞는 곳이다.
+
+그래서 맵을 통째로 손으로 쓰지 않는다.
+
+- 이름이 같은 것은 **유도한다** — 답변 필드명을 그대로 설정 필드명으로 쓴다
+- 변환되는 것만 **선언한다**
+
+그리고 `SesFieldMapping.bindings()`의 모든 바인딩이 둘 중 하나에 반드시 속하는지 테스트가
+지킨다. 대응표에 필드가 늘거나 이름이 바뀌면 그 테스트가 먼저 깨진다.
+
+**왜 이 형태인가**: 맵을 전부 손으로 적으면 그 맵도 계약이 되고, 계약이 누락하면 그 계약으로
+만든 검증기도 같이 누락한다 — 앞 스펙의 `checkInputBindingCoverage`가 막으려던 바로 그 구조다.
+유도되지 않는 자리만 선언하고 그 경계를 테스트로 지키면, 손으로 관리하는 면적이 5줄로 줄고
+그 5줄이 낡으면 드러난다.
+
+## 테스트
+
+오류 주입과 과차단을 짝으로 둔다.
+
+| 시험 | 기대 |
+|---|---|
+| 교통을 껐다 다시 켠다 | 프로필 결정이 `stale`, 실행 차단 |
+| 미해결 필수값이 남은 채 실행 요청 | `approveRun`이 `null`, 사유가 `RunApproval`에 남음 |
+| 위와 같은 상황에서 조립 | **성공하고 경고만 실린다** (단계적 강제의 경계) |
+| 정상 골드 구성 | 조립도 실행도 막히지 않음 |
+| 설정값을 원장과 다르게 변조 | 역검증이 실행을 막음 |
+| `SesFieldMapping`의 모든 바인딩 | 유도 또는 선언 중 하나에 속함 |
+| 기존 `approveRun` 계약 | BUILT 아니면 `null`, BUILT면 spec — 그대로 |
+
+마지막 줄이 이 작업의 안전선이다. 기존 테스트 넷이 그 계약에 기대고 있으므로, 그것이 깨지면
+연결 방식을 다시 봐야 한다.
+
+## 재설계 기준
+
+- 조립 경고가 상시로 뜬다 → 두 기준의 차이가 크다는 뜻이다. 강제를 넓히기 전에 차이를 먼저 읽는다
+- 정상 구성이 실행에서 막힌다 → 원장 배선이 아니라 `activeWhenByParameter`·`dependents`를 본다
+- 역검증이 변환 5개에서만 불일치를 낸다 → 선언 맵이 틀린 것이지 빌더가 틀린 것이 아니다
+- 기존 테스트 넷 중 하나라도 깨진다 → 반환 계약을 바꾸지 않는다는 전제가 무너진 것이다
