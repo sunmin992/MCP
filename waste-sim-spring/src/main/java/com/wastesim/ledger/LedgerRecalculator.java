@@ -112,8 +112,14 @@ public final class LedgerRecalculator {
                             new ValueSource(ValueSource.NOT_APPLICABLE_BY_RULE, ruleId, null, now),
                             null, List.of(), null, null, now);
 
-            case UNKNOWN -> blocked(ledger, parameterId,
-                    BlockingReasons.ACTIVATION_UNKNOWN, current, now);
+            // 활성 여부를 아직 모른다고 해서 이미 받은 답을 지우지 않는다. "미확정을
+            // 비활성으로 접지 않는다"는 규약은 질문을 건너뛰지 말라는 뜻이었지, 손에 든
+            // 값을 버리라는 뜻이 아니었다 — 필요한지와 값이 있는지는 다른 사실이다. 뒤에
+            // 조건이 INACTIVE로 밝혀지면 그 분기가 해당 없음으로 정리하고, ACTIVE로
+            // 밝혀지면 이미 확정된 값이 그대로 선다.
+            case UNKNOWN -> (current != null && current.state().executable())
+                    ? null
+                    : blocked(ledger, parameterId, BlockingReasons.ACTIVATION_UNKNOWN, current, now);
         };
     }
 

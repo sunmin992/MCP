@@ -4,6 +4,7 @@ import com.wastesim.ledger.AnswerDecisions;
 import com.wastesim.ledger.JangnyangRules;
 import com.wastesim.ledger.LedgerRecalculator;
 import com.wastesim.ledger.ParameterLedger;
+import com.wastesim.ledger.Transformation;
 import com.wastesim.ledger.ValueSource;
 import com.wastesim.ledger.wiring.JangnyangLedgerWiring;
 import com.wastesim.tool.ErrorCode;
@@ -256,7 +257,25 @@ public class SubtaskSessionService {
                 source, basis.kind(),
                 new ValueSource(sourceTypeOf(source), subtaskId,
                         String.valueOf(def.version()), now),
-                null, now));
+                transformationOf(source, subtaskId), now));
+    }
+
+    /**
+     * {@code LLM_NORMALIZED} 값이 실제로 겪은 변환을 규칙 ID로 남긴다.
+     *
+     * <p>{@code DecisionStateMapper}가 이 출처를 {@code DERIVED}로 옮기고,
+     * {@code ParameterDecision}은 {@code DERIVED}면 변환 규칙이 반드시 있어야 한다고
+     * 강제한다 — 유도했다고 적어 놓고 어떻게 유도했는지를 비워 두면 그 값의 출처를
+     * 감사할 수 없기 때문이다. 여기서 말할 수 있는 사실은 딱 하나, "이 서브태스크의
+     * 자유 문장 답을 그 서브태스크가 정한 단 하나의 답변 필드로 정규화했다"는 것뿐이다
+     * — 그 이상(예: 어떤 모델을 썼는지, 무엇을 근거로 판단했는지)은 이 계층이 아는
+     * 사실이 아니므로 규칙 이름에 넣지 않는다. {@code inputEventRefs}는 이 변환이 읽은
+     * 것이 다른 결정이 아니라 사용자가 이 서브태스크에 낸 원문 그 자체라는 뜻으로
+     * 서브태스크 ID를 담는다.
+     */
+    private static Transformation transformationOf(SubtaskAnswerSource source, String subtaskId) {
+        if (source != SubtaskAnswerSource.LLM_NORMALIZED) return null;
+        return new Transformation("llm_free_text_to_answer_field", List.of(subtaskId));
     }
 
     /**

@@ -94,6 +94,24 @@ class LedgerRecalculatorTest {
     }
 
     @Test
+    void 조건이_모름이어도_이미_실행_가능한_값은_그대로_선다() {
+        ParameterLedger ledger = new ParameterLedger();
+        ledger.append(confirmed("sim::trafficProfileId#1", "sim::trafficProfileId", "P1"));
+
+        // trafficMode를 아예 답하지 않은 채로 넘긴다 — RuleRegistry.fieldEquals가
+        // UNKNOWN을 돌려주는 바로 그 조건이다. 사용자는 trafficProfileId에 이미 정직하게
+        // 답했으므로, 그 값을 지우면 안 된다(활성 여부를 아직 모르는 것과 값이 없는
+        // 것은 다른 사실이다).
+        recalculator().onAnswerChanged(ledger, "sim::trafficProfileId", Map.of());
+
+        ParameterDecision now = ledger.current("sim::trafficProfileId");
+        assertEquals(DecisionState.CONFIRMED, now.state(), "이미 받은 답이 UNKNOWN 통과에 지워졌다");
+        assertEquals("P1", now.normalizedValue());
+        assertEquals(1, ledger.history("sim::trafficProfileId").size(),
+                "값이 그대로라면 새 레코드가 쌓이지 않아야 한다");
+    }
+
+    @Test
     void 이미_같은_상태면_같은_레코드를_거듭_쌓지_않는다() {
         ParameterLedger ledger = new ParameterLedger();
         LedgerRecalculator r = recalculator();
