@@ -178,13 +178,37 @@ public class SubtaskSessionService {
     /**
      * 실행 승인. BUILT가 아니면 거부한다 — 조립을 거치지 않은 세션에는 실행할 설정이 없다
      * (FR-129·UT-317).
+     *
+     * <p>반환 계약은 그대로다 — 막히면 {@code null}. 사유가 필요하면
+     * {@link #approveRunChecked(String)}을 쓴다.
      */
     public JangnyangScenarioSpec approveRun(String sessionKey) {
+        return approveRunChecked(sessionKey).spec();
+    }
+
+    /**
+     * 실행 승인과 그 사유.
+     *
+     * <p><b>여기서만 원장을 강제한다.</b> 조립 단계는 경고만 싣는다 — 원장과 기존 checker는
+     * 기준이 달라, 조립부터 막으면 지금 통과하던 구성이 갑자기 막히고 그것이 진짜 결함인지
+     * 두 기준의 차이인지 구분할 데이터가 없다. 실행만 막아도 "미해결 필수값이 있으면 실행
+     * 패키지를 발행하지 않는다"는 요구는 달성된다.
+     */
+    public RunApproval approveRunChecked(String sessionKey) {
         JangnyangSubtaskSession session = store.find(sessionKey);
-        if (session == null || !session.state().canRun()) return null;
+        if (session == null || !session.state().canRun()) {
+            return RunApproval.blocked(List.of("아직 실행할 수 있는 상태가 아닙니다."));
+        }
+
+        List<String> blocks = ledgerWarningsOf(session);
+        if (!blocks.isEmpty()) {
+            // 상태를 올리지 않는다 — BUILT에 머물러야 사용자가 답을 고쳐 다시 시도할 수 있다.
+            return RunApproval.blocked(blocks);
+        }
+
         session.transitionTo(SubtaskState.RUNNING);
         store.save(session);
-        return session.spec();
+        return RunApproval.approved(session.spec());
     }
 
     /** 실행이 끝났다. 성공이면 COMPLETED, 실패면 BUILT로 되돌려 다시 시도할 수 있게 한다. */
