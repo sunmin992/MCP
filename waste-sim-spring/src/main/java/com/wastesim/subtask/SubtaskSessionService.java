@@ -1,6 +1,8 @@
 package com.wastesim.subtask;
 
 import com.wastesim.ledger.AnswerDecisions;
+import com.wastesim.ledger.JangnyangRules;
+import com.wastesim.ledger.LedgerRecalculator;
 import com.wastesim.ledger.ParameterLedger;
 import com.wastesim.ledger.ValueSource;
 import com.wastesim.ledger.wiring.JangnyangLedgerWiring;
@@ -31,6 +33,18 @@ public class SubtaskSessionService {
     private final JangnyangCompletenessChecker checker;
     private final JangnyangScenarioBuilder builder;
     private final SubtaskSessionStore store;
+
+    /**
+     * 구조를 바꾸는 답변이 왔을 때 원장을 다시 계산한다.
+     *
+     * <p>배선이 고정돼 있어 인스턴스를 매번 만들 이유가 없다. 생성자에서 미등록 규칙 ID를
+     * 걸러 내므로, 배선이 낡으면 서비스 조립 시점에 드러난다 — 실행 중에 조용히
+     * {@code UNKNOWN}으로 떨어지는 것보다 낫다.
+     */
+    private final LedgerRecalculator recalculator = new LedgerRecalculator(
+            JangnyangRules.registry(),
+            JangnyangLedgerWiring.activeWhenByParameter(),
+            JangnyangLedgerWiring.dependents());
 
     public SubtaskSessionService(JangnyangSubtaskCatalog catalog,
                                  JangnyangSubtaskValidator validator,
@@ -111,6 +125,7 @@ public class SubtaskSessionService {
                 def, Map.of(targetId, value == null ? "" : value), session.answers(), source);
         session.apply(result);
         recordDecision(session, def, targetId, value, source);
+        recalculate(session, def, targetId);
 
         if (session.nextSubtask(def, checker) == null
                 && checker.check(def, session.answers()).sufficient()) {
@@ -230,6 +245,39 @@ public class SubtaskSessionService {
                 new ValueSource(sourceTypeOf(source), subtaskId,
                         String.valueOf(def.version()), now),
                 null, now));
+    }
+
+    /**
+     * 이번 답변을 기준으로 활성 구조와 종속 값을 다시 계산한다.
+     *
+     * <p>{@link SubtaskState}는 손대지 않는다 — {@code READY → COLLECTING} 전이가 이미
+     * 허용돼 있다. 여기서 하는 일은 그 전이를 일으켜야 할 때를 알아내는 것이다.
+     */
+    private void recalculate(JangnyangSubtaskSession session, JangnyangSubtaskDefinition def,
+                             String subtaskId) {
+        JangnyangSubtask subtask = def.byId(subtaskId);
+        if (subtask == null) return;
+        recalculator.onAnswerChanged(session.ledger(),
+                JangnyangLedgerWiring.parameterIdOf(subtask.answerField()),
+                answersByField(session, def));
+    }
+
+    /**
+     * 세션의 답변을 <b>답변 필드명</b>으로 펼친다.
+     *
+     * <p>등록된 활성 규칙은 {@code trafficMode} 같은 필드명을 본다. 서브태스크 ID를 그대로
+     * 넘기면 규칙이 언제나 {@code UNKNOWN}을 돌려주고, 그러면 모든 조건부 가지가 영원히
+     * 미해결로 남아 아무것도 실행할 수 없게 된다.
+     */
+    private static Map<String, Object> answersByField(JangnyangSubtaskSession session,
+                                                      JangnyangSubtaskDefinition def) {
+        Map<String, Object> byField = new LinkedHashMap<>();
+        for (Map.Entry<String, JangnyangSubtaskAnswer> e : session.answers().entrySet()) {
+            JangnyangSubtask s = def.byId(e.getKey());
+            if (s == null || !e.getValue().valid()) continue;
+            byField.put(s.answerField(), e.getValue().value());
+        }
+        return byField;
     }
 
     /** 답변 출처를 원장의 출처 종류로 옮긴다. 없는 이름을 지어내지 않는다. */
