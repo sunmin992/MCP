@@ -10,14 +10,25 @@ import java.util.*;
 public final class ScenarioLedgerGate {
     private ScenarioLedgerGate() { }
 
+    /**
+     * 역검증이 값을 대조할 설정 필드 → 매개변수 ID.
+     *
+     * <p>배선이 내준 것을 그대로 돌려준다. 이 메서드가 따로 있는 이유는 게이트가 제
+     * 사본을 덧붙이지 않는다는 사실을 테스트가 확인할 자리를 주기 위해서다 — 여기에
+     * 한 줄이 늘면 배선과 같지 않다는 것이 바로 드러난다.
+     */
+    public static Map<String, String> verifiedFields() {
+        return JangnyangLedgerWiring.fieldToParameterId();
+    }
+
     public static List<String> verify(JangnyangSubtaskDefinition def,
                                       Map<String, JangnyangSubtaskAnswer> answers,
                                       JangnyangScenarioSpec spec) {
         ParameterLedger expected = new ParameterLedger();
         Map<String, String> bindings = new LinkedHashMap<>();
-        Map<String, String> candidates = new LinkedHashMap<>(JangnyangLedgerWiring.fieldToParameterId());
-        candidates.put("collectionTimeMinutes", JangnyangLedgerWiring.parameterIdOf("collectionTime"));
-        candidates.put("numTrucks", JangnyangLedgerWiring.parameterIdOf("truckCount"));
+        // 역검증 대상은 배선이 전부 정한다. 여기서 한 줄이라도 더하면 배선이 선언한
+        // 제외가 뒤집히고, 배선만 보는 테스트에는 그 뒤집힘이 보이지 않는다.
+        Map<String, String> candidates = verifiedFields();
         List<String> blocks = new ArrayList<>();
         for (var entry : candidates.entrySet()) {
             String field = ParameterId.fieldOf(entry.getValue());

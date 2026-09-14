@@ -3,6 +3,7 @@ package com.wastesim.ledger.wiring;
 import com.wastesim.ledger.JangnyangRules;
 import com.wastesim.registry.SimulationConfigFields;
 import com.wastesim.ses.SesFieldMapping;
+import com.wastesim.subtask.ScenarioLedgerGate;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -33,12 +34,13 @@ class JangnyangLedgerWiringTest {
     }
 
     @Test
-    void 대응표의_모든_바인딩이_유도되거나_제외_선언돼_있다() {
+    void 대응표의_모든_바인딩이_유도되거나_개명되거나_제외_선언돼_있다() {
         Set<String> verified = JangnyangLedgerWiring.fieldToParameterId().keySet();
+        Set<String> renamed = Set.copyOf(JangnyangLedgerWiring.RENAMED.values());
         Set<String> excluded = JangnyangLedgerWiring.TRANSFORMED_FIELDS.keySet();
 
         List<String> unclassified = allAnswerFields().stream()
-                .filter(f -> !verified.contains(f) && !excluded.contains(f))
+                .filter(f -> !verified.contains(f) && !renamed.contains(f) && !excluded.contains(f))
                 .sorted().toList();
 
         assertEquals(List.of(), unclassified,
@@ -64,12 +66,30 @@ class JangnyangLedgerWiringTest {
                 "역검증이 읽을 수 없는 필드를 매핑했다: " + missing);
     }
 
+    /**
+     * 제외 선언은 <b>게이트가 실제로 쓰는 맵</b>에 대해 참이어야 한다. 배선의 맵만 보면,
+     * 게이트가 제 사본에 다시 넣어 둔 필드는 선언과 반대로 검증되고 있는데도 통과한다.
+     */
     @Test
-    void 변환되는_필드는_역검증_맵에_들어가지_않는다() {
+    void 변환되는_필드는_게이트가_쓰는_역검증_맵에_들어가지_않는다() {
+        Map<String, String> used = ScenarioLedgerGate.verifiedFields();
         for (String transformed : JangnyangLedgerWiring.TRANSFORMED_FIELDS.keySet()) {
-            assertFalse(JangnyangLedgerWiring.fieldToParameterId().containsKey(transformed),
+            assertFalse(used.containsKey(transformed),
                     transformed + "은 값을 대조할 수 없는데 역검증 맵에 들어 있다");
         }
+    }
+
+    @Test
+    void 게이트는_배선이_내준_것_말고는_역검증하지_않는다() {
+        assertEquals(JangnyangLedgerWiring.fieldToParameterId(), ScenarioLedgerGate.verifiedFields(),
+                "필드를 대응시키는 자리가 둘이 되면 한쪽만 늘어난 날 서로 다른 사실을 말한다");
+    }
+
+    @Test
+    void 개명된_필드는_설정_이름으로_역검증에_들어간다() {
+        assertEquals(JangnyangLedgerWiring.parameterIdOf("collectionTime"),
+                ScenarioLedgerGate.verifiedFields().get("collectionTimeMinutes"),
+                "값이 그대로 옮겨지는 자리는 이름만 달라도 대조할 수 있다");
     }
 
     @Test

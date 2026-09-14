@@ -35,12 +35,25 @@ public final class JangnyangLedgerWiring {
     public static final Map<String, String> TRANSFORMED_FIELDS = Map.of(
             "scenarioType", "실행 규모·도구 선택으로 갈라진다 — 같은 이름의 설정 필드가 없다",
             "collectionSchedule", "값에 따라 collectionIntervalDays 또는 collectionDaysOfWeek로 갈라진다",
-            "collectionTime", "값은 그대로 collectionTimeMinutes로 옮겨진다(개명) — 이름이 달라 지금은"
-                    + " 유도되지 않는다. 이름 대응 경로가 생기기 전까지 여기 남긴다",
             "collectionTimes", "수거 시각 목록(collectionTimesMinutes)으로 합쳐진다",
             "occupationPreset", "프리셋 키가 비율 목록(occupationMix)이 된다",
             "dischargeWindow", "두 원소 목록이 dischargeWindowStartMinutes와 dischargeWindowEndMinutes 두 필드로 갈라진다",
             "trafficMode", "NONE 여부만 남아 trafficEnabled 불리언으로 바뀐다 — 같은 이름의 설정 필드가 없다");
+
+    /**
+     * 값은 <b>그대로 옮겨지는데 이름만 다른</b> 자리. 설정 필드명 → 답변 필드명.
+     *
+     * <p><b>왜 제외가 아니라 별도의 맵인가</b>: 변환은 대조할 수 없어서 빼는 것이지만
+     * 개명은 대조할 수 있다 — 값이 같은지 물을 수 있는데도 제외로 적어 두면 검증할 수
+     * 있는 자리를 검증하지 않기로 선언한 것이 되고, 그 선언이 참이라고 믿은 다음 사람은
+     * 이 필드의 불일치를 아무도 보지 않는다는 사실을 모른다.
+     *
+     * <p><b>왜 배선이 들고 있는가</b>: 이름 대응을 쓰는 쪽(게이트)이 제 사본을 따로 두면
+     * 필드를 대응시키는 자리가 둘이 되고, 한쪽만 늘어난 날 두 자리가 서로 다른 사실을
+     * 말한다 — 이 클래스가 막으려던 바로 그 구조다.
+     */
+    public static final Map<String, String> RENAMED = Map.of(
+            "collectionTimeMinutes", "collectionTime");
 
     private JangnyangLedgerWiring() { }
 
@@ -50,11 +63,14 @@ public final class JangnyangLedgerWiring {
     }
 
     /**
-     * 설정 필드명 → 매개변수 ID. <b>이름이 같고 실제 게터가 있는 것만</b> 담는다.
+     * 설정 필드명 → 매개변수 ID. 이름이 같고 실제 게터가 있는 것에 {@link #RENAMED}를 더한다.
      *
      * <p>{@link SimulationConfigFields#all()}로 걸러 내는 이유는, 대응표에만 있고 실행
      * 설정에는 없는 이름을 넘기면 역검증이 "게터를 찾을 수 없습니다"로 정상 구성을 막기
      * 때문이다.
+     *
+     * <p>개명된 자리를 여기서 함께 내주는 이유는, 이 맵 하나가 "역검증이 보는 전부"여야
+     * 쓰는 쪽이 제 사본을 덧붙일 이유가 사라지기 때문이다.
      */
     public static Map<String, String> fieldToParameterId() {
         Set<String> real = SimulationConfigFields.all();
@@ -64,6 +80,10 @@ public final class JangnyangLedgerWiring {
             if (TRANSFORMED_FIELDS.containsKey(field)) continue;
             if (!real.contains(field)) continue;
             map.put(field, parameterIdOf(field));
+        }
+        for (Map.Entry<String, String> e : RENAMED.entrySet()) {
+            if (!real.contains(e.getKey())) continue;
+            map.put(e.getKey(), parameterIdOf(e.getValue()));
         }
         return Map.copyOf(map);
     }
