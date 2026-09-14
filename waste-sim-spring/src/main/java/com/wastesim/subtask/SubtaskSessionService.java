@@ -1,8 +1,13 @@
 package com.wastesim.subtask;
 
+import com.wastesim.ledger.AnswerDecisions;
+import com.wastesim.ledger.ParameterLedger;
+import com.wastesim.ledger.ValueSource;
+import com.wastesim.ledger.wiring.JangnyangLedgerWiring;
 import com.wastesim.tool.ErrorCode;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -105,6 +110,7 @@ public class SubtaskSessionService {
         SubtaskValidationResult result = validator.validate(
                 def, Map.of(targetId, value == null ? "" : value), session.answers(), source);
         session.apply(result);
+        recordDecision(session, def, targetId, value, source);
 
         if (session.nextSubtask(def, checker) == null
                 && checker.check(def, session.answers()).sufficient()) {
@@ -188,6 +194,51 @@ public class SubtaskSessionService {
 
     private static String idOf(JangnyangSubtask s) {
         return s == null ? null : s.id();
+    }
+
+    /**
+     * 이번 답변을 원장에 남긴다.
+     *
+     * <p><b>왜 검증 뒤에 남기는가</b>: 검증을 통과하지 못한 값을 확정으로 쌓으면, 세션은
+     * 거부했는데 원장은 받아들인 상태가 된다. 원장이 실행을 여는 근거가 되므로 그 어긋남은
+     * 곧 잘못된 값의 실행 경로가 된다.
+     *
+     * <p>13인자 조립을 여기서 다시 쓰지 않고 {@link AnswerDecisions#fromAnswer}에 맡긴다 —
+     * 그 사본이 테스트에만 있던 것이 앞 작업에서 지적된 자리다.
+     */
+    private void recordDecision(JangnyangSubtaskSession session, JangnyangSubtaskDefinition def,
+                                String subtaskId, Object rawValue, SubtaskAnswerSource source) {
+        JangnyangSubtask subtask = def.byId(subtaskId);
+        if (subtask == null) return;
+
+        JangnyangSubtaskAnswer accepted = session.answers().get(subtaskId);
+        // 검증기가 거부했으면 세션에 통과한 답이 없다. 원장에도 확정값을 남기지 않는다.
+        if (accepted == null || !accepted.valid()) return;
+
+        String parameterId = JangnyangLedgerWiring.parameterIdOf(subtask.answerField());
+        ParameterLedger ledger = session.ledger();
+        Instant now = Instant.now();
+
+        // v3까지는 basis 선언이 없어 null이다(JangnyangSubtask 문서) — 선언이 없다는 뜻이지
+        // 근거가 있다는 뜻이 아니므로 GapResolver와 같은 기준으로 FieldBasis.unknown()을 쓴다.
+        FieldBasis basis = subtask.basis() != null ? subtask.basis() : FieldBasis.unknown();
+
+        ledger.append(AnswerDecisions.fromAnswer(
+                ledger.nextDecisionId(parameterId), parameterId,
+                rawValue, accepted.value(),
+                source, basis.kind(),
+                new ValueSource(sourceTypeOf(source), subtaskId,
+                        String.valueOf(def.version()), now),
+                null, now));
+    }
+
+    /** 답변 출처를 원장의 출처 종류로 옮긴다. 없는 이름을 지어내지 않는다. */
+    private static String sourceTypeOf(SubtaskAnswerSource source) {
+        return switch (source) {
+            case USER_DIRECT -> "user_explicit";
+            case LLM_NORMALIZED -> "llm_normalized";
+            case SERVER_DEFAULT -> "asset_contract";
+        };
     }
 
     /**
