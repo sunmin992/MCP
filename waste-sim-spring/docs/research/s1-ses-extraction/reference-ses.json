@@ -3,7 +3,7 @@
   "name": "장량동 생활쓰레기 수거 시뮬레이터",
   "version": "ref-v8",
   "source": "LLM-SES-구성-실험-방법론 v2의 교정 구조",
-  "status": "근거 대조 완료 + 스키마 확장 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다. ref-v8 재편 진행 중 — 2026-09-16. 엔티티는 62개이고, 위 '51개'는 재편 전 수를 가리킨다. 새로 넣은 11개(설정 6 · 시스템 5)는 아직 껍데기이고 근거가 없다 — 이어지는 작업이 채운다.",
+  "status": "근거 대조 완료 + 스키마 확장 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다. ref-v8 재편 완료 — 2026-09-16. 엔티티 62개(설정 6 · 시스템 5를 새로 넣었다). 위 '51개'는 재편 전 수다. 62개 모두 근거를 갖는다 — 다만 생활쓰레기 수거 모델은 엔티티 자체의 근거 키 없이 속성 근거 둘(1인배출량 · 배출량변동)만 갖는다. 재편 전 대상 시스템이 그랬고 개명이 그대로 물려받았다. 구성 결정 29개가 시뮬레이션 설정 아래 자리를 얻었고 sets 가 모델 자리에 잇는다 — 문항 16·17이 수거시각 하나를 공유하므로 sets 항목은 28개다.",
   "note": "ses-overview.svg(이전 판)가 아니라 v2 교정판을 정답지로 쓴다. v1은 실행 엔진·이벤트 시스템을 구조 트리의 형제로 둔 명백한 오류를 포함한다.",
   "verified_against": "물려받은 근거 87건: develop @ 8b3d67f (ref-v7 의 검증 기준). 12937be 로 재검증하지 않았다 — SimulationEngine 의 행번호가 3줄가량 밀렸다. 새 엔티티 11건의 근거: develop @ 12937be 에서 확인. src/main/java/com/wastesim/**",
   "corrections": [
@@ -38,12 +38,15 @@
    "ref-v8 재편 — 최상위를 시스템 구성 골격으로 바꿨다. 대상 시스템→생활쓰레기 수거 모델 · 실험→시나리오 실험 · 관측→시뮬레이션 결과. 엔진 실행·이벤트 실행 시스템은 넣지 않는다 — ref-v7이 실행 수단으로 제외한 판단을 유지한다(_meta.note)",
    "대상 시스템의 자식 7개를 DEVS 모델 구성 5종 아래로 한 계층 내렸다. 자식 자체는 바뀌지 않는다. 다섯 시스템의 근거는 묶음의 근거다 — 새 개체를 주장하는 것이 아니라, 이미 근거가 있는 개체들이 코드에서 한 덩어리로 돈다는 사실을 가리킨다",
    "verified_against 를 둘로 나눴다 — 물려받은 근거 87건은 8b3d67f 기준이고 재검증하지 않았다. ref-v8 재편이 코드를 다시 읽은 것은 새 엔티티 11건뿐이다. 하지 않은 검증을 주장하지 않는다",
-   "새 시스템 근거의 행번호를 현재 HEAD 로 맞췄다 — 적재 지점은 :454, peak 갱신은 :455 다. 물려받은 근거는 8b3d67f 기준으로 그대로 둔다"
+   "새 시스템 근거의 행번호를 현재 HEAD 로 맞췄다 — 적재 지점은 :454, peak 갱신은 :455 다. 물려받은 근거는 8b3d67f 기준으로 그대로 둔다",
+   "시뮬레이션 설정 가지를 세우고 구성결정-SES-대응표의 29개를 sets로 이었다. 설정 엔티티는 모델 엔티티를 다시 소유하지 않는다 — 부모가 둘이 되기 때문이다. 축을 고르는 결정은 선택자 속성 하나로만 적는다. 넣지 않은 5개(simulationGoal·engine·승인 3종)는 그대로 둔다",
+   "용량 근거를 두 단계로 나눠 적었다 — 문항 답변은 JangnyangScenarioBuilder:205 에서 setCapacity 로 들어가고, WasteType.single 은 SimulationConfig.resolveWasteTypes():416 에서 불린다. 한 줄로 압축하니 행번호가 엉뚱한 쪽에 붙어 있었다"
   ],
   "schema_extensions": {
    "active_when": "결합이 어떤 선택에서만 활성인가. SES pruning을 결합에 명시하는 최소 표현이다. 없으면 항상 활성.",
    "attr_spec": "속성의 성질. kind(타입) · arity(개수) · over(어느 축에 대한 분포인가). 선택적이며, 이름만으로 모호한 자리에만 적는다.",
-   "_주의": "S1-추출절차.md 3절 프롬프트에는 넣지 않았다(조건 (가)). 추출기는 이 구성물을 낼 수 없으므로 그만큼은 처음부터 재현 불가로 남는다 — 기존 실행 12건(C·Cs·Csr·Cd)과의 비교를 보존하기 위한 선택이다. score_ses.py도 이 둘을 채점하지 않는다."
+   "_주의": "S1-추출절차.md 3절 프롬프트에는 넣지 않았다(조건 (가)). 추출기는 이 구성물을 낼 수 없으므로 그만큼은 처음부터 재현 불가로 남는다 — 기존 실행 12건(C·Cs·Csr·Cd)과의 비교를 보존하기 위한 선택이다. score_ses.py도 이 둘을 채점하지 않는다.",
+   "sets": "설정의 한 결정이 모델 트리의 어느 자리를 정하는가. target은 '엔티티.속성' 또는 '엔티티.축이름' 이고, 후자는 그 결정이 spec 축에서 하나를 고른다는 뜻이다. 문항 24 교통모드 한 건만 결합의 active_when을 가리켜 형식이 다르다. active_when·attr_spec과 같이 추출 프롬프트에 넣지 않으며 score_ses.py도 채점하지 않는다"
   }
  },
  "root": "장량동 생활쓰레기 수거 시뮬레이터",
@@ -520,27 +523,194 @@
   },
   "시뮬레이션 설정": {
    "attrs": [],
-   "decompositions": []
+   "decompositions": [
+    {
+     "kind": "aspect",
+     "name": "설정 구성",
+     "children": [
+      "거주민·배출 설정",
+      "수거지점·폐기물 설정",
+      "차량·수거 설정",
+      "교통·경로 설정",
+      "실험 설정"
+     ]
+    }
+   ]
   },
   "거주민·배출 설정": {
-   "attrs": [],
-   "decompositions": []
+   "attrs": [
+    "거주민수",
+    "직업구성",
+    "1인배출량",
+    "배출량변동",
+    "외출시각변동",
+    "배출시각모델",
+    "배출허용창"
+   ],
+   "decompositions": [],
+   "sets": {
+    "거주민수": {
+     "target": "거주민 집합.개수",
+     "evidence": "문항 5 residentsPerBuilding -> setResidentsPerBuilding(JangnyangScenarioBuilder:235). multi-aspect의 건물당 복제 수"
+    },
+    "직업구성": {
+     "target": "거주민 집합.직업구성",
+     "evidence": "문항 6 occupationPreset -> 직업 배정 목록(:241). 직업 축 자식들에 대한 분포다"
+    },
+    "1인배출량": {
+     "target": "생활쓰레기 수거 모델.1인배출량",
+     "evidence": "문항 9 wasteMeanKg -> SimulationConfig.wasteMeanKg:26. 거주민별이 아니라 전역값이다"
+    },
+    "배출량변동": {
+     "target": "생활쓰레기 수거 모델.배출량변동",
+     "evidence": "문항 10 wasteSigma -> setWasteSigma. 배출량이 전역이므로 그 변동도 전역이다"
+    },
+    "외출시각변동": {
+     "target": "거주민.외출시각변동",
+     "evidence": "문항 11 leaveSigma -> sampleOffset"
+    },
+    "배출시각모델": {
+     "target": "거주민.배출시각 모델 축",
+     "evidence": "문항 12 dischargeTimeMode -> dischargeOffset 분기. spec 축에서 하나를 고른다"
+    },
+    "배출허용창": {
+     "target": "포항시 배출시간대 기반.배출허용창",
+     "evidence": "문항 13 dischargeWindow -> getDischargeWindowStartMinutes + span. 코드는 창 안에서 균등 추출한다"
+    }
+   }
   },
   "수거지점·폐기물 설정": {
-   "attrs": [],
-   "decompositions": []
+   "attrs": [
+    "수거지점수",
+    "용량",
+    "임계값"
+   ],
+   "decompositions": [],
+   "sets": {
+    "수거지점수": {
+     "target": "수거지점 집합.개수",
+     "evidence": "문항 4 numBuildings -> setNumBuildings(:204). multi-aspect의 복제 수"
+    },
+    "용량": {
+     "target": "폐기물 유형.용량",
+     "evidence": "문항 14 capacity -> JangnyangScenarioBuilder:205 setCapacity -> SimulationConfig.resolveWasteTypes():416 WasteType.single(capacity, threshold, intervalDays). 소유자는 지점이 아니라 유형이다 — CP-2"
+    },
+    "임계값": {
+     "target": "폐기물 유형.임계값",
+     "evidence": "문항 15 threshold -> WasteType.threshold:22, 기본값은 전역 cfg.threshold:28. 분리배출을 켜면 유형별로 달라진다 — CP-2"
+    }
+   }
   },
   "차량·수거 설정": {
-   "attrs": [],
-   "decompositions": []
+   "attrs": [
+    "수거시각",
+    "수거요일",
+    "차종",
+    "차량수",
+    "적재용량",
+    "초기적재량",
+    "배차간격",
+    "지점당수거시간"
+   ],
+   "decompositions": [],
+   "sets": {
+    "수거시각": {
+     "target": "수거차량.수거시각",
+     "evidence": "문항 16 collectionTime -> setCollectionTimeMinutes · 문항 17 collectionTimes -> 하루 여러 슬롯. 같은 결정의 목록형이다"
+    },
+    "수거요일": {
+     "target": "수거차량.수거요일",
+     "evidence": "문항 18 collectionSchedule -> setCollectionIntervalDays / applyDaysOfWeek 분기"
+    },
+    "차종": {
+     "target": "수거차량.차종 축",
+     "evidence": "문항 19 truckType -> setTruckType. spec 축에서 하나를 고른다"
+    },
+    "차량수": {
+     "target": "수거차량 집합.개수",
+     "evidence": "문항 20 truckCount -> setNumTrucks(:212)"
+    },
+    "적재용량": {
+     "target": "수거차량.적재용량",
+     "evidence": "문항 21 routeAvailableCapacityKg -> setRouteAvailableCapacityKg"
+    },
+    "초기적재량": {
+     "target": "수거차량.초기적재량",
+     "evidence": "문항 22 initialTruckLoadKg -> setInitialTruckLoadKg"
+    },
+    "배차간격": {
+     "target": "수거차량.배차간격",
+     "evidence": "문항 23 dispatchIntervalMinutes -> setDispatchIntervalMinutes"
+    },
+    "지점당수거시간": {
+     "target": "수거차량.지점당수거시간",
+     "evidence": "문항 28 serviceMinutesPerSite -> 모든 지점에 더하는 정차시간"
+    }
+   }
   },
   "교통·경로 설정": {
-   "attrs": [],
-   "decompositions": []
+   "attrs": [
+    "교통모드",
+    "시간대프로파일",
+    "이동시간방식",
+    "구간이동시간",
+    "구역내이동시간",
+    "구역배정가정",
+    "방문순서"
+   ],
+   "decompositions": [],
+   "sets": {
+    "교통모드": {
+     "target": "결합: 교통 구역.혼잡계수 -> 수거 경로.이동시간 · 교통혼잡 판정.판정 의 active_when",
+     "evidence": "문항 24 trafficMode -> setTrafficEnabled(:338). NONE이면 trafficProfile이 null이라 결합 둘이 통째로 죽는다(SimulationEngine:271 · 330-339). 속성이 아니라 결합의 활성 조건을 정하는 유일한 결정이다"
+    },
+    "시간대프로파일": {
+     "target": "교통 구역.시간대프로파일",
+     "evidence": "문항 25 trafficProfileId -> setTrafficProfileId"
+    },
+    "이동시간방식": {
+     "target": "수거 경로.이동시간 방식 축",
+     "evidence": "문항 26 travelTimeMode -> TravelTimeCalculator 분기. CP-4가 이것으로 확정된다"
+    },
+    "구간이동시간": {
+     "target": "구간 상수.구간이동시간",
+     "evidence": "문항 27 routeTravelMinutes -> hopMinutes의 상수 항"
+    },
+    "구역내이동시간": {
+     "target": "교통구역 근사.구역내이동시간",
+     "evidence": "문항 29 intraZoneTravelMinutes -> 같은 구역 안 이동"
+    },
+    "구역배정가정": {
+     "target": "교통구역 근사.구역배정가정",
+     "evidence": "문항 30 zoneAssignmentRule -> 건물에서 구역으로의 배정 가정"
+    },
+    "방문순서": {
+     "target": "수거 경로.방문순서",
+     "evidence": "문항 31 routeSequence -> RoutePlanner 방문 순서"
+    }
+   }
   },
   "실험 설정": {
-   "attrs": [],
-   "decompositions": []
+   "attrs": [
+    "실험유형",
+    "기간",
+    "반복횟수"
+   ],
+   "decompositions": [],
+   "sets": {
+    "실험유형": {
+     "target": "시나리오 실험.실험 유형 축",
+     "evidence": "문항 2 scenarioType -> spec.scenarioType() 실행 유형 분기"
+    },
+    "기간": {
+     "target": "시나리오 실험.기간",
+     "evidence": "문항 7 days -> setDays(:202)"
+    },
+    "반복횟수": {
+     "target": "시나리오 실험.반복횟수",
+     "evidence": "문항 8 seeds -> setSeeds"
+    }
+   }
   },
   "거주민 배출 시스템": {
    "attrs": [],
@@ -769,6 +939,12 @@
   "수거장 적재 시스템": "SimulationEngine:454 fill[building][type] += amount * WasteType.fraction · peak 갱신(:455). 적재 상태를 갖는 것은 수거지점과 폐기물 유형 둘뿐이다",
   "차량 수거 시스템": "SimulationEngine CollectEvt(213) 처리(:416-425) · TruckType 용량과 기동성. 수거차량 집합이 수거를 수행하는 한 덩어리다",
   "경로 교통 시스템": "RoutePlanner.assignRoutes(cfg) 로 경로를 짜고 TravelTimeCalculator·TrafficProfile 이 이동시간을 정한다(SimulationEngine:336,:343). 경로와 교통 구역은 함께 움직인다",
-  "민원 감시 시스템": "SimulationEngine:460 wasteOverflowComplaints++ · :473 landlordComplaints++ · :483 total. InspectEvt(236)가 별도 시각에 도착한다. 판정 셋이 한 덩어리다"
+  "민원 감시 시스템": "SimulationEngine:460 wasteOverflowComplaints++ · :473 landlordComplaints++ · :483 total. InspectEvt(236)가 별도 시각에 도착한다. 판정 셋이 한 덩어리다",
+  "거주민·배출 설정": "JangnyangScenarioBuilder.toConfig() 거주민·배출 구간(:227-241)",
+  "수거지점·폐기물 설정": "JangnyangScenarioBuilder.toConfig() 지점·유형 구간(:204-205)",
+  "차량·수거 설정": "JangnyangScenarioBuilder.toConfig() 차량 구간(:212 외)",
+  "교통·경로 설정": "JangnyangScenarioBuilder.toConfig() 교통·경로 구간(:338 외)",
+  "실험 설정": "JangnyangScenarioBuilder.toConfig() 실험 구간(:202 외)",
+  "시뮬레이션 설정": "model/SimulationConfig.java:10 — 문항 답변이 모이는 자리. JangnyangScenarioBuilder.toConfig():193 이 답변을 이 객체로 옮긴다"
  }
 }
