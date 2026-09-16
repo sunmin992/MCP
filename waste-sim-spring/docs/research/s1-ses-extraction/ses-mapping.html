@@ -42,18 +42,18 @@ footer{margin-top:18px;padding-top:10px;border-top:1px solid var(--line);
        color:var(--dim);font-size:11.5px}
 </style>
 <h1>구성 결정 34개가 SES의 어디에 앉는가</h1>
-<div class='sub'>문항 세트 <code>jangnyang-simulator-v4</code> · ref-v7 · 자리를 가진 것 <b>29</b> / 34 · 대조 전에는 4개였다 · 대응 근거는 <code>JangnyangScenarioBuilder.toConfig()</code>의 소비 지점</div>
+<div class='sub'>문항 세트 <code>jangnyang-simulator-v4</code> · ref-v8 · 자리를 가진 것 <b>29</b> / 34 · 대조 전에는 4개였다 · 대응 근거는 <code>JangnyangScenarioBuilder.toConfig()</code>의 소비 지점</div>
 <table><tr><th class='n'>#</th><th>문항 필드</th><th>타입</th><th>SES 자리 · 또는 넣지 않은 사유</th></tr>
 <tr><td class='n'>1</td><td><code>simulationGoal</code></td><td style='color:#6b7480;font-size:11.5px'>STRING</td><td><span class='out'>—</span> 기록용 — 빌더가 “계산에 쓰이지 않는 항목”이라고 적는다</td></tr>
-<tr><td class='n'>2</td><td><code>scenarioType</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>실험</code> · <code>단일 실행</code> · <code>직업 구성 실험</code> · <code>수거시각 실험</code> · <code>배출행동 실험</code> · <code>용량·임계값 실험</code> · <code>밀도 실험</code> · <code>수거일정 실험</code> · <code>다중차량 실험</code> · <code>분리배출 실험</code> · <code>확장직업 실험</code> · <code>결합변형 실험</code> · <code>월별배출 실험</code> · <code>차종·방문순서 실험</code></td></tr>
+<tr><td class='n'>2</td><td><code>scenarioType</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>시나리오 실험</code> · <code>단일 실행</code> · <code>직업 구성 실험</code> · <code>수거시각 실험</code> · <code>배출행동 실험</code> · <code>용량·임계값 실험</code> · <code>밀도 실험</code> · <code>수거일정 실험</code> · <code>다중차량 실험</code> · <code>분리배출 실험</code> · <code>확장직업 실험</code> · <code>결합변형 실험</code> · <code>월별배출 실험</code> · <code>차종·방문순서 실험</code></td></tr>
 <tr><td class='n'>3</td><td><code>engine</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><span class='out'>—</span> 실행 수단 — java/python 어댑터 선택. 대상 시스템의 성질이 아니다</td></tr>
 <tr><td class='n'>4</td><td><code>numBuildings</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>수거지점 집합.개수</code></td></tr>
 <tr><td class='n'>5</td><td><code>residentsPerBuilding</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>거주민 집합.개수</code></td></tr>
 <tr><td class='n'>6</td><td><code>occupationPreset</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>거주민 집합.직업구성</code> · <code>거주민 집합.직업구성 (attr_spec)</code></td></tr>
-<tr><td class='n'>7</td><td><code>days</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>실험.기간</code></td></tr>
-<tr><td class='n'>8</td><td><code>seeds</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>실험.반복횟수</code></td></tr>
-<tr><td class='n'>9</td><td><code>wasteMeanKg</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>대상 시스템.1인배출량</code></td></tr>
-<tr><td class='n'>10</td><td><code>wasteSigma</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>대상 시스템.배출량변동</code></td></tr>
+<tr><td class='n'>7</td><td><code>days</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>시나리오 실험.기간</code></td></tr>
+<tr><td class='n'>8</td><td><code>seeds</code></td><td style='color:#6b7480;font-size:11.5px'>INTEGER</td><td><code>시나리오 실험.반복횟수</code></td></tr>
+<tr><td class='n'>9</td><td><code>wasteMeanKg</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>생활쓰레기 수거 모델.1인배출량</code></td></tr>
+<tr><td class='n'>10</td><td><code>wasteSigma</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>생활쓰레기 수거 모델.배출량변동</code></td></tr>
 <tr><td class='n'>11</td><td><code>leaveSigma</code></td><td style='color:#6b7480;font-size:11.5px'>NUMBER</td><td><code>거주민.외출시각변동</code></td></tr>
 <tr><td class='n'>12</td><td><code>dischargeTimeMode</code></td><td style='color:#6b7480;font-size:11.5px'>ENUM</td><td><code>거주민</code></td></tr>
 <tr><td class='n'>13</td><td><code>dischargeWindow</code></td><td style='color:#6b7480;font-size:11.5px'>TIME_RANGE</td><td><code>포항시 배출시간대 기반.배출허용창</code></td></tr>
