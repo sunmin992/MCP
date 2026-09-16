@@ -3,7 +3,7 @@
   "name": "장량동 생활쓰레기 수거 시뮬레이터",
   "version": "ref-v8",
   "source": "LLM-SES-구성-실험-방법론 v2의 교정 구조",
-  "status": "근거 대조 완료 + 스키마 확장 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다.",
+  "status": "근거 대조 완료 + 스키마 확장 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다. ref-v8 재편 진행 중 — 2026-09-16. 엔티티는 62개이고, 위 '51개'는 재편 전 수를 가리킨다. 새로 넣은 11개(설정 6 · 시스템 5)는 아직 껍데기이고 근거가 없다 — 이어지는 작업이 채운다.",
   "note": "ses-overview.svg(이전 판)가 아니라 v2 교정판을 정답지로 쓴다. v1은 실행 엔진·이벤트 시스템을 구조 트리의 형제로 둔 명백한 오류를 포함한다.",
   "verified_against": "develop @ 12937be · src/main/java/com/wastesim/**",
   "corrections": [
