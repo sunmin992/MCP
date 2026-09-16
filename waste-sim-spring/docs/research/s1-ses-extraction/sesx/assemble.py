@@ -153,6 +153,7 @@ class Assembler:
         for stage, payload in stages.items():
             self._decompositions(stage, payload)
             self._couplings(stage, payload)
+            self._flow_records(stage, payload)
         for stage, payload in stages.items():
             self._activation_updates(stage, payload)
         self._require_activation()
@@ -557,6 +558,7 @@ class Assembler:
                             "code_expression": payload_raw.get("code_expression"),
                             "meaning": payload_raw.get("meaning")},
                 "mechanism": c.get("mechanism"),
+                "derived_from": list(c.get("derived_from") or []),
                 "activation_id": None,
                 "evidence_ids": [], "status": "proposed",
             }
@@ -567,6 +569,23 @@ class Assembler:
                 self._hold(stage, raw_id, c, "payload_unknown",
                            "무엇이 오가는지 확정하지 못했다", item_ids=[cid])
             self._prov(stage, raw_id, c, "kept", "결합으로 받았다", [se, te], [cid])
+
+    def _flow_records(self, stage, payload):
+        """파생이 결합으로 내지 않은 쌍들. **버리지 않고 기록으로 옮긴다.**
+
+        같은 주체끼리의 쌍은 결합이 아니라 상태 갱신이다. 주체를 못 정한 쌍은 자리
+        인용이 살아 있으므로 사람이 주체만 붙이면 살아난다.
+        """
+        for i, u in enumerate(payload.get("internal_updates") or []):
+            self._prov(stage, f"{stage}:internal_update:{i}", u, "held",
+                       f"{u.get('entity')} 가 쓰고 같은 개체가 읽는다 — "
+                       f"결합이 아니라 상태 갱신이다")
+        for i, p in enumerate(payload.get("unresolved_pairs") or []):
+            raw_id = f"{stage}:unresolved_pair:{i}"
+            self._hold(stage, raw_id, p, "unknown_reference",
+                       p.get("why") or "주체 미해결",
+                       "자리 인용은 살아 있다. 주체를 붙이면 결합이 된다.")
+            self._prov(stage, raw_id, p, "held", "주체 미해결")
 
     # ------------------------------------------------------------ 활성 조건
     def _activation_for(self, stage, raw, target_id, target_kind):
