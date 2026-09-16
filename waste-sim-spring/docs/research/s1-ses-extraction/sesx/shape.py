@@ -1,9 +1,17 @@
 # -*- coding: utf-8 -*-
-"""트리 모양 계약. ref-v8 이 쓰는 세 층만 합법으로 둔다.
+"""트리 모양 계약. ref-v8 이 **실제로 지키는** 불변만 합법으로 둔다.
 
-    boundary ─ASPECT→ boundary · set
-    set      ─MULTI → 개체 하나(stateful)
-    stateful ─SPEC  → type
+정답지의 간선을 전부 훑어 뽑은 표다. 좁게 잡으면 정답지 자신이 위반이 된다 —
+`경로 교통 시스템 ─aspect→ 수거 경로`(자식이 집합이 아니다), `민원 판정 ─aspect→
+적재초과 판정`(개체가 ASPECT 부모다), `시나리오 실험 ─spec→ 단일 실행`(boundary 가
+SPEC 부모다) 이 모두 정답지에 있다.
+
+남는 불변은 셋이다.
+
+    MULTI  부모는 **집합**이고 자식은 **개체 하나**다 (정답지 5건이 모두 그렇다)
+    SPEC   자식은 **유형**이다 — 축의 값들이지 부분이 아니다
+    ASPECT 자식은 부분이다. **유형은 올 수 없다**
+    집합은 MULTI 로만 가른다. 유형은 부모가 되지 않는다
 
 판정만 한다. 집행은 조립기가 보류로 한다 — 계약 위반으로 올리지 않는 이유는
 거짓 양성이 승인 경로 전체를 막기 때문이다.
@@ -13,9 +21,13 @@
 from __future__ import annotations
 
 # (부모 역할, 분해 종류) -> 허용되는 자식 역할
+PART_KINDS = ("boundary", "set", "stateful")
+
 LEGAL_MEMBERS = {
-    ("boundary", "ASPECT"): ("boundary", "set"),
+    ("boundary", "ASPECT"): PART_KINDS,
+    ("stateful", "ASPECT"): PART_KINDS,
     ("set", "MULTI"): ("stateful",),
+    ("boundary", "SPEC"): ("type",),
     ("stateful", "SPEC"): ("type",),
 }
 
@@ -52,12 +64,18 @@ def _sites(evidence):
     return out
 
 
-def shared_declaration(member_evidence, members):
+def shared_declaration(member_evidence, members, decomp_kind=None):
     """두 자식의 역할 근거가 **같은 선언 행**을 가리키면 그 두 이름.
 
-    `new double[nB][nT]` 한 줄을 두 자식의 근거로 쓴 경우다. 같은 선언의 서로
-    다른 차원은 형제이지 부모-자식이 아니다.
+    `new double[nB][nT]` 한 줄을 두 자식의 근거로 쓴 경우다. 같은 선언의 서로 다른
+    차원은 형제이지 부모-자식이 아니다. 한 줄이 두 자식을 똑같이 가리킨다면 그 줄은
+    **어느 쪽이 어느 쪽인지 보이지 못하므로** 역할 근거가 아니다.
+
+    **SPEC 은 보지 않는다.** 축의 값들은 열거 상수 선언 한 줄에 함께 적히는 것이
+    정상이다 — 정답지의 `직업 축`(5종)이 그렇다.
     """
+    if str(decomp_kind or "").upper() == "SPEC":
+        return None
     names = [m for m in (members or []) if isinstance(m, str)]
     for i, a in enumerate(names):
         sa = _sites((member_evidence or {}).get(a))
