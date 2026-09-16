@@ -43,7 +43,7 @@ BANNED = ["엔진 실행", "DEVS 엔진", "이벤트 실행 시스템", "이벤�
 N_ENTITIES = 62
 N_COUPLINGS = 6
 N_CRITICAL = 5
-N_EVIDENCE = 87
+N_EVIDENCE = 92          # 87(v7) + 시스템 5. 설정 6은 Task 5에서 98이 된다
 
 # 잎 값 — ref-v7을 따른다
 LEAF_COUNTS = {
