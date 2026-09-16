@@ -2,7 +2,8 @@
 
 ```
 S1-추출절차.md       절차서. 입력 선별 규칙 · 프롬프트 전문 · 출력 스키마 · 채점 방법
-reference-ses.json   참조 SES(정답지). ref-v3 — 2026-09-11에 코드와 대조해 5건 교정
+reference-ses.json   참조 SES(정답지). ref-v8 — 시스템 구성 골격. 엔티티 62 · 근거 98
+reference-ses-v7.json  ref-v7 동결본. 과거 실행 12건은 이것으로 잰다
 참조-검증-기록.md     그 대조 기록. 무엇을 고쳤고 무엇이 아직 미검증인가
 score_ses.py         채점 스크립트. 자체 검증 6건 포함
 aliases.json         이름 별칭 사전(채점자용). 추출기에는 주지 않는다
@@ -13,8 +14,10 @@ runs/                실행 결과를 여기에 모은다. DEMO-*.json은 보고
 ## 쓰는 법
 
 ```bash
-python3 score_ses.py --selftest                      # 스크립트 자체 검증
-python3 score_ses.py --runs 'runs/*.json'            # 채점
+python3 score_ses.py --selftest                                          # 스크립트 자체 검증
+python3 check_ref_v8.py all                                              # 정답지 구조 불변식
+python3 score_ses.py --ref reference-ses-v7.json --runs 'runs/gpt-4.1-mini-C*.json'   # 과거 12건
+python3 score_ses.py --runs 'exp/새실행/ses.json'                          # 새 실행 (기본이 v8)
 ```
 
 ## 돌리는 순서
@@ -45,7 +48,7 @@ python score_ses.py --runs 'exp/새실행/ses.json'                             
 
 ## 주의 — DEMO 파일은 ref-v2 기준이다
 
-`runs/DEMO-*.json`은 교정 전 정답지로 합성한 파일이다. ref-v3로 채점하면 `교통혼잡판정`·
+`runs/DEMO-*.json`은 교정 전 정답지로 합성한 파일이다. ref-v7 동결본으로 채점하면 `교통혼잡판정`·
 `기타직업`이 과잉으로, `야간교대근무자`·`1인직장인`이 누락으로 잡힌다. **의도한 동작이다** —
 교정된 정답지가 낡은 구조를 잡아내는 것이다. 실제 LLM 출력이 아니므로 다시 만들지 않았다.
 

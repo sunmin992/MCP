@@ -3,7 +3,7 @@
   "name": "장량동 생활쓰레기 수거 시뮬레이터",
   "version": "ref-v8",
   "source": "LLM-SES-구성-실험-방법론 v2의 교정 구조",
-  "status": "근거 대조 완료 + 스키마 확장 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다. ref-v8 재편 완료 — 2026-09-16. 엔티티 62개(설정 6 · 시스템 5를 새로 넣었다). 위 '51개'는 재편 전 수다. 62개 모두 근거를 갖는다 — 다만 생활쓰레기 수거 모델은 엔티티 자체의 근거 키 없이 속성 근거 둘(1인배출량 · 배출량변동)만 갖는다. 재편 전 대상 시스템이 그랬고 개명이 그대로 물려받았다. 구성 결정 29개가 시뮬레이션 설정 아래 자리를 얻었고 sets 가 모델 자리에 잇는다 — 문항 16·17이 수거시각 하나를 공유하므로 sets 항목은 28개다.",
+  "status": "근거 대조 + 스키마 확장 — 2026-09-11(ref-v7 기준. 검증 범위는 verified_against 를 보라). 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다. ref-v8 재편 완료 — 2026-09-16. 엔티티 62개(설정 6 · 시스템 5를 새로 넣었다). 위 '51개'는 재편 전 수다. 62개 모두 근거를 갖는다 — 다만 생활쓰레기 수거 모델은 엔티티 자체의 근거 키 없이 속성 근거 둘(1인배출량 · 배출량변동)만 갖는다. 재편 전 대상 시스템이 그랬고 개명이 그대로 물려받았다. 구성 결정 29개가 시뮬레이션 설정 아래 자리를 얻었고 sets 가 모델 자리에 잇는다 — 문항 16·17이 수거시각 하나를 공유하므로 sets 항목은 28개다.",
   "note": "ses-overview.svg(이전 판)가 아니라 v2 교정판을 정답지로 쓴다. v1은 실행 엔진·이벤트 시스템을 구조 트리의 형제로 둔 명백한 오류를 포함한다.",
   "verified_against": "물려받은 근거 87건: develop @ 8b3d67f (ref-v7 의 검증 기준). 12937be 로 재검증하지 않았다 — SimulationEngine 의 행번호가 3줄가량 밀렸다. 새 엔티티 11건의 근거: develop @ 12937be 에서 확인. src/main/java/com/wastesim/**",
   "corrections": [
@@ -41,7 +41,8 @@
    "새 시스템 근거의 행번호를 현재 HEAD 로 맞췄다 — 적재 지점은 :454, peak 갱신은 :455 다. 물려받은 근거는 8b3d67f 기준으로 그대로 둔다",
    "시뮬레이션 설정 가지를 세우고 구성결정-SES-대응표의 29개를 sets로 이었다. 설정 엔티티는 모델 엔티티를 다시 소유하지 않는다 — 부모가 둘이 되기 때문이다. 축을 고르는 결정은 선택자 속성 하나로만 적는다. 넣지 않은 5개(simulationGoal·engine·승인 3종)는 그대로 둔다",
    "용량 근거를 두 단계로 나눠 적었다 — 문항 답변은 JangnyangScenarioBuilder:205 에서 setCapacity 로 들어가고, WasteType.single 은 SimulationConfig.resolveWasteTypes():416 에서 불린다. 한 줄로 압축하니 행번호가 엉뚱한 쪽에 붙어 있었다",
-   "새 근거 셋을 바로잡았다 — 교통모드의 trafficProfile=null 은 SimulationEngine:269-270 이고(:271 은 다른 변수다), 거주민·배출 설정 구간은 leaveSigma·wasteSigma 가 있는 :207-208 을 포함한다. _주의 의 '이 둘'은 sets 가 생겨 셋이 됐다"
+   "새 근거 셋을 바로잡았다 — 교통모드의 trafficProfile=null 은 SimulationEngine:269-270 이고(:271 은 다른 변수다), 거주민·배출 설정 구간은 leaveSigma·wasteSigma 가 있는 :207-208 을 포함한다. _주의 의 '이 둘'은 sets 가 생겨 셋이 됐다",
+   "status 의 '근거 대조 완료' 를 검증 범위를 가리키는 말로 바꿨다 — 그림의 꼬리말이 이 문장을 그대로 찍는데, 물려받은 근거 87건은 재검증하지 않았다"
   ],
   "schema_extensions": {
    "active_when": "결합이 어떤 선택에서만 활성인가. SES pruning을 결합에 명시하는 최소 표현이다. 없으면 항상 활성.",

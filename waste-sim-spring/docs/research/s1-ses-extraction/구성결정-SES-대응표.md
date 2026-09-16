@@ -21,8 +21,9 @@
 `—`는 SES에 넣지 않는 것이고, 사유를 함께 적었다.
 
 ref-v8부터 이 표는 트리에도 있다. 각 행의 `SES 자리`는 `reference-ses.json`의 설정 엔티티가
-갖는 `sets[속성].target`과 같다. 둘이 어긋나면 `python check_ref_v8.py settings`가 잡는다 —
-표와 트리 중 어느 쪽이 맞는지는 코드를 다시 보고 정한다.
+갖는 `sets[속성].target`과 같다. `python check_ref_v8.py settings`는 트리를 검사기 안에
+박힌 기대표(`SETS_EXPECTED`)와 대조할 뿐, 이 문서는 읽지 않는다. 그래서 표와 트리는 기계가
+아니라 손으로 맞춰 둔다.
 
 | # | 문항 필드 | 코드에서의 소비 | SES 자리 |
 |---:|---|---|---|
