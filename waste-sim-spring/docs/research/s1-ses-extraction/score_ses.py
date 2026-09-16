@@ -294,3 +294,36 @@ if __name__ == "__main__":
     if not paths:
         print("실행 결과 JSON이 없습니다. --runs 'runs/*.json'"); sys.exit(1)
     report(a.ref, paths, a.aliases)
+
+
+def _endpoint(doc, box):
+    """{"entity_id": ..., "attribute_id": ...} -> "개체.속성" (속성이 없으면 "개체")."""
+    ent = next((e for e in doc.get("entities") or []
+                if e["id"] == (box or {}).get("entity_id")), None)
+    if ent is None:
+        return None
+    attr = next((a for a in doc.get("attributes") or []
+                 if a["id"] == (box or {}).get("attribute_id")), None)
+    return f"{ent.get('name')}.{attr['name']}" if attr else ent.get("name")
+
+
+def score_couplings(doc, reference):
+    """정답지 결합 대비 산출 결합. 끝점 이름으로 맞춘다.
+
+    속성까지 적힌 정답지 끝점은 속성까지 같아야 맞는 것으로 센다. 산출 쪽 속성이
+    비어 있으면 맞지 않은 것이다 — 모르는 것을 맞았다고 세지 않는다.
+    """
+    got = set()
+    for c in doc.get("couplings") or []:
+        if c.get("status") == "rejected":
+            continue
+        s, t = _endpoint(doc, c.get("source")), _endpoint(doc, c.get("target"))
+        if s and t:
+            got.add(f"{s} → {t}")
+    want = {f"{c['from']} → {c['to']}" for c in reference.get("couplings") or []}
+    matched = got & want
+    return {"matched": len(matched),
+            "missed": sorted(want - got),
+            "extra": sorted(got - want),
+            "precision": (len(matched) / len(got)) if got else 0.0,
+            "recall": (len(matched) / len(want)) if want else 0.0}
