@@ -218,8 +218,8 @@ ref-v7의 `schema_extensions._주의`는 `active_when` · `attr_spec`을 추출 
 1. 현재 `reference-ses.json`을 `reference-ses-v7.json`으로 **그대로 복사해 동결한다.**
    내용을 한 글자도 바꾸지 않는다.
 2. `reference-ses.json`을 ref-v8로 교체한다.
-3. `score_ses.py`에 `--ref` 인자를 노출한다. `report(ref_path, run_paths, alias_path)`가
-   이미 경로를 받으므로 CLI 노출만 하면 된다. 기본값은 `reference-ses.json`(v8)이다.
+3. `score_ses.py`의 `--ref` 인자를 쓴다. **이미 있다**(`score_ses.py:288`,
+   기본값 `reference-ses.json`). 채점기는 고치지 않는다.
 4. `README.md`에 규칙을 적는다 — **과거 12건은 v7로 잰다. 새 실행은 v8로 잰다. 두 수를
    같은 표에 놓지 않는다.**
 
@@ -238,7 +238,6 @@ ref-v7의 `schema_extensions._주의`는 `active_when` · `attr_spec`을 추출 
 |---|---|
 | `reference-ses.json` | ref-v8로 재편 |
 | `reference-ses-v7.json` | 신규 — 현재 파일 그대로 동결 |
-| `score_ses.py` | `--ref` CLI 노출. 채점 로직은 이름에 의존하지 않으므로 불변 |
 | `aliases.json` | 9절대로 |
 | `구성결정-SES-대응표.md` | `SES 자리` 열을 v8 경로로 갱신 |
 | `참조-검증-기록.md` | v7 → v8 재편 근거, 새 엔티티 11개의 근거, 미검증 항목 |
