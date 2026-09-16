@@ -1,6 +1,6 @@
 # 구성 결정 ↔ SES 대응표
 
-2026-09-11 · 문항 세트 `jangnyang-simulator-v4`(34문항) · 참조 `ref-v5` · 코드 `develop @ 8b3d67f`
+2026-09-16 · 문항 세트 `jangnyang-simulator-v4`(34문항) · 참조 `ref-v8` · 코드 `develop @ 12937be`
 
 시뮬레이터를 구성하려면 34개를 결정해야 한다. 그 결정 각각이 SES 트리의 **어디에 앉는지**를
 코드에서 확인해 적은 표다. 이것이 없으면 트리가 서 있어도 코드와 이어지지 않는다 —
@@ -20,39 +20,43 @@
 
 `—`는 SES에 넣지 않는 것이고, 사유를 함께 적었다.
 
+ref-v8부터 이 표는 트리에도 있다. 각 행의 `SES 자리`는 `reference-ses.json`의 설정 엔티티가
+갖는 `sets[속성].target`과 같다. 둘이 어긋나면 `python check_ref_v8.py settings`가 잡는다 —
+표와 트리 중 어느 쪽이 맞는지는 코드를 다시 보고 정한다.
+
 | # | 문항 필드 | 코드에서의 소비 | SES 자리 |
 |---:|---|---|---|
 | 1 | `simulationGoal` | **계산에 쓰이지 않음**(빌더 `:381`) | — 기록용. 실험의 목적 문장이고 대상 시스템의 성질이 아니다 |
-| 2 | `scenarioType` | `spec.scenarioType()` · 실행 유형 분기 | `실험` **spec 실험 유형 축** |
+| 2 | `scenarioType` | `spec.scenarioType()` · 실행 유형 분기 | `시나리오 실험` **spec 실험 유형 축** · 설정: `실험 설정.실험유형` |
 | 3 | `engine` | java / python 어댑터 선택 (`:495`) | — **실행 수단**이다. 프롬프트 규칙 3이 제외하라고 한 범주 |
-| 4 | `numBuildings` | `setNumBuildings` | `수거지점 집합.개수` **(신설)** — multi-aspect의 복제 수 |
-| 5 | `residentsPerBuilding` | `setResidentsPerBuilding` | `거주민 집합.개수` **(신설)** — 건물당 복제 수 |
-| 6 | `occupationPreset` | 분기 → 직업 배정 목록 | `거주민 집합.직업구성` **(신설)** — 직업 축 자식들의 구성비 |
-| 7 | `days` | `setDays` | `실험.기간` |
-| 8 | `seeds` | `setSeeds` | `실험.반복횟수` |
-| 9 | `wasteMeanKg` | `setWasteMeanKg` | `대상 시스템.1인배출량` — 거주민별이 아니라 전역값이다 |
-| 10 | `wasteSigma` | `setWasteSigma` | `대상 시스템.배출량변동` **(신설)** — 배출량이 전역이므로 그 변동도 전역이다 |
-| 11 | `leaveSigma` | `setLeaveSigma` → `sampleOffset` | `거주민.외출시각변동` **(신설)** |
-| 12 | `dischargeTimeMode` | 분기 → `dischargeOffset` | `거주민` **spec 배출시각 모델 축** |
-| 13 | `dischargeWindow` | `getDischargeWindowStartMinutes` + span | `포항시 배출시간대 기반.배출허용창` **(교체)** — 아래 참조 |
-| 14 | `capacity` | `setCapacity` → `WasteType.single(capacity, ...)` | `폐기물 유형.용량` |
-| 15 | `threshold` | `setThreshold` → `WasteType.single(..., threshold, ...)` | `폐기물 유형.임계값` |
-| 16 | `collectionTime` | `setCollectionTimeMinutes` | `수거차량.수거시각` |
-| 17 | `collectionTimes` | `f.rawList` → 하루 여러 슬롯 | `수거차량.수거시각` (다회 변형. 같은 결정의 목록형이다) |
-| 18 | `collectionSchedule` | 분기 → `setCollectionIntervalDays` / `applyDaysOfWeek` | `수거차량.수거요일` |
-| 19 | `truckType` | `setTruckType` | `수거차량` **spec 차종 축** |
-| 20 | `truckCount` | `setNumTrucks` | `수거차량 집합.개수` **(신설)** |
-| 21 | `routeAvailableCapacityKg` | `setRouteAvailableCapacityKg` | `수거차량.적재용량` |
-| 22 | `initialTruckLoadKg` | `setInitialTruckLoadKg` | `수거차량.초기적재량` **(신설)** |
-| 23 | `dispatchIntervalMinutes` | `setDispatchIntervalMinutes` | `수거차량.배차간격` **(신설)** |
-| 24 | `trafficMode` | 분기 → `setTrafficEnabled` | 교통 구역발 결합 2개의 **`active_when`** — ref-v7에서 자리를 얻었다 |
-| 25 | `trafficProfileId` | 분기 → `setTrafficProfileId` | `교통 구역.시간대프로파일` |
-| 26 | `travelTimeMode` | 분기 → `TravelTimeCalculator` | `수거 경로` **spec 이동시간 방식 축** — **CP-4가 이것으로 확정된다** |
-| 27 | `routeTravelMinutes` | `hopMinutes`의 상수 항 | `구간 상수.구간이동시간` **(신설)** |
-| 28 | `serviceMinutesPerSite` | 모든 지점에 더하는 정차시간 | `수거차량.지점당수거시간` |
-| 29 | `intraZoneTravelMinutes` | 같은 구역 안 이동 | `교통구역 근사.구역내이동시간` **(신설)** |
-| 30 | `zoneAssignmentRule` | 건물 → 구역 배정 가정 | `교통구역 근사.구역배정가정` **(신설)** |
-| 31 | `routeSequence` | `RoutePlanner` 방문 순서 | `수거 경로.방문순서` |
+| 4 | `numBuildings` | `setNumBuildings` | `수거지점 집합.개수` **(신설)** — multi-aspect의 복제 수 · 설정: `수거지점·폐기물 설정.수거지점수` |
+| 5 | `residentsPerBuilding` | `setResidentsPerBuilding` | `거주민 집합.개수` **(신설)** — 건물당 복제 수 · 설정: `거주민·배출 설정.거주민수` |
+| 6 | `occupationPreset` | 분기 → 직업 배정 목록 | `거주민 집합.직업구성` **(신설)** — 직업 축 자식들의 구성비 · 설정: `거주민·배출 설정.직업구성` |
+| 7 | `days` | `setDays` | `시나리오 실험.기간` · 설정: `실험 설정.기간` |
+| 8 | `seeds` | `setSeeds` | `시나리오 실험.반복횟수` · 설정: `실험 설정.반복횟수` |
+| 9 | `wasteMeanKg` | `setWasteMeanKg` | `생활쓰레기 수거 모델.1인배출량` — 거주민별이 아니라 전역값이다 · 설정: `거주민·배출 설정.1인배출량` |
+| 10 | `wasteSigma` | `setWasteSigma` | `생활쓰레기 수거 모델.배출량변동` — 배출량이 전역이므로 그 변동도 전역이다 · 설정: `거주민·배출 설정.배출량변동` |
+| 11 | `leaveSigma` | `setLeaveSigma` → `sampleOffset` | `거주민.외출시각변동` **(신설)** · 설정: `거주민·배출 설정.외출시각변동` |
+| 12 | `dischargeTimeMode` | 분기 → `dischargeOffset` | `거주민` **spec 배출시각 모델 축** · 설정: `거주민·배출 설정.배출시각모델` |
+| 13 | `dischargeWindow` | `getDischargeWindowStartMinutes` + span | `포항시 배출시간대 기반.배출허용창` **(교체)** — 아래 참조 · 설정: `거주민·배출 설정.배출허용창` |
+| 14 | `capacity` | `setCapacity` → `WasteType.single(capacity, ...)` | `폐기물 유형.용량` · 설정: `수거지점·폐기물 설정.용량` |
+| 15 | `threshold` | `setThreshold` → `WasteType.single(..., threshold, ...)` | `폐기물 유형.임계값` · 설정: `수거지점·폐기물 설정.임계값` |
+| 16 | `collectionTime` | `setCollectionTimeMinutes` | `수거차량.수거시각` · 설정: `차량·수거 설정.수거시각` |
+| 17 | `collectionTimes` | `f.rawList` → 하루 여러 슬롯 | `수거차량.수거시각` (다회 변형. 같은 결정의 목록형이다) · 설정: `차량·수거 설정.수거시각` |
+| 18 | `collectionSchedule` | 분기 → `setCollectionIntervalDays` / `applyDaysOfWeek` | `수거차량.수거요일` · 설정: `차량·수거 설정.수거요일` |
+| 19 | `truckType` | `setTruckType` | `수거차량` **spec 차종 축** · 설정: `차량·수거 설정.차종` |
+| 20 | `truckCount` | `setNumTrucks` | `수거차량 집합.개수` **(신설)** · 설정: `차량·수거 설정.차량수` |
+| 21 | `routeAvailableCapacityKg` | `setRouteAvailableCapacityKg` | `수거차량.적재용량` · 설정: `차량·수거 설정.적재용량` |
+| 22 | `initialTruckLoadKg` | `setInitialTruckLoadKg` | `수거차량.초기적재량` **(신설)** · 설정: `차량·수거 설정.초기적재량` |
+| 23 | `dispatchIntervalMinutes` | `setDispatchIntervalMinutes` | `수거차량.배차간격` **(신설)** · 설정: `차량·수거 설정.배차간격` |
+| 24 | `trafficMode` | 분기 → `setTrafficEnabled` | 교통 구역발 결합 2개의 **`active_when`** — ref-v7에서 자리를 얻었다 · 설정: `교통·경로 설정.교통모드` |
+| 25 | `trafficProfileId` | 분기 → `setTrafficProfileId` | `교통 구역.시간대프로파일` · 설정: `교통·경로 설정.시간대프로파일` |
+| 26 | `travelTimeMode` | 분기 → `TravelTimeCalculator` | `수거 경로` **spec 이동시간 방식 축** — **CP-4가 이것으로 확정된다** · 설정: `교통·경로 설정.이동시간방식` |
+| 27 | `routeTravelMinutes` | `hopMinutes`의 상수 항 | `구간 상수.구간이동시간` **(신설)** · 설정: `교통·경로 설정.구간이동시간` |
+| 28 | `serviceMinutesPerSite` | 모든 지점에 더하는 정차시간 | `수거차량.지점당수거시간` · 설정: `차량·수거 설정.지점당수거시간` |
+| 29 | `intraZoneTravelMinutes` | 같은 구역 안 이동 | `교통구역 근사.구역내이동시간` **(신설)** · 설정: `교통·경로 설정.구역내이동시간` |
+| 30 | `zoneAssignmentRule` | 건물 → 구역 배정 가정 | `교통구역 근사.구역배정가정` **(신설)** · 설정: `교통·경로 설정.구역배정가정` |
+| 31 | `routeSequence` | `RoutePlanner` 방문 순서 | `수거 경로.방문순서` · 설정: `교통·경로 설정.방문순서` |
 | 32 | `defaultApproval` | **계산에 쓰이지 않음**(빌더 `:381`) | — 구성 절차의 제어 |
 | 33 | `inputAndScenarioConfirmed` | **계산에 쓰이지 않음** | — 구성 절차의 제어 |
 | 34 | `executionApproval` | **계산에 쓰이지 않음** | — 구성 절차의 제어 |
@@ -61,6 +65,9 @@
 (`trafficMode`는 ref-v7의 스키마 확장으로 자리를 얻었다).
 
 > 처음에 이 줄을 "30개 · 4개"로 적었다. 표의 `—` 행을 세면 여섯이다 — `simulationGoal`·`engine`·`trafficMode`·`defaultApproval`·`inputAndScenarioConfirmed`·`executionApproval`. `engine`과 `trafficMode`를 빼먹고 셌다.
+
+ref-v8에서 29개 모두가 `시뮬레이션 설정` 아래 다섯 설정 엔티티의 속성이 되었고, `sets`가
+각각을 모델 트리의 자리에 잇는다. 넣지 않은 5개는 여전히 트리에 없다.
 
 ## 이 작업으로 확정·교정된 것
 
