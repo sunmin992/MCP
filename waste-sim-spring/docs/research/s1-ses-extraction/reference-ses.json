@@ -5,7 +5,7 @@
   "source": "LLM-SES-구성-실험-방법론 v2의 교정 구조",
   "status": "근거 대조 완료 + 스키마 확장 — 2026-09-11. 모든 엔티티가 코드 근거를 갖는다(51개). 구성 결정 34개 중 29개가 SES에 자리를 갖는다 — active_when으로 trafficMode가 자리를 얻었다. 넣지 않은 5개: simulationGoal(기록용)·engine(실행 수단)·defaultApproval·inputAndScenarioConfirmed·executionApproval(구성 절차의 제어). 앞의 넷은 빌더가 스스로 '계산에 쓰이지 않는 항목'이라고 적는다. ref-v8 재편 진행 중 — 2026-09-16. 엔티티는 62개이고, 위 '51개'는 재편 전 수를 가리킨다. 새로 넣은 11개(설정 6 · 시스템 5)는 아직 껍데기이고 근거가 없다 — 이어지는 작업이 채운다.",
   "note": "ses-overview.svg(이전 판)가 아니라 v2 교정판을 정답지로 쓴다. v1은 실행 엔진·이벤트 시스템을 구조 트리의 형제로 둔 명백한 오류를 포함한다.",
-  "verified_against": "develop @ 12937be · src/main/java/com/wastesim/**",
+  "verified_against": "물려받은 근거 87건: develop @ 8b3d67f (ref-v7 의 검증 기준). 12937be 로 재검증하지 않았다 — SimulationEngine 의 행번호가 3줄가량 밀렸다. 새 엔티티 11건의 근거: develop @ 12937be 에서 확인. src/main/java/com/wastesim/**",
   "corrections": [
    "① 교통혼잡 판정 제거 · 민원 판정 자식 3→2 · CP-1 근거문",
    "② 직업 축 3+기타 → 5종(야간 교대근무자·1인 직장인 추가, 기타 직업 제거)",
@@ -36,7 +36,8 @@
    "결합 2개에 active_when 추가 — trafficMode가 결합 활성화의 선택자로 자리를 갖는다",
    "attr_spec 추가 — 수거차량.수거시각(arity 1..6) · 거주민 집합.직업구성(composition over 직업 축)",
    "ref-v8 재편 — 최상위를 시스템 구성 골격으로 바꿨다. 대상 시스템→생활쓰레기 수거 모델 · 실험→시나리오 실험 · 관측→시뮬레이션 결과. 엔진 실행·이벤트 실행 시스템은 넣지 않는다 — ref-v7이 실행 수단으로 제외한 판단을 유지한다(_meta.note)",
-   "대상 시스템의 자식 7개를 DEVS 모델 구성 5종 아래로 한 계층 내렸다. 자식 자체는 바뀌지 않는다. 다섯 시스템의 근거는 묶음의 근거다 — 새 개체를 주장하는 것이 아니라, 이미 근거가 있는 개체들이 코드에서 한 덩어리로 돈다는 사실을 가리킨다"
+   "대상 시스템의 자식 7개를 DEVS 모델 구성 5종 아래로 한 계층 내렸다. 자식 자체는 바뀌지 않는다. 다섯 시스템의 근거는 묶음의 근거다 — 새 개체를 주장하는 것이 아니라, 이미 근거가 있는 개체들이 코드에서 한 덩어리로 돈다는 사실을 가리킨다",
+   "verified_against 를 둘로 나눴다 — 물려받은 근거 87건은 8b3d67f 기준이고 재검증하지 않았다. ref-v8 재편이 코드를 다시 읽은 것은 새 엔티티 11건뿐이다. 하지 않은 검증을 주장하지 않는다"
   ],
   "schema_extensions": {
    "active_when": "결합이 어떤 선택에서만 활성인가. SES pruning을 결합에 명시하는 최소 표현이다. 없으면 항상 활성.",
@@ -763,7 +764,7 @@
   "수거지점 집합": "SimulationEngine:253 fill[nB][nT] — 건물 수만큼의 수거장",
   "수거차량 집합": "SimulationEngine:292 RoutePlanner.assignRoutes(cfg)가 트럭 수만큼 경로를 만든다",
   "장량동 생활쓰레기 수거 시뮬레이터": "SimulationEngine.run(SimulationConfig, seed) — 이 시뮬레이터의 실행 단위",
-  "거주민 배출 시스템": "SimulationEngine:363 거주민별 배출 이벤트 사전 생성 · DischargeEvt(227) 처리(:457). 거주민 집합이 배출을 만들어 내는 한 덩어리다 — 묶음의 근거이고 새 개체의 주장이 아니다",
+  "거주민 배출 시스템": "SimulationEngine:363 거주민별 배출 이벤트 사전 생성 · DischargeEvt(227) 처리(:454). 거주민 집합이 배출을 만들어 내는 한 덩어리다 — 묶음의 근거이고 새 개체의 주장이 아니다",
   "수거장 적재 시스템": "SimulationEngine:457 fill[building][type] += amount * WasteType.fraction · peak 갱신. 적재 상태를 갖는 것은 수거지점과 폐기물 유형 둘뿐이다",
   "차량 수거 시스템": "SimulationEngine CollectEvt(213) 처리(:416-425) · TruckType 용량과 기동성. 수거차량 집합이 수거를 수행하는 한 덩어리다",
   "경로 교통 시스템": "RoutePlanner.assignRoutes(cfg) 로 경로를 짜고 TravelTimeCalculator·TrafficProfile 이 이동시간을 정한다(SimulationEngine:336,:343). 경로와 교통 구역은 함께 움직인다",
