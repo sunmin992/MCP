@@ -104,9 +104,10 @@ def tree_page():
     attrs = sum(len(b.get("attrs") or []) for b in E.values())
     body = [f"<title>장량동 시뮬레이터 SES</title><style>{CSS}</style>",
             "<h1>장량동 생활쓰레기 수거 시뮬레이터 — SES</h1>",
-            f"<div class='sub'>{ref['_meta']['version']} · 2026-09-11 · 코드 대조 완료 · "
+            f"<div class='sub'>{ref['_meta']['version']} · "
             f"엔티티 {len(E)} · 속성 {attrs} · 결합 {len(ref['couplings'])} · "
-            f"근거 {len(EV)}건 · 정답지는 <code>reference-ses.json</code></div>",
+            f"근거 {len(EV)}건 · 검증 범위는 <code>_meta.verified_against</code> · "
+            f"정답지는 <code>reference-ses.json</code></div>",
             "<div class='legend'>"
             "<span><span class='k aspect'>aspect</span> 함께 존재하며 동시에 돈다</span>"
             "<span><span class='k spec'>spec</span> 자식 중 하나를 고른다</span>"
