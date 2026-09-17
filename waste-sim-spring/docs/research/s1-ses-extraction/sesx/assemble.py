@@ -580,6 +580,12 @@ class Assembler:
             self._prov(stage, f"{stage}:internal_update:{i}", u, "held",
                        f"{u.get('entity')} 가 쓰고 같은 개체가 읽는다 — "
                        f"결합이 아니라 상태 갱신이다")
+        for i, v in enumerate(payload.get("unresolved_values") or []):
+            raw_id = f"{stage}:unresolved_value:{i}"
+            self._hold(stage, raw_id, v, "unknown_reference",
+                       v.get("why") or "값 이름을 맞추지 못했다",
+                       "자리 인용은 살아 있다. 값을 이어 주면 자리로 들어간다.")
+            self._prov(stage, raw_id, v, "held", "값 이름 미해결")
         for i, p in enumerate(payload.get("unresolved_pairs") or []):
             raw_id = f"{stage}:unresolved_pair:{i}"
             self._hold(stage, raw_id, p, "unknown_reference",

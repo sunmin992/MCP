@@ -9,7 +9,7 @@ def ev(line, quote):
 
 
 B2 = {"subjects": [{
-    "state": "fill[b][t]", "classification": "entity_state", "owner_candidate": "수거지점",
+    "state": "fill", "classification": "entity_state", "owner_candidate": "수거지점",
     "state_evidence": [ev(454, "fill[de.building][t] += add")],
     "identity_evidence": [ev(254, "double[][] fill = new double[nB][nT];")],
     "linkage_evidence": [ev(254, "double[][] fill = new double[nB][nT];")],
@@ -168,6 +168,47 @@ class DeriveTests(unittest.TestCase):
         c = flow.derive(sites, e2)["couplings"][0]
         self.assertEqual(c["source"]["attribute"], "배출량")
         self.assertEqual(c["target"]["attribute"], "판정")
+
+
+class UnmatchedTests(unittest.TestCase):
+    """값 이름이 b2 의 어느 항목과도 안 맞으면 **버리지 않고 남긴다.**
+
+    q3-flow-1 에서 e1 이 `fill[b][t]` 로 적어 `fill` 과 안 맞았고, 새로 찾은 자리
+    10건이 아무 기록 없이 사라졌다. README 규칙 3 위반이었다.
+    """
+
+    def e1(self, expr):
+        return {"value_sites": [{
+            "value": {"code_expression": expr, "declaration": None},
+            "writes": [ev(521, "if (fill[b][t] > peak[b][t])")],
+            "reads": [], "corrections": []}]}
+
+    def test_아래_첨자가_붙어도_기본_이름으로_맞춘다(self):
+        sites = flow.merge_sites(B2, self.e1("fill[b][t]"))
+        self.assertEqual(len(sites[0]["writes"]), 2)
+        self.assertEqual(flow.unmatched_value_sites(B2, self.e1("fill[b][t]")), [])
+
+    def test_기본_이름도_없으면_보류로_남긴다(self):
+        left = flow.unmatched_value_sites(B2, self.e1("없는값[x]"))
+        self.assertEqual(len(left), 1)
+        self.assertEqual(left[0]["value"], "없는값[x]")
+        self.assertIn("없는값", left[0]["why"])
+        self.assertEqual(len(left[0]["sites"]), 1)
+
+    def test_기본_이름이_여럿에_걸리면_맞추지_않는다(self):
+        b2 = {"subjects": [
+            dict(B2["subjects"][0]),
+            dict(B2["subjects"][0], state="fill"),
+        ]}
+        b2["subjects"][1] = dict(b2["subjects"][1], owner_candidate="다른소유자")
+        left = flow.unmatched_value_sites(b2, self.e1("fill[b][t]"))
+        self.assertEqual(len(left), 1)
+
+    def test_파생_payload_에_보류가_실린다(self):
+        out = flow.derive(flow.merge_sites(B2, self.e1("없는값[x]")),
+                          {"site_actors": []})
+        out["unresolved_values"] = flow.unmatched_value_sites(B2, self.e1("없는값[x]"))
+        self.assertEqual(len(out["unresolved_values"]), 1)
 
 
 if __name__ == "__main__":

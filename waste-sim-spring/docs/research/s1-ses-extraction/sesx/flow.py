@@ -34,29 +34,103 @@ def _key(site):
     return (site["file_path"], site["start_line"], site["end_line"])
 
 
+def _base_name(expr):
+    """`fill[b][t]` · `fill.get(k)` 에서 값 이름 `fill` 만 남긴다."""
+    if not isinstance(expr, str):
+        return ""
+    out = expr.strip()
+    for sep in ("[", "(", "."):
+        i = out.find(sep)
+        if i > 0:
+            out = out[:i]
+    return out.strip()
+
+
+def _index_by_value(b2_payload, e1_payload):
+    """e1 의 값마다 대응하는 b2 항목 순번. 못 맞추면 None.
+
+    이름이 그대로 맞으면 그것을 쓰고, 아니면 아래 첨자를 떼고 **하나에만** 걸릴
+    때에 한해 맞춘다. 둘 이상에 걸리면 맞추지 않는다 — 조용히 엉뚱한 값에 붙이는
+    것이 못 맞추는 것보다 나쁘다.
+    """
+    subjects = _entity_states(b2_payload)
+    exact = {}
+    for i, sub in enumerate(subjects):
+        st = sub.get("state")
+        if isinstance(st, str):
+            exact.setdefault(st, i)
+    by_base = {}
+    for i, sub in enumerate(subjects):
+        by_base.setdefault(_base_name(sub.get("state")), []).append(i)
+
+    out = {}
+    for vs in (e1_payload or {}).get("value_sites") or []:
+        if not isinstance(vs, dict):
+            continue
+        value = vs.get("value") if isinstance(vs.get("value"), dict) else {}
+        expr = value.get("code_expression")
+        if not isinstance(expr, str):
+            continue
+        if expr in exact:
+            out[expr] = exact[expr]
+            continue
+        hits = by_base.get(_base_name(expr)) or []
+        out[expr] = hits[0] if len(hits) == 1 else None
+    return out
+
+
+def _entity_states(b2_payload):
+    return [s for s in (b2_payload or {}).get("subjects") or []
+            if isinstance(s, dict) and s.get("classification") == "entity_state"]
+
+
+def unmatched_value_sites(b2_payload, e1_payload):
+    """b2 의 어느 값과도 맞추지 못한 e1 항목. **버리지 않고 보류로 넘긴다.**
+
+    자리 인용은 살아 있으므로 사람이 값을 이어 주면 살아난다.
+    """
+    matched = _index_by_value(b2_payload, e1_payload)
+    known = [s.get("state") for s in _entity_states(b2_payload)]
+    out = []
+    for vs in (e1_payload or {}).get("value_sites") or []:
+        if not isinstance(vs, dict):
+            continue
+        value = vs.get("value") if isinstance(vs.get("value"), dict) else {}
+        expr = value.get("code_expression")
+        if not isinstance(expr, str) or matched.get(expr) is not None:
+            continue
+        sites = list(vs.get("writes") or []) + list(vs.get("reads") or [])
+        out.append({"value": expr,
+                    "why": f"{expr!r} 을 앞 단계의 상태 값 {known} 중 어느 것과도 "
+                           f"맞추지 못했다",
+                    "sites": sites})
+    return out
+
+
 def merge_sites(b2_payload, e1_payload):
     """b2 씨앗과 e1 보충을 합친 자리 목록.
 
     같은 행을 둘 다 냈으면 하나로 합치고 **씨앗 쪽을 남긴다**(먼저 온 것이 출처다).
     e1 의 corrections 가 가리킨 자리는 목록에서 뺀다.
     """
-    subjects = [s for s in (b2_payload or {}).get("subjects") or []
-                if isinstance(s, dict) and s.get("classification") == "entity_state"]
-    by_value = {}
+    subjects = _entity_states(b2_payload)
+    matched = _index_by_value(b2_payload, e1_payload)
+    by_index = {}
     for vs in (e1_payload or {}).get("value_sites") or []:
         if not isinstance(vs, dict):
             continue
         value = vs.get("value") if isinstance(vs.get("value"), dict) else {}
         expr = value.get("code_expression")
-        if isinstance(expr, str):
-            by_value[expr] = vs
+        idx = matched.get(expr) if isinstance(expr, str) else None
+        if idx is not None:
+            by_index[idx] = vs
 
     out = []
     for vi, subject in enumerate(subjects):
         expr = subject.get("state")
         if not isinstance(expr, str) or not expr.strip():
             continue
-        extra = by_value.get(expr) or {}
+        extra = by_index.get(vi) or {}
         value = extra.get("value") if isinstance(extra.get("value"), dict) else {}
         declaration = value.get("declaration")
         if declaration is None:

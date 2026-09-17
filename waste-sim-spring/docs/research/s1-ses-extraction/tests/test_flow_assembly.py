@@ -24,6 +24,8 @@ FLOW = {"couplings": [{
         "internal_updates": [{"entity": "수거", "value": "fill[b][t]",
                               "write_site_id": "e1:v0:w1",
                               "read_site_id": "e1:v0:r0"}],
+        "unresolved_values": [{"value": "없는값[x]", "why": "맞추지 못했다",
+                               "sites": [{"file_path": "E.java", "start_line": 9}]}],
         "unresolved_pairs": [{"value": "fill[b][t]", "write_site_id": "e1:v0:w2",
                               "read_site_id": "e1:v0:r0",
                               "why": "주체 미해결: ['e1:v0:w2']"}]}
@@ -67,6 +69,13 @@ class FlowAssemblyTests(unittest.TestCase):
         self.assertEqual(len(held), 1)
         self.assertEqual(held[0]["reason_code"], "unknown_reference")
         self.assertTrue(held[0]["origin_raw"])
+
+    def test_값_이름_미해결도_보류로_남는다(self):
+        doc = build()
+        held = [u for u in doc["unresolved"]
+                if (u.get("raw_id") or "").startswith("flow:unresolved_value")]
+        self.assertEqual(len(held), 1)
+        self.assertTrue(held[0]["origin_raw"]["sites"])
 
     def test_조립_결과에_자기결합이_없다(self):
         doc = build()

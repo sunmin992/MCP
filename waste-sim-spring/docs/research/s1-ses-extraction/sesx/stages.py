@@ -69,8 +69,11 @@ LINE_NUMBER_NOTE = (
 
 def flow_payload(payloads):
     """b2·e1·e2 에서 파생된 결합 payload. 조립기에 "flow" 단계로 넣는다."""
-    sites = flow.merge_sites(payloads.get("b2") or {}, payloads.get("e1") or {})
-    return flow.derive(sites, payloads.get("e2") or {})
+    b2, e1 = payloads.get("b2") or {}, payloads.get("e1") or {}
+    out = flow.derive(flow.merge_sites(b2, e1), payloads.get("e2") or {})
+    # 어느 값에도 못 붙인 e1 항목은 버리지 않는다 — 자리 인용이 살아 있다
+    out["unresolved_values"] = flow.unmatched_value_sites(b2, e1)
+    return out
 
 
 def _read(path):
