@@ -27,7 +27,7 @@ from __future__ import annotations
 
 import re
 
-from .index import TYPE_DECL
+from .index import TYPE_DECL, code_lines
 
 #: 클래스 본문의 컬렉션 필드. 이름 뒤가 `=` 나 `;` 여야 한다(메서드·매개변수 제외).
 FIELD = re.compile(
@@ -60,18 +60,22 @@ def container_fields(snapshot, declared):
     """클래스 본문에 선언된 컬렉션 필드 중 원소가 프로젝트 유형인 것."""
     found = []
     for path in snapshot.by_path:
-        depth = 0
-        for n, line in enumerate(snapshot.lines(path), start=1):
-            m = FIELD.match(line)
+        depth, owner = 0, None
+        for n, (line, code) in enumerate(code_lines(snapshot, path), start=1):
+            t = TYPE_DECL.search(code)
+            if t and depth == 0:
+                owner = t.group(1)      # 이 필드를 가진 유형. 동명 필드를 가르는 열쇠다
+            m = FIELD.match(code)
             if m and depth == CLASS_BODY_DEPTH:
                 args = [a.strip() for a in m.group(2).split(",")]
                 element = args[-1]
                 if element in declared:
                     found.append({
                         "container": m.group(3), "shape": m.group(1), "element": element,
+                        "owner_type": owner,
                         "site": {"file_path": path, "start_line": n, "end_line": n,
                                  "quote": line.rstrip("\n"), "symbol": m.group(3)}})
-            depth += line.count("{") - line.count("}")
+            depth += code.count("{") - code.count("}")
     return found
 
 
@@ -88,15 +92,22 @@ def derive(snapshot):
                 "kind": DECL_KIND.get(decl["decl"], "stateful"),
                 "scope": "simulation_target",
                 "why_entity": f"{f['shape']} 의 원소 유형으로 선언됐다",
+                # 유형은 선언 자리가 곧 동일성이다.
+                "anchor": {"file_path": decl["file_path"], "owner_type": None,
+                           "symbol": f["element"]},
                 "evidence": [{k: v for k, v in decl.items() if k != "decl"}],
                 "origin": "derived_by_code"})
         name = f["container"]
-        if name in seen:
+        ckey = (f["site"]["file_path"], f.get("owner_type"), name)
+        if ckey in seen:
             continue
-        seen.add(name)
+        seen.add(ckey)
         entities.append({
             "name": name, "kind": "set", "scope": "simulation_target",
             "why_entity": f"{f['element']} 여럿을 담는 {f['shape']} 필드다",
+            # 필드는 **소유 유형까지** 있어야 가려진다. `byId` 가 세 클래스에 있다.
+            "anchor": {"file_path": f["site"]["file_path"],
+                       "owner_type": f.get("owner_type"), "symbol": name},
             "evidence": [f["site"]], "origin": "derived_by_code"})
         decompositions.append({
             "parent": name, "kind": "MULTI", "label": f"{f['element']} 반복",

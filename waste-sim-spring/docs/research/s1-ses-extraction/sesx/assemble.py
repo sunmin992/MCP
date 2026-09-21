@@ -48,6 +48,22 @@ class _Ids:
 NO_MINT_KINDS = ("MULTI",)
 
 
+def anchor_key(anchor):
+    """개체의 동일성 열쇠. **이름이 아니라 코드 자리다.**
+
+    이름만 쓰면 다른 클래스의 동명 필드가 한 개체로 합쳐진다. 실제 소스에 `byId` 가 세
+    클래스, `values` 와 `residualByWasteType` 이 각각 두 클래스에 있다. 열거 상수도
+    마찬가지다 — `PAPER_BASELINE` 이 `DischargeTimeMode` 와 `ScenarioScale` 양쪽에 있다.
+
+    모델이 낸 후보에는 앵커가 없다. 그쪽은 이름으로 모으는 것이 맞다 — 여러 단계가 같은
+    개체를 같은 한국어 이름으로 부르면 하나로 합쳐져야 하기 때문이다.
+    """
+    if not isinstance(anchor, dict):
+        return None
+    parts = [str(anchor.get(k) or "") for k in ("file_path", "owner_type", "symbol")]
+    return "|".join(parts) if any(parts) else None
+
+
 def _unique(ids):
     """순서를 지키며 중복을 없앤다."""
     out = []
@@ -75,6 +91,8 @@ class Assembler:
         self.ids = _Ids()
         self.doc = None
         self.entity_by_norm = {}
+        self.entity_by_anchor = {}
+        self.entity_ids_by_norm = {}   # 이름 -> [id]. 둘 이상이면 이름으로 가리킬 수 없다
         self.attr_by_key = {}
 
     # ------------------------------------------------------------ 기록
@@ -181,6 +199,8 @@ class Assembler:
             self._disputes(stage, payload)
             self._entities(stage, payload)
         for stage, payload in stages.items():
+            self._unjudged(stage, payload)
+        for stage, payload in stages.items():
             self._pending_axes(stage, payload)
         for stage, payload in stages.items():
             self._subjects(stage, payload)
@@ -239,7 +259,8 @@ class Assembler:
                     continue
                 e = dict(e)
                 e["kind"] = {"set": "set", "type": "type", "object": "stateful"}[e["role"]]
-                e["evidence"] = (e.get("evidence") or []) + e["declaration_evidence"]                     + (e.get("instantiation_evidence") or [])
+                e["evidence"] = ((e.get("evidence") or []) + e["declaration_evidence"]
+                                 + (e.get("instantiation_evidence") or []))
             elif stage == "w":
                 # 전체 후보는 조립 자리 근거가 있어야 한다. 없으면 **버리지 않고** 보류한다 —
                 # 무엇을 전체라고 보았는지가 검토 자료다.
@@ -261,21 +282,26 @@ class Assembler:
                 e = dict(e)
                 e["evidence"] = e["identity_evidence"] + e["composition_evidence"]
             key = norm(name)
-            if key not in self.entity_by_norm and stage in self.no_new_entity_stages:
+            # 앵커가 있으면 동일성은 **코드 자리**다. 없으면 이름이다 — 모델이 낸 후보는
+            # 여러 단계가 같은 개체를 같은 이름으로 부르므로 이름으로 모으는 것이 맞다.
+            akey = anchor_key((e or {}).get("anchor"))
+            eid = (self.entity_by_anchor.get(akey) if akey
+                   else self.entity_by_norm.get(key))
+            if eid is None and stage in self.no_new_entity_stages:
                 self._hold(stage, raw_id, e, "schema_violation",
                            f"{stage} 단계는 새 개체를 만들 수 없다: {name!r}",
                            "상위 개체가 정말 필요한지 검토자가 판정한다.")
                 self._prov(stage, raw_id, e, "held", "새 개체 금지 단계")
                 continue
-            if key in self.entity_by_norm:
-                eid = self.entity_by_norm[key]
+            if eid is not None:
                 ent = next(x for x in self.doc["entities"] if x["id"] == eid)
                 ent.setdefault("alternate_names", [])
                 if name not in ent["alternate_names"] and name != ent["name"]:
                     ent["alternate_names"].append(name)
                 ent["evidence_ids"] += self._evidence((e or {}).get("evidence"), eid, "existence")
                 self._prov(stage, raw_id, original_entity, "merged",
-                           f"정규화 이름이 같다: {ent['name']}", [eid], [eid])
+                           f"{'같은 코드 자리' if akey else '정규화 이름이 같다'}: {ent['name']}",
+                           [eid], [eid])
                 continue
             eid = self.ids.next("E")
             ent = {
@@ -292,8 +318,10 @@ class Assembler:
                 "origin": (e or {}).get("origin") or "extracted",
                 "evidence_ids": [], "status": "proposed",
             }
+            if akey:
+                ent["anchor"] = dict(e["anchor"])
             self.doc["entities"].append(ent)
-            self.entity_by_norm[key] = eid
+            self._register(eid, key, akey)
             ent["evidence_ids"] = self._evidence((e or {}).get("evidence"), eid, "existence")
             if self.strict:
                 for key, field in (("identity_evidence", "identity"), ("state_evidence", "state_change")):
@@ -388,8 +416,14 @@ class Assembler:
                 continue
 
             key = norm(owner)
-            if key in self.entity_by_norm:
-                eid = self.entity_by_norm[key]
+            eid, why = self._resolve_entity(owner)
+            if why == "ambiguous_reference":
+                self._hold(stage, raw_id, s, "ambiguous_reference",
+                           f"소유자 {owner!r} 와 이름이 같은 개체가 둘 이상이다",
+                           "어느 개체의 상태인지 검토자가 지목한다.")
+                self._prov(stage, raw_id, s, "held", "소유자 이름이 모호하다")
+                continue
+            if eid is not None:
                 ent = next(x for x in self.doc["entities"] if x["id"] == eid)
                 ent["evidence_ids"] += self._evidence(s.get("identity_evidence"), eid, "identity")
                 merged = True
@@ -399,7 +433,7 @@ class Assembler:
                        "scope": "simulation_target", "why_entity": s.get("why"),
                        "alternate_names": [], "evidence_ids": [], "status": "proposed"}
                 self.doc["entities"].append(ent)
-                self.entity_by_norm[key] = eid
+                self._register(eid, key)
                 ent["evidence_ids"] = self._evidence(s.get("identity_evidence"), eid, "identity")
                 merged = False
 
@@ -432,6 +466,34 @@ class Assembler:
                         return e["name"]
         return None
 
+    def _unjudged(self, stage, payload):
+        """판정을 못 받았거나 대상 세계가 아니라고 판정된 후보. **버리지 않는다.**
+
+        코드가 후보를 세었으므로 무엇을 물었는지가 남아 있다. 답이 오지 않은 것과
+        "대상 세계가 아니다"라고 답한 것은 뜻이 다르므로 사유를 갈라 적는다.
+        """
+        for i, u in enumerate(payload.get("unjudged") or []):
+            raw_id = f"{stage}:unjudged:{i}"
+            if _obj(u) is None:
+                self._hold(stage, raw_id, u, "schema_violation", "미판정 기록이 객체가 아니다")
+                self._prov(stage, raw_id, u, "held", "객체가 아님")
+                continue
+            reason = u.get("reason")
+            if reason == "unjudged":
+                self._hold(stage, raw_id, u, "unjudged",
+                           f"{u.get('name')!r} 의 판정을 받지 못했다: {u.get('detail')}",
+                           "묶음을 더 작게 나눠 다시 묻거나, 검토자가 직접 판정한다.")
+            elif reason == "not_in_world":
+                self._hold(stage, raw_id, u, "not_an_entity",
+                           f"{u.get('name')!r} 은 {u.get('verdict')} 로 판정됐다: "
+                           f"{u.get('why')!r}",
+                           "대상 세계의 것인지 검토자가 다시 본다.")
+            else:
+                self._hold(stage, raw_id, u, "unproven_ownership",
+                           f"{u.get('name')!r} 은 대상 세계의 것이나 역할을 정하지 못했다",
+                           "개체·집합·유형 중 무엇인지 검토자가 정한다.")
+            self._prov(stage, raw_id, u, "held", f"미판정/{reason}")
+
     def _pending_axes(self, stage, payload):
         """갈래는 확인됐으나 부모가 정해지지 않은 축. 코드가 부모를 고르지 않는다.
 
@@ -455,8 +517,28 @@ class Assembler:
                        item_ids=ids)
             self._prov(stage, raw_id, ax, "held", "부모 미확정", ids, [])
 
+    def _register(self, eid, key, akey=None):
+        """이름 색인과 앵커 색인에 동시에 등록한다. 이름은 여럿일 수 있다."""
+        self.entity_by_norm.setdefault(key, eid)
+        self.entity_ids_by_norm.setdefault(key, []).append(eid)
+        if akey:
+            self.entity_by_anchor[akey] = eid
+
+    def _resolve_entity(self, name):
+        """(id, 사유). 못 찾으면 (None, "unknown_reference"), 둘 이상이면
+        (None, "ambiguous_reference"). **코드가 하나를 고르지 않는다.**"""
+        ids = self.entity_ids_by_norm.get(norm(name)) or []
+        if len(ids) == 1:
+            return ids[0], None
+        if len(ids) > 1:
+            return None, "ambiguous_reference"
+        return None, "unknown_reference"
+
     def _entity_id(self, name):
-        return self.entity_by_norm.get(norm(name))
+        return self._resolve_entity(name)[0]
+
+    def _ambiguous(self, name):
+        return self._resolve_entity(name)[1] == "ambiguous_reference"
 
     def _kind_of(self, entity_id):
         """확정 개체의 역할. 못 찾으면 unknown — 모양 검사를 미룬다."""
@@ -472,10 +554,12 @@ class Assembler:
                 self._hold(stage, raw_id, a, "schema_violation", "속성 후보가 객체가 아니다")
                 self._prov(stage, raw_id, a, "held", "객체가 아님")
                 continue
-            eid = self._entity_id(a.get("entity"))
+            eid, why = self._resolve_entity(a.get("entity"))
             if not eid:
-                self._hold(stage, raw_id, a, "unknown_reference",
-                           f"소유 개체 {a.get('entity')!r} 를 찾지 못했다",
+                self._hold(stage, raw_id, a, why,
+                           f"소유 개체 {a.get('entity')!r} 를 "
+                           + ("찾지 못했다" if why == "unknown_reference"
+                              else "이름으로 가릴 수 없다 — 같은 이름이 둘 이상이다"),
                            near=a.get("entity"))
                 self._prov(stage, raw_id, a, "held", "소유 개체 미해결")
                 continue
@@ -521,7 +605,7 @@ class Assembler:
                     self._hold(stage, raw_id, d, "no_evidence", error)
                     self._prov(stage, raw_id, d, "held", error)
                     continue
-            parent = self._entity_id(d.get("parent"))
+            parent, parent_why = self._resolve_entity(d.get("parent"))
             kind = str(d.get("kind", "")).upper()
             raw_members = d.get("members") or []
             if self.strict and (not isinstance(raw_members, list) or
@@ -531,8 +615,11 @@ class Assembler:
                 continue
             members = [m for m in raw_members if isinstance(m, str)]
             if not parent:
-                self._hold(stage, raw_id, d, "unknown_reference",
-                           f"부모 {d.get('parent')!r} 를 찾지 못했다", near=d.get("parent"))
+                self._hold(stage, raw_id, d, parent_why,
+                           f"부모 {d.get('parent')!r} 를 "
+                           + ("찾지 못했다" if parent_why == "unknown_reference"
+                              else "이름으로 가릴 수 없다 — 같은 이름이 둘 이상이다"),
+                           near=d.get("parent"))
                 self._prov(stage, raw_id, d, "held", "부모 미해결")
                 continue
             if kind not in contract.DECOMP_KIND:
@@ -600,7 +687,7 @@ class Assembler:
                          "alternate_names": [], "evidence_ids": [], "status": "proposed",
                          "introduced_by": {"stage": stage, "role": kind}}
                 self.doc["entities"].append(child)
-                self.entity_by_norm[norm(m)] = cid_e
+                self._register(cid_e, norm(m))
                 child["evidence_ids"] = self._evidence(
                     raws, cid_e, "subtype" if kind == "SPEC" else "instance")
                 self._prov(stage, raw_id, {"child": m, "role": kind}, "kept",
@@ -673,9 +760,12 @@ class Assembler:
                 self._prov(stage, raw_id, c, "held", "객체가 아님")
                 continue
             src, tgt = _obj(c.get("source")) or {}, _obj(c.get("target")) or {}
-            se, te = self._entity_id(src.get("entity")), self._entity_id(tgt.get("entity"))
+            (se, se_why) = self._resolve_entity(src.get("entity"))
+            (te, te_why) = self._resolve_entity(tgt.get("entity"))
             if not se or not te:
-                self._hold(stage, raw_id, c, "unknown_reference",
+                why = next((w for w in (se_why, te_why) if w == "ambiguous_reference"),
+                           "unknown_reference")
+                self._hold(stage, raw_id, c, why,
                            f"끝점 미해결: {src.get('entity')!r} -> {tgt.get('entity')!r}",
                            near=src.get("entity") if not se else tgt.get("entity"))
                 self._prov(stage, raw_id, c, "held", "끝점 미해결")

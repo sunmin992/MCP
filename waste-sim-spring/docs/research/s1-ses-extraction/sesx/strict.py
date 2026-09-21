@@ -112,11 +112,23 @@ def run(doc, snapshot, raw_ids, apply_findings):
     out.append(check("CLAIM_CONSISTENCY", list(reasons), str(reasons), "semantics"))
     out.append(check("NESTED_REFERENCES", broken, "nested evidence/support references", "reference"))
     run = doc["extraction_run"]
-    incomplete = run.get("status") != "completed" or bool(run.get("errors"))
+    # 실행 종료와 범위 충족을 가른다. 하나가 죽어도 나머지가 도는 구조가 되었으므로
+    # "끝났다"가 "다 뽑았다"를 뜻하지 않는다. 부분 산출물을 완성으로 읽히게 두지 않는다.
     expected = set(run.get("expected_stages") or [])
-    incomplete |= not expected or not expected <= set(run.get("stages_completed") or [])
-    out.append(check("EXTRACTION_COMPLETE", [doc["artifact_id"]] if incomplete else [],
-                     "all planned stages completed without errors", "execution"))
+    # `missing` 을 다시 쓰지 않는다 — 그 이름은 위에서 FIELD_EVIDENCE 의 **항목 ID** 다.
+    # 덮어쓰면 아래 상태 갱신 루프가 단계 이름을 항목 ID 로 알고 돌아 KeyError 를 낸다.
+    missing_stages = (sorted(expected - set(run.get("stages_completed") or []))
+                      if expected else [])
+    out.append(check("EXTRACTION_SCOPE_MET",
+                     [doc["artifact_id"]] if (missing_stages or not expected) else [],
+                     f"계획한 단계가 모두 산출물을 냈는가 — 빠짐 {missing_stages}"
+                     if missing_stages else "계획한 단계가 모두 산출물을 냈다", "execution"))
+    stage_errors = [e for e in (run.get("errors") or []) if e.get("stage")]
+    unclean = stage_errors or run.get("status") != "completed"
+    out.append(check("EXTRACTION_RUN_CLEAN", [doc["artifact_id"]] if unclean else [],
+                     f"실행 상태 {run.get('status')!r} · 단계 실패·차단 {len(stage_errors)}건 "
+                     f"{[(e.get('stage'), e.get('kind')) for e in stage_errors[:4]]}"
+                     if unclean else "단계 실패 없이 끝났다", "execution"))
     out.append(check("RAW_MANIFEST_REQUIRED", [doc["artifact_id"]] if raw_ids is None else [],
                      "raw candidate manifest must be available", "provenance"))
     source_bad = snapshot is None

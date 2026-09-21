@@ -180,7 +180,25 @@ class HardenedTests(unittest.TestCase):
     def test_failed_extraction_cannot_pass_on_partial_good_draft(self):
         doc, ids = self.doc()
         doc["extraction_run"]["status"] = "failed"
-        self.assertEqual(self.checks(doc, ids)["EXTRACTION_COMPLETE"]["result"], "fail")
+        self.assertEqual(self.checks(doc, ids)["EXTRACTION_RUN_CLEAN"]["result"], "fail")
+
+    def test_scope_and_run_state_are_reported_apart(self):
+        """실행이 끝난 것과 추출 범위를 채운 것은 다르다. 부분 산출물을 완성으로
+        읽히게 두지 않는다."""
+        doc, ids = self.doc()
+        doc["extraction_run"]["status"] = "partial"
+        doc["extraction_run"]["stages_completed"] = []
+        c = self.checks(doc, ids)
+        self.assertEqual(c["EXTRACTION_SCOPE_MET"]["result"], "fail")
+        self.assertEqual(c["EXTRACTION_RUN_CLEAN"]["result"], "fail")
+        self.assertIn("single", c["EXTRACTION_SCOPE_MET"]["details"])
+
+    def test_a_clean_partial_run_still_says_the_scope_is_short(self):
+        doc, ids = self.doc()
+        doc["extraction_run"]["expected_stages"] = ["single", "extra"]
+        c = self.checks(doc, ids)
+        self.assertEqual(c["EXTRACTION_SCOPE_MET"]["result"], "fail")
+        self.assertEqual(c["EXTRACTION_RUN_CLEAN"]["result"], "pass")
 
     def test_source_identity_mismatch_blocks(self):
         doc, ids = self.doc()

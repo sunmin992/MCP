@@ -69,3 +69,46 @@ def is_inside_branch(snapshot, path, start_line, end_line, window=40):
     if seen:
         return True, f"분기로 보이는 행 {seen[:3]}"
     return False, f"{lo}-{hi} 창에서 분기를 보지 못했다 (호출자 조건은 확인하지 않았다)"
+
+
+def strip_comments(lines):
+    """주석을 공백으로 지운 사본. **줄 수와 열 위치를 지킨다.**
+
+    행 번호와 인용은 원문에서 오고, 정규식 대조만 이 사본으로 한다. 그래야 주석 안의 말이
+    선언으로 잡히지 않는다 — 실제로 한국어 주석 `enum 리스트로 해석` 에서 `리스트로` 가
+    유형 후보로 올라왔다(q3-judge-1).
+
+    중괄호도 지워진다. 주석 안의 `{` 가 깊이 계산을 흔들어 클래스 본문 판정을 틀리게
+    만들기 때문이다.
+
+    한계: 문자열 리터럴 안의 `//` 나 `/*` 도 주석으로 본다. 후보를 **줄이는** 쪽으로만
+    틀리므로 없는 것을 만들어 내지는 않는다.
+    """
+    out, in_block = [], False
+    for line in lines:
+        buf, i, n = [], 0, len(line)
+        while i < n:
+            if in_block:
+                if line.startswith("*/", i):
+                    in_block, i = False, i + 2
+                    buf.append("  ")
+                else:
+                    buf.append(" ")
+                    i += 1
+            elif line.startswith("//", i):
+                buf.append(" " * (n - i))
+                i = n
+            elif line.startswith("/*", i):
+                in_block, i = True, i + 2
+                buf.append("  ")
+            else:
+                buf.append(line[i])
+                i += 1
+        out.append("".join(buf))
+    return out
+
+
+def code_lines(snapshot, path):
+    """(원문, 주석 지운 사본) 쌍. 대조는 사본으로, 인용은 원문으로 한다."""
+    raw = snapshot.lines(path)
+    return list(zip(raw, strip_comments(raw)))

@@ -21,6 +21,8 @@ from __future__ import annotations
 
 import re
 
+from .index import strip_comments
+
 #: 열거형 **유형** 선언. `enum X {` 만 축이 된다. 상수 한 줄을 인용한 후보는 축이 아니라
 #: 그 축의 멤버이므로 여기서 다루지 않는다.
 ENUM_DECL = re.compile(r"\benum\s+(\w+)\b")
@@ -43,10 +45,10 @@ def constant_region(lines, decl_line):
     바로 뒤부터 첫 `;` (또는 닫는 `}`) 까지에만 있다.
     """
     depth, started, out = 0, False, []
+    code = strip_comments(lines)      # 주석 안의 중괄호·세미콜론이 구간을 흔든다
     for n in range(decl_line, len(lines) + 1):
-        line = lines[n - 1]
-        out.append((n, line))
-        for ch in line:
+        out.append((n, lines[n - 1]))
+        for ch in code[n - 1]:
             if ch == "{":
                 depth += 1
                 started = True
@@ -71,12 +73,14 @@ def find_member(snapshot, path, name, decl_line=None):
     if not snapshot.has(path) or not isinstance(name, str) or not name.strip():
         return None
     lines = snapshot.lines(path)
+    stripped = strip_comments(lines)
     region = (constant_region(lines, decl_line) if decl_line
               else [(n, l) for n, l in enumerate(lines, start=1)])
     # 상수로 **쓰인** 자리만 본다 — 뒤에 `(` `,` `;` `}` 가 오고, 앞이 낱말이나 점이 아니다.
     rx = re.compile(r"(?<![\w.])" + re.escape(name) + r"\s*(?:\(|,|;|\})")
     for n, line in region:
-        if rx.search(line):
+        # 대조는 주석 지운 사본으로. 인용은 원문 그대로 남긴다.
+        if rx.search(stripped[n - 1]):
             return {"file_path": path, "start_line": n, "end_line": n,
                     "quote": line.rstrip("\n"), "symbol": name}
     return None
@@ -121,6 +125,10 @@ def derive(payload, snapshot):
         for name, site in found:
             entities.append({"name": name, "kind": "type", "scope": "simulation_target",
                              "why_entity": f"{axis} 축의 한 갈래다",
+                             # 상수 이름만으로는 가려지지 않는다 — `PAPER_BASELINE` 이
+                             # DischargeTimeMode 와 ScenarioScale 양쪽에 있다.
+                             "anchor": {"file_path": path, "owner_type": axis,
+                                        "symbol": name},
                              "evidence": [site], "origin": "derived_by_code"})
         # **분해는 만들지 않는다.** 정답지는 이 축을 도메인 개체 아래 둔다
         # (수거차량 --SPEC(차종 축)--> 5톤 차량). 축 자신을 부모로 세우면 정답지에 없는

@@ -461,11 +461,38 @@ class PipelineTest(unittest.TestCase):
         shutil.rmtree(self.tmp, ignore_errors=True)
 
     def test_stage_failure_keeps_earlier_stages(self):
+        """한 단계가 죽어도 **독립적인 뒤 단계는 계속 돈다.**
+
+        예전에는 break 로 전부 멈췄고, 반복 실행 5회 중 3회가 b2·d·f 한 단계 때문에
+        통째로 죽었다 — 앞 단계 산출물이 멀쩡한데도 버려졌다. c(속성)는 d(분해)의
+        입력이 아니므로 c 가 죽어도 d 는 답할 수 있다.
+        """
         client = llm.FakeClient(fake_stage_payloads(), fail_on={"c"})
         payloads, errors = stages.run_pipeline(self.store, self.snap, client)
-        self.assertEqual(sorted(payloads), ["a", "b"])
-        self.assertEqual(errors[0]["stage"], "c")
+        self.assertIn("a", payloads)
+        self.assertIn("b", payloads)
+        self.assertNotIn("c", payloads)
+        self.assertIn("d", payloads)            # c 에 기대지 않는다
+        self.assertEqual([e["stage"] for e in errors], ["c"])
         self.assertIsNotNone(self.store.last_completion("b"))
+
+    def test_a_stage_that_needs_the_dead_one_is_blocked_not_attempted(self):
+        """맥락 없이 물으면 다른 질문이 된다. 실패가 아니라 blocked 로 남긴다."""
+        client = llm.FakeClient(fake_stage_payloads(), fail_on={"b"})
+        payloads, errors = stages.run_pipeline(self.store, self.snap, client)
+        by = {e["stage"]: e for e in errors}
+        self.assertEqual(by["b"]["kind"], "failed")
+        self.assertEqual(by["c"]["kind"], "blocked")
+        self.assertEqual(by["c"]["blocked_by"], ["b"])
+        self.assertNotIn("c", client.calls)      # 부르지 않았다
+        self.assertIn("a", payloads)
+
+    def test_blocking_is_transitive(self):
+        client = llm.FakeClient(fake_stage_payloads(), fail_on={"b"})
+        _, errors = stages.run_pipeline(self.store, self.snap, client)
+        kinds = {e["stage"]: e["kind"] for e in errors}
+        self.assertEqual(kinds.get("d"), "blocked")   # b -> d
+        self.assertEqual(kinds.get("f"), "blocked")   # d -> f
 
     def test_resume_does_not_recall_completed_stages(self):
         client = llm.FakeClient(fake_stage_payloads(), fail_on={"c"})

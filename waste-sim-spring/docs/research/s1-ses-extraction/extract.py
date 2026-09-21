@@ -176,9 +176,21 @@ def cmd_run(a):
         payloads = dict(payloads)
         payloads["flow"] = stages_mod.flow_payload(payloads)
     raw_ids = assemble.raw_ids_of(payloads)
+    # 실행이 끝난 것과 추출 범위를 채운 것은 다르다. 부분 산출물을 완성된 SES 로
+    # 위장하지 않는다 — 한 단계가 죽어도 독립 단계는 돌므로, 이제 "끝났다"만으로는
+    # 무엇이 들었는지 알 수 없다.
+    planned = [st for st in stages_mod.PLANS[a.plan]]
+    blocked = sorted({e["stage"] for e in errors if e.get("kind") == "blocked"})
+    stage_failed = sorted({e["stage"] for e in errors
+                           if e.get("stage") and e.get("kind") != "blocked"})
+    missing = [st for st in planned if st not in payloads]
+    run_status = ("completed" if not missing else
+                  "partial" if payloads else "failed")
     extraction_run = {
         "run_id": a.run_id, "experiment_kind": "fresh_extraction", "strategy": a.plan,
-        "status": "failed" if errors else "completed",
+        "status": run_status,
+        "stages_planned": planned, "stages_missing": missing,
+        "stages_failed": stage_failed, "stages_blocked": blocked,
         "model": getattr(client, "describe", {}), "model_revision": None,
         "settings": settings, "extractor_revision": run_store.implementation_revision(),
         "validation_profile": ("evidence-v1" if a.plan in stages_mod.EVIDENCE_PLANS
@@ -216,6 +228,8 @@ def cmd_run(a):
             "reason_code": "schema_violation", "origin_raw": payloads,
             "explanation": str(err), "resolution_needed": "Inspect preserved raw responses."})
     _publish(d, "draft", doc)
+    print(f"실행 {run_status} · 단계 {sorted(payloads)} · 실패 {stage_failed} "
+          f"· 차단 {blocked}")
     print(f"단계 {sorted(payloads)} · 실패 {len(errors)} · 개체 {len(doc['entities'])} "
           f"· 속성 {len(doc['attributes'])} · 분해 {len(doc['decompositions'])} "
           f"· 결합 {len(doc['couplings'])} · 보류 {len(doc['unresolved'])}")

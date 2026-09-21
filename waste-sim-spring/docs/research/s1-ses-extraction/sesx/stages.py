@@ -13,7 +13,7 @@ import io
 import json
 import os
 
-from . import axis, collection, composition, contract, flow, llm as llm_mod
+from . import axis, candidates as cand_mod, collection, composition, contract, flow, judge, llm as llm_mod
 from .run_store import resume_key, implementation_revision, sha256_text
 
 PROMPTS = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prompts")
@@ -46,11 +46,15 @@ PLANS = {
     # 문제를 겨냥한다(q3-control-2 에서 개체 5개가 전부 배열 축이었다). 유형·집합·특수화는
     # 갱신되는 줄이 아니라 선언된 줄에 있다. b2 뒤에 두어 이미 상태로 확정된 이름을 피한다.
     "T2-decl": ("a", "b2", "n", "c", "d", "e", "f"),
+    # j 는 **후보별 짧은 판정** 단계다. 코드가 후보와 근거를 먼저 만들고, 모델은 후보 ID
+    # 하나에 한 줄로 답한다. 소스 전문을 지고 가지 않으므로 호출 하나가 작다 — 긴 산출물을
+    # 한 번에 받다가 잘려 실행이 멈추던 자리를 없앤다.
+    "T2-judge": ("a", "b2", "j", "c", "d", "e", "f"),
 }
 PROMPT_FILE = {
     "a": "T2/a.md", "b": "T2/b.md", "c": "T2/c.md", "d": "T2/d.md", "e": "T2/e.md",
     "f": "T2/f.md", "r": "T2/r.md", "r2": "T2/r2.md", "b2": "T2/b2.md", "b3": "T2/b3.md",
-    "g": "T2/g.md", "e1": "T2/e1.md", "e2": "T2/e2.md", "w": "T2/w.md", "n": "T2/n.md",
+    "g": "T2/g.md", "e1": "T2/e1.md", "e2": "T2/e2.md", "w": "T2/w.md", "n": "T2/n.md", "j": "T2/j.md",
     "states": "semantic/states.md", "components": "semantic/components.md",
     "single": "S2/single.md",
 }
@@ -61,7 +65,8 @@ CONTEXT_FROM = {"b": ("a",), "b2": ("a",),
                 "b3": ("b2", "e")}
 
 CONTEXT_FROM["w"] = ("a", "b2")
-CONTEXT_FROM["n"] = ("b2",)      # 상태 목록만 필요하다. 관찰 전체를 주면 다시 상태를 센다
+CONTEXT_FROM["n"] = ("b2",)
+CONTEXT_FROM["j"] = ()      # 후보는 코드가 만든다. 앞 단계 맥락이 필요 없다      # 상태 목록만 필요하다. 관찰 전체를 주면 다시 상태를 센다
 CONTEXT_FROM["g"] = ("a", "b2")
 CONTEXT_FROM["e1"] = ("a", "b2")
 CONTEXT_FROM["e2"] = ("b2", "e1", "d")
@@ -75,7 +80,8 @@ NO_NEW_ENTITY_STAGES = ("r2",)
 # 않은 것처럼 보인다. 실제로 q3-whole-2 에서 b2 가 package.json 모양을, w 가 파일 통째로를
 # 냈는데 산출물에는 흔적이 없었다. 계획을 새로 만들 때 여기 넣는 것을 잊기 쉬우므로
 # extract.py 의 하드코딩 대신 계획 옆에 둔다.
-EVIDENCE_PLANS = ("S2", "T2-evidence", "T2-whole", "T2-whole-control", "T2-decl")
+EVIDENCE_PLANS = ("S2", "T2-evidence", "T2-whole", "T2-whole-control", "T2-decl",
+                  "T2-judge")
 
 # 계획 이름에 걸린 두 번째 성질 — **프롬프트 계열**이다. 위의 EVIDENCE_PLANS(조립 엄격도)와
 # 뜻이 다르므로 합치지 않는다. 다만 둘 다 이름으로 갈리므로 나란히 둔다. 여기 든 계획은
@@ -90,6 +96,9 @@ EVIDENCE_PROMPT_PLANS = ("S2", "T2-evidence")
 # 층위가 섞인다 — q3-control-1 에서 `건물 → [fill, peak]` 가 그랬다. 조립기가 보류로 막지만
 # (reason_code: attribute_as_member), 애초에 적지 않게 목록을 준다.
 ATTRIBUTE_LIST_STAGES = ("n", "d", "r", "r2")
+
+#: 후보별 판정 단계. 소스 전문 대신 **후보 목록만** 지고 간다.
+JUDGE_STAGES = ("j",)
 
 NAME_LIST_STAGES = ("c", "d", "r", "r2", "e", "e2", "f")   # c 누락으로 jn-T2c-1 에서 17건이 죽었다
 
@@ -107,6 +116,34 @@ def flow_payload(payloads):
     # 어느 값에도 못 붙인 e1 항목은 버리지 않는다 — 자리 인용이 살아 있다
     out["unresolved_values"] = flow.unmatched_value_sites(b2, e1)
     return out
+
+
+def _judge_stage(stage, plan, store, snapshot, client, settings, prompts_dir):
+    """후보를 코드가 세고, 묶음마다 짧은 판정을 받는다. 한 묶음이 죽어도 나머지는 돈다."""
+    system = system_prompt(stage, prompts_dir)
+    cands = cand_mod.build(snapshot)
+    errors = []
+
+    def render(batch):
+        return ("후보 " + str(len(batch)) + "개입니다.\n\n"
+                + "\n".join(cand_mod.prompt_rows(batch)) + "\n")
+
+    def on_attempt(batch, status, error, usage=None):
+        request = {"stage": stage, "plan": plan, "snapshot_id": snapshot.snapshot_id,
+                   "system": system, "user_body": render(batch),
+                   "cand_ids": [c["cand_id"] for c in batch],
+                   "settings": settings, "model": getattr(client, "describe", {})}
+        adir = store.begin_attempt(stage, request)
+        store.finish_attempt(adir, status, error=error, usage=usage)
+        if status != "completed":
+            errors.append({"stage": stage, "kind": "batch_failed", "error": error,
+                           "batch": len(batch), "attempt_dir": adir})
+
+    judgments, held = judge.judge_batch(client, stage, system, render, cands,
+                                        on_attempt=on_attempt)
+    payload = judge.to_payload(cands, judgments, held)
+    payload["candidate_count"] = len(cands)
+    return payload, errors
 
 
 def _read(path):
@@ -340,7 +377,31 @@ def run_pipeline(store, snapshot, client, plan="T2", stages=None, settings=None,
     if line_numbers:
         code = (LINE_NUMBER_NOTE + code)
 
+    # 한 단계가 죽어도 독립적인 단계는 계속 돈다. 예전에는 break 로 전부 멈췄고,
+    # 반복 실행 5회 중 3회가 b2·d·f 한 단계 때문에 통째로 죽었다 — 그 앞 단계 산출물은
+    # 멀쩡한데도 버려졌다. 다만 **앞 단계에 기댄 단계는 돌리지 않는다.** 맥락 없이 물으면
+    # 다른 질문이 되기 때문이다. 그런 단계는 실패가 아니라 blocked 로 남긴다.
+    failed = set()
+
+    def blocked_by(stage):
+        deps = [d for d in CONTEXT_FROM.get(stage, ()) if d in stage_list]
+        return [d for d in deps if d in failed]
+
     for stage in stage_list:
+        upstream_dead = blocked_by(stage)
+        if upstream_dead:
+            errors.append({"stage": stage, "kind": "blocked", "blocked_by": upstream_dead,
+                           "error": f"앞 단계 {upstream_dead} 가 끝나지 않았다"})
+            failed.add(stage)
+            continue
+        if stage in JUDGE_STAGES:
+            payloads[stage], err = _judge_stage(stage, plan, store, snapshot, client,
+                                                settings, prompts_dir)
+            if err:
+                errors.extend(err)
+                if not payloads[stage].get("entities"):
+                    failed.add(stage)
+            continue
         if stage == "f" and "e1" in payloads and "e2" in payloads:
             payloads["flow"] = flow_payload(payloads)
         if plan in EVIDENCE_PROMPT_PLANS:
@@ -360,6 +421,7 @@ def run_pipeline(store, snapshot, client, plan="T2", stages=None, settings=None,
         try:
             cached = store.reusable(stage, key)
         except ValueError as err:
+            # 스냅샷·기록 무결성은 단계 문제가 아니라 실행 전체의 전제다. 멈춘다.
             errors.append({"stage": stage, "kind": "integrity", "error": str(err)})
             break
         if cached is not None:
@@ -383,14 +445,16 @@ def run_pipeline(store, snapshot, client, plan="T2", stages=None, settings=None,
         if ctx_meta["truncated"]:
             store.finish_attempt(adir, "failed", error="context exceeds configured limit")
             errors.append({"stage": stage, "kind": "context_overflow", "attempt_dir": adir})
-            break
+            failed.add(stage)
+            continue
         try:
             text, usage = client.complete(stage, system, user)
         except llm_mod.LlmError as e:
             store.finish_attempt(adir, e.kind, error=str(e))
             errors.append({"stage": stage, "kind": e.kind, "error": str(e),
                            "attempt_dir": adir})
-            break
+            failed.add(stage)
+            continue
         try:
             if usage.get("done_reason") == "length" or usage.get("finish_reason") == "length":
                 raise ValueError("model output reached the token limit")
@@ -407,7 +471,8 @@ def run_pipeline(store, snapshot, client, plan="T2", stages=None, settings=None,
                                  error=f"파싱 실패: {e}")
             errors.append({"stage": stage, "kind": "parse_error", "error": str(e),
                            "attempt_dir": adir})
-            break
+            failed.add(stage)
+            continue
         store.finish_attempt(adir, "completed", response_text=text, usage=usage)
         store.record_completion(stage, key, payload, adir,
                                 raw_ref=os.path.join(adir, "response.raw"))
