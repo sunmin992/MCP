@@ -10,7 +10,10 @@
   └─ 관찰 → 개체·속성 → 분해 → 자리 → 주체 →〈코드가 짝짓는다〉→ 활성 조건 (T2-flow)
 → 전체 후보와 처리 이력 → 결정적 조립 → 근거·참조·구조 검사
 → 오류를 포함한 보고 → 의미 검토 → 재검증된 승인 리비전
-── 이후 별도 작업: 실행 매개변수 연결 후보 ──
+
+실행설정 연결 (별도 경계 P-binding · 모델이 참여하지 않는다)
+  설정 필드별 근거 묶음 → 앵커로 개체 후보에 연결 → 템플릿 초안
+  → 제공자 빈칸 목록 → 사람의 보충(리비전) → 제공자 부담 채점
 ```
 
 ## 쓰는 법
@@ -20,7 +23,11 @@ python extract.py pipeline --rule P-pilot --run-id r1 --plan T2 --model gpt-4.1-
 python extract.py pipeline --rule P-pilot --run-id r2 --plan T2-flow --model gpt-4.1-mini
 python extract.py review   --run-id r1 --decisions decisions.json --reviewer 이름
 python extract.py pes      --run-id r1 --request pes-request.json
-python -m unittest discover -s tests            # 인수 시험 203건
+python extract.py bind     --run-id r1 --rule P-binding
+python extract.py template --run-id r1
+python extract.py gaps     --run-id r1 [--fill filled.json --reviewer 이름]
+python score_binding.py exp/r1
+python -m unittest discover -s tests            # 인수 시험 558건
 ```
 
 산출물은 `exp/<run-id>/` 아래에 있다. 같은 run-id 로 다시 만들지 않는다.
@@ -45,6 +52,9 @@ python -m unittest discover -s tests            # 인수 시험 203건
 | `review.py` | 전문가 판정 → 새 리비전 → 재검증 → 승인 범위·단서 |
 | `pes.py` | **요청한 시뮬레이터가 루트를 정한다.** 요청 검사 · 가지치기. 모델이 참여하지 않는다 |
 | `report.py` | 실패 상태에서도 나오는 보고서 |
+| `binding.py` | 설정 필드마다 근거 일곱. 답변 필드는 **변환 자리에서만** 나온다 |
+| `template.py` | SES 요소 → 작업 후보. 처분이 근거에서 나오고, 못 채운 슬롯은 빈칸이다 |
+| `gaps.py` | 빈칸을 제공자의 일 목록으로. 근거 코드가 바뀌면 `stale` 로 표시한다 |
 
 ## 지키는 규칙
 
@@ -79,7 +89,29 @@ python -m unittest discover -s tests            # 인수 시험 203건
 - 실제 모델로 돌린 S2·T2·T2-flow·T2-whole 비교 (파일럿 미실행)
 - 판정 개체 단계 (`j`) — 정답지의 판정 4개를 낸 실행이 아직 없다
 - 앵커 기반 동일성 (B 트랙) — 설계만 있고 구현 전이다
+- **추출이 구성 표면에 닿게 하기.** 아래 실측을 보라
 - 자동 수리 루프 — 첫 비교에서 제외한다. 별도 조건으로 재는 것이 맞다
 - AST 색인 — 정규식 색인으로 시작한다. 확대는 오류 원인이 확인된 뒤
 - 참조 대비 채점의 활성 조건 확장 (결합은 `score_couplings` 로 잰다)
-- 실행 매개변수 연결 후보 생성
+- Java `SesFieldMapping` 을 산출물 소비로 바꾸기 (지금은 대조까지다)
+- LLM 서브태스크 생성과 사용자 부담 지표
+
+## 실측 — 연결이 0건인 까닭 (2026-09-21)
+
+`bind → template` 을 실제 산출물 셋(q3-obs1 · smoke-v8-20260916-01 · jn-T2-1)에 돌렸다.
+설정 필드는 42개가 잡히고 이름이 다른 것 2개(`numTrucks↔truckCount` ·
+`collectionTimeMinutes↔collectionTime`)도 변환 자리로 잡힌다. 그런데 **붙은 작업이 0이다.**
+
+대조기의 문제가 아니다. `bridge_report` 가 원인을 적는다.
+
+```
+q3-obs1  근거 116건 · 기호 있는 것 0 · 설정 파일을 가리키는 것 0
+         인용한 파일: SimulationEngine.java(110) · OccupationType.java(6)
+```
+
+`SimulationConfig.java` · `TruckType.java` · `TravelTimeMode.java` 는 **그 실행의 스냅샷
+24개 파일 안에 있었다.** 추출기가 읽을 수 있었는데 한 번도 인용하지 않았다.
+
+추출이 엔진 루프의 상태(`fill` · `peak` · `tripAccs`)까지만 닿고 **결정이 사는 선언
+표면에 닿지 않는다.** 이것이 지금 템플릿 생성을 막는 누락이고, 대조기를 고쳐서는 풀리지
+않는다 — 다음에 손댈 자리다.
