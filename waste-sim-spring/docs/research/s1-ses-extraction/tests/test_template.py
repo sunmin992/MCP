@@ -200,5 +200,95 @@ class Slots(unittest.TestCase):
                       [b["config_field"] for b in d["unmapped_bindings"]])
 
 
+class SiteOverlap(unittest.TestCase):
+    """근거에 symbol 이 없을 때의 다리 — 파일과 행이다.
+
+    실제 산출물을 열어 보니 근거 116건이 **전부 symbol 이 없었다**(q3-obs1). 기호만
+    다리로 두면 실제 추출물에서는 하나도 붙지 않는다. 근거가 실제로 가진 것은 파일 경로와
+    행 범위이고, 그것도 코드 자리다.
+    """
+
+    def _artifact(self, start, end, path="SimulationConfig.java"):
+        a = artifact()
+        a["evidence"] = [{"id": "EV1", "file_path": path, "start_line": start,
+                          "end_line": end, "symbol": None, "quote": "…"}]
+        return a
+
+    def _binding(self):
+        b = binding("dispatchIntervalMinutes")
+        b["evidence"]["declaration"].update(
+            {"found": True, "evidence_ids": ["BD-x-E01"],
+             "sites": [{"file_path": "SimulationConfig.java", "start_line": 208,
+                        "end_line": 208, "quote": "private int dispatchIntervalMinutes = 0;"}]})
+        return b
+
+    def _tasks(self, art, b):
+        return {t["point_id"]: t for t in template.draft(art, [b])["tasks"]}
+
+    def test_a_declaration_inside_the_evidence_range_links(self):
+        t = self._tasks(self._artifact(205, 212), self._binding())["attr:수거차량:배차간격"]
+        self.assertEqual("BD-dispatchIntervalMinutes", t["binding_id"])
+        self.assertEqual("site_overlap", t["match_rule"])
+
+    def test_a_declaration_outside_the_range_does_not_link(self):
+        t = self._tasks(self._artifact(300, 310), self._binding())["attr:수거차량:배차간격"]
+        self.assertIsNone(t["binding_id"])
+
+    def test_another_file_does_not_link(self):
+        t = self._tasks(self._artifact(205, 212, "Other.java"),
+                        self._binding())["attr:수거차량:배차간격"]
+        self.assertIsNone(t["binding_id"])
+
+    def test_evidence_too_wide_to_be_about_one_field_does_not_link(self):
+        """클래스 전체를 인용한 근거는 어느 필드의 것도 아니다. 넓으면 붙이지 않는다."""
+        wide = self._artifact(1, 1 + template.MAX_OVERLAP_SPAN)
+        self.assertIsNone(self._tasks(wide, self._binding())["attr:수거차량:배차간격"]["binding_id"])
+
+    def test_the_symbol_bridge_still_wins_when_it_exists(self):
+        art = self._artifact(205, 212)
+        art["evidence"][0]["symbol"] = "dispatchIntervalMinutes"
+        t = self._tasks(art, self._binding())["attr:수거차량:배차간격"]
+        self.assertEqual("symbol_match", t["match_rule"])
+
+
+class BridgeReport(unittest.TestCase):
+    """왜 못 붙었는지를 말한다. "0건"만 내면 기계가 틀린 것인지 재료가 없는 것인지 모른다.
+
+    실측이 그 자리였다 — q3-obs1·jn-T2-1 에서 붙은 것이 0이었는데, 원인은 대조기가 아니라
+    **근거가 설정 파일을 하나도 가리키지 않는다**는 것이었다.
+    """
+
+    def _declared_in(self, path):
+        b = binding("dispatchIntervalMinutes")
+        b["evidence"]["declaration"].update(
+            {"found": True, "sites": [{"file_path": path, "start_line": 208,
+                                       "end_line": 208, "quote": "…"}]})
+        return b
+
+    def test_it_counts_how_many_evidences_carry_a_symbol(self):
+        a = artifact()
+        a["evidence"][1]["symbol"] = None
+        r = template.bridge_report(a, [])
+        self.assertEqual(2, r["evidence"])
+        self.assertEqual(1, r["with_symbol"])
+
+    def test_it_names_the_files_the_bindings_live_in_but_the_evidence_never_cites(self):
+        """실측한 자리다 — 근거가 엔진만 가리키고 설정 파일을 한 번도 안 가리켰다."""
+        a = artifact()
+        for ev in a["evidence"]:
+            ev["file_path"] = "SimulationEngine.java"
+        r = template.bridge_report(a, [self._declared_in("SimulationConfig.java")])
+        self.assertEqual(0, r["evidence_in_binding_files"])
+        self.assertEqual(["SimulationConfig.java"], r["binding_files_never_cited"])
+
+    def test_a_shared_file_is_reported_as_reachable(self):
+        a = artifact()
+        a["evidence"] = [{"id": "EV1", "file_path": "SimulationConfig.java",
+                          "start_line": 208, "end_line": 208, "symbol": None, "quote": "…"}]
+        r = template.bridge_report(a, [self._declared_in("SimulationConfig.java")])
+        self.assertEqual(1, r["evidence_in_binding_files"])
+        self.assertEqual([], r["binding_files_never_cited"])
+
+
 if __name__ == "__main__":
     unittest.main()

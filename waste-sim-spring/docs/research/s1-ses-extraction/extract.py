@@ -8,6 +8,9 @@
   python extract.py report   --run-id r1
   python extract.py review   --run-id r1 --decisions decisions.json
   python extract.py pes      --run-id r1 --request pes-request.json
+  python extract.py bind     --run-id r1 --rule P-binding
+  python extract.py template --run-id r1
+  python extract.py gaps     --run-id r1 [--fill filled.json --reviewer 이름]
   python extract.py pipeline --rule P-pilot --run-id r1 --plan T2 --model gpt-4.1-mini
 
 기존 run_s1.py · run_t.py · runs/ 는 건드리지 않는다. 산출물은 exp/<run-id>/ 아래다.
@@ -28,9 +31,11 @@ KIT = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.abspath(os.path.join(KIT, "..", "..", ".."))
 sys.path.insert(0, KIT)
 
-from sesx import (assemble, contract, input_policy, llm as llm_mod, pes as pes_mod,  # noqa: E402
-                  report as report_mod, review as review_mod, run_store,
-                  snapshot as snap_mod, stages as stages_mod, validate as validate_mod)
+from sesx import (assemble, binding as binding_mod, candidates as cand_mod,  # noqa: E402
+                  contract, gaps as gaps_mod, input_policy, llm as llm_mod,
+                  pes as pes_mod, report as report_mod, review as review_mod, run_store,
+                  snapshot as snap_mod, stages as stages_mod, template as template_mod,
+                  validate as validate_mod)
 
 EXP = os.path.join(KIT, "exp")
 
@@ -317,6 +322,141 @@ def cmd_pes(a):
     return 0
 
 
+# ------------------------------------------------- 실행설정 연결 (모델 없음)
+
+def bind_dir(run_id):
+    """연결 산출물은 추출 산출물 옆에 두되 **스냅샷을 섞지 않는다** — 경계가 다르다."""
+    return os.path.join(run_dir(run_id), "binding")
+
+
+def cmd_bind(a):
+    """설정 필드마다 근거를 모으고 개체 후보에 잇는다. 자기 경계로 자기 스냅샷을 만든다."""
+    d = bind_dir(a.run_id)
+    if os.path.exists(os.path.join(d, "bindings.json")) and not a.allow_existing:
+        print("이미 연결 산출물이 있다 — 덮어쓰지 않는다. 새 run-id 를 쓴다.")
+        return 3
+    policy = input_policy.load_policy(os.path.join(KIT, "sesx", "rules", a.rule + ".json"))
+    decision = input_policy.decide(REPO, policy)
+    os.makedirs(d, exist_ok=True)
+    input_policy.write_report(decision, os.path.join(d, "input-decisions.json"))
+    if decision["blocks"]:
+        for b in decision["blocks"][:10]:
+            print(f"  차단 {b['code']}: {b['path']} — {b['detail']}")
+        print("입력 경계를 고치고 다시 돌린다.")
+        return 2
+
+    snap_out = os.path.join(d, "snapshot")
+    if not os.path.exists(snap_out):
+        snap_mod.materialize(REPO, decision, snap_out, f"snap-bind-{a.run_id}", git=_git_rev())
+    snapshot = snap_mod.Snapshot(snap_out)
+
+    bindings = binding_mod.collect(snapshot, decision_report=decision)
+    # 개체 후보는 **추출 스냅샷**에서 온다. 없으면 연결 스냅샷의 것으로 대신하고 그 사실을
+    # 남긴다 — 어느 코드를 보고 이었는지가 근거의 일부다.
+    ses_snap = os.path.join(run_dir(a.run_id), "snapshot")
+    source = "extraction" if os.path.exists(ses_snap) else "binding"
+    cands = cand_mod.build(snap_mod.Snapshot(ses_snap if source == "extraction" else snap_out))
+    bindings = binding_mod.link(bindings, cands)
+
+    linked = sum(1 for b in bindings if b["ses_link"]["state"] == "proposed")
+    named = sum(1 for b in bindings if b["answer_field"]
+                and b["answer_field"] != b["config_field"])
+    _write(os.path.join(d, "bindings.json"),
+           {"policy_id": decision["policy_id"], "snapshot_id": snapshot.snapshot_id,
+            "candidate_source": source, "candidates": len(cands),
+            "totals": {"fields": len(bindings), "linked": linked,
+                       "renamed_by_conversion": named},
+            "bindings": bindings})
+    print(f"설정 필드 {len(bindings)} · 연결 후보 {linked} · 이름이 다른 것 {named}")
+    return 0
+
+
+def _evidence_files(artifact, bindings):
+    """근거 ID -> 파일. 빈칸이 어느 코드를 지켜보는지 정하는 데 쓴다."""
+    out = {}
+    for ev in artifact.get("evidence") or []:
+        if ev.get("file_path"):
+            out[ev["id"]] = ev["file_path"]
+    for b in bindings:
+        for sig in b["evidence"].values():
+            for site in sig["sites"]:
+                if site.get("evidence_id"):
+                    out[site["evidence_id"]] = site["file_path"]
+    return out
+
+
+def _bindings(run_id):
+    path = os.path.join(bind_dir(run_id), "bindings.json")
+    return _read(path) if os.path.exists(path) else None
+
+
+def cmd_template(a):
+    """SES 산출물과 대응표에서 서브태스크 템플릿 초안을 만든다."""
+    held = _bindings(a.run_id)
+    if held is None:
+        print("연결 산출물이 없다. 먼저 bind 를 돌린다.")
+        return 2
+    artifact = _latest(run_dir(a.run_id))
+    selection = _read(a.selection) if getattr(a, "selection", None) else None
+    draft = template_mod.draft(artifact, held["bindings"], selection)
+    draft["selection"] = selection
+    path = os.path.join(bind_dir(a.run_id), "template.json")
+    if os.path.exists(path) and a.allow_existing:
+        os.remove(path)
+    _write(path, draft)
+    print("작업 후보 " + str(len(draft["tasks"])) + " · 처분 "
+          + " · ".join(f"{k} {v}" for k, v in draft["counts"].items() if v))
+    bridge = draft["bridge"]
+    bound = sum(1 for t in draft["tasks"] if t["binding_id"])
+    print(f"붙은 작업 {bound} · 근거 {bridge['evidence']} 중 기호 있는 것 "
+          f"{bridge['with_symbol']} · 설정 파일을 가리키는 것 "
+          f"{bridge['evidence_in_binding_files']}")
+    if bound == 0 and bridge["binding_files_never_cited"]:
+        print("  근거가 한 번도 가리키지 않은 설정 파일: "
+              + ", ".join(os.path.basename(p) for p
+                          in bridge["binding_files_never_cited"][:6]))
+        print("  대조기의 문제가 아니라 추출이 구성 표면에 닿지 않은 것이다.")
+    return 0
+
+
+def cmd_gaps(a):
+    """제공자가 볼 빈칸 목록. --fill 이 있으면 사람이 채운 것을 새 리비전으로 얹는다."""
+    d = bind_dir(a.run_id)
+    held = _bindings(a.run_id)
+    draft_path = os.path.join(d, "template.json")
+    if held is None or not os.path.exists(draft_path):
+        print("템플릿 초안이 없다. 먼저 bind 와 template 을 돌린다.")
+        return 2
+    draft = _read(draft_path)
+    artifact = _latest(run_dir(a.run_id))
+    snapshot = snap_mod.Snapshot(os.path.join(d, "snapshot"))
+    digests = {p: snapshot.sha256(p) for p in snapshot.by_path}
+    for ev in artifact.get("evidence") or []:
+        digests.setdefault(ev.get("file_path"), "밖의 스냅샷")
+    fresh = gaps_mod.rows(draft, _evidence_files(artifact, held["bindings"]), digests)
+
+    if not a.fill:
+        _write(os.path.join(d, "gaps.json"),
+               {"rows": fresh, "summary": gaps_mod.summary(fresh)})
+        s = gaps_mod.summary(fresh)
+        print("검토할 칸 " + str(s["total"]) + " · "
+              + " · ".join(f"{k} {v}" for k, v in sorted(s["by_state"].items())))
+        return 0
+
+    previous, n = fresh, 0
+    while os.path.exists(os.path.join(d, f"gaps-rev{n + 1}.json")):
+        n += 1
+        previous = _read(os.path.join(d, f"gaps-rev{n}.json"))["rows"]
+    if n == 0 and os.path.exists(os.path.join(d, "gaps.json")):
+        previous = _read(os.path.join(d, "gaps.json"))["rows"]
+    filled = gaps_mod.apply(gaps_mod.restale(previous, fresh), _read(a.fill), a.reviewer)
+    out = {"rows": filled, "summary": gaps_mod.summary(filled),
+           "reviewer": a.reviewer, "revision": n + 1}
+    _write(os.path.join(d, f"gaps-rev{n + 1}.json"), out)
+    print(f"리비전 {n + 1} · 사람이 채운 칸 {out['summary']['by_origin']['human']}")
+    return 0
+
+
 def cmd_pipeline(a):
     extraction_rc = 0
     for step in (cmd_policy, cmd_snapshot, cmd_run):
@@ -356,6 +496,12 @@ def main(argv=None):
     p.add_argument("--tokenizer", default=None, help="Optional local tokenizer.json for preflight")
     p.add_argument("--line-numbers", action="store_true",
                    help="코드에 행 번호를 붙여 준다 (조건이 달라진다. 요청 기록에 남는다)")
+    common(sub.add_parser("bind")).add_argument("--rule", default="P-binding")
+    p = common(sub.add_parser("template"))
+    p.add_argument("--selection", default=None, help="이미 정해진 선택 JSON. 활성 조건 판정에 쓴다")
+    p = common(sub.add_parser("gaps"))
+    p.add_argument("--fill", default=None, help="제공자가 채운 칸 JSON")
+    p.add_argument("--reviewer", default=None)
     common(sub.add_parser("validate"))
     common(sub.add_parser("report"))
     p = common(sub.add_parser("review"))
@@ -381,7 +527,8 @@ def main(argv=None):
     a = ap.parse_args(argv)
     return {"policy": cmd_policy, "snapshot": cmd_snapshot, "run": cmd_run,
             "validate": cmd_validate, "report": cmd_report, "review": cmd_review,
-            "pes": cmd_pes, "pipeline": cmd_pipeline}[a.cmd](a)
+            "pes": cmd_pes, "pipeline": cmd_pipeline,
+            "bind": cmd_bind, "template": cmd_template, "gaps": cmd_gaps}[a.cmd](a)
 
 
 if __name__ == "__main__":
