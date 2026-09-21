@@ -19,6 +19,7 @@
 python extract.py pipeline --rule P-pilot --run-id r1 --plan T2 --model gpt-4.1-mini
 python extract.py pipeline --rule P-pilot --run-id r2 --plan T2-flow --model gpt-4.1-mini
 python extract.py review   --run-id r1 --decisions decisions.json --reviewer 이름
+python extract.py pes      --run-id r1 --request pes-request.json
 python -m unittest discover -s tests            # 인수 시험 203건
 ```
 
@@ -41,14 +42,18 @@ python -m unittest discover -s tests            # 인수 시험 203건
 | `shape.py` | 트리 모양 계약. ref-v8 의 간선을 훑어 실제로 지켜지는 불변만 남겼다 |
 | `flow.py` | 쓰는 자리와 읽는 자리를 짝지어 방향 있는 결합을 만든다. **모델이 참여하지 않는다** |
 | `validate.py` | 층별 검증. 실패는 승인만 막고 검토는 막지 않는다 |
-| `review.py` | 전문가 판정 → 새 리비전 → 재검증 → 승인 범위 |
+| `review.py` | 전문가 판정 → 새 리비전 → 재검증 → 승인 범위·단서 |
+| `pes.py` | **요청한 시뮬레이터가 루트를 정한다.** 요청 검사 · 가지치기. 모델이 참여하지 않는다 |
 | `report.py` | 실패 상태에서도 나오는 보고서 |
 
 ## 지키는 규칙
 
 1. **모르는 활성 조건은 `unknown`이다.** 무조건 활성으로 바꾸는 경로가 코드에 없다.
    `unconditional` 은 확인 범위가 `complete` 일 때만 성립한다.
-2. **코드가 루트를 고르지 않는다.** 후보가 둘 이상이면 보류하고, 사람이 근거와 함께 고른다.
+2. **코드도 모델도 루트를 고르지 않는다.** SES 는 루트 후보를 보고만 한다(`ROOT_CANDIDATES`,
+   비차단). 루트는 **PES 요청**이 정한다 — 어느 시뮬레이터를 원하는가가 곧 루트다. 단일
+   루트·도달 가능성의 강제는 PES 층(`PES_SINGLE_ROOT` · `PES_REACHABLE`)에 있다. 그래서
+   루트 없는 SES 도 승인될 수 있고, 그때 승인에 `caveats` 로 "루트 미확정"이 남는다.
 3. **조용한 삭제가 없다.** 자기 참조·미해결 참조·파싱 실패는 원문(`origin_raw`)과 함께
    `unresolved` 로 간다. 원시 후보 하나마다 판정 기록이 하나씩 있다(개수 등식이 아니라
    역추적 가능성이 불변식이다 — 병합·분할이 있기 때문이다).
@@ -63,12 +68,17 @@ python -m unittest discover -s tests            # 인수 시험 203건
    자기쌍 제거는 `flow.py` 가 한다. 출발과 도착이 같은 결합은 계약 위반이다.
 10. **배열 차원은 형제다.** ASPECT·MULTI 에서 두 자식의 역할 근거가 같은 선언 행을 가리키면
     보류한다 — 그 줄은 어느 쪽이 어느 쪽인지 보이지 못한다. SPEC 은 예외다(열거 상수 한 줄).
-11. **사람이 넣은 것은 `origin: "human"` 으로 표시된다.** 루트가 그렇다. 보고서가 추출한
-    것과 갈라서 센다.
+11. **사람이 넣은 것은 `origin: "human"` 으로 표시된다.** 보고서가 추출한 것과 갈라서 센다.
+12. **전체(whole)는 후보일 뿐이다.** `w` 단계는 조립 자리 근거가 있는 후보만 낸다. 후보를
+    하나로 줄이지 않는다 — 고르는 것은 PES 요청이다.
+13. **요청이 불완전하면 PES 를 만들지 않는다.** 빠진 SPEC 선택이나 MULTI 개수를 코드가
+    채우지 않는다. MULTI 는 개수만 적고 인스턴스 개체를 지어내지 않는다.
 
 ## 아직 하지 않은 것
 
-- 실제 모델로 돌린 S2·T2·T2-flow 비교 (파일럿 미실행)
+- 실제 모델로 돌린 S2·T2·T2-flow·T2-whole 비교 (파일럿 미실행)
+- 판정 개체 단계 (`j`) — 정답지의 판정 4개를 낸 실행이 아직 없다
+- 앵커 기반 동일성 (B 트랙) — 설계만 있고 구현 전이다
 - 자동 수리 루프 — 첫 비교에서 제외한다. 별도 조건으로 재는 것이 맞다
 - AST 색인 — 정규식 색인으로 시작한다. 확대는 오류 원인이 확인된 뒤
 - 참조 대비 채점의 활성 조건 확장 (결합은 `score_couplings` 로 잰다)

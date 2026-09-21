@@ -540,7 +540,7 @@ class PipelineTest(unittest.TestCase):
         by = {c["check_id"]: c for c in doc["validation_results"]["checks"]}
         self.assertEqual(by["EVIDENCE_LOCATION"]["result"], "pass")
         self.assertEqual(by["PROVENANCE_COMPLETE"]["result"], "pass")
-        self.assertEqual(by["ROOT_UNIQUE"]["result"], "pass")
+        self.assertEqual(by["ROOT_CANDIDATES"]["result"], "pass")
         self.assertEqual(by["SCHEMA_VALID"]["result"], "pass")
         self.assertEqual(by["REF_INTEGRITY"]["result"], "pass")
         text = report.render(doc)
@@ -563,7 +563,7 @@ class PipelineTest(unittest.TestCase):
         doc["entities"].append(ent("E99", "떠 있는 개체"))
         validate.run(doc, snapshot=self.snap, raw_ids=raw_ids)
         by = {c["check_id"]: c for c in doc["validation_results"]["checks"]}
-        self.assertEqual(by["ROOT_UNIQUE"]["result"], "fail")
+        self.assertEqual(by["ROOT_CANDIDATES"]["result"], "fail")
         self.assertFalse(doc["validation_results"]["approval_eligible"])
         text = report.render(doc)
         self.assertIn("루트 후보", text)
@@ -579,7 +579,7 @@ class PipelineTest(unittest.TestCase):
                                      "r1-rev1", reviewer="검토자")
         review.finalize(new, snapshot=self.snap, raw_ids=raw_ids)
         by = {c["check_id"]: c for c in new["validation_results"]["checks"]}
-        self.assertEqual(by["ROOT_UNIQUE"]["result"], "pass")
+        self.assertEqual(by["ROOT_CANDIDATES"]["result"], "pass")
 
     def test_approval_refused_while_activation_unknown(self):
         doc, raw_ids, _ = self.full_doc()
@@ -659,10 +659,10 @@ class QuoteMatchModeTest(unittest.TestCase):
     def v(self, quote, s=4, e=7):
         return evidence.verify_record(self.snap, ev(ENGINE, s, e, quote))["verification"]
 
-    def test_reindented_multiline_passes_but_is_marked(self):
+    def test_reindented_multiline_fails_with_review_hint(self):
         q = "void step(int amount) {\nString tag = \"a  b\";\nfill[0] += amount;"
         v = self.v(q)
-        self.assertEqual(v["quote"], "pass")
+        self.assertEqual(v["quote"], "fail")
         self.assertEqual(v["quote_match_mode"], "indent_normalized")
 
     def test_exact_multiline_is_marked_exact(self):
@@ -794,7 +794,7 @@ class RootProvenanceTest(unittest.TestCase):
         doc = assemble.build(st, "snap", "t", base["extraction_run"], base["source_snapshot"])
         validate.run(doc, snapshot=None, raw_ids=None)
         by = {c["check_id"]: c for c in doc["validation_results"]["checks"]}
-        self.assertEqual(by["ROOT_UNIQUE"]["result"], "pass")
+        self.assertEqual(by["ROOT_CANDIDATES"]["result"], "pass")
         self.assertEqual(by["ROOT_INTRODUCED_BY_EXTRACTOR"]["result"], "fail")
         self.assertFalse(by["ROOT_INTRODUCED_BY_EXTRACTOR"]["blocking"])
 
@@ -944,9 +944,9 @@ class JoinedQuoteTest(unittest.TestCase):
     def v(self, quote, s, e):
         return evidence.verify_record(self.snap, ev(ENGINE, s, e, quote))["verification"]
 
-    def test_joined_lines_pass_and_are_marked(self):
+    def test_joined_lines_fail_with_review_hint(self):
         v = self.v('void step(int amount) { String tag = "a  b"; fill[0] += amount;', 4, 6)
-        self.assertEqual(v["quote"], "pass")
+        self.assertEqual(v["quote"], "fail")
         self.assertEqual(v["quote_match_mode"], "line_joined")
 
     def test_joining_does_not_hide_inner_whitespace_change(self):
@@ -1180,13 +1180,16 @@ class OllamaClientTest(unittest.TestCase):
         urllib.request.urlopen = self.fake_post(
             {"message": {"content": "{}"}, "prompt_eval_count": 4096, "eval_count": 1}, cap)
         try:
-            _, usage = llm.OllamaClient("m", num_ctx=4096).complete("b2", "s", "u")
+            _, usage = llm.OllamaClient("m", num_ctx=4096 + llm.MIN_OUTPUT_TOKENS
+                                        + llm.TEMPLATE_RESERVE).complete("b2", "s", "u")
         finally:
             urllib.request.urlopen = orig
-        self.assertIn("warning", usage)
-        self.assertIn("잘렸을 수 있다", usage["warning"])
+        self.assertNotIn("warning", usage)   # 창이 늘어 더는 천장에 닿지 않는다
+        self.assertEqual(usage["num_predict"], min(usage["max_tokens"],
+                                                   usage["output_budget"]))
 
-    def test_context_preflight_blocks_before_sending(self):
+    def test_no_room_to_answer_blocks_before_sending(self):
+        """끝낼 수 없는 요청을 보내지 않는다 — q3-whole-4 의 d 단계가 그랬다."""
         class CountTokenizer:
             def encode(self, text):
                 class Encoded:
@@ -1194,8 +1197,24 @@ class OllamaClientTest(unittest.TestCase):
                 return Encoded()
         client = llm.OllamaClient("m", num_ctx=4096, max_tokens=100)
         client.tokenizer = CountTokenizer()
-        with self.assertRaisesRegex(llm.LlmError, "context budget exceeded"):
+        with self.assertRaisesRegex(llm.LlmError, "답할 자리가 없다"):
             client.complete("a", "system", "user")
+
+    def test_the_budget_is_computed_without_a_tokenizer(self):
+        import urllib.request
+        cap = {}
+        orig = urllib.request.urlopen
+        urllib.request.urlopen = self.fake_post(
+            {"message": {"content": "{}"}, "prompt_eval_count": 66129, "eval_count": 1}, cap)
+        try:
+            # q3-decl-4 의 a 단계 실측값이다 — 162,132자 / 66,129토큰.
+            _, usage = llm.OllamaClient("m", num_ctx=131072, max_tokens=36000).complete(
+                "a", "s" * 1000, "u" * 161132)
+        finally:
+            urllib.request.urlopen = orig
+        self.assertEqual(usage["estimated_prompt_tokens"], 81066)
+        self.assertEqual(usage["output_budget"], 131072 - 81066 - llm.TEMPLATE_RESERVE)
+        self.assertEqual(usage["num_predict"], 36000)
 
 
 class FoundAtLineTest(unittest.TestCase):
@@ -1456,3 +1475,125 @@ class ConsumptionDistinctTest(unittest.TestCase):
     def test_real_consumption_passes(self):
         c = self.check(self.doc_with(20, "if (fill[b][t] / cap >= threshold) count++;"))
         self.assertEqual(c["result"], "pass")
+
+
+class SelfCouplingAndProvenance(unittest.TestCase):
+    """q3-control-1 이 드러낸 두 결함. 하나가 다른 하나를 가렸다.
+
+    결합 8건이 전부 자기결합이었는데, 판정 기록의 `input_item_ids` 가 ['E2','E2'] 가 되어
+    JSON_SCHEMA 가 먼저 터졌다. 검증이 거기서 멈추는 바람에 진짜 원인인 SELF_COUPLING 은
+    보고되지도 않았다.
+    """
+
+    def payload(self, source_entity, target_entity):
+        ev = [{"file_path": "f.java", "start_line": 1, "end_line": 1, "quote": "q"}]
+        return {
+            "b": {"entities": [{"name": "운행", "kind": "stateful",
+                                "scope": "simulation_target", "evidence": ev}]},
+            "e": {"couplings": [{
+                "source": {"entity": source_entity, "attribute": None, "symbol": "x"},
+                "target": {"entity": target_entity, "attribute": None, "symbol": "x"},
+                "payload": {"kind": "value", "code_expression": "x", "meaning": "값"},
+                "evidence": ev}]},
+        }
+
+    def build(self, payloads):
+        from sesx import assemble as asm
+        return asm.build(payloads, "snap", "art", {"strategy": "T2", "run_id": "r"}, {})
+
+    def test_a_self_coupling_is_held_not_made_into_an_item(self):
+        doc = self.build(self.payload("운행", "운행"))
+        self.assertEqual(doc["couplings"], [])
+        held = [u for u in doc["unresolved"] if u["reason_code"] == "self_reference"]
+        self.assertEqual(len(held), 1)
+        self.assertEqual(held[0]["origin_raw"]["source"]["entity"], "운행")
+
+    def test_the_schema_no_longer_breaks_on_it(self):
+        from sesx import schema
+        doc = self.build(self.payload("운행", "운행"))
+        self.assertEqual(schema.errors(doc), [])
+
+    def test_provenance_ids_are_unique(self):
+        doc = self.build(self.payload("운행", "운행"))
+        for p in doc["provenance"]:
+            for key in ("input_item_ids", "output_item_ids"):
+                self.assertEqual(len(p[key]), len(set(p[key])), p)
+
+    def test_a_normal_coupling_still_survives(self):
+        """대조 — 고치면서 정상 결합까지 막지 않았는가."""
+        p = self.payload("운행", "건물")
+        p["b"]["entities"].append({"name": "건물", "kind": "stateful",
+                                   "scope": "simulation_target",
+                                   "evidence": [{"file_path": "f.java", "start_line": 1,
+                                                 "end_line": 1, "quote": "q"}]})
+        doc = self.build(p)
+        self.assertEqual(len(doc["couplings"]), 1)
+        self.assertEqual([u for u in doc["unresolved"]
+                          if u["reason_code"] == "self_reference"], [])
+
+
+class AttributeAsMember(unittest.TestCase):
+    """q3-control-1 이 드러낸 층위 혼동.
+
+    b2 가 `fill` 을 `건물` 의 상태로 옳게 이어 놓았는데, d 단계가 `ASPECT 건물 → [fill]` 을
+    내자 조립기가 `fill` 을 **자식 개체로 새로 만들었다.** 같은 것이 건물의 속성이자 건물의
+    자식으로 두 번 섰고, 그래서 트리가 소스 코드 구조를 베낀 모양이 됐다.
+    """
+
+    EV = [{"file_path": "f.java", "start_line": 1, "end_line": 1, "quote": "q"}]
+
+    def payloads(self, member="fill"):
+        ev = self.EV
+        return {
+            "b2": {"subjects": [{
+                "state": "fill", "owner_candidate": "건물", "classification": "entity_state",
+                "state_evidence": ev, "identity_evidence": ev,
+                "linkage_evidence": ev, "consumption_evidence": ev}]},
+            "d": {"decompositions": [{
+                "kind": "ASPECT", "parent": "건물", "members": [member],
+                "member_evidence": {member: ev}, "evidence": ev}]},
+        }
+
+    def build(self, payloads):
+        from sesx import assemble as asm
+        return asm.build(payloads, "snap", "art", {"strategy": "T2", "run_id": "r"}, {})
+
+    def test_an_attribute_is_not_reborn_as_a_child_entity(self):
+        doc = self.build(self.payloads())
+        self.assertEqual([e["name"] for e in doc["entities"]], ["건물"])
+        self.assertEqual([a["name"] for a in doc["attributes"]], ["fill"])
+
+    def test_the_clash_is_held_with_the_attribute_named(self):
+        doc = self.build(self.payloads())
+        held = [u for u in doc["unresolved"] if u["reason_code"] == "attribute_as_member"]
+        self.assertEqual(len(held), 1)
+        self.assertIn("fill", held[0]["explanation"])
+        self.assertEqual(held[0]["item_ids"], [doc["attributes"][0]["id"]])
+
+    def test_the_decomposition_is_not_built(self):
+        doc = self.build(self.payloads())
+        self.assertEqual(doc["decompositions"], [])
+
+    def test_the_clash_is_caught_under_a_different_parent_too(self):
+        """q3-whole-5 는 b2 가 찾은 소유자를 무시하고 다른 부모 밑에 매달았다."""
+        p = self.payloads()
+        p["b2"]["subjects"].append({
+            "state": "run", "owner_candidate": "엔진", "classification": "entity_state",
+            "state_evidence": self.EV, "identity_evidence": self.EV,
+            "linkage_evidence": self.EV, "consumption_evidence": self.EV})
+        p["d"]["decompositions"][0]["parent"] = "엔진"
+        doc = self.build(p)
+        held = [u for u in doc["unresolved"] if u["reason_code"] == "attribute_as_member"]
+        self.assertEqual(len(held), 1)
+        self.assertIn("건물", held[0]["explanation"])   # 진짜 소유자를 알려 준다
+        self.assertNotIn("fill", [e["name"] for e in doc["entities"]])
+
+    def test_a_genuine_new_child_still_becomes_an_entity(self):
+        """대조 — 속성과 겹치지 않는 자식은 그대로 만들어진다."""
+        doc = self.build(self.payloads(member="지하주차장"))
+        self.assertIn("지하주차장", [e["name"] for e in doc["entities"]])
+        self.assertEqual(len(doc["decompositions"]), 1)
+
+
+if __name__ == "__main__":
+    unittest.main()

@@ -18,7 +18,9 @@ ACTIVATION_STATE = ("known", "unconditional", "unknown")
 COVERAGE = ("complete", "incomplete")
 CHECK_RESULT = ("pass", "fail", "not_checked")
 DECOMP_KIND = ("ASPECT", "SPEC", "MULTI")
-ENTITY_KIND = ("stateful", "boundary", "set", "type", "unknown")
+# whole 은 전체(조립 자리를 가진 상위) 후보다. 루트라는 뜻이 아니다 — 루트는 PES 가 정한다.
+# judgment 는 분기·집계·임계값 세 근거를 갖춘 판정이다.
+ENTITY_KIND = ("stateful", "boundary", "set", "type", "whole", "judgment", "unknown")
 ENTITY_SCOPE = ("simulation_target", "support_software", "unknown")
 VALUE_STATUS = ("known", "unknown", "explicit_null")
 REASON_CODES = (
@@ -27,7 +29,28 @@ REASON_CODES = (
     "kind_conflict", "unknown_activation", "schema_violation", "parse_error",
     "payload_unknown", "not_reviewed", "unproven_ownership", "not_an_entity",
     "shape_violation",
+    # 분해 자식으로 온 이름이 이미 그 부모의 속성이다. 개체와 속성의 층위가 섞인 것이므로
+    # 코드가 어느 쪽인지 정하지 않고 보류한다.
+    "attribute_as_member",
+    # 갈래는 근거와 함께 확인됐으나 그 축을 어느 개체 아래 둘지는 코드가 정하지 않는다.
+    "parent_undetermined",
 )
+#: 보류를 닫는 방법. **기록을 지우지 않는다** — 무엇을 왜 닫았는지가 검토 자료다.
+#:   rejected   후보가 틀렸다고 판정했다
+#:   superseded 다른 판정이 처리했다. 무엇이 처리했는지(`by`)를 적어야 한다
+#:   deferred   아직 정하지 않았다고 명시했다. **승인을 계속 막는다**
+RESOLUTIONS = ("rejected", "superseded", "deferred")
+
+#: 승인을 막지 않는 해소. deferred 는 여기 없다 — 미루는 것은 닫는 것이 아니다.
+CLOSING_RESOLUTIONS = ("rejected", "superseded")
+
+
+def open_holds(doc):
+    """아직 닫히지 않은 보류."""
+    return [u for u in doc.get("unresolved") or []
+            if (u.get("resolution") or {}).get("outcome") not in CLOSING_RESOLUTIONS]
+
+
 DECISIONS = ("kept", "merged", "split", "held", "rejected", "superseded", "renamed")
 
 # 관측값은 항목이되 **개체 소유자를 요구하지 않는다**. 결과 저장 구조라는 이유로 개체를

@@ -1,0 +1,60 @@
+{
+  "policy_id": "P-target",
+  "approval_status": "approved",
+  "approved_by": "경계 검토자 (평가 자료를 보지 않고 작성)",
+  "frozen_at": "2026-09-15",
+  "note": "장량동 시뮬레이터의 대상 세계를 서술하거나 그것을 구성하는 코드를 모은다. 지원 코드를 통째로 빼지 않는다 — service 패키지에는 대화 처리와 시나리오 구성이 섞여 있고, 구성 쪽은 근거가 될 수 있으므로 역할을 붙여 포함한다. 문항 수집(subtask)·결정기록(ledger)·모델 호출(llm)·도구 노출(mcp)·HTTP(controller, web)·관측(obs)·프레임워크 설정(config)은 시뮬레이터를 운영하는 장치이고 대상 세계를 서술하지 않으므로 제외하되 사유를 남긴다. SES 선언(ses)은 답을 담고 있으므로 차단한다.",
+  "include_globs": [
+    "src/main/java/com/wastesim/simulation/**/*.java",
+    "src/main/java/com/wastesim/model/**/*.java",
+    "src/main/java/com/wastesim/site/**/*.java",
+    "src/main/java/com/wastesim/traffic/**/*.java",
+    "src/main/java/com/wastesim/registry/**/*.java",
+    "src/main/java/com/wastesim/tool/**/*.java",
+    "src/main/java/com/wastesim/service/**/*.java",
+    "src/main/java/com/wastesim/util/**/*.java",
+    "src/main/resources/traffic/**/*.json"
+  ],
+  "exclude_globs": [],
+  "exclude_reasons": {},
+  "evaluation_asset_globs": [
+    "docs/research/s1-ses-extraction/**",
+    "src/main/java/com/wastesim/ses/**"
+  ],
+  "require_classified_roles": true,
+  "default_role_for_included": "unclassified",
+  "file_roles": [
+    {"glob": "src/main/java/com/wastesim/simulation/**", "role": "simulation_core",
+     "reason": "시간 진행과 상태 변경이 일어나는 자리"},
+    {"glob": "src/main/java/com/wastesim/model/**", "role": "domain_model",
+     "reason": "대상 세계의 값·유형 선언"},
+    {"glob": "src/main/java/com/wastesim/site/**", "role": "domain_model",
+     "reason": "지점 선언과 등록"},
+    {"glob": "src/main/java/com/wastesim/traffic/**", "role": "domain_model",
+     "reason": "교통 자료와 이동시간"},
+    {"glob": "src/main/resources/traffic/**", "role": "domain_data",
+     "reason": "교통 자료의 실제 값"},
+    {"glob": "src/main/java/com/wastesim/registry/**", "role": "construction",
+     "reason": "대상 개체의 등록·검증. 개체는 아니지만 구성 근거다"},
+    {"glob": "src/main/java/com/wastesim/tool/**", "role": "construction",
+     "reason": "설정을 만들고 검사하는 자리. 구성·기본값 근거로 쓸 수 있다"},
+    {"glob": "src/main/java/com/wastesim/service/**", "role": "support_runtime",
+     "reason": "실행 지원. 시나리오 구성처럼 대상을 만드는 자리가 섞여 있다"},
+    {"glob": "src/main/java/com/wastesim/util/**", "role": "support_runtime",
+     "reason": "도우미"}
+  ],
+  "required_dependencies": {
+    "src/main/java/com/wastesim/simulation/SimulationEngine.java": [
+      "src/main/java/com/wastesim/model/SimulationConfig.java",
+      "src/main/java/com/wastesim/model/SimulationResult.java",
+      "src/main/java/com/wastesim/model/WasteType.java",
+      "src/main/java/com/wastesim/model/TruckType.java",
+      "src/main/java/com/wastesim/model/OccupationType.java",
+      "src/main/java/com/wastesim/model/TrafficProfile.java",
+      "src/main/java/com/wastesim/site/CollectionSite.java",
+      "src/main/java/com/wastesim/simulation/TravelTimeCalculator.java",
+      "src/main/java/com/wastesim/simulation/RoutePlanner.java"
+    ]
+  },
+  "dependency_waivers": {}
+}

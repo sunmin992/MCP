@@ -36,6 +36,27 @@ class _Ids:
         return f"{prefix}{self.n[prefix]}"
 
 
+#: 이 관계의 자식은 **새로 만들지 않는다.** 이미 확정된 개체여야 한다.
+#:
+#: MULTI 는 "같은 유형이 여럿"이라는 주장이다. 그 유형이 아직 개체가 아니면 반복을
+#: 입증할 대상 자체가 없다. 실제로 q3-decl-2 에서 d 가 개체 69개를 지어냈는데 **전부
+#: MULTI 자식**이었다 — `Node_A`~`Node_Z` · `T1`~`T26` · `'0'`~`'11'`. 근거 410건 중 실패는
+#: 6건뿐이라 근거 검사로는 막히지 않는다(존재하는 줄을 인용하면 통과한다).
+#:
+#: SPEC 자식은 막지 않는다. 열거 상수·하위 유형은 그 자리에서 처음 개체가 되는 것이
+#: 정상이고, 정답지의 SPEC 자식(생산직·5톤 차량…)이 그 모양이다.
+NO_MINT_KINDS = ("MULTI",)
+
+
+def _unique(ids):
+    """순서를 지키며 중복을 없앤다."""
+    out = []
+    for i in ids or []:
+        if i not in out:
+            out.append(i)
+    return out
+
+
 def _obj(x):
     """객체가 아닌 후보 원소는 그대로 돌려주지 않는다. None 이면 부르는 쪽이 보류한다.
 
@@ -66,8 +87,11 @@ class Assembler:
             "origin_raw": origin_raw,
             "decision": decision,
             "reason": reason,
-            "input_item_ids": list(inputs or []),
-            "output_item_ids": list(outputs or []),
+            # 같은 항목이 두 번 들어올 수 있다 — 자기결합이면 출발과 도착이 같은 개체다.
+            # 계약이 uniqueItems 를 요구하므로 순서를 지키며 한 번만 남긴다. 중복을 그대로
+            # 두면 JSON_SCHEMA 가 먼저 터져서 **진짜 원인(SELF_COUPLING)이 가려진다.**
+            "input_item_ids": _unique(inputs),
+            "output_item_ids": _unique(outputs),
         })
 
     def _near_names(self, wanted):
@@ -127,7 +151,9 @@ class Assembler:
         return out
 
     def _value_box(self, raw, item_id, field):
-        if not isinstance(raw, dict) or raw.get("value") is None:
+        if not isinstance(raw, dict):
+            return {"status": "unknown", "value": None, "evidence_ids": []}
+        if raw.get("value") is None and raw.get("status") != "explicit_null":
             return {"status": "unknown", "value": None, "evidence_ids": []}
         ev = self._evidence(raw.get("evidence"), item_id, field)
         if not ev:
@@ -141,11 +167,21 @@ class Assembler:
     def build(self, stages, artifact_id, extraction_run, source_snapshot):
         """stages: {"a": payload, "b": payload, ...} 또는 {"single": payload}"""
         self.tree_mode = "g" in stages or extraction_run.get("strategy") == "T2-tree"
+        self.strict = extraction_run.get("validation_profile") == "evidence-v1"
         self.doc = contract.new_artifact(artifact_id, extraction_run, source_snapshot)
         for stage, payload in stages.items():
+            if self.strict:
+                known = {k for k, _ in RAW_KINDS}
+                for key in sorted(set(payload) - known):
+                    raw = {key: payload[key]}
+                    rid = f"{stage}:unknown_field:{key}"
+                    self._hold(stage, rid, raw, "schema_violation", f"알 수 없는 출력 필드 {key}")
+                    self._prov(stage, rid, raw, "held", "알 수 없는 출력 필드도 보존한다")
             self._observations(stage, payload)
             self._disputes(stage, payload)
             self._entities(stage, payload)
+        for stage, payload in stages.items():
+            self._pending_axes(stage, payload)
         for stage, payload in stages.items():
             self._subjects(stage, payload)
         for stage, payload in stages.items():
@@ -183,12 +219,39 @@ class Assembler:
                 self._prov(stage, raw_id, e, "held", "객체가 아님")
                 continue
             original_entity = e
+            if self.strict and e.get("scope") != "simulation_target":
+                self._hold(stage, raw_id, e, "not_an_entity", "지원 소프트웨어 또는 미확정 범위")
+                self._prov(stage, raw_id, e, "held", "시뮬레이션 대상 범위 밖")
+                continue
             name = e.get("name")
             if not isinstance(name, str) or not name.strip():
                 self._hold(stage, raw_id, e, "schema_violation", "이름이 없는 개체 후보")
                 self._prov(stage, raw_id, e, "held", "이름 없음")
                 continue
-            if self.tree_mode:
+            if stage == "n":
+                # 선언 개체는 역할마다 **선언의 모양**을 요구한다. 프롬프트로 막히지 않는
+                # 것이 두 번 확인됐으므로(이름 목록·속성 목록 둘 다 무시당했다) 여기서 막는다.
+                error = composition.declaration_error(e)
+                if error:
+                    self._hold(stage, raw_id, e, "no_evidence", error,
+                               "선언이라고 본 근거를 검토자가 판정한다.")
+                    self._prov(stage, raw_id, e, "held", error)
+                    continue
+                e = dict(e)
+                e["kind"] = {"set": "set", "type": "type", "object": "stateful"}[e["role"]]
+                e["evidence"] = (e.get("evidence") or []) + e["declaration_evidence"]                     + (e.get("instantiation_evidence") or [])
+            elif stage == "w":
+                # 전체 후보는 조립 자리 근거가 있어야 한다. 없으면 **버리지 않고** 보류한다 —
+                # 무엇을 전체라고 보았는지가 검토 자료다.
+                error = composition.whole_error(e)
+                if error:
+                    self._hold(stage, raw_id, e, "no_evidence", error,
+                               "전체라고 본 근거를 검토자가 판정한다.")
+                    self._prov(stage, raw_id, e, "held", error)
+                    continue
+                e = dict(e)
+                e["evidence"] = e["evidence"] + e["assembly_evidence"]
+            elif self.tree_mode:
                 error = (composition.entity_error(e) if stage == "g"
                          else "T2-tree의 직접 개체 후보는 g 단계에서만 허용한다")
                 if error:
@@ -223,11 +286,18 @@ class Assembler:
                          else "unknown",
                 "why_entity": (e or {}).get("why_entity"),
                 "alternate_names": [],
+                # 출처를 흘리지 않는다. 코드가 파생한 것(axis·collection)과 모델이 뽑은 것을
+                # 섞으면 보고서가 "파이프라인이 다 찾았다"고 말하게 된다 — 사람이 넣은 것을
+                # 따로 세는 것과 같은 이유다(README 규칙 11).
+                "origin": (e or {}).get("origin") or "extracted",
                 "evidence_ids": [], "status": "proposed",
             }
             self.doc["entities"].append(ent)
             self.entity_by_norm[key] = eid
             ent["evidence_ids"] = self._evidence((e or {}).get("evidence"), eid, "existence")
+            if self.strict:
+                for key, field in (("identity_evidence", "identity"), ("state_evidence", "state_change")):
+                    ent["evidence_ids"] += self._evidence(e.get(key), eid, field)
             self._prov(stage, raw_id, original_entity, "kept", "개체로 받았다", [], [eid])
 
     def _subjects(self, stage, payload):
@@ -354,6 +424,37 @@ class Assembler:
             self._prov(stage, raw_id, s, "merged" if merged else "kept",
                        f"{state!r} 을 {owner!r} 의 상태로 이었다", [eid], [eid, aid])
 
+    def _owner_name(self, attribute_id):
+        for a in self.doc["attributes"]:
+            if a["id"] == attribute_id:
+                for e in self.doc["entities"]:
+                    if e["id"] == a.get("entity_id"):
+                        return e["name"]
+        return None
+
+    def _pending_axes(self, stage, payload):
+        """갈래는 확인됐으나 부모가 정해지지 않은 축. 코드가 부모를 고르지 않는다.
+
+        정답지는 이 축을 도메인 개체 아래 둔다 — `수거차량 --SPEC(차종 축)--> 5톤 차량`.
+        축 자신을 부모로 세우면 정답지에 없는 간선이 되고, 무엇보다 **어느 개체의 성질인가**
+        가 의미 판단이다(CP-4 가 그 판정을 따로 다룬다). 그래서 분해를 만들지 않고, 검토가
+        부모를 정할 수 있도록 갈래 ID 와 근거를 묶어 보류로 남긴다.
+        """
+        for i, ax in enumerate(payload.get("pending_axes") or []):
+            raw_id = f"{stage}:pending_axis:{i}"
+            if _obj(ax) is None:
+                self._hold(stage, raw_id, ax, "schema_violation", "축 후보가 객체가 아니다")
+                self._prov(stage, raw_id, ax, "held", "객체가 아님")
+                continue
+            ids = [i for i in (self._entity_id(m) for m in ax.get("members") or []) if i]
+            self._hold(stage, raw_id, ax, "parent_undetermined",
+                       f"{ax.get('axis_label')!r} 축의 갈래 {len(ids)}개는 확인됐다. "
+                       f"부모가 정해지지 않았다",
+                       "이 축을 어느 개체의 성질로 볼지 검토자가 정한다. 정하면 그 개체를 "
+                       "부모로 하는 SPEC 분해가 된다.",
+                       item_ids=ids)
+            self._prov(stage, raw_id, ax, "held", "부모 미확정", ids, [])
+
     def _entity_id(self, name):
         return self.entity_by_norm.get(norm(name))
 
@@ -396,6 +497,9 @@ class Assembler:
             self.doc["attributes"].append(item)
             self.attr_by_key[key] = aid
             item["evidence_ids"] = self._evidence(a.get("evidence"), aid, "existence")
+            if self.strict:
+                for key, field in (("state_evidence", "state_change"), ("linkage_evidence", "ownership")):
+                    item["evidence_ids"] += self._evidence(a.get(key), aid, field)
             item["unit"] = self._value_box(a.get("unit"), aid, "unit")
             item["default"] = self._value_box(a.get("default"), aid, "default")
             item["range"] = self._value_box(a.get("range"), aid, "range")
@@ -419,7 +523,13 @@ class Assembler:
                     continue
             parent = self._entity_id(d.get("parent"))
             kind = str(d.get("kind", "")).upper()
-            members = [m for m in (d.get("members") or []) if isinstance(m, str)]
+            raw_members = d.get("members") or []
+            if self.strict and (not isinstance(raw_members, list) or
+                                any(not isinstance(m, str) for m in raw_members)):
+                self._hold(stage, raw_id, d, "schema_violation", "분해 구성원 형식 오류")
+                self._prov(stage, raw_id, d, "held", "잘못된 구성원을 조용히 제거하지 않는다")
+                continue
+            members = [m for m in raw_members if isinstance(m, str)]
             if not parent:
                 self._hold(stage, raw_id, d, "unknown_reference",
                            f"부모 {d.get('parent')!r} 를 찾지 못했다", near=d.get("parent"))
@@ -442,6 +552,24 @@ class Assembler:
                 self._prov(stage, raw_id, d, "held", "자식 없음")
                 continue
             member_ev = _obj(d.get("member_evidence")) or {}
+            # 이미 부모의 속성인 이름을 자식 개체로 다시 만들지 않는다. 같은 것이 속성이자
+            # 자식으로 두 번 서면 트리가 코드 구조를 베낀 모양이 된다 — q3-control-1 에서
+            # 건물의 속성 fill·peak 가 건물의 자식 개체로도 만들어졌다. 어느 층위가 맞는지는
+            # 코드가 정하지 않는다. 보류하고 검토자에게 넘긴다.
+            # 부모가 같은지는 보지 않는다. q3-whole-5 에서 d 단계가 b2 가 찾아 둔 소유자
+            # (건물·운행·직업…)를 무시하고 전부 `SimulationEngine.run` 밑에 매달았다.
+            # 부모만 대조하면 그 경우를 놓친다 — 이름이 어딘가의 속성이면 층위가 섞인 것이다.
+            owned = {norm(a["name"]): a["id"] for a in self.doc["attributes"]}
+            clash = [m for m in members if norm(m) in owned and not self._entity_id(m)]
+            if clash:
+                where = {m: self._owner_name(owned[norm(m)]) for m in clash}
+                self._hold(stage, raw_id, d, "attribute_as_member",
+                           f"자식으로 온 {clash} 가 이미 속성이다: {where}",
+                           "그 이름이 속성인지 하위 개체인지 검토자가 판정한다. "
+                           "둘 다일 수는 없다.",
+                           item_ids=[owned[norm(m)] for m in clash])
+                self._prov(stage, raw_id, d, "held", f"속성과 자식의 층위 충돌: {clash}")
+                continue
             created, missing = [], []
             for m in members:
                 raws = member_ev.get(m) if isinstance(member_ev.get(m), list) else None
@@ -452,7 +580,7 @@ class Assembler:
                     continue
                 if self._entity_id(m):
                     continue
-                if stage in self.no_new_entity_stages or (self.tree_mode and kind == "ASPECT"):
+                if kind in NO_MINT_KINDS or stage in self.no_new_entity_stages                         or (self.tree_mode and kind == "ASPECT"):
                     missing.append(m)
                     continue
                 created.append((m, raws))
@@ -477,15 +605,16 @@ class Assembler:
                     raws, cid_e, "subtype" if kind == "SPEC" else "instance")
                 self._prov(stage, raw_id, {"child": m, "role": kind}, "kept",
                            f"{kind} 자식을 역할 근거로 새로 만들었다", [], [cid_e])
-            pair = shape.shared_declaration(member_ev, members, kind)
+            pair = shape.shared_declaration(member_ev, members, kind) if not self.strict else None
             if pair:
                 self._hold(stage, raw_id, d, "shape_violation",
                            f"{pair[0]} 와 {pair[1]} 의 역할 근거가 같은 선언 행이다",
                            "같은 선언의 서로 다른 차원은 형제다. 부모-자식으로 묶지 않는다.")
                 self._prov(stage, raw_id, d, "held", "배열 차원을 부모-자식으로 접었다")
                 continue
-            err = shape.edge_error(self._kind_of(parent), kind,
+            err = (shape.edge_error(self._kind_of(parent), kind,
                                    [self._kind_of(self._entity_id(m)) for m in members])
+                   if not self.strict else None)
             if err:
                 self._hold(stage, raw_id, d, "shape_violation", err,
                            "ref-v8 의 모양은 boundary ─ASPECT→ set ─MULTI→ 개체 ─SPEC→ 유형이다.")
@@ -515,17 +644,22 @@ class Assembler:
                                  "maximum": mult.get("maximum"),
                                  "evidence_ids": []},
                 "activation_id": None,
+                "origin": d.get("origin") or "extracted",
                 "evidence_ids": [], "status": "proposed",
             }
             self.doc["decompositions"].append(item)
             item["evidence_ids"] = self._evidence(d.get("evidence"), did, "existence")
-            if self.tree_mode:
+            if self.tree_mode or self.strict:
                 role = {"ASPECT": "composition", "SPEC": "subtype", "MULTI": "instance"}[kind]
                 for member, name in zip(item["members"], members):
                     member["evidence_ids"] = self._evidence(member_ev[name], did, role)
                     item["evidence_ids"] += member["evidence_ids"]
             item["multiplicity"]["evidence_ids"] = self._evidence(
                 mult.get("evidence"), did, "multiplicity")
+            if self.strict and isinstance(item["selection"], dict):
+                item["selection"] = dict(item["selection"])
+                item["selection"]["evidence_ids"] = self._evidence(
+                    item["selection"].pop("evidence", []), did, "selection")
             item["activation_id"] = self._activation_for(
                 stage, d.get("activation"), did, "decomposition")
             self._prov(stage, raw_id, d, "kept", "분해로 받았다",
@@ -546,6 +680,16 @@ class Assembler:
                            near=src.get("entity") if not se else tgt.get("entity"))
                 self._prov(stage, raw_id, c, "held", "끝점 미해결")
                 continue
+            if se == te:
+                # 출발과 도착이 같은 결합은 계약 위반이다(README 규칙 9). 항목으로 세우면
+                # REF_INTEGRITY 가 통째로 실패해 어느 후보가 문제인지 보이지 않는다.
+                # 버리지 않고 원문과 함께 보류한다.
+                self._hold(stage, raw_id, c, "self_reference",
+                           f"출발과 도착이 같은 개체다: {src.get('entity')!r}",
+                           "같은 개체 안의 값 이동인지, 끝점 하나를 잘못 지목한 것인지 "
+                           "검토자가 판정한다.")
+                self._prov(stage, raw_id, c, "held", "자기결합", [se], [])
+                continue
             cid = self.ids.next("C")
             payload_raw = _obj(c.get("payload")) or {}
             item = {
@@ -564,6 +708,11 @@ class Assembler:
             }
             self.doc["couplings"].append(item)
             item["evidence_ids"] = self._evidence(c.get("evidence"), cid, "existence")
+            if self.strict:
+                for role, raw_box in (("source", src), ("target", tgt), ("payload", payload_raw)):
+                    linked = self._evidence(raw_box.get("evidence"), cid, role)
+                    item[role]["evidence_ids"] = linked
+                    item["evidence_ids"] += linked
             item["activation_id"] = self._activation_for(stage, c.get("activation"), cid, "coupling")
             if item["payload"]["kind"] == "unknown":
                 self._hold(stage, raw_id, c, "payload_unknown",
@@ -670,18 +819,23 @@ class Assembler:
 
     def _resolve_activation_target(self, target):
         kind, ref = target.get("kind"), _obj(target.get("ref")) or {}
+        matches = []
         if kind == "coupling":
             se, te = self._entity_id(ref.get("source_entity")), self._entity_id(ref.get("target_entity"))
             for c in self.doc["couplings"]:
                 if c["source"]["entity_id"] == se and c["target"]["entity_id"] == te:
-                    return c["id"]
+                    if ref.get("code_expression") is not None and ref["code_expression"] != c["payload"].get("code_expression"):
+                        continue
+                    matches.append(c["id"])
         if kind == "decomposition":
             pe = self._entity_id(ref.get("parent"))
             k = str(ref.get("kind", "")).upper()
             for d in self.doc["decompositions"]:
                 if d["parent_entity_id"] == pe and d["kind"] == k:
-                    return d["id"]
-        return None
+                    if ref.get("label") is not None and ref["label"] != d.get("label"):
+                        continue
+                    matches.append(d["id"])
+        return matches[0] if len(matches) == 1 else None
 
     # ------------------------------------------------------------ 마무리
     def _require_activation(self):

@@ -81,3 +81,9 @@ Claude outputs/
 # --- 머신별 Maven 로컬 저장소 ---
 # -Dmaven.repo.local 로 저장소 안을 가리키면 의존성 캐시가 통째로 커밋 후보가 된다.
 waste-sim-spring/.m2/
+
+# --- SES 추출 실행 산출물 ---
+# exp/<run-id>/ 에는 스냅샷 사본(소스 전문)·요청·응답 원문이 들어간다. 저장소에 두 번
+# 담지 않는다. 남길 것은 보고서와 판정 기록이며, 필요하면 개별 파일로 골라 커밋한다.
+waste-sim-spring/docs/research/s1-ses-extraction/exp/
+waste-sim-spring/docs/research/s1-ses-extraction/**/__pycache__/

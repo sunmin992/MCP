@@ -45,12 +45,17 @@ def _human_rows(doc):
     rows = []
     for arr, 이름 in (("entities", "개체"), ("decompositions", "분해")):
         items = doc.get(arr) or []
-        human = [it for it in items if it.get("origin") == "human"]
-        if not human:
+        if not items:
             continue
-        rows.append(f"- {이름}: 추출 {len(items) - len(human)} · 사람 {len(human)}")
+        human = [it for it in items if it.get("origin") == "human"]
+        # 코드가 스냅샷에서 직접 만든 것(axis·collection·flow). 모델이 뽑은 것이 아니다.
+        derived = [it for it in items if it.get("origin") == "derived_by_code"]
+        if not human and not derived:
+            continue
+        rows.append(f"- {이름}: 모델 {len(items) - len(human) - len(derived)} · "
+                    f"코드 파생 {len(derived)} · 사람 {len(human)}")
         for it in human:
-            rows.append(f"  - {it.get('name') or it.get('label') or it['id']} ({it['id']})")
+            rows.append(f"  - 사람: {it.get('name') or it.get('label') or it['id']} ({it['id']})")
     return rows
 
 
@@ -188,6 +193,8 @@ def render(doc, run_errors=None, store_attempts=None):
     if doc.get("approval"):
         w(f"- 승인: {'예' if doc['approval']['approved'] else '아니오'} "
           f"{doc['approval']['reasons']}")
+        for c in doc["approval"].get("caveats") or []:
+            w(f"- **단서**: {c}")
     w("")
     return "\n".join(L) + "\n"
 
