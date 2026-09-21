@@ -172,5 +172,73 @@ class BindingEvidence(unittest.TestCase):
                          [b["binding_id"] for b in again])
         self.assertTrue(all(b["binding_id"].startswith("BD-") for b in self.bindings))
 
+
+class BindingLink(unittest.TestCase):
+    """연결은 앵커로만 생긴다. 이름은 보지 않는다."""
+
+    @classmethod
+    def setUpClass(cls):
+        from sesx import binding, candidates
+        cls.binding = binding
+        snapshot = _snapshot()
+        cls.cands = candidates.build(snapshot)
+        cls.bindings = binding.link(binding.collect(snapshot), cls.cands)
+        cls.by_field = {b["config_field"]: b for b in cls.bindings}
+
+    def test_the_declared_type_is_not_the_bridge(self):
+        """차종의 선언 유형은 String 이다. 이름만 보면 이을 곳이 없다."""
+        self.assertEqual("String", self.by_field["truckType"]["declared_type"])
+
+    def test_link_comes_from_the_converting_type(self):
+        """변환 코드가 가리키는 열거형이 개체 후보의 기호와 같다 — 그것이 다리다."""
+        link = self.by_field["truckType"]["ses_link"]
+        self.assertEqual("proposed", link["state"])
+        by_id = {c["cand_id"]: c for c in self.cands}
+        self.assertEqual("TruckType", by_id[link["entity_candidate"]]["name"])
+        self.assertEqual("type_match", link["rule"])
+
+    def test_a_name_lookalike_with_a_different_anchor_does_not_link(self):
+        """이름이 같아도 앵커가 다르면 잇지 않는다."""
+        fake = [{"cand_id": "CD-fake", "name": "numTrucks", "kind": "type_declaration",
+                 "anchor": {"file_path": "elsewhere/Other.java", "owner_type": None,
+                            "symbol": "numTrucks"}, "sites": []}]
+        from sesx import binding
+        only = [b for b in binding.collect(_snapshot()) if b["config_field"] == "numTrucks"]
+        self.assertEqual("unlinked", binding.link(only, fake)[0]["ses_link"]["state"])
+
+    def test_unlinked_is_a_real_outcome_not_a_failure(self):
+        """차량 대수와 배차간격은 이 경계 안에 유형 앵커가 없다. 빈칸으로 남고
+        그것이 제공자에게 갈 일이다 — 억지로 잇지 않는다."""
+        for field in ("numTrucks", "dispatchIntervalMinutes"):
+            self.assertEqual("unlinked", self.by_field[field]["ses_link"]["state"], field)
+
+    def test_link_never_claims_approved_on_its_own(self):
+        """승인은 사람만 붙인다(규칙 4)."""
+        self.assertNotIn("approved", {b["ses_link"]["state"] for b in self.bindings})
+
+
+class BindingDependsOn(unittest.TestCase):
+    """먼저 결정해야 하는 항목. 검증기가 다른 설정을 함께 읽는 자리에서 나온다."""
+
+    @classmethod
+    def setUpClass(cls):
+        from sesx import binding
+        cls.by_field = {b["config_field"]: b
+                        for b in binding.collect(_snapshot())}
+
+    def test_route_capacity_depends_on_truck_type(self):
+        """경로 배정용량의 상한이 선택한 차종의 정격용량이다 — 차종이 먼저다."""
+        dep = self.by_field["routeAvailableCapacityKg"]["depends_on"]
+        self.assertIn("truckType", [d["config_field"] for d in dep])
+        self.assertTrue(dep[0]["evidence_ids"])
+
+    def test_a_field_does_not_depend_on_itself(self):
+        for name, b in self.by_field.items():
+            self.assertNotIn(name, [d["config_field"] for d in b["depends_on"]], name)
+
+    def test_no_dependency_is_an_empty_list_not_a_guess(self):
+        self.assertEqual([], self.by_field["returnFraction"]["depends_on"])
+
+
 if __name__ == "__main__":
     unittest.main()

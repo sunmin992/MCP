@@ -54,6 +54,9 @@ _ARG = re.compile(r"\(\s*([A-Za-z_]\w*)\s*\)\s*;")
 #: 지역 변수를 거친 변환을 거슬러 올라가는 줄 수. 같은 메서드 안을 벗어나지 않을 만큼만.
 CONVERSION_WINDOW = 14
 
+#: 검증 자리 둘레에서 다른 설정을 함께 읽는지 보는 창. 같은 검사 한 덩어리를 덮을 만큼만.
+DEPENDS_WINDOW = 10
+
 # 값을 열거형으로 옮기는 자리. `TruckType.fromName(c.getTruckType())`
 _TO_ENUM = re.compile(r"(?<![\w.])([A-Z]\w*)\s*\.\s*(?:fromName|valueOf|from|of)\s*\(")
 
@@ -62,7 +65,7 @@ _ERROR_KEY = re.compile(r"\"([A-Za-z_]\w*)\"")
 
 # 검증하는 줄임을 보이는 표지. 이것이 없으면 그냥 이름이 적힌 줄이다 — 변환 자리의
 # `f.intOr("dispatchIntervalMinutes", ...)` 가 검증 근거로 잡히던 자리다.
-_VALIDATION_CTX = re.compile(r"ValidationError|(?:errs|warns|errors|issues)\s*\.\s*add")
+_VALIDATION_CTX = re.compile(r"\bValidationError\b|\b(?:errs|warns|errors|issues)\s*\.\s*add\b")
 
 # 열거 상수 한 줄. 색인의 것보다 좁게 본다 — 여기서는 값 목록을 만든다.
 _ENUM_MEMBER = re.compile(r"^\s*([A-Z][A-Z0-9_]{1,})\s*(?:\(|,|;|$)")
@@ -202,6 +205,30 @@ def _assigned_from_key(snapshot, write_site, local, setter):
     return None
 
 
+def _depends_on(snapshot, field, validation_sites, getters_by_field):
+    """이 값을 검사하면서 **함께 읽는 다른 설정**. 그것이 먼저 결정할 항목이다.
+
+    근거는 검증 자리 둘레의 좁은 창이다. 창 밖은 보지 않는다 — 넓히면 같은 파일에 있다는
+    것만으로 의존이라 부르게 된다. 못 찾으면 빈 목록이지 추측이 아니다.
+    """
+    out = {}
+    for site in validation_sites:
+        lines = code_lines(snapshot, site["file_path"])
+        lo = max(1, site["start_line"] - DEPENDS_WINDOW)
+        hi = min(len(lines), site["start_line"] + DEPENDS_WINDOW)
+        for n in range(lo, hi + 1):
+            line, code = lines[n - 1]
+            flat = code.replace(" ", "")
+            for other, getters in getters_by_field.items():
+                if other == field or not any((g + "(") in flat for g in getters):
+                    continue
+                rec = out.setdefault(other, {"config_field": other, "sites": [],
+                                             "evidence_ids": []})
+                if len(rec["sites"]) < 2:
+                    rec["sites"].append(_site(site["file_path"], n, line, other))
+    return list(out.values())
+
+
 def _enum_values(snapshot, field, declared_type, search_sites):
     """허용값. 선언 유형이 열거형이거나, 변환 코드가 열거형을 가리킬 때만 나온다."""
     names = []
@@ -284,9 +311,11 @@ def collect(snapshot, owner_type=CONFIG_TYPE, decision_report=None):
     roles = _roles(decision_report)
     validation_paths = [p for p, r in roles.items() if r in VALIDATION_ROLES] or None
     constants = _constants(snapshot)
+    fields = config_fields(snapshot, owner_type)
+    getters_by_field = {f["config_field"]: _getter_names(f["config_field"]) for f in fields}
     out = []
 
-    for field in config_fields(snapshot, owner_type):
+    for field in fields:
         name = field["config_field"]
         word, setter = _word(name), _setter(name)
         getters = _getter_names(name)
@@ -329,9 +358,13 @@ def collect(snapshot, owner_type=CONFIG_TYPE, decision_report=None):
             "dependents": _signal(bool(deps), deps, scope, "이 값을 받아 쓰는 자리"),
         }
         field["unit"] = None
-        field["range"] = {"min": low, "max": high,
-                          "evidence_ids": [], "source": "validation" if vsites else None}
+        # 출처는 **범위의** 출처다. 검증이 있어도 수치 경계를 읽지 못했으면 빈칸이다 —
+        # 열거값만 검사하는 자리가 그렇다.
+        field["range"] = {"min": low, "max": high, "evidence_ids": [],
+                          "source": "validation" if (low is not None or high is not None)
+                          else None}
         field["default"] = {"value": default_literal, "site": decl if default_literal else None}
+        field["depends_on"] = _depends_on(snapshot, name, vsites, getters_by_field)
         field["ses_link"] = {"state": "unlinked", "point_id": None, "entity_candidate": None,
                              "why": None, "origin": "derived"}
         out.append(number_sites(field))
@@ -347,6 +380,72 @@ def number_sites(binding):
             i += 1
             site.setdefault("evidence_id", f"{binding['binding_id']}-E{i:02d}")
         sig["evidence_ids"] = [s["evidence_id"] for s in sig["sites"]]
-    if binding["range"]["source"] == "validation":
+    for dep in binding["depends_on"]:
+        for site in dep["sites"]:
+            i += 1
+            site.setdefault("evidence_id", f"{binding['binding_id']}-D{i:02d}")
+        dep["evidence_ids"] = [s["evidence_id"] for s in dep["sites"]]
+    if binding["range"]["source"] == "validation":  # 범위를 실제로 읽은 때만
         binding["range"]["evidence_ids"] = list(binding["evidence"]["validation"]["evidence_ids"])
     return binding
+
+
+# ---------------------------------------------------------------- SES 연결
+
+#: 연결 규칙. **이름은 어디에도 쓰이지 않는다.**
+#:
+#: 세 번째 규칙("읽는 자리가 개체 후보의 소유 유형 안에 있다")은 넣지 않았다. 실제 코드에
+#: 대보니 근거가 되는 자리가 없었고 — 검증기는 `TruckType` 을 읽지만 선언하지 않는다 —
+#: 넣으면 파일이 같다는 것만으로 잇게 된다. 규칙을 하나 줄이는 대신 잘못 잇지 않는다.
+LINK_RULES = ("type_match", "dependent_symbol")
+
+
+def _by_symbol(cands):
+    """기호 -> 후보. 같은 기호가 둘이면 잇지 않는다 — 어느 쪽인지 코드가 말하지 못한다."""
+    out, dup = {}, set()
+    for c in cands:
+        sym = (c.get("anchor") or {}).get("symbol")
+        if not sym:
+            continue
+        if sym in out:
+            dup.add(sym)
+        out[sym] = c
+    return {k: v for k, v in out.items() if k not in dup}
+
+
+def link(bindings, cands):
+    """설정 필드를 개체 후보에 잇는다. **앵커 기호만 본다.**
+
+    이름은 건너지 못하는 다리다 — SES 쪽 이름은 한글이고 설정 필드는 영문이다. 건너는
+    것은 코드 자리다. `truckType` 이 `수거차량` 으로 가는 길은 이름이 아니라, 변환 코드가
+    가리키는 `TruckType` 이 개체 후보의 앵커 기호와 같다는 사실이다.
+
+    못 이으면 `unlinked` 로 남긴다. 그것이 실패가 아니라 **제공자가 채울 빈칸**이다.
+    """
+    index = _by_symbol(cands)
+    for b in bindings:
+        hit, rule, why = None, None, None
+
+        for name in (b["evidence"]["enum_values"].get("enum_type"), b["declared_type"]):
+            if name and name in index:
+                hit, rule = index[name], "type_match"
+                why = f"값을 옮기는 유형 {name} 이 개체 후보의 앵커 기호와 같다"
+                break
+
+        if hit is None:
+            for site in b["evidence"]["dependents"]["sites"]:
+                for sym, cand in index.items():
+                    if _word(sym).search(site["quote"]):
+                        hit, rule = cand, "dependent_symbol"
+                        why = f"이 값을 받아 쓰는 자리가 {sym} 을 가리킨다"
+                        break
+                if hit:
+                    break
+
+        b["ses_link"] = {
+            "state": "proposed" if hit else "unlinked",
+            "point_id": None,
+            "entity_candidate": hit["cand_id"] if hit else None,
+            "entity_candidate_name": hit["name"] if hit else None,
+            "rule": rule, "why": why, "origin": "derived"}
+    return bindings
