@@ -1,7 +1,5 @@
 package com.wastesim.ledger;
 
-import com.wastesim.subtask.BasisKind;
-import com.wastesim.subtask.SubtaskAnswerSource;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -25,7 +23,7 @@ class AnswerDecisionsTest {
     @Test
     void 사용자가_직접_넣은_답은_확정으로_조립된다() {
         ParameterDecision d = AnswerDecisions.fromAnswer("sim::days#1", "sim::days",
-                "7일", 7, SubtaskAnswerSource.USER_DIRECT, BasisKind.NONE, USER, RULE, T);
+                "7일", 7, AnswerSourceKind.USER_DIRECT, BasisKind.NONE, USER, RULE, T);
 
         assertEquals(DecisionState.CONFIRMED, d.state());
         assertEquals(7, d.normalizedValue());
@@ -38,7 +36,7 @@ class AnswerDecisionsTest {
     @Test
     void 유도한_답은_변환_규칙을_달고_조립된다() {
         ParameterDecision d = AnswerDecisions.fromAnswer("sim::days#1", "sim::days",
-                "일주일", 7, SubtaskAnswerSource.LLM_NORMALIZED, BasisKind.REGULATION,
+                "일주일", 7, AnswerSourceKind.LLM_NORMALIZED, BasisKind.REGULATION,
                 USER, RULE, T);
 
         assertEquals(DecisionState.DERIVED, d.state());
@@ -48,7 +46,7 @@ class AnswerDecisionsTest {
     @Test
     void 근거_없는_기본값은_차단_사유를_달고_미해결이_된다() {
         ParameterDecision d = AnswerDecisions.fromAnswer("sim::days#1", "sim::days",
-                null, 7, SubtaskAnswerSource.SERVER_DEFAULT, BasisKind.NONE, USER, RULE, T);
+                null, 7, AnswerSourceKind.SERVER_DEFAULT, BasisKind.NONE, USER, RULE, T);
 
         assertEquals(DecisionState.UNRESOLVED, d.state());
         assertEquals("required_value_unresolved", d.blockingReason());
@@ -60,10 +58,10 @@ class AnswerDecisionsTest {
     @Test
     void 모델_기본값은_결정기록에서_규정_기본값과_구별된다() {
         ParameterDecision model = AnswerDecisions.fromAnswer("sim::days#1", "sim::days",
-                null, 7, SubtaskAnswerSource.SERVER_DEFAULT, BasisKind.MODEL_DEFAULT,
+                null, 7, AnswerSourceKind.SERVER_DEFAULT, BasisKind.MODEL_DEFAULT,
                 USER, RULE, T);
         ParameterDecision regulation = AnswerDecisions.fromAnswer("sim::seeds#1", "sim::seeds",
-                null, 3, SubtaskAnswerSource.SERVER_DEFAULT, BasisKind.REGULATION,
+                null, 3, AnswerSourceKind.SERVER_DEFAULT, BasisKind.REGULATION,
                 USER, RULE, T);
 
         assertEquals(DecisionState.DEFAULTED, model.state());

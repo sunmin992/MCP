@@ -14,7 +14,7 @@ import java.util.Set;
  * 갈라지면 어느 쪽이 옳은지 판단할 근거가 없다. 현재는 언제나 <b>이력의 마지막</b>이므로
  * 계산해서 답한다 — 두 사실을 하나로 줄이면 어긋날 자리가 없어진다.
  *
- * <p>{@link com.wastesim.subtask.SubtaskState}가 시간 축에 대해 한 일과 같은 태도다.
+ * <p>{@code SubtaskState}가 시간 축에 대해 한 일과 같은 태도다.
  */
 public final class ParameterLedger {
 

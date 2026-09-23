@@ -6,7 +6,7 @@ import java.time.Instant;
  * 이 값이 어디서 왔는가.
  *
  * <p>{@code reference}는 <b>밖에서 찾아가 대조할 수 있는 곳</b>을 가리킨다 —
- * {@link com.wastesim.subtask.BasisKind}가 규정·측정과 모델 기본값을 가르는 기준과 같다.
+ * {@link BasisKind}가 규정·측정과 모델 기본값을 가르는 기준과 같다.
  *
  * @param type        {@code user_explicit} · {@code asset_contract} · {@code trusted_dataset}
  *                    · {@code calculated} · {@code mcp_result} · {@code not_applicable_by_rule}

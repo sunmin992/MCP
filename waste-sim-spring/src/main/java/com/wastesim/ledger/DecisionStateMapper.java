@@ -1,8 +1,5 @@
 package com.wastesim.ledger;
 
-import com.wastesim.subtask.BasisKind;
-import com.wastesim.subtask.SubtaskAnswerSource;
-
 /**
  * 답변 시점의 두 사실을 결정기록의 상태로 옮긴다.
  *
@@ -17,12 +14,13 @@ public final class DecisionStateMapper {
 
     private DecisionStateMapper() { }
 
-    public static DecisionState map(SubtaskAnswerSource source, BasisKind basis) {
+    public static DecisionState map(AnswerSourceKind source, BasisKind basis) {
         if (source == null) return DecisionState.UNRESOLVED;
 
         return switch (source) {
-            case USER_DIRECT, MCP_RESULT -> DecisionState.CONFIRMED;
-            case LLM_NORMALIZED -> DecisionState.DERIVED;
+            case USER_DIRECT, MCP_RESULT, USER, EXTERNAL -> DecisionState.CONFIRMED;
+            case LLM_NORMALIZED, DERIVED -> DecisionState.DERIVED;
+            case MODEL_DEFAULT -> DecisionState.DEFAULTED;
             // 선언이 없으면 근거를 모른다는 뜻이므로 채우지 않는다 —
             // FieldBasis.unknown()이 누락을 NONE으로 보는 것과 같은 이유다.
             case SERVER_DEFAULT -> (basis != null && basis.canFillWithoutAsking())

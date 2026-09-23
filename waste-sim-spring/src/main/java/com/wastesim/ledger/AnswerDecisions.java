@@ -1,8 +1,5 @@
 package com.wastesim.ledger;
 
-import com.wastesim.subtask.BasisKind;
-import com.wastesim.subtask.SubtaskAnswerSource;
-
 import java.time.Instant;
 import java.util.List;
 
@@ -27,7 +24,7 @@ public final class AnswerDecisions {
      */
     public static ParameterDecision fromAnswer(String decisionId, String parameterId,
                                                Object rawValue, Object normalizedValue,
-                                               SubtaskAnswerSource answerSource, BasisKind basis,
+                                               AnswerSourceKind answerSource, BasisKind basis,
                                                ValueSource source, Transformation transformation,
                                                Instant recordedAt) {
         DecisionState state = DecisionStateMapper.map(answerSource, basis);

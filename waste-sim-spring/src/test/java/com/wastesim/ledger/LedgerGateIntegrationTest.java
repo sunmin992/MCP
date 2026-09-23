@@ -3,8 +3,6 @@ package com.wastesim.ledger;
 import com.wastesim.ledger.verify.BackVerificationResult;
 import com.wastesim.ledger.verify.ConfigBackVerifier;
 import com.wastesim.model.SimulationConfig;
-import com.wastesim.subtask.BasisKind;
-import com.wastesim.subtask.SubtaskAnswerSource;
 import org.junit.jupiter.api.Test;
 
 import java.time.Instant;
@@ -30,7 +28,7 @@ class LedgerGateIntegrationTest {
      * 운영 경로가 바뀌어도 이 시험은 통과하고, 그러면 시험이 실제로 도는 것을 시험하지 않는다.
      */
     private static ParameterDecision answered(ParameterLedger ledger, String parameterId,
-                                              Object value, SubtaskAnswerSource source,
+                                              Object value, AnswerSourceKind source,
                                               BasisKind basis) {
         return AnswerDecisions.fromAnswer(
                 ledger.nextDecisionId(parameterId), parameterId, value, value, source, basis,
@@ -44,7 +42,7 @@ class LedgerGateIntegrationTest {
     void 정상_골드_구성은_막히지_않는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(answered(ledger, "sim::days", 7,
-                SubtaskAnswerSource.USER_DIRECT, BasisKind.NONE));
+                AnswerSourceKind.USER_DIRECT, BasisKind.NONE));
 
         SimulationConfig config = new SimulationConfig();
         config.setDays(7);
@@ -58,7 +56,7 @@ class LedgerGateIntegrationTest {
     void 모델_기본값으로_채운_값도_막히지_않는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(answered(ledger, "sim::days", 7,
-                SubtaskAnswerSource.SERVER_DEFAULT, BasisKind.MODEL_DEFAULT));
+                AnswerSourceKind.SERVER_DEFAULT, BasisKind.MODEL_DEFAULT));
 
         assertEquals(List.of(), ledger.blocking());
     }
@@ -80,7 +78,7 @@ class LedgerGateIntegrationTest {
     void 근거_없는_필수값은_실행을_막는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(answered(ledger, "sim::days", 7,
-                SubtaskAnswerSource.SERVER_DEFAULT, BasisKind.NONE));
+                AnswerSourceKind.SERVER_DEFAULT, BasisKind.NONE));
 
         assertEquals(1, ledger.blocking().size());
     }
@@ -89,7 +87,7 @@ class LedgerGateIntegrationTest {
     void 컴파일_결과가_결정기록과_다르면_막는다() {
         ParameterLedger ledger = new ParameterLedger();
         ledger.append(answered(ledger, "sim::days", 7,
-                SubtaskAnswerSource.USER_DIRECT, BasisKind.NONE));
+                AnswerSourceKind.USER_DIRECT, BasisKind.NONE));
 
         SimulationConfig tampered = new SimulationConfig();
         tampered.setDays(14);
