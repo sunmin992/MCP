@@ -2,7 +2,6 @@ package com.wastesim.mcp.ses;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wastesim.mcp.McpToolProvider;
 import com.wastesim.pes.Scenario;
 import com.wastesim.pes.ScenarioBuilder;
 import com.wastesim.tool.ToolResult;
@@ -15,11 +14,12 @@ import org.springframework.stereotype.Component;
  * 사용자가 확인하지 않은 상태를 표현할 자리가 없어지고, 그러면 토큰이 확인을 뜻한다고
  * 말할 수 없다 — 검증만 통과해도 받는 표는 확인표가 아니다.
  *
- * <p>여기가 사람이 개입하는 자리다. 이 도구를 <b>사용자에게 설정을 보여주지 않고</b>
- * 부르면 토큰은 다시 무의미해진다.
+ * <p><b>MCP 도구가 아니다.</b> 확인 화면만 이것을 부른다. 도구로 내면 모델이 스스로
+ * 불러 동의를 만들어낼 수 있고, 그러면 토큰이 "사람이 보고 동의했다"를 뜻하지 못한다.
+ * 모델은 {@link GetScenarioStatusTool} 로 <b>읽기만</b> 한다.
  */
 @Component
-public class ConfirmScenarioTool implements McpToolProvider {
+public class ConfirmScenarioTool {
 
     private final ScenarioBuilder builder;
     private final ScenarioStore store;
@@ -31,25 +31,6 @@ public class ConfirmScenarioTool implements McpToolProvider {
         this.mapper = mapper;
     }
 
-    @Override public String toolName() { return "confirm_scenario"; }
-
-    @Override
-    public String description() {
-        return "사용자가 설정을 확인했음을 기록하고 확인 토큰을 발급한다. 사용자에게 설정을 "
-                + "보여주고 동의를 받은 뒤에만 부른다. 토큰 없이는 실행할 수 없다.";
-    }
-
-    @Override
-    public String inputSchemaJson() {
-        return """
-            {"type":"object",
-             "properties":{
-               "scenarioId":{"type":"string","description":"build_scenario 가 돌려준 시나리오 id"}},
-             "required":["scenarioId"]}
-            """;
-    }
-
-    @Override
     public ToolResult call(JsonNode args) {
         String scenarioId = args.path("scenarioId").asText(null);
         if (scenarioId == null || scenarioId.isBlank()) {

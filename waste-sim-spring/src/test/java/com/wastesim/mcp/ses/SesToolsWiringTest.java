@@ -29,7 +29,7 @@ class SesToolsWiringTest {
         assertTrue(names.containsAll(List.of(
                         "build_scenario", "get_capability", "get_templates",
                         "plan_subtasks", "validate_answers", "run_scenario_by_token",
-                        "confirm_scenario")),
+                        "get_scenario_status")),
                 "tools/list 에 실리지 않은 도구가 있다: " + names);
     }
 
@@ -45,5 +45,7 @@ class SesToolsWiringTest {
         assertNotNull(registry.byToolName("build_scenario"));
         assertNotNull(registry.byToolName("run_scenario_by_token"));
         assertNull(registry.byToolName("없는도구"));
+        assertNull(registry.byToolName("confirm_scenario"),
+                "확인을 도구로 내면 모델이 스스로 동의를 만들어낼 수 있다 — 화면만 부른다");
     }
 }

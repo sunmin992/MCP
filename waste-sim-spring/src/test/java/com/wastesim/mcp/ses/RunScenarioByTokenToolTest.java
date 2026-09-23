@@ -184,4 +184,42 @@ class RunScenarioByTokenToolTest {
         assertTrue(required.contains("confirmToken"),
                 "스키마가 토큰을 선택으로 두면 LLM 이 토큰 없이 호출을 만든다");
     }
+
+    // ── 상태 읽기 — 모델은 여기로 토큰을 집어 간다 ──────────────────────────────
+
+    @Test
+    void 확인_전에는_토큰_대신_할_일을_알려준다() throws Exception {
+        var tool = new GetScenarioStatusTool(store, mapper);
+        String id = builtButUnconfirmed();
+        var out = mapper.readTree(tool.call(
+                mapper.createObjectNode().put("scenarioId", id)).result().toString());
+
+        assertEquals("UNCONFIRMED", out.path("state").asText());
+        assertTrue(out.path("confirmToken").isMissingNode(),
+                "확인 전에 토큰이 나오면 화면을 거칠 이유가 없어진다");
+        assertTrue(out.path("nextStep").asText().contains("confirm.html"));
+    }
+
+    @Test
+    void 확인_뒤에는_토큰을_읽을_수_있다() throws Exception {
+        var tool = new GetScenarioStatusTool(store, mapper);
+        var b = built();
+        var out = mapper.readTree(tool.call(
+                mapper.createObjectNode().put("scenarioId", b.path("scenarioId").asText()))
+                .result().toString());
+
+        assertEquals("CONFIRMED", out.path("state").asText());
+        assertEquals(b.path("confirmToken").asText(), out.path("confirmToken").asText(),
+                "화면이 발급한 토큰을 모델이 그대로 읽어야 실행까지 이어진다");
+    }
+
+    @Test
+    void 상태_읽기는_상태를_바꾸지_않는다() throws Exception {
+        var tool = new GetScenarioStatusTool(store, mapper);
+        String id = builtButUnconfirmed();
+        tool.call(mapper.createObjectNode().put("scenarioId", id));
+        tool.call(mapper.createObjectNode().put("scenarioId", id));
+        assertEquals("UNCONFIRMED", store.entry(id).orElseThrow().state(),
+                "읽기가 확인을 만들면 사람을 거치지 않는 문이 다시 열린다");
+    }
 }
