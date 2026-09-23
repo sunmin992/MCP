@@ -1,0 +1,176 @@
+{
+  "_comment": "2·3·4단계 페이로드 예시. 능력 카드는 jangnyang-capability-card.json. 사례 A는 전부 지원되는 요청, 사례 B는 목적 자체가 미지원인 요청이다.",
+
+  "caseA_supported": {
+    "step1_userUtterance": "한 동네 정도 되는 주택가에서 평일 교통량을 반영해서, 하루 몇 시에 쓰레기를 수거하는 게 민원이 가장 적은지 알고 싶어",
+
+    "step2_requestProfile": {
+      "requestId": "req-2026-09-23-001",
+      "domain":   { "value": "waste-collection", "evidence": "쓰레기를 수거하는" },
+      "subject":  { "value": "쓰레기 수거차량" },
+      "goal": {
+        "type": "PARAMETER_SWEEP",
+        "targetDecision": "collectionTimeMinutes",
+        "objective": "민원이 가장 적은 수거 시각",
+        "evidence": "하루 몇 시에 / 민원이 가장 적은지"
+      },
+      "requiredMetrics":  [ { "key": "metric:complaints", "evidence": "민원이 가장 적은지" } ],
+      "requiredFeatures": [ { "key": "feature:trafficAware", "evidence": "평일 교통량을 반영해서" } ],
+      "spatialScale":     { "value": "한 동네", "confidence": "STATED_VAGUE", "evidence": "한 동네 정도" },
+      "environment":      [ { "key": "traffic", "detail": "평일", "evidence": "평일 교통량" } ],
+      "unstated": [
+        "numBuildings", "residentsPerBuilding", "truckType", "numTrucks",
+        "dispatchIntervalMinutes", "days", "seeds", "occupationMix",
+        "requiredFidelity", "deadline", "budget"
+      ],
+      "assumptionsMade": []
+    },
+
+    "step3_discover": {
+      "requestId": "req-2026-09-23-001",
+      "domain": "waste-collection",
+      "goal": "민원이 가장 적은 수거 시각",
+      "requiredMetrics":  ["metric:complaints"],
+      "requiredFeatures": ["feature:trafficAware"],
+      "spatialScale": "한 동네",
+      "preferences": { "maxLatencySeconds": null, "maxCost": null, "minFidelity": null,
+                       "note": "사용자가 정확도·기한·비용을 제시하지 않음" },
+      "topK": 3
+    },
+
+    "step4_matchResult": {
+      "requestId": "req-2026-09-23-001",
+      "candidates": [
+        {
+          "serverId": "jangnyang-waste-sim",
+          "score": 0.92,
+          "endpoint": "http://localhost:8080/mcp",
+          "cost": 0,
+          "estimatedSeconds": 2,
+          "fidelity": "event-driven-stochastic",
+          "match": {
+            "domain": "EXACT",
+            "requiredMetrics":  [ { "key": "metric:complaints", "status": "SUPPORTED" } ],
+            "requiredFeatures": [ { "key": "feature:trafficAware", "status": "SUPPORTED",
+                                    "detail": "평일 프로파일 jangryang-weekday" } ],
+            "spatialScale": { "status": "INTERPRETABLE",
+                              "detail": "'한 동네'를 원룸촌 블록으로 해석. 구체값은 7단계에서 확인" },
+            "goal": { "key": "collection-time", "status": "SUPPORTED" }
+          },
+          "unsupportedInRequest": [],
+          "generalLimitations": [
+            { "code": "DATA_UNAVAILABLE", "capability": "골목 진입 판정",
+              "impact": "5톤 차량의 진입 가능 여부가 검증되지 않는다" },
+            { "code": "NO_BASELINE", "capability": "현재 운영과의 비교",
+              "impact": "개선 폭을 말할 수 없다" },
+            { "code": "NO_GROUND_TRUTH", "capability": "실측 대조",
+              "impact": "결과는 설정 간 비교이며 운영 예측이 아니다" },
+            { "code": "DATA_UNAVAILABLE", "capability": "실제 도로 기반 이동시간",
+              "impact": "교통구역 근사로 대체. 같은 구역 안 방문 순서가 반영되지 않는다" }
+          ]
+        }
+      ],
+      "rankingBasis": {
+        "weights": { "domain": 0.4, "spatialScale": 0.3, "capability": 0.3 },
+        "note": "사용자 선호 미지정 → 기본 가중치. 정확도·기한이 주어지면 재정렬 필요"
+      },
+      "clarificationNeeded": [
+        { "key": "requiredFidelity", "why": "후보 간 정확도 차이가 순위를 뒤집을 수 있다" }
+      ]
+    },
+
+    "step4_llmAction": {
+      "proceedToStep5": true,
+      "noticesToCarryIntoStep7": [
+        "실제 도로 기반 이동시간은 지점 좌표가 없어 사용할 수 없습니다. 교통구역 근사로 진행합니다.",
+        "5톤 차량의 골목 진입 가능 여부는 이 실행에서 검증되지 않습니다."
+      ]
+    }
+  },
+
+  "caseB_unsupportedGoal": {
+    "step1_userUtterance": "한 동네 정도 규모의, 하루 평균 교통량이 어느 정도 되는 도시에서 쓰레기 수거차량을 어느 간격으로 배치해야 가장 적은 비용으로 최대 효율이 나오는지를 시뮬레이션하고 싶어",
+
+    "step2_requestProfile": {
+      "requestId": "req-2026-09-23-002",
+      "domain":  { "value": "waste-collection" },
+      "subject": { "value": "쓰레기 수거차량" },
+      "goal": {
+        "type": "PARAMETER_SWEEP",
+        "targetDecision": "dispatchIntervalMinutes",
+        "objective": "가장 적은 비용으로 최대 효율이 나오는 배차 간격",
+        "evidence": "어느 간격으로 배치해야 / 가장 적은 비용으로 최대 효율"
+      },
+      "requiredMetrics": [
+        { "key": "metric:cost",       "evidence": "가장 적은 비용으로", "role": "PRIMARY" },
+        { "key": "metric:efficiency", "evidence": "최대 효율",         "role": "PRIMARY",
+          "note": "무엇을 효율이라 볼지 미지정 — 기준을 물어야 한다" }
+      ],
+      "requiredFeatures": [ { "key": "feature:trafficAware", "evidence": "하루 평균 교통량" } ],
+      "spatialScale": { "value": "한 동네", "confidence": "STATED_VAGUE" },
+      "assumptionsMade": []
+    },
+
+    "step4_matchResult": {
+      "requestId": "req-2026-09-23-002",
+      "candidates": [
+        {
+          "serverId": "jangnyang-waste-sim",
+          "score": 0.61,
+          "match": {
+            "domain": "EXACT",
+            "requiredMetrics": [
+              { "key": "metric:cost",       "status": "UNSUPPORTED" },
+              { "key": "metric:efficiency", "status": "AMBIGUOUS" }
+            ],
+            "requiredFeatures": [ { "key": "feature:trafficAware", "status": "SUPPORTED" } ],
+            "goal": { "key": "dispatch-interval", "status": "SUPPORTED" }
+          },
+          "unsupportedInRequest": [
+            {
+              "code": "UNSUPPORTED_METRIC",
+              "requested": "가장 적은 비용",
+              "matchedKey": "metric:cost",
+              "reasonType": "NOT_IN_MODEL",
+              "reason": "모델에 연료·인건비·차량 운영비 항이 없습니다",
+              "alternatives": ["metric:complaints", "metric:truckUtilization", "metric:completionTime"],
+              "message": "이 시뮬레이터는 비용을 산출하지 않습니다. 민원 수·차량 가동률·수거 완료 시각으로 비교하실 수 있습니다.",
+              "otherCandidates": "없음 — 등록된 서버 중 비용을 산출하는 곳이 없습니다",
+              "blocksGoal": true
+            },
+            {
+              "code": "AMBIGUOUS_METRIC",
+              "requested": "최대 효율",
+              "matchedKey": "metric:efficiency",
+              "reason": "효율로 볼 수 있는 지표가 넷이고 서로 반대로 움직입니다",
+              "candidates": [
+                { "key": "metric:truckUtilization", "note": "배차 간격을 늘리면 올라감" },
+                { "key": "metric:completionTime",   "note": "배차 간격을 늘리면 나빠짐" },
+                { "key": "metric:complaints",       "note": "배차 간격을 늘리면 나빠짐" },
+                { "key": "metric:residualWaste",    "note": "배차 간격을 늘리면 나빠짐" }
+              ],
+              "message": "'효율'의 기준을 정해 주셔야 합니다. 기준마다 답이 다릅니다.",
+              "blocksGoal": true
+            }
+          ],
+          "generalLimitations": [
+            { "code": "DATA_UNAVAILABLE", "capability": "실제 도로 기반 이동시간" },
+            { "code": "NO_BASELINE",      "capability": "현재 운영과의 비교" },
+            { "code": "NO_GROUND_TRUTH",  "capability": "실측 대조" }
+          ]
+        }
+      ]
+    },
+
+    "step4_llmAction": {
+      "proceedToStep5": false,
+      "reason": "목적을 이루는 지표 둘이 모두 막혀 있다. 동의 없이 지표를 바꿔 진행하면 결과가 맞아도 요청 충족 실패로 센다.",
+      "askUserBeforeStep5": {
+        "message": "요청하신 것 중 두 가지를 먼저 확인해야 합니다.\n\n① 비용은 이 시뮬레이터가 산출하지 않습니다. 연료·인건비·차량 운영비 항이 모델에 없고, 등록된 다른 서버에도 없습니다.\n\n② '효율'은 기준에 따라 답이 달라집니다. 배차 간격을 늘리면 차량 가동률은 올라가지만 수거 완료가 늦어지고 민원이 늘어납니다.\n\n민원 수를 기준으로 진행할까요? 아니면 차량 가동률이나 수거 완료 시각 중 하나를 고르시겠습니까?",
+        "options": ["metric:complaints", "metric:truckUtilization", "metric:completionTime", "취소"]
+      }
+    },
+
+    "note": "배차 간격을 민원 기준으로 비교하면 0분이 단조 최적이다 — 배차 간격은 수거를 늦추기만 하기 때문이다. 이 사실도 함께 알리고, 수거 시각 비교로 바꿀지 제안하는 편이 낫다."
+  }
+}
