@@ -28,14 +28,24 @@ public class CapabilityCardLoader {
     private final CapabilityCard card;
 
     public CapabilityCardLoader() {
-        try (InputStream in = CapabilityCardLoader.class.getResourceAsStream(RESOURCE)) {
+        this(RESOURCE);
+    }
+
+    /**
+     * 리소스 경로를 지정하는 생성자. 패키지 밖에는 열지 않는다 — 운영 코드는 항상
+     * 기본 경로({@link #RESOURCE})만 쓰고, 이 생성자는 "리소스가 없으면 예외를
+     * 던진다"는 조용한 폴백 금지 제약을 테스트가 직접 확인할 수 있게 하기 위한
+     * 최소한의 통로다.
+     */
+    CapabilityCardLoader(String resourcePath) {
+        try (InputStream in = CapabilityCardLoader.class.getResourceAsStream(resourcePath)) {
             if (in == null) {
-                throw new IllegalStateException("능력 카드 리소스가 없습니다: " + RESOURCE);
+                throw new IllegalStateException("능력 카드 리소스가 없습니다: " + resourcePath);
             }
             this.raw = mapper.readTree(in);
             this.card = mapper.treeToValue(raw, CapabilityCard.class);
         } catch (java.io.IOException e) {
-            throw new UncheckedIOException("능력 카드를 읽지 못했습니다: " + RESOURCE, e);
+            throw new UncheckedIOException("능력 카드를 읽지 못했습니다: " + resourcePath, e);
         }
     }
 

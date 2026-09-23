@@ -69,6 +69,15 @@ class CapabilityCardLoaderTest {
     }
 
     @Test
+    void 능력카드_리소스가_없으면_빈_카드로_넘어가지_않고_예외를_던진다() {
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> new CapabilityCardLoader("/mcp/존재하지-않는-능력카드.json"));
+        assertNotNull(ex.getMessage(), "예외 메시지가 없다 — 운영에서 원인을 알 수 없다");
+        assertTrue(ex.getMessage().contains("/mcp/존재하지-않는-능력카드.json"),
+                "예외 메시지가 어떤 리소스가 없는지 말하지 않는다: " + ex.getMessage());
+    }
+
+    @Test
     void 리소스와_문서의_능력카드가_같다() throws Exception {
         var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
         var fromResource = mapper.readTree(
