@@ -86,7 +86,7 @@ public class BuildScenarioTool implements McpToolProvider {
                     args.path("variableAnswerKey").asText(), variableValues, observations);
 
             Scenario scenario = builder.build(pes, frame);
-            if (scenario.valid()) store.put(scenario);
+            if (scenario.valid()) store.put(scenario, pes);
 
             var root = mapper.createObjectNode();
             root.put("sesId", pes.sesId());

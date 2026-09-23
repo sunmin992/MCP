@@ -1,9 +1,11 @@
 package com.wastesim.mcp.ses;
 
+import com.wastesim.pes.Pes;
 import com.wastesim.pes.Scenario;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
@@ -26,8 +28,12 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ScenarioStore {
 
-    /** @param executedAt 실행한 시각. 아직 돌리지 않았으면 {@code null} */
-    public record Entry(Scenario scenario, Instant executedAt) {
+    /**
+     * @param pes        이 시나리오를 만든 PES. 확인 화면이 "승인하지 않은 기본값" 을
+     *                   보여주려면 필요하다 — 그것을 못 보여주면 확인이 확인이 아니다
+     * @param executedAt 실행한 시각. 아직 돌리지 않았으면 {@code null}
+     */
+    public record Entry(Scenario scenario, Pes pes, Instant executedAt) {
 
         public String state() {
             if (executedAt != null) return "EXECUTED";
@@ -37,9 +43,14 @@ public class ScenarioStore {
 
     private final Map<String, Entry> byId = new ConcurrentHashMap<>();
 
-    public String put(Scenario scenario) {
-        byId.put(scenario.scenarioId(), new Entry(scenario, null));
+    public String put(Scenario scenario, Pes pes) {
+        byId.put(scenario.scenarioId(), new Entry(scenario, pes, null));
         return scenario.scenarioId();
+    }
+
+    /** 보관 중인 전부. 확인 화면이 목록을 세운다. */
+    public List<Entry> all() {
+        return List.copyOf(byId.values());
     }
 
     public Optional<Entry> entry(String scenarioId) {
@@ -52,10 +63,12 @@ public class ScenarioStore {
 
     /** 확인된 시나리오로 갈아 끼운다. 실행 이력은 지운다 — 다시 확인했으면 다시 돌릴 수 있다. */
     public void confirm(Scenario confirmed) {
-        byId.put(confirmed.scenarioId(), new Entry(confirmed, null));
+        byId.computeIfPresent(confirmed.scenarioId(),
+                (k, e) -> new Entry(confirmed, e.pes(), null));
     }
 
     public void markExecuted(String scenarioId) {
-        byId.computeIfPresent(scenarioId, (k, e) -> new Entry(e.scenario(), Instant.now()));
+        byId.computeIfPresent(scenarioId,
+                (k, e) -> new Entry(e.scenario(), e.pes(), Instant.now()));
     }
 }
