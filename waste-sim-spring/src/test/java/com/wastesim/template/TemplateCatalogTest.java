@@ -17,8 +17,19 @@ class TemplateCatalogTest {
     private final TemplateCatalog catalog = new TemplateCatalog();
 
     @Test
-    void 템플릿_열세개를_읽는다() {
-        assertEquals(13, catalog.all().size());
+    void 템플릿_열네개를_읽는다() {
+        assertEquals(14, catalog.all().size());
+    }
+
+    @Test
+    void 경로배정용량은_범위를_다시_정의하지_않는다() {
+        SubtaskTemplate t = catalog.byId("jn.routeAvailableCapacity").orElseThrow();
+        assertEquals("routeAvailableCapacityKg", t.configField());
+        assertEquals("NUMBER", t.valueType());
+        assertNull(t.min(), "상한이 차종에 달려 있어 SimulationConfigValidator 가 정본이다");
+        assertNull(t.max(), "상한이 차종에 달려 있어 SimulationConfigValidator 가 정본이다");
+        assertTrue(t.requiresExplicitAnswer(),
+                "지정하지 않으면 가동률이 5톤 기준 1.8%로 죽는다 — 조용히 기본값을 쓰면 안 된다");
     }
 
     @Test

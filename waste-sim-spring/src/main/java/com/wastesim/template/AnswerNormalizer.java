@@ -65,6 +65,31 @@ public class AnswerNormalizer {
             return NormalizeResult.pass((int) n);
         }
 
+        // 실수형. 경로 배정용량처럼 상한이 다른 답(차종)에 달린 값은 min/max 를 비워 두고
+        // SimulationConfigValidator 가 정본으로 남는다 — 범위를 두 곳에서 정의하지 않는다.
+        if ("NUMBER".equals(t.valueType())) {
+            double n;
+            try {
+                n = Double.parseDouble(v);
+            } catch (NumberFormatException e) {
+                return NormalizeResult.fail("NOT_A_NUMBER",
+                        t.answerKey() + " 는 수여야 합니다. 받은 값: " + v);
+            }
+            if (!Double.isFinite(n)) {
+                return NormalizeResult.fail("NOT_A_NUMBER",
+                        t.answerKey() + " 는 유한한 수여야 합니다. 받은 값: " + v);
+            }
+            if (t.min() != null && n < t.min()) {
+                return NormalizeResult.fail("OUT_OF_RANGE",
+                        t.answerKey() + " 는 " + t.min() + " 이상이어야 합니다. 받은 값: " + n);
+            }
+            if (t.max() != null && n > t.max()) {
+                return NormalizeResult.fail("OUT_OF_RANGE",
+                        t.answerKey() + " 는 " + t.max() + " 이하여야 합니다. 받은 값: " + n);
+            }
+            return NormalizeResult.pass(n);
+        }
+
         return NormalizeResult.pass(v);
     }
 }

@@ -75,4 +75,28 @@ class AnswerNormalizerTest {
         assertFalse(r.ok());
         assertEquals("OUT_OF_CLOSURE", r.errorCode());
     }
+
+    // ── NUMBER — 경로 배정용량 ────────────────────────────────────────────────
+
+    @Test
+    void 경로배정용량은_실수로_받는다() {
+        var r = run("jn.routeAvailableCapacity", "150.5");
+        assertTrue(r.ok());
+        assertEquals(150.5, r.value(), "정수로 깎으면 배정 몫이 달라진다");
+    }
+
+    @Test
+    void 경로배정용량이_수가_아니면_거절한다() {
+        var r = run("jn.routeAvailableCapacity", "백오십kg");
+        assertFalse(r.ok());
+        assertEquals("NOT_A_NUMBER", r.errorCode());
+    }
+
+    @Test
+    void 경로배정용량에_무한대는_거절한다() {
+        var r = run("jn.routeAvailableCapacity", "Infinity");
+        assertFalse(r.ok());
+        assertEquals("NOT_A_NUMBER", r.errorCode(),
+                "Double.parseDouble 은 Infinity 를 받는다 — 여기서 막지 않으면 설정까지 간다");
+    }
 }
