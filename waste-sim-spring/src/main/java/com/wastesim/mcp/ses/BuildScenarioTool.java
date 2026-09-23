@@ -98,7 +98,10 @@ public class BuildScenarioTool implements McpToolProvider {
             root.set("backVerificationBlocks",
                     mapper.valueToTree(scenario.backVerificationBlocks()));
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
-            if (scenario.confirmToken() != null) root.put("confirmToken", scenario.confirmToken());
+            // 토큰은 여기서 나오지 않는다. 검증을 통과해도 아직 미확인이며,
+            // confirm_scenario 가 사용자 동의를 받은 뒤 발급한다.
+            root.put("state", store.entry(scenario.scenarioId())
+                    .map(ScenarioStore.Entry::state).orElse("INVALID"));
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (IllegalArgumentException e) {
             return ToolFailure.of("values", e.getMessage());

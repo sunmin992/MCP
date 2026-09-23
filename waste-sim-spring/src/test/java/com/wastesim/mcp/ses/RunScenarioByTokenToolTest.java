@@ -32,6 +32,8 @@ class RunScenarioByTokenToolTest {
             new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
     private final BuildScenarioTool buildTool =
             new BuildScenarioTool(builder, store, catalog, mapper);
+    private final ConfirmScenarioTool confirmTool =
+            new ConfirmScenarioTool(builder, store, mapper);
     private final RunScenarioByTokenTool runTool = new RunScenarioByTokenTool(
             builder, store, new SimulationEngine(new TrafficDataService()), mapper);
 
@@ -48,7 +50,25 @@ class RunScenarioByTokenToolTest {
         values.put("trafficMode", "IGNORE");
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360).add(1080);
-        return mapper.readTree(buildTool.call(args).result().toString());
+        var built = mapper.readTree(buildTool.call(args).result().toString());
+        // 사용자가 설정을 보고 동의한 자리.
+        var confirmArgs = mapper.createObjectNode();
+        confirmArgs.put("scenarioId", built.path("scenarioId").asText());
+        return mapper.readTree(confirmTool.call(confirmArgs).result().toString());
+    }
+
+    /** 확인하지 않은 채로 보관만 된 시나리오. */
+    private String builtButUnconfirmed() throws Exception {
+        var args = mapper.createObjectNode();
+        var values = args.putObject("values");
+        values.put("truckCount", 1);
+        values.put("numBuildings", 4);
+        values.put("days", 7);
+        values.put("seeds", 2);
+        args.put("variableAnswerKey", "collectionTimeMinutes");
+        args.putArray("variableValues").add(540);
+        return mapper.readTree(buildTool.call(args).result().toString())
+                .path("scenarioId").asText();
     }
 
     private ObjectNode runArgs(String id, String token) {
@@ -86,6 +106,34 @@ class RunScenarioByTokenToolTest {
         var b = built();
         var result = runTool.call(runArgs(b.path("scenarioId").asText(), null));
         assertFalse(result.ready());
+    }
+
+    @Test
+    void 확인하지_않은_시나리오는_실행하지_않는다() throws Exception {
+        String id = builtButUnconfirmed();
+        var result = runTool.call(runArgs(id, "cft-아무거나"));
+        assertFalse(result.ready(),
+                "검증만 통과한 설정을 돌리면 사용자가 확인하지 않은 실험이 돈다");
+        assertTrue(result.toString().contains("확인되지 않은"));
+    }
+
+    @Test
+    void 확인했지만_실행하지_않으면_CONFIRMED_로_남는다() throws Exception {
+        var b = built();
+        assertEquals("CONFIRMED", b.path("state").asText());
+        assertEquals("CONFIRMED",
+                store.entry(b.path("scenarioId").asText()).orElseThrow().state(),
+                "확인만 하고 돌리지 않은 것도 상태로 남아야 한다");
+    }
+
+    @Test
+    void 실행하면_EXECUTED_가_된다() throws Exception {
+        var b = built();
+        String id = b.path("scenarioId").asText();
+        var out = mapper.readTree(runTool.call(
+                runArgs(id, b.path("confirmToken").asText())).result().toString());
+        assertEquals("EXECUTED", out.path("state").asText());
+        assertEquals("EXECUTED", store.entry(id).orElseThrow().state());
     }
 
     @Test

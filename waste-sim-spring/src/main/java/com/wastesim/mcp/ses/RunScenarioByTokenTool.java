@@ -82,6 +82,11 @@ public class RunScenarioByTokenTool implements McpToolProvider {
         Scenario scenario = found.get();
 
         // 실행 직전에 다시 센다. 발급 이후 설정이 바뀌었으면 여기서 어긋난다.
+        if (scenario.confirmToken() == null) {
+            return ToolFailure.of("confirmToken",
+                    "아직 확인되지 않은 시나리오입니다: " + scenarioId
+                            + " — 사용자에게 설정을 보여주고 confirm_scenario 를 먼저 부르십시오.");
+        }
         if (!builder.tokenMatches(scenario, token)) {
             return ToolFailure.of("confirmToken",
                     "확인 토큰이 이 시나리오의 현재 설정과 맞지 않습니다 — "
@@ -109,9 +114,12 @@ public class RunScenarioByTokenTool implements McpToolProvider {
                 node.put("coordinateQuality", r.getCoordinateQualityLabel());
             }
 
+            store.markExecuted(scenarioId);
+
             var root = mapper.createObjectNode();
             root.put("scenarioId", scenario.scenarioId());
-            root.put("confirmed", true);
+            root.put("state", store.entry(scenarioId)
+                    .map(ScenarioStore.Entry::state).orElse("EXECUTED"));
             root.put("notForOperationalUse", true);
             root.put("limitation", "이 결과는 설정 간 비교이며 운영 예측이 아니다.");
             root.set("runs", runs);

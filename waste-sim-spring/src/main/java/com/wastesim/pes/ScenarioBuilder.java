@@ -16,6 +16,7 @@ import java.util.Comparator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * PES + 실험 프레임 → 검증된 실행 설정 N벌 + 확인 토큰.
@@ -64,11 +65,19 @@ public class ScenarioBuilder {
             backBlocks.addAll(backVerifier.verify(runPes, cfg));
         }
 
-        String scenarioId = "scn-" + Integer.toHexString(pes.values().hashCode())
-                + "-" + frame.values().size();
-        boolean ok = blocks.isEmpty() && backBlocks.isEmpty();
-        String token = ok ? "cft-" + hashOf(runs) : null;
-        return new Scenario(scenarioId, runs, blocks, backBlocks, token);
+        // 실험 프레임까지 넣어야 식별자가 된다. 값을 빼면 같은 PES 에 조건만 다른
+        // 시나리오 둘이 같은 id 를 갖고 보관소에서 서로를 덮는다.
+        String scenarioId = "scn-" + Integer.toHexString(
+                Objects.hash(pes.values(), frame.variableAnswerKey(), frame.values()));
+
+        // 토큰은 여기서 주지 않는다. 검증 통과는 "돌릴 수 있다" 이지 "사용자가 확인했다"가
+        // 아니다. 확인 단계(confirm)가 발급하며, 그래서 토큰 없음 = 미확인이 된다.
+        return new Scenario(scenarioId, runs, blocks, backBlocks, null);
+    }
+
+    /** 이 시나리오의 현재 설정에 대한 확인 토큰. 확인 단계만 부른다. */
+    public String tokenFor(Scenario scenario) {
+        return "cft-" + hashOf(scenario.runs());
     }
 
     /** 토큰이 이 시나리오의 현재 설정과 맞는가. 설정이 바뀌면 맞지 않는다. */

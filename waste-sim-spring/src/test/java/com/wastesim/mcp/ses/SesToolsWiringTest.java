@@ -28,7 +28,8 @@ class SesToolsWiringTest {
         List<String> names = registry.all().stream().map(McpToolProvider::toolName).sorted().toList();
         assertTrue(names.containsAll(List.of(
                         "build_scenario", "get_capability", "get_templates",
-                        "plan_subtasks", "validate_answers", "run_scenario_by_token")),
+                        "plan_subtasks", "validate_answers", "run_scenario_by_token",
+                        "confirm_scenario")),
                 "tools/list 에 실리지 않은 도구가 있다: " + names);
     }
 

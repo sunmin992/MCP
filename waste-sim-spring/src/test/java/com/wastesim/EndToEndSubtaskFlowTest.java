@@ -122,7 +122,9 @@ class EndToEndSubtaskFlowTest {
         Scenario scenario = builder.build(pes, frame);
         assertTrue(scenario.valid(), "검증 실패: " + scenario.blocks()
                 + " / 역검증: " + scenario.backVerificationBlocks());
-        assertNotNull(scenario.confirmToken());
+        assertNull(scenario.confirmToken(), "검증만으로는 아직 미확인이다");
+
+        scenario = confirmed(scenario);
         assertTrue(builder.tokenMatches(scenario, scenario.confirmToken()));
 
         assertEquals(List.of(360, 540, 720, 900, 1080),
@@ -159,12 +161,18 @@ class EndToEndSubtaskFlowTest {
         assertEquals(List.of(), backVerifier.verify(pes, cfg));
     }
 
+    /** 사용자가 설정을 보고 동의한 자리 — confirm_scenario 가 하는 일이다. */
+    private Scenario confirmed(Scenario s) {
+        return new Scenario(s.scenarioId(), s.runs(), s.blocks(),
+                s.backVerificationBlocks(), builder.tokenFor(s));
+    }
+
     @Test
     void 설정을_건드리면_토큰이_맞지_않는다() {
         Pes pes = pesOf(answersFromUser());
         ExperimentFrame frame = new ExperimentFrame(
                 "collectionTimeMinutes", List.of(720), List.of("meanComplaints"));
-        Scenario scenario = builder.build(pes, frame);
+        Scenario scenario = confirmed(builder.build(pes, frame));
         String token = scenario.confirmToken();
         assertTrue(builder.tokenMatches(scenario, token));
 

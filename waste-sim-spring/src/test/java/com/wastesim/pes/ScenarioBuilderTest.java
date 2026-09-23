@@ -67,13 +67,28 @@ class ScenarioBuilderTest {
     }
 
     @Test
-    void 검증을_통과하면_토큰이_나온다() {
+    void 검증을_통과해도_토큰은_아직_없다() {
         ExperimentFrame frame = new ExperimentFrame(
                 "collectionTimeMinutes", List.of(720), List.of("meanComplaints"));
         Scenario s = builder.build(basePes(), frame);
-        assertTrue(s.valid());
-        assertNotNull(s.confirmToken());
-        assertTrue(builder.tokenMatches(s, s.confirmToken()));
+        assertTrue(s.valid(), "검증은 통과해야 한다");
+        assertNull(s.confirmToken(),
+                "검증 통과는 '돌릴 수 있다' 이지 '사용자가 확인했다' 가 아니다");
+    }
+
+    @Test
+    void 확인하면_토큰이_나오고_그_설정에_맞는다() {
+        ExperimentFrame frame = new ExperimentFrame(
+                "collectionTimeMinutes", List.of(720), List.of("meanComplaints"));
+        Scenario s = builder.build(basePes(), frame);
+        Scenario confirmed = confirm(s);
+        assertTrue(builder.tokenMatches(confirmed, confirmed.confirmToken()));
+    }
+
+    /** 확인 단계가 하는 일 — 토큰을 실어 같은 시나리오를 다시 만든다. */
+    private Scenario confirm(Scenario s) {
+        return new Scenario(s.scenarioId(), s.runs(), s.blocks(),
+                s.backVerificationBlocks(), builder.tokenFor(s));
     }
 
     @Test
@@ -91,23 +106,23 @@ class ScenarioBuilderTest {
                 "collectionTimeMinutes", List.of(720), List.of("meanComplaints"));
         ExperimentFrame f2 = new ExperimentFrame(
                 "collectionTimeMinutes", List.of(900), List.of("meanComplaints"));
-        assertNotEquals(builder.build(basePes(), f1).confirmToken(),
-                        builder.build(basePes(), f2).confirmToken());
+        assertNotEquals(builder.tokenFor(builder.build(basePes(), f1)),
+                        builder.tokenFor(builder.build(basePes(), f2)));
     }
 
     @Test
     void 같은_설정이면_토큰이_재현된다() {
         ExperimentFrame frame = new ExperimentFrame(
                 "collectionTimeMinutes", List.of(720), List.of("meanComplaints"));
-        assertEquals(builder.build(basePes(), frame).confirmToken(),
-                     builder.build(basePes(), frame).confirmToken());
+        assertEquals(builder.tokenFor(builder.build(basePes(), frame)),
+                     builder.tokenFor(builder.build(basePes(), frame)));
     }
 
     @Test
     void 남의_토큰은_맞지_않는다() {
         ExperimentFrame frame = new ExperimentFrame(
                 "collectionTimeMinutes", List.of(720), List.of("meanComplaints"));
-        Scenario s = builder.build(basePes(), frame);
+        Scenario s = confirm(builder.build(basePes(), frame));
         assertFalse(builder.tokenMatches(s, "cft-남의토큰"));
         assertFalse(builder.tokenMatches(s, null));
     }

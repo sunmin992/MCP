@@ -90,7 +90,7 @@ class SesMcpToolsTest {
     // ── 시나리오 도구 ─────────────────────────────────────────────────────────
 
     @Test
-    void 시나리오_도구가_통과하면_토큰을_내고_보관한다() throws Exception {
+    void 시나리오_도구가_통과하면_미확인으로_보관한다() throws Exception {
         ScenarioStore store = new ScenarioStore();
         ScenarioBuilder builder = new ScenarioBuilder(
                 new PesFlattener(catalog), new PesBackVerifier(catalog),
@@ -111,9 +111,11 @@ class SesMcpToolsTest {
         var out = mapper.readTree(tool.call(args).result().toString());
         assertTrue(out.path("valid").asBoolean(), "막힌 사유: " + out.path("blocks"));
         assertEquals(3, out.path("runCount").asInt());
-        assertTrue(out.path("confirmToken").asText().startsWith("cft-"));
+        assertTrue(out.path("confirmToken").isMissingNode(),
+                "검증만으로 토큰을 주면 '사용자가 확인하지 않은 것' 상태가 사라진다");
+        assertEquals("UNCONFIRMED", out.path("state").asText());
         assertTrue(store.get(out.path("scenarioId").asText()).isPresent(),
-                "통과한 시나리오는 실행 요청 때까지 남아 있어야 한다");
+                "통과한 시나리오는 확인·실행 때까지 남아 있어야 한다");
     }
 
     @Test
@@ -129,7 +131,7 @@ class SesMcpToolsTest {
 
         var out = mapper.readTree(buildTool().call(args).result().toString());
         assertFalse(out.path("valid").asBoolean(), "1500분은 0~1439 범위를 벗어난다");
-        assertTrue(out.path("confirmToken").isMissingNode(), "검증 안 된 설정에 토큰을 주면 안 된다");
+        assertEquals("INVALID", out.path("state").asText(), "막힌 시나리오는 보관하지 않는다");
     }
 
     @Test
