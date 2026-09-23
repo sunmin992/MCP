@@ -73,6 +73,20 @@ class TemplateCatalogTest {
                 "예외 메시지가 어떤 리소스가 없는지 말하지 않는다: " + ex.getMessage());
     }
 
+    @Test
+    void sesId_가_없으면_빈_문자열로_넘어가지_않고_예외를_던진다() {
+        IllegalStateException ex = assertThrows(IllegalStateException.class,
+                () -> new TemplateCatalog("/ses/no-ses-id.json"));
+        assertTrue(ex.getMessage().contains("sesId"),
+                "어느 필드가 없는지 말하지 않는다: " + ex.getMessage());
+    }
+
+    @Test
+    void 정상_리소스는_두_식별자를_모두_돌려준다() {
+        assertEquals("jangnyang-ses", catalog.sesId());
+        assertEquals("1.0.0", catalog.sesVersion());
+    }
+
     private static String capitalize(String s) {
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
     }

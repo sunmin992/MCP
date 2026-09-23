@@ -41,13 +41,24 @@ public class TemplateCatalog {
                 throw new IllegalStateException("템플릿 리소스가 없습니다: " + resourcePath);
             }
             JsonNode root = mapper.readTree(in);
-            this.sesId = root.path("sesId").asText();
-            this.sesVersion = root.path("sesVersion").asText();
+            // 없는 필드를 빈 문자열로 넘기지 않는다. 이 둘은 PES 가 "어느 SES 에서 나왔는가"를
+            // 밝히는 유일한 식별자이고, 빈 값이 실리면 확인 화면과 실행까지 그대로 흘러간다.
+            this.sesId = requireText(root, "sesId", resourcePath);
+            this.sesVersion = requireText(root, "sesVersion", resourcePath);
             this.templates = List.of(mapper.treeToValue(
                     root.path("templates"), SubtaskTemplate[].class));
         } catch (java.io.IOException e) {
             throw new UncheckedIOException("템플릿을 읽지 못했습니다: " + resourcePath, e);
         }
+    }
+
+    private static String requireText(JsonNode root, String field, String resourcePath) {
+        String value = root.path(field).asText();
+        if (value.isBlank()) {
+            throw new IllegalStateException(
+                    "템플릿 리소스에 " + field + " 가 없습니다: " + resourcePath);
+        }
+        return value;
     }
 
     public String sesId() {
