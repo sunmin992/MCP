@@ -18,7 +18,7 @@ public final class DecisionStateMapper {
         if (source == null) return DecisionState.UNRESOLVED;
 
         return switch (source) {
-            case USER_DIRECT, MCP_RESULT, USER, EXTERNAL -> DecisionState.CONFIRMED;
+            case USER_DIRECT, USER, EXTERNAL -> DecisionState.CONFIRMED;
             case LLM_NORMALIZED, DERIVED -> DecisionState.DERIVED;
             case MODEL_DEFAULT -> DecisionState.DEFAULTED;
             // 선언이 없으면 근거를 모른다는 뜻이므로 채우지 않는다 —

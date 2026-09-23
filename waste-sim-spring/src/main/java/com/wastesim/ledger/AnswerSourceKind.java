@@ -23,9 +23,6 @@ public enum AnswerSourceKind {
     /** 사용자가 직접 입력한 값. */
     USER_DIRECT,
 
-    /** MCP 결과로 들어온 값. */
-    MCP_RESULT,
-
     /** LLM이 정규화한 값. */
     LLM_NORMALIZED,
 
