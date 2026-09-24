@@ -24,6 +24,8 @@
   th, td { border:1px solid var(--line); padding:5px 10px; text-align:left; font-size:14px; }
   th { background:#fafafa; font-weight:600; }
   .warn { border-left:3px solid var(--warn); background:#fdf6f0; padding:9px 12px; margin:12px 0; }
+  #exposure { display:none; background:#a4501a; color:#fff; padding:8px 20px; font-size:13px; }
+  #exposure.on { display:block; }
   button.go { padding:9px 18px; font:inherit; cursor:pointer; border:1px solid #333;
               background:#222; color:#fff; border-radius:3px; }
   button.go[disabled] { background:#e6e6e6; color:#888; border-color:var(--line); cursor:default; }
@@ -38,6 +40,7 @@
 </style>
 </head>
 <body>
+<div id="exposure"></div>
 <header>
   <h1>시나리오 확인</h1>
   <p>확인해야 토큰이 나오고, 토큰이 있어야 실행됩니다. 이 결과는 설정 간 비교이며 운영 예측이 아닙니다.</p>
@@ -54,7 +57,20 @@ let current = null;
 const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 async function loadList() {
-  const rows = await (await fetch('/api/scenarios')).json();
+  const body = await (await fetch('/api/scenarios')).json();
+  const rows = body.scenarios;
+
+  // 이 서버에는 인증이 없다. 루프백 바인딩이 풀린 것을 조용히 넘기면, 확인하는 사람은
+  // 자기 화면이 같은 네트워크의 누구에게나 열려 있다는 사실을 모른 채 동의한다.
+  const $exp = document.getElementById('exposure');
+  if (!body.loopbackOnly) {
+    $exp.className = 'on';
+    $exp.textContent = `이 화면이 ${body.boundAddress} 로 열려 있습니다. `
+      + '인증이 없으므로 같은 네트워크의 누구나 이 시나리오를 확인해 줄 수 있습니다.';
+  } else {
+    $exp.className = '';
+  }
+
   if (!rows.length) {
     $list.innerHTML = '<p class="empty">보관된 시나리오가 없습니다.<br>build_scenario 를 먼저 부르십시오.</p>';
     return;

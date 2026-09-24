@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.ses.ConfirmScenarioTool;
 import com.wastesim.mcp.ses.ScenarioStore;
 import com.wastesim.tool.ToolResult;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.LinkedHashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -30,12 +32,17 @@ import java.util.Map;
 @RequestMapping("/api/scenarios")
 public class ScenarioConfirmController {
 
+    /** 스프링이 바인딩한 주소. 지정하지 않으면 모든 인터페이스다. */
+    private final String boundAddress;
+
     private final ScenarioStore store;
     private final ConfirmScenarioTool confirmTool;
     private final ObjectMapper mapper;
 
     public ScenarioConfirmController(ScenarioStore store, ConfirmScenarioTool confirmTool,
-                                     ObjectMapper mapper) {
+                                     ObjectMapper mapper,
+                                     @Value("${server.address:}") String boundAddress) {
+        this.boundAddress = boundAddress;
         this.store = store;
         this.confirmTool = confirmTool;
         this.mapper = mapper;
@@ -43,14 +50,35 @@ public class ScenarioConfirmController {
 
     /** 보관 중인 시나리오 목록. 확인 화면의 왼쪽이다. */
     @GetMapping
-    public List<Map<String, Object>> list() {
-        return store.all().stream()
+    public Map<String, Object> list() {
+        List<Map<String, Object>> rows = store.all().stream()
                 .map(e -> Map.<String, Object>of(
                         "scenarioId", e.scenario().scenarioId(),
                         "state", e.state(),
                         "runCount", e.scenario().runs().size(),
                         "unapprovedCount", e.pes().unapprovedDefaults().size()))
                 .toList();
+
+        // 노출 상태를 화면이 알 수 있게 함께 낸다. 이 서버에는 인증이 없어 루프백
+        // 바인딩이 유일한 방어선인데, 그것이 풀린 것을 화면이 조용히 넘기면 확인하는
+        // 사람은 자기 화면이 남에게도 열려 있다는 사실을 모른다.
+        Map<String, Object> out = new LinkedHashMap<>();
+        out.put("scenarios", rows);
+        out.put("boundAddress", boundAddress == null || boundAddress.isBlank() ? "(모든 인터페이스)" : boundAddress);
+        out.put("loopbackOnly", loopbackOnly(boundAddress));
+        return out;
+    }
+
+    /**
+     * 이 주소가 이 기기에서만 닿는가.
+     *
+     * <p>빈 값은 스프링 기본이고 그것은 모든 인터페이스다 — 안전한 쪽으로 넘겨짚지 않는다.
+     */
+    public static boolean loopbackOnly(String address) {
+        if (address == null || address.isBlank()) return false;
+        String a = address.trim();
+        return a.equals("127.0.0.1") || a.equals("::1") || a.equals("localhost")
+                || a.startsWith("127.");
     }
 
     /** 한 시나리오의 전부. 사용자가 무엇에 동의하는지 여기서 본다. */
