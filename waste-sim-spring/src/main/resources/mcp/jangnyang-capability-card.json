@@ -6,6 +6,13 @@
   "domain": [
     "waste-collection"
   ],
+  "domainAliases": [
+    "쓰레기수거",
+    "생활쓰레기",
+    "생활폐기물",
+    "폐기물 수거",
+    "쓰레기"
+  ],
   "region": "대한민국 경상북도 포항시 북구 장량동",
   "sourceSha": "13530df",
   "analysisUnit": {
@@ -13,7 +20,15 @@
     "label": "원룸촌 한 블록",
     "notDistrict": true,
     "rationale": "수거 지점이 건물마다 1개이고 건물이 최대 26동이므로 지점 상한이 26개다. 장량동 전체(70,576명)는 지점 약 2,700개가 필요해 표현할 수 없다.",
-    "coherence": "기본 4동 × 25명 × 0.9kg = 90kg/일, 지점당 22.5kg. 용량 30kg × 임계 0.8 = 24kg이라 임계 직전 구간이며 수거 시각·주기에 민감하다."
+    "coherence": "기본 4동 × 25명 × 0.9kg = 90kg/일, 지점당 22.5kg. 용량 30kg × 임계 0.8 = 24kg이라 임계 직전 구간이며 수거 시각·주기에 민감하다.",
+    "matchKeys": [
+      "한 동네",
+      "동네",
+      "블록",
+      "원룸촌",
+      "주택가",
+      "한 블록"
+    ]
   },
   "sesDigest": {
     "sesId": "jangnyang-ses",
@@ -388,6 +403,47 @@
         "name": "update_route_sequence",
         "what": "방문 순서만 교체 후 재실행",
         "status": "OK"
+      }
+    ],
+    "environmentMatchKeys": [
+      {
+        "key": "traffic-profile",
+        "matchKeys": [
+          "교통",
+          "교통량",
+          "평일 교통량",
+          "지체",
+          "혼잡"
+        ]
+      },
+      {
+        "key": "waste-separation",
+        "matchKeys": [
+          "분리배출",
+          "분리수거"
+        ]
+      },
+      {
+        "key": "weekday-schedule",
+        "matchKeys": [
+          "평일",
+          "요일",
+          "수거 요일"
+        ]
+      },
+      {
+        "key": "holidays",
+        "matchKeys": [
+          "공휴일",
+          "휴일"
+        ]
+      },
+      {
+        "key": "monthly-variation",
+        "matchKeys": [
+          "월별",
+          "계절"
+        ]
       }
     ]
   },
