@@ -8,6 +8,7 @@ import com.wastesim.model.SimulationResult;
 import com.wastesim.pes.Scenario;
 import com.wastesim.pes.ScenarioBuilder;
 import com.wastesim.simulation.SimulationEngine;
+import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
 

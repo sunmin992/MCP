@@ -6,6 +6,7 @@ import com.wastesim.mcp.McpToolProvider;
 import com.wastesim.template.AnswerNormalizer;
 import com.wastesim.template.SubtaskTemplate;
 import com.wastesim.template.TemplateCatalog;
+import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
 

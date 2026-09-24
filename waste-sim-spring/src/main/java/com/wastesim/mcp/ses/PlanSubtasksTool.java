@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.McpToolProvider;
 import com.wastesim.template.SubtaskPlan;
 import com.wastesim.template.SubtaskPlanner;
+import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
 

@@ -3,6 +3,7 @@ package com.wastesim.mcp.ses;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.McpToolProvider;
+import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
 
