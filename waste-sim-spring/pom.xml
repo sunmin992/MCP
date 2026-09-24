@@ -36,12 +36,6 @@
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
 
-        <!-- Spring WebSocket (STOMP) -->
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-websocket</artifactId>
-        </dependency>
-
         <!-- Actuator + Micrometer (관측성: /actuator/health·metrics) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
