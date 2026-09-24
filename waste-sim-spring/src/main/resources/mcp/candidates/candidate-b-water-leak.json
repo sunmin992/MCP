@@ -1,0 +1,47 @@
+{
+  "_comment": "매칭 평가용 가상 후보. 구현된 서버가 아니다 — docs/superpowers/specs/후보-서버-카드-근거.md 참고.",
+  "fictional": true,
+  "fictionalReason": "도메인이 다른 후보가 있어야 '도메인으로 거른다' 를 시험할 수 있다. 대조군이며, 이 endpoint 에 실제로 응답하는 서버는 없다.",
+
+  "serverId": "water-leak-sim",
+  "name": "상수도 관로 누수 시뮬레이터 (가상)",
+  "endpoint": "http://example.invalid/mcp",
+  "domain": ["water-supply"],
+  "region": "대한민국 (관로망 일반)",
+
+  "analysisUnit": {
+    "scope": "network",
+    "label": "관로망 한 구역",
+    "notDistrict": true,
+    "rationale": "관로 구간과 절점으로 이루어진 망이 분석 단위다. 행정 경계와 일치하지 않는다.",
+    "coherence": "압력과 유량으로 누수 지점을 추정한다. 수거·차량 개념이 없다."
+  },
+
+  "applicability": {
+    "environment": ["pressure-profile", "pipe-age", "seasonal-demand"],
+    "answerableQuestions": ["leak-location", "pressure-drop", "pipe-replacement-priority"],
+    "scenarioTypes": ["pressure-sweep", "pipe-age-grid", "demand-variation"],
+    "tools": ["run_leak_simulation", "list_scenarios"]
+  },
+
+  "unsupported": [
+    {
+      "code": "UNSUPPORTED_DOMAIN",
+      "capability": "폐기물 수거",
+      "matchKeys": ["domain:waste", "쓰레기", "수거", "폐기물", "민원"],
+      "reasonType": "OUT_OF_DOMAIN",
+      "reason": "상수도 도메인이다. 수거 차량도 배출도 모델에 없다",
+      "alternatives": [],
+      "message": "이 시뮬레이터는 상수도 누수를 다룹니다. 폐기물 수거는 다른 서버를 찾으십시오."
+    },
+    {
+      "code": "UNSUPPORTED_METRIC",
+      "capability": "비용",
+      "matchKeys": ["metric:cost", "비용", "예산"],
+      "reasonType": "NOT_IN_MODEL",
+      "reason": "비용 항이 모델에 없다",
+      "alternatives": [],
+      "message": "비용은 다루지 않습니다."
+    }
+  ]
+}
