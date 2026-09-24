@@ -42,13 +42,15 @@ public class McpController {
     private final McpToolCatalog catalog;
     private final SimulationModelRegistry models;
     private final McpToolRegistry independentTools;
+    private final ExecutionConfirmation confirmation;
 
     public McpController(SimulationTool tool, McpToolCatalog catalog, SimulationModelRegistry models,
-                         McpToolRegistry independentTools) {
+                         McpToolRegistry independentTools, ExecutionConfirmation confirmation) {
         this.tool = tool;
         this.catalog = catalog;
         this.models = models;
         this.independentTools = independentTools;
+        this.confirmation = confirmation;
     }
 
     /** 유일한 MCP 엔드포인트. */
@@ -120,9 +122,20 @@ public class McpController {
         // 모델 어댑터(run_waste_simulation, run_waste_simulation_devs, ...)는
         // 전부 SimulationModelRegistry로 라우팅한다 — 새 모델이 추가돼도 이
         // switch는 손댈 필요가 없다(MCP_모델_연결_방법.md §2).
+        // 실행에 닿는 도구는 확인 여부를 따진다. 여기가 모든 실행 경로가 지나는 한 자리다 —
+        // 도구마다 따로 붙이면 새 실행 도구가 생겼을 때 조용히 빠진다.
         SimulationModelProvider model = models.byToolName(name);
+        boolean executes = model != null
+                || name.equals("run_scenario") || name.equals("update_route_sequence");
+        ExecutionConfirmation.Check check = executes
+                ? confirmation.check(args)
+                : new ExecutionConfirmation.Check(true, false, "", null);
+        if (!check.allowed()) {
+            return textResult(check.note(), true);
+        }
+
         if (model != null) {
-            return toCallResult(tool.runSimulation(ConfigArgs.fromJson(args), model.modelId(), true));
+            return toCallResult(tool.runSimulation(ConfigArgs.fromJson(args), model.modelId(), true), check);
         }
 
         // SimulationConfig 스키마를 쓰지 않는 독립 도구(서브태스크 3종) — 변환도
@@ -135,11 +148,11 @@ public class McpController {
 
         switch (name) {
             case "run_scenario":
-                return toCallResult(tool.runScenario(args.path("type").asText(""), ConfigArgs.fromJson(args)));
+                return toCallResult(tool.runScenario(args.path("type").asText(""), ConfigArgs.fromJson(args)), check);
             case "list_scenarios":
                 return textResult(catalog.scenarioListText(), false);
             case "update_route_sequence":
-                return toCallResult(tool.updateRouteSequence(ConfigArgs.fromJson(args), routeSequenceArg(args)));
+                return toCallResult(tool.updateRouteSequence(ConfigArgs.fromJson(args), routeSequenceArg(args)), check);
             default:
                 return textResult("알 수 없는 도구: " + name, true);
         }
@@ -151,6 +164,27 @@ public class McpController {
             return textResult(mapper.writeValueAsString(tr.result()), false);
         }
         return textResult("검증 실패: " + mapper.writeValueAsString(tr.errors()), true);
+    }
+
+    /**
+     * 실행 결과에 확인 여부를 함께 싣는다.
+     *
+     * <p>결과만 보고 "이 값이 사용자가 확인한 설정에서 나온 것인가" 를 알 수 있어야 한다.
+     * 능력 카드의 {@code alwaysAttachToResult} 와 같은 뜻이다 — 무엇으로 계산한 값인지
+     * 결과가 스스로 말한다.
+     */
+    private ObjectNode toCallResult(ToolResult tr, ExecutionConfirmation.Check check) throws Exception {
+        if (!tr.ready()) {
+            return textResult("검증 실패: " + mapper.writeValueAsString(tr.errors()), true);
+        }
+        JsonNode body = mapper.valueToTree(tr.result());
+        ObjectNode out = body.isObject()
+                ? (ObjectNode) body
+                : mapper.createObjectNode().set("result", body);
+        out.put("confirmed", check.confirmed());
+        if (check.note() != null) out.put("confirmationNote", check.note());
+        if (!check.scenarioId().isBlank()) out.put("scenarioId", check.scenarioId());
+        return textResult(mapper.writeValueAsString(out), false);
     }
 
     private List<String> routeSequenceArg(JsonNode args) {

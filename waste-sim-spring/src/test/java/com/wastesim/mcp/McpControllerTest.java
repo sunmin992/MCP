@@ -30,7 +30,12 @@ class McpControllerTest {
         ScenarioService sc = new ScenarioService(sim);
         SimulationModelRegistry models = new SimulationModelRegistry(List.of(new JavaEngineProvider(sim)));
         SimulationTool tool = new SimulationTool(new SimulationConfigValidator(new TrafficDataService()), models, sc, new SimpleMeterRegistry());
-        return new McpController(tool, new McpToolCatalog(tool, models, independentTools), models, independentTools);
+        return new McpController(tool, new McpToolCatalog(tool, models, independentTools), models, independentTools,
+                new ExecutionConfirmation(new com.wastesim.mcp.ses.ScenarioStore(),
+                        new com.wastesim.pes.ScenarioBuilder(
+                                new com.wastesim.pes.PesFlattener(new com.wastesim.template.TemplateCatalog()),
+                                new com.wastesim.pes.PesBackVerifier(new com.wastesim.template.TemplateCatalog()),
+                                new SimulationConfigValidator(new TrafficDataService()))));
     }
 
     private JsonNode call(String json) throws Exception {
@@ -206,5 +211,41 @@ class McpControllerTest {
             assertTrue(b.path("result").path("isError").asBoolean(), arguments);
             assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("타입"));
         }
+    }
+
+    // ── 확인 여부가 실행 결과에 남는가 (계획 2 Task 6) ──────────────────────────
+
+    @Test
+    void 토큰_없는_실행은_막지_않고_확인_안됨으로_표시된다() throws Exception {
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"run_waste_simulation\","
+                + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2}}}");
+        assertFalse(b.path("result").path("isError").asBoolean(),
+                "서브태스크 흐름 밖 호출을 막으면 기존 화면과 API 가 전부 멈춘다");
+
+        JsonNode body = om.readTree(b.path("result").path("content").get(0).path("text").asText());
+        assertFalse(body.path("confirmed").asBoolean(),
+                "확인을 거치지 않았다는 사실이 결과에 없으면 읽는 사람이 구분할 수 없다");
+        assertTrue(body.path("confirmationNote").asText().contains("확인하지 않"),
+                "표시만 하고 사유가 없으면 뜻을 모른다: " + body.path("confirmationNote").asText());
+    }
+
+    @Test
+    void 모르는_토큰으로는_실행되지_않는다() throws Exception {
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":10,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"run_waste_simulation\","
+                + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2,"
+                + "\"confirmToken\":\"cft-남의토큰\"}}}");
+        assertTrue(b.path("result").path("isError").asBoolean(),
+                "토큰을 줬다는 것은 확인을 주장한 것이다 — 틀린 주장을 통과시키면 확인이 무의미해진다");
+        assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("토큰"));
+    }
+
+    @Test
+    void 목록_조회는_확인_검사를_거치지_않는다() throws Exception {
+        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":11,\"method\":\"tools/call\","
+                + "\"params\":{\"name\":\"list_scenarios\",\"arguments\":{}}}");
+        assertFalse(b.path("result").path("isError").asBoolean(),
+                "읽기만 하는 도구까지 토큰을 따지면 목록도 못 본다");
     }
 }

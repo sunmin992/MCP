@@ -53,6 +53,17 @@ public class ScenarioStore {
         return List.copyOf(byId.values());
     }
 
+    /**
+     * 토큰으로 찾는다. 토큰은 설정 해시라 사실상 유일하므로 시나리오 id 를 따로 받지 않는다 —
+     * 기존 실행 도구는 시나리오 id 를 모르는 채 토큰만 들고 온다.
+     */
+    public Optional<Entry> byToken(String confirmToken) {
+        if (confirmToken == null || confirmToken.isBlank()) return Optional.empty();
+        return byId.values().stream()
+                .filter(e -> confirmToken.equals(e.scenario().confirmToken()))
+                .findFirst();
+    }
+
     public Optional<Entry> entry(String scenarioId) {
         return Optional.ofNullable(byId.get(scenarioId));
     }
