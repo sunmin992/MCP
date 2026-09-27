@@ -1,6 +1,5 @@
 package com.wastesim.template;
 
-import com.wastesim.ledger.Activation;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;

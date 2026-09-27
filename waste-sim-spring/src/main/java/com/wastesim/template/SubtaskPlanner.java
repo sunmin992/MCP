@@ -1,6 +1,5 @@
 package com.wastesim.template;
 
-import com.wastesim.ledger.Activation;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
