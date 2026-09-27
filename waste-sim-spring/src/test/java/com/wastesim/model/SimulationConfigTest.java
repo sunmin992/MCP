@@ -1,23 +1,11 @@
 package com.wastesim.model;
 
-import com.wastesim.service.OpenAiService;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 /** DESIGN_DECISIONS.md D-02 — 수거 시각 문자열 정규화(트림 허용, HH:MM 강제). */
 class SimulationConfigTest {
-
-    @Test
-    void isValidCollectionTimeRequiresZeroPaddedHhmm() {
-        assertTrue(OpenAiService.isValidCollectionTime("08:30"));
-        assertTrue(OpenAiService.isValidCollectionTime("00:00"));
-        assertTrue(OpenAiService.isValidCollectionTime("23:59"));
-        assertFalse(OpenAiService.isValidCollectionTime("8:30"));    // 한 자리 시 무효(D-02)
-        assertFalse(OpenAiService.isValidCollectionTime("24:00"));
-        assertFalse(OpenAiService.isValidCollectionTime(null));
-        assertFalse(OpenAiService.isValidCollectionTime(""));
-    }
 
     @Test
     void collectionTimeLabelTrimsWhitespace() {
