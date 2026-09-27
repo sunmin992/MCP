@@ -53,6 +53,12 @@ public class ExecutionConfirmation {
                     "확인 토큰이 보관된 시나리오와 맞지 않습니다 — 서버가 다시 떴거나 다른 서버의 토큰입니다.");
         }
 
+        // 확인 한 번에 실행 한 번이다. 여기서 보지 않으면 쓴 토큰을 기존 도구로 다시 쓸 수 있다.
+        if (found.get().executedAt() != null) {
+            return new Check(false, false, found.get().scenario().scenarioId(),
+                    "이미 실행한 시나리오의 토큰입니다 — 다시 돌리려면 사용자가 확인 화면에서 다시 확인해야 합니다.");
+        }
+
         // 실행 직전에 다시 센다. 발급 이후 설정이 바뀌었으면 여기서 어긋난다.
         var scenario = found.get().scenario();
         if (!builder.tokenMatches(scenario, token)) {

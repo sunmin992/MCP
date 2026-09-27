@@ -72,13 +72,19 @@ public class RunScenarioByTokenTool implements McpToolProvider {
                     "확인 토큰이 없습니다 — 확인하지 않은 설정은 실행하지 않습니다.");
         }
 
-        Optional<Scenario> found = store.get(scenarioId);
+        Optional<ScenarioStore.Entry> found = store.entry(scenarioId);
         if (found.isEmpty()) {
             return ToolFailure.of("scenarioId",
                     "보관된 시나리오가 없습니다: " + scenarioId
                             + " — build_scenario 로 다시 만드십시오. 서버가 다시 뜨면 토큰도 함께 사라집니다.");
         }
-        Scenario scenario = found.get();
+        // 확인 한 번에 실행 한 번이다. 토큰이 계속 통하면 확인이 무기한 허가가 된다.
+        if (found.get().executedAt() != null) {
+            return ToolFailure.of("confirmToken",
+                    "이미 실행한 시나리오입니다: " + scenarioId
+                            + " — 다시 돌리려면 사용자가 확인 화면에서 다시 확인해야 합니다.");
+        }
+        Scenario scenario = found.get().scenario();
 
         // 실행 직전에 다시 센다. 발급 이후 설정이 바뀌었으면 여기서 어긋난다.
         if (scenario.confirmToken() == null) {

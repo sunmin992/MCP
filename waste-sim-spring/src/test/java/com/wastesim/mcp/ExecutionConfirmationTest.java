@@ -116,6 +116,17 @@ class ExecutionConfirmationTest {
     }
 
     @Test
+    void 실행을_마친_시나리오의_토큰은_기존_도구에서도_통하지_않는다() throws Exception {
+        String token = 확인된_토큰();
+        store.markExecuted(store.byToken(token).orElseThrow().scenario().scenarioId());
+
+        var check = gate.check(확인한_설정(token));
+        assertFalse(check.allowed(),
+                "확인 한 번에 실행 한 번이다 — 기존 도구로 돌아가면 쓴 토큰을 다시 쓸 수 있다");
+        assertTrue(check.note().contains("이미 실행"));
+    }
+
+    @Test
     void 빈_토큰_문자열은_토큰이_없는_것으로_본다() {
         var check = gate.check(mapper.createObjectNode().put("confirmToken", "   "));
         assertTrue(check.allowed());

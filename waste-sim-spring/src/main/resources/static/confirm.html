@@ -125,8 +125,8 @@ async function loadDetail(id) {
       ${d.runs.map(r => `<tr>${swept.map(k => `<td>${esc(r[k])}</td>`).join('')}</tr>`).join('')}
       </table></div>` : '<p style="color:#666">설정 한 벌뿐입니다.</p>'}
 
-    <button class="go" ${d.state === 'UNCONFIRMED' && !d.blocks.length ? '' : 'disabled'}>
-      ${d.state === 'UNCONFIRMED' ? '이 설정으로 돌린다' : '이미 확인됨'}
+    <button class="go" ${d.state !== 'CONFIRMED' && !d.blocks.length ? '' : 'disabled'}>
+      ${{ UNCONFIRMED: '이 설정으로 돌린다', EXECUTED: '다시 확인하고 돌린다' }[d.state] ?? '이미 확인됨'}
     </button>
     ${d.confirmToken ? `<p style="color:#666;font-size:13px">확인 토큰
       <code>${esc(d.confirmToken)}</code> · 이 토큰으로만 실행됩니다.

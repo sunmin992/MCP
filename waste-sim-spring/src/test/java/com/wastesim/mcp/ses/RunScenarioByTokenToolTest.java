@@ -139,6 +139,33 @@ class RunScenarioByTokenToolTest {
     }
 
     @Test
+    void 이미_실행한_시나리오는_같은_토큰으로_다시_실행하지_않는다() throws Exception {
+        var b = built();
+        String id = b.path("scenarioId").asText();
+        String token = b.path("confirmToken").asText();
+        assertTrue(runTool.call(runArgs(id, token)).ready());
+
+        var again = runTool.call(runArgs(id, token));
+        assertFalse(again.ready(),
+                "확인 한 번에 실행 한 번이다 — 토큰이 계속 통하면 확인이 한 번의 동의가 아니라 "
+                        + "무기한 허가가 된다");
+        assertTrue(again.toString().contains("이미 실행"));
+    }
+
+    @Test
+    void 다시_확인하면_다시_실행할_수_있다() throws Exception {
+        var b = built();
+        String id = b.path("scenarioId").asText();
+        assertTrue(runTool.call(runArgs(id, b.path("confirmToken").asText())).ready());
+
+        var reconfirmed = mapper.readTree(confirmTool.call(
+                mapper.createObjectNode().put("scenarioId", id)).result().toString());
+        assertEquals("CONFIRMED", reconfirmed.path("state").asText());
+        assertTrue(runTool.call(runArgs(id, reconfirmed.path("confirmToken").asText())).ready(),
+                "다시 확인했는데도 막히면 같은 설정을 다시 돌릴 방법이 없다");
+    }
+
+    @Test
     void 모르는_시나리오는_실행하지_않는다() {
         var result = runTool.call(runArgs("scn-없는것-1", "cft-아무거나"));
         assertFalse(result.ready());
