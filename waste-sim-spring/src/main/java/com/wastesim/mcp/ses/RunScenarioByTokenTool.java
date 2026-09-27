@@ -7,7 +7,7 @@ import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.pes.Scenario;
 import com.wastesim.pes.ScenarioBuilder;
-import com.wastesim.simulation.SimulationEngine;
+import com.wastesim.service.SimulationService;
 import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
 import org.springframework.stereotype.Component;
@@ -29,14 +29,14 @@ public class RunScenarioByTokenTool implements McpToolProvider {
 
     private final ScenarioBuilder builder;
     private final ScenarioStore store;
-    private final SimulationEngine engine;
+    private final SimulationService simulations;
     private final ObjectMapper mapper;
 
     public RunScenarioByTokenTool(ScenarioBuilder builder, ScenarioStore store,
-                                  SimulationEngine engine, ObjectMapper mapper) {
+                                  SimulationService simulations, ObjectMapper mapper) {
         this.builder = builder;
         this.store = store;
-        this.engine = engine;
+        this.simulations = simulations;
         this.mapper = mapper;
     }
 
@@ -55,7 +55,7 @@ public class RunScenarioByTokenTool implements McpToolProvider {
              "properties":{
                "scenarioId":{"type":"string","description":"build_scenario 가 돌려준 시나리오 id"},
                "confirmToken":{"type":"string","description":"build_scenario 가 발급한 확인 토큰"},
-               "seed":{"type":"integer","description":"재현용 시드. 생략하면 42"}},
+               "seed":{"type":"integer","description":"쓰이지 않는다 — 반복 횟수는 시나리오의 seeds 가 정하고 시드는 1..seeds 로 고정이다"}},
              "required":["scenarioId","confirmToken"]}
             """;
     }
@@ -64,8 +64,6 @@ public class RunScenarioByTokenTool implements McpToolProvider {
     public ToolResult call(JsonNode args) {
         String scenarioId = args.path("scenarioId").asText(null);
         String token = args.path("confirmToken").asText(null);
-        int seed = args.path("seed").isInt() ? args.path("seed").asInt() : 42;
-
         if (scenarioId == null || scenarioId.isBlank()) {
             return ToolFailure.of("scenarioId", "시나리오 id 가 없습니다.");
         }
@@ -97,17 +95,24 @@ public class RunScenarioByTokenTool implements McpToolProvider {
         try {
             var runs = mapper.createArrayNode();
             for (SimulationConfig cfg : scenario.runs()) {
-                SimulationResult r = engine.run(cfg, seed);
+                // 시나리오가 확인한 반복 횟수(cfg.getSeeds())만큼 돌려 집계한다.
+                // 엔진을 직접 한 번 부르면 "반복 30회" 로 확인해 놓고 1회 결과를 내주게 된다 —
+                // 사용자가 확인한 것과 다른 실험의 값이다.
+                SimulationResult r = simulations.runExperiment(cfg);
                 var node = runs.addObject();
                 node.put("collectionTimeMinutes", cfg.getCollectionTimeMinutes());
-                node.put("totalComplaints", r.getTotalComplaints());
+
+                // 반복 집계가 채우는 값만 낸다. totalComplaints·peakFillKg·seed 는 한 번
+                // 돌렸을 때의 값이라 집계 요약에 없다 — 없는 것을 0 으로 내보내면 재지 않은
+                // 값을 잰 것처럼 읽힌다.
                 node.put("meanComplaints", r.getMeanComplaints());
-                node.put("peakFillKg", r.getPeakFillKg());
+                node.put("stdComplaints", r.getStdComplaints());
                 node.put("truckUtilizationPercent", r.getTruckUtilizationPercent());
                 node.put("uncollectedDemandKg", r.getUncollectedDemandKg());
+
                 // 능력 카드의 alwaysAttachToResult — "무엇으로 계산한 값인가" 를
-                // 결과만 보고 알 수 있어야 한다.
-                node.put("seed", r.getSeed());
+                // 결과만 보고 알 수 있어야 한다. 시드는 1..seeds 로 고정이다.
+                node.put("seeds", cfg.getSeeds());
                 node.put("massBalanceErrorKg", r.getMassBalanceErrorKg());
                 node.set("allTotals", mapper.valueToTree(r.getAllTotals()));
                 node.set("dataQualityFlags", mapper.valueToTree(r.getDataQualityFlags()));

@@ -6,6 +6,7 @@ import com.wastesim.pes.PesBackVerifier;
 import com.wastesim.pes.PesFlattener;
 import com.wastesim.pes.ScenarioBuilder;
 import com.wastesim.service.TrafficDataService;
+import com.wastesim.service.SimulationService;
 import com.wastesim.simulation.SimulationEngine;
 import com.wastesim.site.CollectionSiteRegistry;
 import com.wastesim.template.TemplateCatalog;
@@ -35,7 +36,8 @@ class RunScenarioByTokenToolTest {
     private final ConfirmScenarioTool confirmTool =
             new ConfirmScenarioTool(builder, store, mapper);
     private final RunScenarioByTokenTool runTool = new RunScenarioByTokenTool(
-            builder, store, new SimulationEngine(new TrafficDataService()), mapper);
+            builder, store,
+            new SimulationService(new SimulationEngine(new TrafficDataService())), mapper);
 
     /** 시나리오를 하나 만들고 {scenarioId, confirmToken} 을 돌려준다. */
     private com.fasterxml.jackson.databind.JsonNode built() throws Exception {
@@ -88,7 +90,7 @@ class RunScenarioByTokenToolTest {
         assertEquals(2, out.path("runs").size(), "조건 둘을 다 돌려야 한다");
         for (var run : out.path("runs")) {
             assertTrue(run.has("collectionTimeMinutes"));
-            assertTrue(run.has("totalComplaints"));
+            assertTrue(run.has("meanComplaints"));
             assertTrue(run.has("truckUtilizationPercent"));
         }
     }
@@ -166,7 +168,7 @@ class RunScenarioByTokenToolTest {
 
         // 능력 카드의 alwaysAttachToResult — "무엇으로 계산한 값인가" 를 결과만 보고 알아야 한다.
         for (var run : out.path("runs")) {
-            assertTrue(run.has("seed"), "재현 정보가 없으면 같은 결과를 다시 낼 수 없다");
+            assertTrue(run.has("seeds"), "몇 회 돌렸는지 없으면 같은 결과를 다시 낼 수 없다");
             assertTrue(run.has("massBalanceErrorKg"));
             assertTrue(run.has("dataQualityFlags"));
             assertTrue(run.has("assumptionNotes"));
@@ -221,5 +223,22 @@ class RunScenarioByTokenToolTest {
         tool.call(mapper.createObjectNode().put("scenarioId", id));
         assertEquals("UNCONFIRMED", store.entry(id).orElseThrow().state(),
                 "읽기가 확인을 만들면 사람을 거치지 않는 문이 다시 열린다");
+    }
+
+    @Test
+    void 지정한_반복_횟수만큼_돌린다() throws Exception {
+        // 시나리오가 "반복 N회" 로 확인됐는데 한 번만 돌리면, 결과는 사용자가 확인한 것과
+        // 다른 실험의 값이다. 반복 결과를 집계한 흔적(allTotals)이 그 증거다.
+        var b = built();
+        var out = mapper.readTree(runTool.call(
+                runArgs(b.path("scenarioId").asText(), b.path("confirmToken").asText()))
+                .result().toString());
+
+        var run = out.path("runs").get(0);
+        assertEquals(run.path("seeds").asInt(), run.path("allTotals").size(),
+                "확인한 반복 횟수와 실제 돌린 횟수가 다르다 — 한 번만 돌린 것이다");
+        assertTrue(run.path("seeds").asInt() > 1, "반복이 1회면 이 시험이 아무것도 막지 못한다");
+        assertTrue(run.path("meanComplaints").isNumber(),
+                "반복 평균이 없으면 '몇 회 돌린 값인가' 를 결과가 말하지 못한다");
     }
 }
