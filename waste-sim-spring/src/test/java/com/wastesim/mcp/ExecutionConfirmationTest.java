@@ -54,6 +54,17 @@ class ExecutionConfirmationTest {
                 .result().toString()).path("confirmToken").asText();
     }
 
+    /** {@link #확인된_토큰()} 이 확인받은 설정을 기존 실행 도구의 인자 모양으로. */
+    private com.fasterxml.jackson.databind.node.ObjectNode 확인한_설정(String token) {
+        var args = mapper.createObjectNode().put("confirmToken", token);
+        args.put("truckCount", 1);
+        args.put("numBuildings", 4);
+        args.put("days", 7);
+        args.put("seeds", 2);
+        args.put("collectionTime", "12:00");
+        return args;
+    }
+
     @Test
     void 토큰이_없으면_막지_않고_확인_안됨으로_표시한다() {
         var check = gate.check(mapper.createObjectNode());
@@ -63,8 +74,8 @@ class ExecutionConfirmationTest {
     }
 
     @Test
-    void 맞는_토큰이면_확인됨으로_표시한다() throws Exception {
-        var args = mapper.createObjectNode().put("confirmToken", 확인된_토큰());
+    void 맞는_토큰과_확인한_설정이면_확인됨으로_표시한다() throws Exception {
+        var args = 확인한_설정(확인된_토큰());
         var check = gate.check(args);
         assertTrue(check.allowed());
         assertTrue(check.confirmed());
@@ -87,6 +98,21 @@ class ExecutionConfirmationTest {
         var check = gate.check(mapper.createObjectNode().put("confirmToken", token));
         assertFalse(check.allowed(),
                 "실행 직전에 다시 세지 않으면 사용자가 확인한 것과 다른 설정이 돈다");
+    }
+
+    @Test
+    void 맞는_토큰이라도_확인하지_않은_설정이면_실행하지_않는다() throws Exception {
+        var args = mapper.createObjectNode().put("confirmToken", 확인된_토큰());
+        args.put("days", 2);
+        args.put("truckCount", 3);
+        args.put("collectionTime", "08:00");
+
+        var check = gate.check(args);
+        assertFalse(check.allowed(),
+                "토큰은 시나리오가 확인됐다는 뜻이지 이 설정이 확인됐다는 뜻이 아니다 — "
+                        + "통과시키면 확인하지 않은 설정이 '사용자가 확인한 설정' 으로 표시된다");
+        assertFalse(check.confirmed());
+        assertTrue(check.note().contains("설정"));
     }
 
     @Test

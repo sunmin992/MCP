@@ -3,6 +3,7 @@ package com.wastesim.mcp;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.wastesim.mcp.ses.ScenarioStore;
 import com.wastesim.pes.ScenarioBuilder;
+import com.wastesim.tool.ConfigArgs;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -57,6 +58,14 @@ public class ExecutionConfirmation {
         if (!builder.tokenMatches(scenario, token)) {
             return new Check(false, false, scenario.scenarioId(),
                     "확인 토큰이 이 시나리오의 현재 설정과 맞지 않습니다 — 발급 이후 설정이 바뀌었습니다.");
+        }
+
+        // 토큰은 시나리오가 확인됐다는 뜻이지, 지금 넘어온 설정이 확인됐다는 뜻이 아니다.
+        // 대조하지 않으면 확인하지 않은 설정이 "사용자가 확인한 설정" 으로 표시된다.
+        if (!builder.isConfirmedRun(scenario, ConfigArgs.fromJson(args))) {
+            return new Check(false, false, scenario.scenarioId(),
+                    "이 설정은 확인 토큰의 시나리오(" + scenario.scenarioId()
+                            + ")에서 사용자가 확인한 설정이 아닙니다 — 확인한 설정 그대로 보내거나 토큰을 빼십시오.");
         }
         return new Check(true, true, scenario.scenarioId(),
                 "사용자가 확인한 설정입니다 (" + scenario.scenarioId() + ").");

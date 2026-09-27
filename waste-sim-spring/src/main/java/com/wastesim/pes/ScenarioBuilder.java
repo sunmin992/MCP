@@ -88,6 +88,15 @@ public class ScenarioBuilder {
     }
 
     /**
+     * 이 설정이 시나리오가 확인받은 설정 중 하나인가. 기존 실행 도구는 설정을 따로 들고
+     * 오므로, 토큰이 맞아도 그 설정이 확인받은 것인지는 여기서 따로 대조해야 한다.
+     */
+    public boolean isConfirmedRun(Scenario scenario, SimulationConfig cfg) {
+        String h = hashOf(List.of(cfg));
+        return scenario.runs().stream().anyMatch(r -> h.equals(hashOf(List.of(r))));
+    }
+
+    /**
      * 실행 설정 전체의 해시.
      *
      * <p>{@code SimulationConfig}의 문자열 표현을 쓰지 않는 이유는 그것이 재정의돼 있지
