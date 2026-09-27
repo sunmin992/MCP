@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="ko"><head><meta charset="utf-8">
+<title>확인 전 — UNCONFIRMED</title>
+<style>
+  :root { --line:#d8d8d8; --muted:#666; --warn:#a4501a; --ok:#1d6b3a; }
+  body { font:15px/1.6 system-ui, "Malgun Gothic", sans-serif; margin:0; color:#181818; }
+  header { padding:14px 20px; border-bottom:1px solid var(--line); }
+  h1 { font-size:17px; margin:0; }
+  header p { margin:4px 0 0; color:var(--muted); font-size:13px; }
+  main { display:flex; gap:0; align-items:stretch; min-height:calc(100vh - 62px); }
+  #list { width:280px; border-right:1px solid var(--line); overflow:auto; }
+  #list button { display:block; width:100%; text-align:left; padding:10px 14px; border:0;
+                 border-bottom:1px solid #eee; background:#fff; cursor:pointer; font:inherit; }
+  #list button[aria-current="true"] { background:#eef3fb; }
+  #detail { flex:1; padding:18px 22px; overflow:auto; }
+  .state { font-size:12px; padding:1px 7px; border:1px solid var(--line); border-radius:9px; }
+  .UNCONFIRMED { color:var(--warn); border-color:var(--warn); }
+  .CONFIRMED   { color:var(--ok);   border-color:var(--ok); }
+  .EXECUTED    { color:var(--muted); }
+  table { border-collapse:collapse; margin:10px 0 18px; }
+  th, td { border:1px solid var(--line); padding:5px 10px; text-align:left; font-size:14px; }
+  th { background:#fafafa; font-weight:600; }
+  .warn { border-left:3px solid var(--warn); background:#fdf6f0; padding:9px 12px; margin:12px 0; }
+  #exposure { display:none; background:#a4501a; color:#fff; padding:8px 20px; font-size:13px; }
+  #exposure.on { display:block; }
+  button.go { padding:9px 18px; font:inherit; cursor:pointer; border:1px solid #333;
+              background:#222; color:#fff; border-radius:3px; }
+  button.go[disabled] { background:#e6e6e6; color:#888; border-color:var(--line); cursor:default; }
+  code { background:#f4f4f4; padding:1px 5px; border-radius:3px; font-size:13px; }
+  .empty { color:var(--muted); padding:20px; }
+  .scroll { overflow-x:auto; }
+  @media (max-width:720px) {
+    main { display:block; }
+    #list { width:auto; max-height:34vh; border-right:0; border-bottom:1px solid var(--line); }
+    #detail { padding:14px 16px; }
+  }
+</style></head>
+<body>
+<header>
+  <h1>시나리오 확인</h1>
+  <p>확인해야 토큰이 나오고, 토큰이 있어야 실행됩니다. 이 결과는 설정 간 비교이며 운영 예측이 아닙니다.</p>
+</header>
+<main>
+  <nav id="list">
+    <button data-id="scn-4a7dc5dc">
+      <code>scn-4a7dc5dc</code><br>
+      <span class="state UNCONFIRMED">UNCONFIRMED</span>
+      · 5벌 · 미승인 2
+    </button></nav>
+  <section id="detail">
+    <h2 style="font-size:16px;margin:0 0 6px">
+      <code>scn-4a7dc5dc</code> <span class="state UNCONFIRMED">UNCONFIRMED</span>
+    </h2>
+    <p style="color:#666;font-size:13px;margin:0 0 14px">
+      SES jangnyang-ses 1.0.0 · 실행 설정 5벌
+    </p>
+
+    <div class="warn"><strong>사용자가 승인하지 않은 기본값 2개</strong>
+      <table><tbody><tr><th>항목</th><th>값</th></tr>
+      <tr><td>routeAvailableCapacityKg</td><td>150</td></tr><tr><td>seeds</td><td>5</td></tr>
+      </tbody></table>확인하면 이 값으로 돌아갑니다.</div>
+
+    <h3 style="font-size:14px;margin:16px 0 0">사용자가 정한 값</h3>
+    <table><tbody><tr><th>답변키</th><th>값</th><th>출처</th></tr>
+    <tr><td>routeAvailableCapacityKg</td><td>150</td><td>MODEL_DEFAULT</td></tr><tr><td>zoneAssignmentRule</td><td>ROUND_ROBIN</td><td>USER</td></tr><tr><td>seeds</td><td>5</td><td>MODEL_DEFAULT</td></tr><tr><td>days</td><td>30</td><td>USER</td></tr><tr><td>residentsPerBuilding</td><td>25</td><td>USER</td></tr><tr><td>dispatchIntervalMinutes</td><td>15</td><td>USER</td></tr><tr><td>truckCount</td><td>3</td><td>USER</td></tr><tr><td>travelTimeMode</td><td>LEGACY_CONSTANT</td><td>USER</td></tr><tr><td>numBuildings</td><td>4</td><td>USER</td></tr><tr><td>truckType</td><td>SMALL_1TON</td><td>USER</td></tr><tr><td>trafficMode</td><td>APPLY</td><td>USER</td></tr><tr><td>trafficProfileId</td><td>jangryang-weekday</td><td>USER</td></tr>
+    </tbody></table>
+
+    <h3 style="font-size:14px;margin:0 0 0">조건마다 달라지는 것</h3>
+    <div class="scroll"><table><tbody><tr><th>collectionTimeMinutes</th><th>collectionTimeLabel</th></tr>
+      <tr><td>360</td><td>06:00</td></tr><tr><td>540</td><td>09:00</td></tr><tr><td>720</td><td>12:00</td></tr><tr><td>900</td><td>15:00</td></tr><tr><td>1080</td><td>18:00</td></tr>
+      </tbody></table></div>
+
+    <button class="go">
+      이 설정으로 돌린다
+    </button>
+</section>
+</main>
+</body></html>

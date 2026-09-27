@@ -1,0 +1,25 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "12c-status-after-confirm.json",
+    "method": "tools/call",
+    "params": {
+      "name": "get_scenario_status",
+      "arguments": {
+        "scenarioId": "scn-4a7dc5dc"
+      }
+    }
+  },
+  "응답": {
+    "isError": false,
+    "본문": {
+      "scenarioId": "scn-4a7dc5dc",
+      "state": "CONFIRMED",
+      "runCount": 5,
+      "unapprovedDefaultCount": 2,
+      "confirmUrl": "/confirm.html",
+      "nextStep": "run_scenario_by_token 에 confirmToken 을 실어 실행하십시오.",
+      "confirmToken": "cft-d72a9866cc7b1f3d"
+    }
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "21-wrong-token-refused.json",
+    "method": "tools/call",
+    "params": {
+      "name": "run_scenario_by_token",
+      "arguments": {
+        "scenarioId": "scn-4a7dc5dc",
+        "confirmToken": "cft-0000000000000000"
+      }
+    }
+  },
+  "응답": {
+    "isError": true,
+    "본문": "검증 실패: [{\"code\":\"EXECUTION_ERROR\",\"field\":\"confirmToken\",\"message\":\"확인 토큰이 이 시나리오의 현재 설정과 맞지 않습니다 — 발급 이후 설정이 바뀌었거나 다른 시나리오의 토큰입니다.\"}]"
+  }
+}

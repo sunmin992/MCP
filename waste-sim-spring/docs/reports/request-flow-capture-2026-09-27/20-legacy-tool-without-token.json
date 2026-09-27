@@ -1,0 +1,150 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "20-legacy-tool-without-token.json",
+    "method": "tools/call",
+    "params": {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 2,
+        "seeds": 2
+      }
+    }
+  },
+  "응답": {
+    "isError": false,
+    "본문": {
+      "simulationConfig": {
+        "collectionTimeMinutes": 480,
+        "days": 2,
+        "seeds": 2,
+        "leaveSigma": 30.0,
+        "wasteSigma": 0.3,
+        "wasteMeanKg": 0.9,
+        "capacity": 30.0,
+        "threshold": 0.8,
+        "scenarioScale": null,
+        "zoneAssignmentRule": null,
+        "numBuildings": 4,
+        "residentsPerBuilding": 25,
+        "occupationMix": null,
+        "collectionTimesMinutes": null,
+        "collectionIntervalDays": 1,
+        "collectionDaysOfWeek": null,
+        "dischargeTimeMode": "PAPER_BASELINE",
+        "intraZoneTravelMinutes": null,
+        "dischargeWindowStartMinutes": 1200,
+        "dischargeWindowEndMinutes": 360,
+        "skipWeekends": false,
+        "weekendCollectionTimeMinutes": null,
+        "holidays": null,
+        "numTrucks": 1,
+        "routeTravelMinutes": 0,
+        "travelTimeMode": "LEGACY_CONSTANT",
+        "serviceMinutesPerSite": 0,
+        "wasteTypes": null,
+        "returnDischarge": false,
+        "returnFraction": 0.4,
+        "landlordEnabled": false,
+        "landlordInspectMinutes": 1200,
+        "landlordThreshold": 0.6,
+        "monthlyWasteFactor": null,
+        "trafficEnabled": false,
+        "trafficProfileId": null,
+        "truckType": "LARGE_5TON",
+        "routeAvailableCapacityKg": null,
+        "initialTruckLoadKg": 0.0,
+        "dispatchIntervalMinutes": 0,
+        "routeSequence": null,
+        "trafficComplaintWeight": 1.0,
+        "collectionTimeLabel": "08:00",
+        "truckCount": 1
+      },
+      "coordinateQuality": "NOT_USED",
+      "dataQualityFlags": [],
+      "assumptionNotes": [],
+      "collectionTimeLabel": "08:00",
+      "totalComplaints": 0,
+      "wasteOverflowComplaints": 0,
+      "landlordComplaints": 0,
+      "byOccupation": null,
+      "byDay": null,
+      "peakFillKg": 0.0,
+      "seed": 0,
+      "wasteByMonth": null,
+      "generatedWasteKg": 179.27,
+      "collectedWasteKg": 119.13,
+      "residualWasteKg": 60.14,
+      "availableCollectionCapacityKg": 10000.0,
+      "truckUtilizationPercent": 1.19,
+      "collectionCapacityUtilizationPercent": 1.19,
+      "partialPickupCount": 0,
+      "unservedPickupCount": 0,
+      "capacityExhaustedTripCount": 0,
+      "uncollectedDemandKg": 0.0,
+      "massBalanceErrorKg": 0.0,
+      "tripMetrics": [
+        {
+          "truckId": "T1",
+          "tripId": "T1-D0-S0",
+          "allocatedCapacityKg": 5000.0,
+          "initialLoadKg": 0.0,
+          "availablePickupCapacityKg": 5000.0,
+          "collectedKg": 29.49,
+          "finalLoadKg": 29.49,
+          "unusedCapacityKg": 4970.51,
+          "utilizationPercent": 0.59,
+          "partialPickupCount": 0
+        },
+        {
+          "truckId": "T1",
+          "tripId": "T1-D1-S0",
+          "allocatedCapacityKg": 5000.0,
+          "initialLoadKg": 0.0,
+          "availablePickupCapacityKg": 5000.0,
+          "collectedKg": 89.65,
+          "finalLoadKg": 89.65,
+          "unusedCapacityKg": 4910.35,
+          "utilizationPercent": 1.8,
+          "partialPickupCount": 0
+        }
+      ],
+      "residualByBuilding": {
+        "Node_A": 16.06,
+        "Node_B": 14.85,
+        "Node_C": 15.58,
+        "Node_D": 13.66
+      },
+      "residualByWasteType": {
+        "GENERAL": 60.14
+      },
+      "residualByTruck": {
+        "T1": 60.14
+      },
+      "maxResidualBuilding": "Node_A",
+      "maxResidualBuildingKg": 16.06,
+      "meanComplaints": 0.5,
+      "meanWasteOverflowComplaints": 0.5,
+      "meanLandlordComplaints": 0.0,
+      "stdComplaints": 0.5,
+      "allTotals": [
+        0,
+        1
+      ],
+      "byOccupationSummary": {
+        "BlueCollar": 0.5,
+        "Student": 0.0,
+        "Housewife": 0.0
+      },
+      "trafficPenalty": 0.0,
+      "avgCompletionMinutes": 0.0,
+      "resultUseLabel": "가정 비교 실험 (운영 예측 아님)",
+      "coordinateQualityLabel": "좌표 미사용",
+      "dataQualityWarnings": [],
+      "notForOperationalUse": true,
+      "confirmed": false,
+      "confirmationNote": "서브태스크 흐름 밖에서 실행됐습니다 — 사용자가 이 설정을 확인하지 않았습니다."
+    }
+  }
+}
