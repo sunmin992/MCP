@@ -1,0 +1,26 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "status",
+    "method": "tools/call",
+    "params": {
+      "name": "get_scenario_status",
+      "arguments": {
+        "scenarioId": "scn-557d3c7"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "status",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "\"{\\\"scenarioId\\\":\\\"scn-557d3c7\\\",\\\"state\\\":\\\"UNCONFIRMED\\\",\\\"runCount\\\":24,\\\"unapprovedDefaultCount\\\":3,\\\"confirmUrl\\\":\\\"/confirm.html\\\",\\\"nextStep\\\":\\\"사용자에게 /confirm.html 을 열어 설정을 확인하도록 안내하십시오. 확인은 사람만 할 수 있습니다.\\\"}\""
+        }
+      ],
+      "isError": false
+    }
+  }
+}

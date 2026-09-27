@@ -1,0 +1,81 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "09-build-scenario",
+    "method": "tools/call",
+    "params": {
+      "name": "build_scenario",
+      "arguments": {
+        "values": {
+          "truckType": "SMALL_1TON",
+          "truckCount": 3,
+          "numBuildings": 4,
+          "residentsPerBuilding": 25,
+          "days": 30,
+          "seeds": 30,
+          "trafficMode": "APPLY",
+          "trafficProfileId": "jangryang-weekday",
+          "travelTimeMode": "LEGACY_CONSTANT",
+          "dispatchIntervalMinutes": 15,
+          "routeAvailableCapacityKg": 150.0
+        },
+        "origins": {
+          "truckType": "MODEL_DEFAULT",
+          "truckCount": "MODEL_DEFAULT",
+          "numBuildings": "MODEL_DEFAULT",
+          "residentsPerBuilding": "MODEL_DEFAULT",
+          "days": "MODEL_DEFAULT",
+          "seeds": "MODEL_DEFAULT",
+          "trafficMode": "USER",
+          "trafficProfileId": "USER",
+          "travelTimeMode": "MODEL_DEFAULT",
+          "dispatchIntervalMinutes": "MODEL_DEFAULT",
+          "routeAvailableCapacityKg": "MODEL_DEFAULT"
+        },
+        "variableAnswerKey": "collectionTimeMinutes",
+        "variableValues": [
+          0,
+          60,
+          120,
+          180,
+          240,
+          300,
+          360,
+          420,
+          480,
+          540,
+          600,
+          660,
+          720,
+          780,
+          840,
+          900,
+          960,
+          1020,
+          1080,
+          1140,
+          1200,
+          1260,
+          1320,
+          1380
+        ],
+        "observations": [
+          "meanComplaints"
+        ]
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "09-build-scenario",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "\"{\\\"sesId\\\":\\\"jangnyang-ses\\\",\\\"sesVersion\\\":\\\"1.0.0\\\",\\\"scenarioId\\\":\\\"scn-557d3c7\\\",\\\"valid\\\":true,\\\"runCount\\\":24,\\\"blocks\\\":[],\\\"backVerificationBlocks\\\":[],\\\"unapprovedDefaults\\\":{\\\"travelTimeMode\\\":\\\"LEGACY_CONSTANT\\\",\\\"days\\\":30,\\\"residentsPerBuilding\\\":25,\\\"numBuildings\\\":4,\\\"truckType\\\":\\\"SMALL_1TON\\\",\\\"seeds\\\":30,\\\"routeAvailableCapacityKg\\\":150.0,\\\"truckCount\\\":3,\\\"dispatchIntervalMinutes\\\":15},\\\"state\\\":\\\"UNCONFIRMED\\\"}\""
+        }
+      ],
+      "isError": false
+    }
+  }
+}

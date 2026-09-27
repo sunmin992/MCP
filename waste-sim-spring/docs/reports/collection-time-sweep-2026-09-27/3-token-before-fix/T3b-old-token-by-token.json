@@ -1,0 +1,27 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "T3b-old-token-by-token",
+    "method": "tools/call",
+    "params": {
+      "name": "run_scenario_by_token",
+      "arguments": {
+        "scenarioId": "scn-557d3c7",
+        "confirmToken": "cft-0c98458488ca4afc"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "T3b-old-token-by-token",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "검증 실패: [{\"code\":\"EXECUTION_ERROR\",\"field\":\"confirmToken\",\"message\":\"아직 확인되지 않은 시나리오입니다: scn-557d3c7 — 사용자에게 설정을 보여주고 confirm_scenario 를 먼저 부르십시오.\"}]"
+        }
+      ],
+      "isError": true
+    }
+  }
+}
