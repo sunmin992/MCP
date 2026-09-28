@@ -17,7 +17,10 @@ replay_pid*
 *.iml
 *.ipr
 *.iws
-.vscode/
+# 폴더째 빼면 안의 파일 하나를 되살릴 수 없어 내용물을 뺀다. 두 MCP 서버를 한 번에 띄우는
+# 작업(Ctrl+Shift+B)만 공유한다 — 개인 설정(settings.json 등)은 계속 뺀다.
+**/.vscode/*
+!waste-sim-spring/.vscode/tasks.json
 .settings/
 .classpath
 .project

@@ -1,0 +1,33 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "waste-sim: 두 서버 실행",
+      "detail": "브로커(8089)와 장량동 시뮬레이터(8090)를 함께 띄운다. 시뮬레이터가 뜨면 브로커에 스스로 등록한다.",
+      "dependsOn": ["waste-sim: 브로커 실행", "waste-sim: 시뮬레이터 실행"],
+      "dependsOrder": "parallel",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "waste-sim: 브로커 실행",
+      "detail": "브로커 MCP 서버 — http://localhost:8089/mcp",
+      "type": "shell",
+      "command": ".\\mvnw.cmd",
+      "args": ["-q", "-pl", "broker", "-am", "spring-boot:run"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "waste-sim: 시뮬레이터 실행",
+      "detail": "장량동 시뮬레이터 MCP 서버 — http://localhost:8090/mcp · 확인 화면 http://localhost:8090/",
+      "type": "shell",
+      "command": ".\\mvnw.cmd",
+      "args": ["-q", "-pl", "simulator", "-am", "spring-boot:run"],
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    }
+  ]
+}
