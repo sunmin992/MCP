@@ -321,7 +321,7 @@ Python도 실측으로 맞추려면 `waste_sim/traffic.py`를 함께 고쳐야 �
 | 항목 | 기본값 | 바꾸는 방법 |
 |---|---|---|
 | 입력 CSV | `response_filtered.csv` | 첫 번째 인자 |
-| 출력 파일 | `src/main/resources/traffic/jangryang-weekday.json` | `--out <경로>` |
+| 출력 파일 | `simulator/src/main/resources/traffic/jangryang-weekday.json` | `--out <경로>` |
 | 프로파일 id | `jangryang-weekday` | `--id <id>` |
 
 출력 기본값은 `TrafficDataService.SEED_IDS`가 실제로 로드하는 프로파일과 같아야 한다 —
@@ -350,7 +350,7 @@ K = 1.2  →  최대 가중치 2.2
 
 1. 새 CSV를 프로젝트 루트(또는 `scripts/`)에 둔다.
 2. `python scripts/preprocess_response_filtered.py <csv경로>` 실행 →
-   `src/main/resources/traffic/jangryang-weekday.json` 갱신.
+   `simulator/src/main/resources/traffic/jangryang-weekday.json` 갱신.
 3. 스키마 검증: `python scripts/validate_profile.py` → `PROFILE OK` 확인.
 4. `mvn test` 실행 — RED 판정 관련 테스트가 새 데이터의 피크 시각과 어긋나면
    (`SimulationConfigValidatorTest`의 13:00 기준 등) 테스트의 기준 시각을 새

@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.wastesim</groupId>
+        <artifactId>waste-sim-spring</artifactId>
+        <version>1.1.1</version>
+    </parent>
+    <artifactId>waste-sim-broker</artifactId>
+    <name>waste-sim-broker</name>
+    <description>브로커 MCP 서버 — 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다</description>
+
+    <properties>
+        <spring-boot.run.skip>false</spring-boot.run.skip>
+    </properties>
+
+    <!-- 시뮬레이터 모듈에 의존하지 않는다. 브로커가 아는 것은 등록된 능력 카드뿐이다. -->
+    <dependencies>
+        <dependency>
+            <groupId>com.wastesim</groupId>
+            <artifactId>mcp-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

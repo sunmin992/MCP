@@ -11,7 +11,7 @@
 기본:
   csv = response_filtered.csv
   ID  = jangryang-weekday-real
-  out = src/main/resources/traffic/jangryang-weekday-real.json
+  out = simulator/src/main/resources/traffic/jangryang-weekday-real.json
 """
 import sys, json, os, csv
 
@@ -30,7 +30,7 @@ SRC = args[0] if args else "response_filtered.csv"
 # 그대로 남았다. 아무 경고 없이 "갱신했다고 믿는" 상태가 되는 것이 문제였다.
 # ScriptOutputTargetTest가 이 기본값과 SEED_IDS의 일치를 고정한다.
 PROFILE_ID = opts.get("--id", "jangryang-volume-weekday")
-OUT = opts.get("--out", "src/main/resources/traffic/jangryang-volume-weekday.json")
+OUT = opts.get("--out", "simulator/src/main/resources/traffic/jangryang-volume-weekday.json")
 K = 1.2                               # 피크 지연 강도(글로벌 최대 대비). 1+K = 최대 가중치
 # alleyNodeIds는 이 프로파일에서 제거됐다(2026-09-01). 대형 차량 진입 가능 여부는 교통량이
 # 아니라 수거 지점의 물리적 성질이라 collection/jangnyang-collection-sites.json의

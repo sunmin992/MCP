@@ -29,11 +29,31 @@
 
 요구 환경은 Java 21이다. Maven은 래퍼가 받아 오므로 따로 설치하지 않아도 된다.
 
+MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도 따로다.
+
+| 모듈 | 서버 | 주소 | 하는 일 |
+|---|---|---|---|
+| `broker` | 브로커 MCP 서버 | `http://localhost:8089/mcp` | 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다(3·4단계). 매칭 결과에 연결 정보(`endpoint`)를 싣는다 |
+| `simulator` | 장량동 시뮬레이터 MCP 서버 | `http://localhost:8090/mcp` | 템플릿 · 서브태스크 · 시나리오 · 실행(5~14단계). 확인 화면 `http://localhost:8090/` |
+| `mcp-common` | — | — | 두 서버가 함께 쓰는 도구 계약(`McpToolProvider` · `ToolResult`)뿐 |
+
+시뮬레이터는 뜰 때와 그 뒤 30초마다 자기 능력 카드를 브로커의 `POST /api/simulators` 로
+등록한다(0단계). 등록은 MCP 도구가 아니다 — LLM 이 카드를 지어 등록하지 못하게 문을 나눴다.
+브로커가 없어도 시뮬레이터는 뜨고, 브로커가 다시 뜨면 다음 등록 때 목록이 채워진다.
+
+루트에서 둘을 각각 띄운다(창 두 개). jar 를 만들지 않고 최신 소스로 바로 뜬다.
+
 ```powershell
-.\mvnw.cmd spring-boot:run
+.\mvnw.cmd -q -pl broker -am spring-boot:run
 ```
 
-기본 주소는 `http://localhost:8090`이고, MCP 엔드포인트는 `POST /mcp` 하나다. 상세 설정은 [환경 설정 가이드](docs/guides/ENV_SETUP.md)를 참고한다.
+```powershell
+.\mvnw.cmd -q -pl simulator -am spring-boot:run
+```
+
+VS Code 에서 이 폴더를 열었으면 `Ctrl+Shift+B` 로 둘을 함께 띄운다(`.vscode/tasks.json`).
+MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 잡는다. 상세 설정은
+[환경 설정 가이드](docs/guides/ENV_SETUP.md)를 참고한다.
 
 ## 시뮬레이터 구성
 
@@ -53,8 +73,9 @@
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **506건 통과·2건 스킵**이다 —
-스킵 2건은 Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서 나며 실패가 아니다.
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **570건 중 567건 통과·3건 스킵**
+이다(브로커 46 · 시뮬레이터 524). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
+엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트
 클래스가 삭제된 클래스를 참조해 JUnit 탐색 자체가 깨지고, 실패 지점이 테스트가 아니라
