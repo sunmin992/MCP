@@ -45,6 +45,12 @@ public class PesFlattener {
             throw new IllegalStateException(
                     "설정에 세터가 없습니다: " + field + " (" + t.templateId() + ")");
         }
+        // 리플렉션은 Integer 를 기본형 double 로는 넓혀 주지만 Double 로는 바꿔 주지 않는다.
+        // JSON 의 150 은 Integer 로 오므로 여기서 맞추지 않으면 Double 세터가 거절한다.
+        Class<?> p = setter.getParameterTypes()[0];
+        if (p == Double.class && converted instanceof Number n) {
+            converted = n.doubleValue();
+        }
         try {
             setter.invoke(cfg, converted);
         } catch (ReflectiveOperationException ex) {

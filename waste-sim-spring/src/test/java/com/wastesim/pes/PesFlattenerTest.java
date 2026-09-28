@@ -70,6 +70,19 @@ class PesFlattenerTest {
     }
 
     @Test
+    void 실수_필드에_정수로_온_값도_실린다() {
+        // JSON 의 150 과 150.0 은 같은 수다. LLM 은 소수점 없이 보내는 일이 흔하고, 그러면
+        // Jackson 이 Integer 로 읽는다 — Double 세터에 Integer 를 그대로 넘기면 리플렉션이
+        // argument type mismatch 로 거절하고, 그 설정으로는 시나리오를 영영 만들 수 없다.
+        Map<String, Object> v = new LinkedHashMap<>();
+        v.put("routeAvailableCapacityKg", 150);
+        Pes p = pes(v);
+        SimulationConfig cfg = flattener.flatten(p);
+        assertEquals(150.0, cfg.getRouteAvailableCapacityKg());
+        assertEquals(List.of(), verifier.verify(p, cfg), "150 과 150.0 은 같은 값이다");
+    }
+
+    @Test
     void 설정이_바뀌면_역검증이_잡는다() {
         Map<String, Object> v = new LinkedHashMap<>();
         v.put("truckCount", 3);
