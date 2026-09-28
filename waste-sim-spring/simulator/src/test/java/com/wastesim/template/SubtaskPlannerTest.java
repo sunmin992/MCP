@@ -23,6 +23,28 @@ class SubtaskPlannerTest {
     }
 
     @Test
+    void 구간상수_모드에서_필요한_값을_다_채우면_완결이다() {
+        // 실제 모델이 보내는 모양 — 생성되지 않는 구역 배정 규칙은 보내지 않는다.
+        Map<String, Object> answers = new HashMap<>();
+        answers.put("truckType", "SMALL_1TON");
+        answers.put("truckCount", 3);
+        answers.put("dispatchIntervalMinutes", 15);
+        answers.put("collectionTimeMinutes", 720);
+        answers.put("trafficMode", "APPLY");
+        answers.put("trafficProfileId", "jangryang-weekday");
+        answers.put("travelTimeMode", "LEGACY_CONSTANT");
+        answers.put("numBuildings", 4);
+        answers.put("residentsPerBuilding", 25);
+        answers.put("days", 30);
+        answers.put("seeds", 30);
+        answers.put("routeAvailableCapacityKg", 150);
+        SubtaskPlan plan = planner.plan(answers);
+        assertEquals(SubtaskStatus.NOT_GENERATED, find(plan, "jn.intraZoneTravel").status());
+        assertTrue(plan.complete(), "필요한 값을 다 채웠는데 완결이 아니면 LLM 이 오지 않을 질문을 기다린다: "
+                + plan.counts());
+    }
+
+    @Test
     void 답변이_없으면_배차간격은_보류다() {
         SubtaskPlan plan = planner.plan(Map.of());
         assertEquals(SubtaskStatus.DEFERRED, find(plan, "jn.dispatchInterval").status(),

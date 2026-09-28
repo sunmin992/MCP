@@ -78,4 +78,19 @@ class GenerateConditionTest {
         assertEquals(Activation.INACTIVE, c.evaluate(answers("zoneAssignmentRule", "ROUND_ROBIN")));
         assertEquals(Activation.UNKNOWN,  c.evaluate(answers()));
     }
+
+    @Test
+    void 구역배정규칙이_생성되지_않으면_구역내이동시간도_생성되지_않는다() {
+        // 규칙을 묻지 않는 설정에서 규칙 값이 없는 것은 "아직 모름" 이 아니라 "영영 없음" 이다.
+        // 보류로 두면 필요한 값을 다 채워도 complete=false 가 되어 대화가 끝나지 않는다.
+        GenerateCondition c = GenerateCondition.CONTIGUOUS_ZONE_RULE;
+        assertEquals(Activation.INACTIVE,
+                c.evaluate(answers("travelTimeMode", "LEGACY_CONSTANT", "numBuildings", 4)));
+        assertEquals(Activation.INACTIVE,
+                c.evaluate(answers("travelTimeMode", "ZONE_PROXY_HYBRID", "numBuildings", 4)),
+                "4동까지는 구역 배정 규칙이 걸리지 않는다");
+        assertEquals(Activation.UNKNOWN,
+                c.evaluate(answers("travelTimeMode", "ZONE_PROXY_HYBRID", "numBuildings", 5)),
+                "규칙이 걸리는데 아직 답이 없으면 그때는 정말 모르는 것이다");
+    }
 }

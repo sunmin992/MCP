@@ -72,10 +72,17 @@ public enum GenerateCondition {
      * <p>덩어리로 나누면 같은 구역 안의 이동이 생기는데, 구역 간 행렬에는 대각 성분이
      * 없다 — 구역은 점이 아니라 영역이라 자기 자신까지의 거리가 정의되지 않는다.
      * 번갈아 나누면 모든 구간이 구역을 넘으므로 이 값이 필요 없다.
+     *
+     * <p>구역 배정 규칙 자체가 생성되지 않는 설정이면 이것도 생성되지 않는다. 그때 규칙 값이
+     * 없는 것은 "아직 모름" 이 아니라 "영영 없음" 이다 — 보류로 두면 필요한 값을 다 채워도
+     * 완결이 되지 않는다.
      */
     CONTIGUOUS_ZONE_RULE {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
+            if (ZONE_PROXY_OVER_4_BUILDINGS.evaluate(answers) == Activation.INACTIVE) {
+                return Activation.INACTIVE;
+            }
             return equalsOrUnknown(answers, "zoneAssignmentRule", "CONTIGUOUS");
         }
     };
