@@ -25,6 +25,18 @@ class CapabilityCardLoaderTest {
     }
 
     @Test
+    void 카드의_주소가_서버가_실제로_듣는_포트를_가리킨다() throws Exception {
+        // 모델은 카드의 endpoint 를 믿고 사용자에게 주소를 안내한다. 포트가 어긋나면
+        // 확인 화면이 열리지 않고, 확인을 못 하면 아무것도 실행되지 않는다.
+        var props = new java.util.Properties();
+        try (var in = getClass().getResourceAsStream("/application.properties")) {
+            props.load(in);
+        }
+        String port = props.getProperty("server.port");
+        assertEquals("http://localhost:" + port + "/mcp", loader.card().endpoint());
+    }
+
+    @Test
     void 미지원_항목이_열두개다() {
         assertEquals(12, loader.card().unsupported().size());
     }

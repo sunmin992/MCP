@@ -218,7 +218,7 @@ class RunScenarioByTokenToolTest {
 
     @Test
     void 확인_전에는_토큰_대신_할_일을_알려준다() throws Exception {
-        var tool = new GetScenarioStatusTool(store, mapper);
+        var tool = new GetScenarioStatusTool(store, mapper, 8090);
         String id = builtButUnconfirmed();
         var out = mapper.readTree(tool.call(
                 mapper.createObjectNode().put("scenarioId", id)).result().toString());
@@ -227,11 +227,15 @@ class RunScenarioByTokenToolTest {
         assertTrue(out.path("confirmToken").isMissingNode(),
                 "확인 전에 토큰이 나오면 화면을 거칠 이유가 없어진다");
         assertTrue(out.path("nextStep").asText().contains("confirm.html"));
+        // 모델은 이 주소를 사용자에게 그대로 옮긴다. 경로만 주면 호스트·포트를 짐작하게 되고,
+        // 실제로 8080 을 붙여 안내해 확인 화면이 열리지 않았다.
+        assertEquals("http://localhost:8090/confirm.html", out.path("confirmUrl").asText());
+        assertTrue(out.path("nextStep").asText().contains("http://localhost:8090/confirm.html"));
     }
 
     @Test
     void 확인_뒤에는_토큰을_읽을_수_있다() throws Exception {
-        var tool = new GetScenarioStatusTool(store, mapper);
+        var tool = new GetScenarioStatusTool(store, mapper, 8090);
         var b = built();
         var out = mapper.readTree(tool.call(
                 mapper.createObjectNode().put("scenarioId", b.path("scenarioId").asText()))
@@ -244,7 +248,7 @@ class RunScenarioByTokenToolTest {
 
     @Test
     void 상태_읽기는_상태를_바꾸지_않는다() throws Exception {
-        var tool = new GetScenarioStatusTool(store, mapper);
+        var tool = new GetScenarioStatusTool(store, mapper, 8090);
         String id = builtButUnconfirmed();
         tool.call(mapper.createObjectNode().put("scenarioId", id));
         tool.call(mapper.createObjectNode().put("scenarioId", id));

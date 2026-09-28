@@ -44,7 +44,7 @@
         {
           "serverId": "jangnyang-waste-sim",
           "score": 0.92,
-          "endpoint": "http://localhost:8080/mcp",
+          "endpoint": "http://localhost:8090/mcp",
           "cost": 0,
           "estimatedSeconds": 2,
           "fidelity": "event-driven-stochastic",

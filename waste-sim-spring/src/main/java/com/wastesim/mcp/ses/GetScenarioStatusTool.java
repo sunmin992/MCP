@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.McpToolProvider;
 import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 /**
@@ -22,9 +23,17 @@ public class GetScenarioStatusTool implements McpToolProvider {
     private final ScenarioStore store;
     private final ObjectMapper mapper;
 
-    public GetScenarioStatusTool(ScenarioStore store, ObjectMapper mapper) {
+    /**
+     * 확인 화면의 전체 주소. 모델은 이것을 사용자에게 그대로 옮긴다 — 경로만 주면 호스트와
+     * 포트를 짐작하게 되고, 실제로 8080 을 붙여 안내해 화면이 열리지 않았다.
+     */
+    private final String confirmUrl;
+
+    public GetScenarioStatusTool(ScenarioStore store, ObjectMapper mapper,
+                                 @Value("${server.port:8090}") int port) {
         this.store = store;
         this.mapper = mapper;
+        this.confirmUrl = "http://localhost:" + port + "/confirm.html";
     }
 
     @Override public String toolName() { return "get_scenario_status"; }
@@ -65,9 +74,9 @@ public class GetScenarioStatusTool implements McpToolProvider {
             root.put("state", e.state());
             root.put("runCount", e.scenario().runs().size());
             root.put("unapprovedDefaultCount", e.pes().unapprovedDefaults().size());
-            root.put("confirmUrl", "/confirm.html");
+            root.put("confirmUrl", confirmUrl);
             root.put("nextStep", switch (e.state()) {
-                case "UNCONFIRMED" -> "사용자에게 " + "/confirm.html" + " 을 열어 설정을 확인하도록 안내하십시오. "
+                case "UNCONFIRMED" -> "사용자에게 " + confirmUrl + " 을 열어 설정을 확인하도록 안내하십시오. "
                         + "확인은 사람만 할 수 있습니다.";
                 case "CONFIRMED" -> "run_scenario_by_token 에 confirmToken 을 실어 실행하십시오.";
                 default -> "이미 실행했습니다. 다시 돌리려면 확인 화면에서 다시 확인하십시오.";

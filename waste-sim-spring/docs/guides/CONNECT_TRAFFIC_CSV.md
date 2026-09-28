@@ -357,7 +357,7 @@ K = 1.2  →  최대 가중치 2.2
    피크로 맞춰 수정한다.
 5. 서버 기동 후 MCP로 반영 확인:
    ```
-   curl -s localhost:8080/mcp -H "Content-Type: application/json" \
+   curl -s localhost:8090/mcp -H "Content-Type: application/json" \
      -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"run_waste_simulation","arguments":{"collectionTime":"12:00","trafficEnabled":true,"trafficProfileId":"jangryang-weekday","days":3,"seeds":3}}}'
    ```
    → 피크 시각(RED 노드) 반영으로 수거 완료시간·민원이 평시 대비 상승하는지 확인.
