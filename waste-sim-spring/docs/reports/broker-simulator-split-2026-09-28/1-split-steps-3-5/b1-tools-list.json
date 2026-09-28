@@ -1,0 +1,61 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "b1-tools-list",
+    "method": "tools/list"
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "b1-tools-list",
+    "result": {
+      "tools": [
+        {
+          "name": "find_simulators",
+          "description": "요청에서 뽑은 조건으로 시뮬레이터 후보를 찾는다. 후보마다 왜 맞는지(reasons)와 요청한 것 중 무엇을 못 하는지(mismatches)를 함께 낸다. 모르는 항목은 비워 두고 추정해 채우지 않는다 — 채우면 그 추정으로 서버가 골라진다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "domain": {
+                "type": "string",
+                "description": "도메인. 예: \"쓰레기수거\""
+              },
+              "spatialScale": {
+                "type": "string",
+                "description": "공간 규모. 예: \"한 동네\""
+              },
+              "environmentConditions": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "환경 조건. 예: [\"평일 교통량\"]"
+              },
+              "objective": {
+                "type": "string",
+                "description": "목적. 예: \"민원이 가장 적은 수거 시각\""
+              },
+              "comparisonAxes": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "무엇을 바꿔 가며 비교할 것인가"
+              }
+            },
+            "required": [
+              "domain"
+            ]
+          }
+        },
+        {
+          "name": "list_candidates",
+          "description": "브로커에 등록된 시뮬레이터를 요약해 낸다 — 서버 id, 도메인, 분석 단위, 그리고 매칭 평가용으로 지어낸 서버인지 여부.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        }
+      ]
+    }
+  }
+}

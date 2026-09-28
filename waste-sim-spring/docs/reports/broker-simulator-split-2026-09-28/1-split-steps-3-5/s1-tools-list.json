@@ -1,0 +1,511 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "s1-tools-list",
+    "method": "tools/list"
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "s1-tools-list",
+    "result": {
+      "tools": [
+        {
+          "name": "run_waste_simulation",
+          "description": "장량동 원룸촌 생활쓰레기 DEVS 시뮬레이션을 Java 재구현 엔진으로 실행하고 월간 민원 통계를 반환한다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "collectionTime": {
+                "type": "string",
+                "description": "수거 시각 HH:MM (예: 12:00)"
+              },
+              "days": {
+                "type": "integer",
+                "description": "시뮬레이션 기간(일)",
+                "default": 30
+              },
+              "seeds": {
+                "type": "integer",
+                "description": "반복 횟수",
+                "default": 30
+              },
+              "leaveSigma": {
+                "type": "number",
+                "description": "외출 시각 표준편차(분)",
+                "default": 30.0
+              },
+              "wasteSigma": {
+                "type": "number",
+                "description": "일일 배출량 표준편차(kg)",
+                "default": 0.3
+              },
+              "wasteMeanKg": {
+                "type": "number",
+                "description": "1인 1일 평균 배출량(kg). 기본값 0.9는 논문 가정치. 환경부 전국폐기물통계조사 실측 평균(약 0.95kg, 지역 편차 0.8~1.7kg)으로 캘리브레이션할 때 사용",
+                "default": 0.9
+              },
+              "capacity": {
+                "type": "number",
+                "description": "수거장 용량(kg)",
+                "default": 30.0
+              },
+              "threshold": {
+                "type": "number",
+                "description": "민원 임계 적재율(0~1)",
+                "default": 0.8
+              },
+              "numBuildings": {
+                "type": "integer",
+                "default": 4
+              },
+              "residentsPerBuilding": {
+                "type": "integer",
+                "default": 25
+              },
+              "collectionIntervalDays": {
+                "type": "integer",
+                "minimum": 1,
+                "default": 1,
+                "description": "수거 주기(일). 2면 격일 수거 — 차량은 수거일에만 운행하므로 비수거일에는 이동시간·교통 민원이 발생하지 않는다"
+              },
+              "collectionDaysOfWeek": {
+                "type": "array",
+                "items": {
+                  "type": "integer"
+                },
+                "description": "요일 기반 수거일. 0=월~6=일. 지정하면 collectionIntervalDays 대신 사용"
+              },
+              "dischargeTimeMode": {
+                "type": "string",
+                "enum": [
+                  "PAPER_BASELINE",
+                  "POHANG_ACTUAL"
+                ],
+                "default": "PAPER_BASELINE",
+                "description": "배출 시각 모델: 논문 기준선 또는 포항 공식 배출 창 기반"
+              },
+              "dischargeWindowStartMinutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1439,
+                "default": 1200,
+                "description": "POHANG_ACTUAL 배출 창 시작(자정부터 분, 20:00=1200)"
+              },
+              "dischargeWindowEndMinutes": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 1439,
+                "default": 360,
+                "description": "POHANG_ACTUAL 배출 창 종료(자정부터 분, 06:00=360)"
+              },
+              "occupationMix": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "직업 구성: BlueCollar/Student/Housewife/NightShift/OfficeWorker"
+              },
+              "trafficEnabled": {
+                "type": "boolean",
+                "description": "교통 레이어 사용 여부",
+                "default": false
+              },
+              "trafficProfileId": {
+                "type": "string",
+                "description": "예: jangryang-weekday"
+              },
+              "routeTravelMinutes": {
+                "type": "integer",
+                "description": "건물 간 기본 이동시간(분, 혼잡 가중치 적용 전). run_waste_simulation_devs(Python 엔진)도 동일 필드 사용",
+                "default": 8
+              },
+              "travelTimeMode": {
+                "type": "string",
+                "enum": [
+                  "LEGACY_CONSTANT",
+                  "OSRM_HYBRID",
+                  "ZONE_PROXY_HYBRID"
+                ],
+                "default": "LEGACY_CONSTANT",
+                "description": "이동시간 계산 방식"
+              },
+              "serviceMinutesPerSite": {
+                "type": "integer",
+                "minimum": 0,
+                "default": 0,
+                "description": "혼합 모드의 수거 지점별 정차·상차 시간(분, 첫 지점 포함)"
+              },
+              "zoneAssignmentRule": {
+                "type": "string",
+                "enum": [
+                  "NONE",
+                  "CONTIGUOUS",
+                  "ROUND_ROBIN"
+                ],
+                "default": "NONE",
+                "description": "건물을 교통 구역 A~D에 배정하는 **가정**. 5동 이상을 ZONE_PROXY_HYBRID로 돌리려면 필요하다(배정이 없으면 지점 id를 구역 id로 보는 폴백이 4동까지만 통한다). 실제 위치 조사가 아니므로 결과가 운영 예측이 아닌 가정 비교 실험으로 표시된다 — CONTIGUOUS와 ROUND_ROBIN을 함께 돌려 범위로 보고할 것"
+              },
+              "intraZoneTravelMinutes": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "ZONE_PROXY_HYBRID에서 같은 교통 구역 안의 지점 간 이동시간. 필요한 경로에서는 반드시 명시"
+              },
+              "truckType": {
+                "type": "string",
+                "enum": [
+                  "LARGE_5TON",
+                  "MEDIUM_2P5T",
+                  "SMALL_1TON"
+                ],
+                "default": "LARGE_5TON"
+              },
+              "routeAvailableCapacityKg": {
+                "type": "number",
+                "exclusiveMinimum": 0,
+                "description": "운행 1회당 해당 경로에 배정된 적재용량(kg). 미입력 시 차종 정격용량"
+              },
+              "initialTruckLoadKg": {
+                "type": "number",
+                "minimum": 0,
+                "default": 0,
+                "description": "운행 시작 시 이미 적재된 양(kg). 신규 수거 가능량에서 차감"
+              },
+              "truckCount": {
+                "type": "integer",
+                "description": "투입 트럭 대수",
+                "default": 1,
+                "minimum": 1
+              },
+              "dispatchIntervalMinutes": {
+                "type": "integer",
+                "description": "트럭 간 시차 배차(분)",
+                "default": 0
+              },
+              "routeSequence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "수거장 방문 순서(노드 id). 예: [\"Node_A\",\"Node_C\",\"Node_B\"]"
+              }
+            },
+            "required": [
+              "collectionTime"
+            ]
+          }
+        },
+        {
+          "name": "run_waste_simulation_devs",
+          "description": "원본 논문 재현 Python/pyevsim DEVS 엔진으로 시뮬레이션을 실행한다 (Java 엔진과 결과 비교용 참조 구현).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "collectionTime": {
+                "type": "string",
+                "description": "수거 시각 HH:MM (예: 12:00)"
+              },
+              "days": {
+                "type": "integer",
+                "description": "시뮬레이션 기간(일)",
+                "default": 30
+              },
+              "seeds": {
+                "type": "integer",
+                "description": "반복 횟수",
+                "default": 30
+              },
+              "leaveSigma": {
+                "type": "number",
+                "description": "외출 시각 표준편차(분)",
+                "default": 30.0
+              },
+              "wasteSigma": {
+                "type": "number",
+                "description": "일일 배출량 표준편차(kg)",
+                "default": 0.3
+              },
+              "wasteMeanKg": {
+                "type": "number",
+                "description": "1인 1일 평균 배출량(kg). 기본값 0.9는 논문 가정치. 환경부 전국폐기물통계조사 실측 평균(약 0.95kg, 지역 편차 0.8~1.7kg)으로 캘리브레이션할 때 사용",
+                "default": 0.9
+              },
+              "capacity": {
+                "type": "number",
+                "description": "수거장 용량(kg)",
+                "default": 30.0
+              },
+              "threshold": {
+                "type": "number",
+                "description": "민원 임계 적재율(0~1)",
+                "default": 0.8
+              },
+              "numBuildings": {
+                "type": "integer",
+                "default": 4
+              },
+              "residentsPerBuilding": {
+                "type": "integer",
+                "default": 25
+              },
+              "occupationMix": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "직업 구성: BlueCollar/Student/Housewife/NightShift/OfficeWorker"
+              },
+              "trafficEnabled": {
+                "type": "boolean",
+                "description": "교통 레이어 사용 여부",
+                "default": false
+              },
+              "trafficProfileId": {
+                "type": "string",
+                "description": "예: jangryang-weekday"
+              },
+              "routeTravelMinutes": {
+                "type": "integer",
+                "description": "건물 간 기본 이동시간(분, 혼잡 가중치 적용 전). run_waste_simulation_devs(Python 엔진)도 동일 필드 사용",
+                "default": 8
+              }
+            },
+            "required": [
+              "collectionTime"
+            ]
+          }
+        },
+        {
+          "name": "build_scenario",
+          "description": "PES 와 실험 프레임으로 실행 설정 N벌을 만들고 검증한다. 통과하면 확인 토큰을 발급하며, 그 토큰으로만 실행할 수 있다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "values": {
+                "type": "object",
+                "description": "답변키 → 확정값"
+              },
+              "origins": {
+                "type": "object",
+                "description": "답변키 → USER / MODEL_DEFAULT / DERIVED"
+              },
+              "variableAnswerKey": {
+                "type": "string",
+                "description": "실험 변수의 답변키"
+              },
+              "variableValues": {
+                "type": "array",
+                "description": "비교할 값들"
+              },
+              "observations": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "values",
+              "variableAnswerKey",
+              "variableValues"
+            ]
+          }
+        },
+        {
+          "name": "get_capability",
+          "description": "이 시뮬레이터의 능력 카드를 낸다 — 분석 단위, 결정 지점, 적용 범위, 품질과 보정 근거, 조건부 기능, 그리고 하지 않는 일 열두 가지.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "get_scenario_status",
+          "description": "시나리오가 확인됐는지 읽는다. UNCONFIRMED 면 사용자에게 확인 화면을 안내하고, CONFIRMED 가 되면 함께 나온 토큰으로 실행한다. 이 도구는 상태를 바꾸지 않는다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scenarioId": {
+                "type": "string",
+                "description": "build_scenario 가 돌려준 시나리오 id"
+              }
+            },
+            "required": [
+              "scenarioId"
+            ]
+          }
+        },
+        {
+          "name": "get_templates",
+          "description": "서브태스크 템플릿을 낸다. 각 템플릿은 결정 대상·선택지·생성 조건·기본값·실행 대응을 담은 규칙이며, 인스턴스는 요청마다 만들어야 한다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "plan_subtasks",
+          "description": "현재까지 확정된 답변으로 어떤 서브태스크가 존재해야 하는지 계산한다. 생성 조건이 거짓이면 만들지 않고, 판정할 수 없으면 보류한다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "answers": {
+                "type": "object",
+                "description": "답변키 → 확정값. 예: {\"numBuildings\":4,\"truckCount\":3}"
+              }
+            },
+            "required": [
+              "answers"
+            ]
+          }
+        },
+        {
+          "name": "run_scenario_by_token",
+          "description": "확인 토큰이 맞는 시나리오를 실행한다. 토큰이 없거나 발급 이후 설정이 바뀌었으면 실행하지 않는다. 결과는 설정 간 비교이며 운영 예측이 아니다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "scenarioId": {
+                "type": "string",
+                "description": "build_scenario 가 돌려준 시나리오 id"
+              },
+              "confirmToken": {
+                "type": "string",
+                "description": "build_scenario 가 발급한 확인 토큰"
+              },
+              "seed": {
+                "type": "integer",
+                "description": "쓰이지 않는다 — 반복 횟수는 시나리오의 seeds 가 정하고 시드는 1..seeds 로 고정이다"
+              }
+            },
+            "required": [
+              "scenarioId",
+              "confirmToken"
+            ]
+          }
+        },
+        {
+          "name": "validate_answers",
+          "description": "답변을 템플릿의 허용값·범위에 대조한다. 맞지 않으면 사유 코드와 허용값을 돌려주며, 가까운 값으로 보정하지 않는다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "answers": {
+                "type": "object",
+                "description": "답변키 → 원문 문자열. 예: {\"truckType\":\"SMALL_1TON\"}"
+              }
+            },
+            "required": [
+              "answers"
+            ]
+          }
+        },
+        {
+          "name": "run_scenario",
+          "description": "다중 트럭·분리배출·거주민 구성 등 복잡한 정책 시나리오 실험을 실행한다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "occupation-mix",
+                  "collection-sweep",
+                  "behavior-grid",
+                  "infra-grid",
+                  "density",
+                  "collection-schedule",
+                  "multi-truck",
+                  "waste-separation",
+                  "new-occupations",
+                  "coupling-variants",
+                  "monthly-waste",
+                  "truck-route"
+                ],
+                "description": "실행할 시나리오 실험 유형"
+              },
+              "days": {
+                "type": "integer",
+                "default": 30
+              },
+              "seeds": {
+                "type": "integer",
+                "default": 10
+              },
+              "capacity": {
+                "type": "number",
+                "default": 30.0
+              },
+              "threshold": {
+                "type": "number",
+                "default": 0.8
+              },
+              "leaveSigma": {
+                "type": "number",
+                "default": 30.0
+              },
+              "wasteSigma": {
+                "type": "number",
+                "default": 0.3
+              },
+              "wasteMeanKg": {
+                "type": "number",
+                "default": 0.9,
+                "description": "1인 1일 평균 배출량(kg). 실측 캘리브레이션 시 조정"
+              },
+              "numBuildings": {
+                "type": "integer",
+                "default": 4
+              },
+              "residentsPerBuilding": {
+                "type": "integer",
+                "default": 25
+              },
+              "occupationMix": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            },
+            "required": [
+              "type"
+            ]
+          }
+        },
+        {
+          "name": "list_scenarios",
+          "description": "지원하는 시나리오 실험 유형 목록을 반환한다.",
+          "inputSchema": {
+            "type": "object",
+            "properties": {}
+          }
+        },
+        {
+          "name": "update_route_sequence",
+          "description": "기존 base 설정에 수거장 방문 순서만 갈아끼워 재실행한다(동적 라우팅 — 정체 구역 우회).",
+          "inputSchema": {
+            "type": "object",
+            "properties": {
+              "routeSequence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "수거장 방문 순서. 예: [\"Node_A\",\"Node_C\",\"Node_B\"]"
+              },
+              "collectionTime": {
+                "type": "string"
+              },
+              "trafficProfileId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "routeSequence"
+            ]
+          }
+        }
+      ]
+    }
+  }
+}

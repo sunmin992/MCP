@@ -1,0 +1,31 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "b3-find-simulators",
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "쓰레기수거",
+        "spatialScale": "한 동네",
+        "environmentConditions": [
+          "평일 교통량"
+        ],
+        "objective": "민원이 가장 적은 수거 시각"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "b3-find-simulators",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"쓰레기수거\",\"matchCount\":2,\"matches\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\",\"환경 조건: 평일 교통량 → traffic-profile\"],\"mismatches\":[]},{\"serverId\":\"district-waste-sim\",\"name\":\"행정동 단위 생활폐기물 수거 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"score\":2,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 행정동 전체(district)\"],\"mismatches\":[\"환경 조건: 평일 교통량 — 교통 지체 반영 미지원. 이동시간을 구간 상수로만 다룬다. 시간대별 지체 배수가 모델에 없다\"]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}
