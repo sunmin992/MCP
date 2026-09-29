@@ -22,7 +22,7 @@
 
 ## 2. 머신별 1회 설정
 
-### 윈도우 A — Ollama 벤치마크용
+### 윈도우 A — Ollama
 
 PowerShell에서 (`setx`는 영구 설정, **새 터미널부터** 적용):
 
@@ -98,62 +98,6 @@ $env:OPENAI_MODEL="gemma2:9b"; mvn spring-boot:run
 
 ---
 
-## 3-1. 벤치마크 스크립트 (`llm_benchmark.py`)
-
-> **주의: 이 스크립트는 Spring 프로파일을 읽지 않는다.** 최신 장량동 서브태스크
-> 템플릿을 직접 읽어 추출·제약 검증·재질문·시나리오 구성을 평가한다.
-
-| 환경변수 | 용도 | 기본값 |
-|---|---|---|
-| `OLLAMA_URL` | 로컬 모델 엔드포인트 | `http://localhost:11434/v1/chat/completions` |
-| `OPENAI_API_URL` | `gpt-4o-mini` 항목이 쓸 엔드포인트 | `https://api.openai.com/v1/chat/completions` |
-| `OPENAI_API_KEY` | 없으면 OpenAI 모델은 자동 건너뜀 | (없음) |
-| `EXCLUDE_MODELS` | 쉼표로 구분해 특정 모델 제외 | (없음) |
-| `BENCHMARK_MODELS` | 쉼표로 구분한 Ollama 모델 목록 | 로컬 모델 4종 |
-| `BENCHMARK_RUNS` | 요청별 반복 횟수 | `3` |
-| `BENCHMARK_TIMEOUT` | 모델 호출 제한 시간(초) | `240` |
-
-### 윈도우 A (Ollama 설치된 머신)
-
-로컬 4개 모델만 돌리고 GPT는 비용·시간 때문에 건너뛸 때:
-
-```powershell
-$env:BENCHMARK_MODELS="llama3.2:3b,qwen2.5:7b,gemma:2b,gemma2:9b"; python llm_benchmark.py
-```
-
-### 맥북 / Ollama 없는 머신
-
-로컬 모델이 설치돼 있지 않으면 빈 목록으로 두고 OpenAI 키를 설정한다.
-맥에는 `python` 명령이 없으니 `python3`으로 실행할 것:
-
-```bash
-BENCHMARK_MODELS="" OPENAI_API_KEY="..." python3 llm_benchmark.py
-```
-
-### ⚠️ `OPENAI_API_URL`은 되도록 설정하지 말 것
-
-앱과 벤치마크가 **같은 변수를 공유하면서 의미가 다르다.** ollama 프로파일은 이
-변수가 없어도 기본값으로 localhost를 가리키므로 굳이 설정할 필요가 없는데, 만약
-앱을 Ollama로 돌리려고 이 변수를 localhost로 걸어두면 **벤치마크의 `gpt-4o-mini`
-요청까지 Ollama로 가버린다**(존재하지 않는 모델이라 실패). 백엔드 전환은 이 변수가
-아니라 프로파일(`SPRING_PROFILES_ACTIVE`)로 하는 것이 원칙이다.
-
-### 결과 파일
-
-`benchmark_report.md`(요약 리포트)와 `benchmark_detail.log`(실패 케이스 원문)는
-실행할 때마다 **덮어써진다**(추가 아님). 둘 다 3대에서 각자 돌리면 충돌하므로
-추적하지 않는다(`.gitignore`).
-
-즉 벤치마크 결과는 **그 머신 로컬에만 남는다.** 다른 PC나 문서에 공유할 수치는
-커밋 메시지나 문서 본문에 적어 남길 것. 과거 커밋된 리포트는 히스토리에 그대로
-있어서 필요하면 꺼내볼 수 있다:
-
-```bash
-git show 16cbfd1:waste-sim-spring/benchmark_report.md
-```
-
----
-
 ## 4. 현재 설정 확인
 
 어떤 값이 실제로 주입됐는지 보려면(값이 마스킹되지 않게 임시로 노출):
@@ -184,8 +128,6 @@ curl -s http://localhost:8090/actuator/env/openai.model
     같이 추적돼 있었음). 실행하면 자동 재생성
   - `app.log` / `app-err.log` — 실행 로그. 머신별 절대경로·PID가 박혀 매번 충돌
   - `.claude/settings.local.json` — 윈도우 경로·PowerShell 명령이 든 머신 전용 설정
-  - `benchmark_report.md` / `benchmark_detail.log` — 벤치마크 실행마다 통째로
-    덮어써짐. `python llm_benchmark.py`로 재생성
   - `*.docx` — 문서 변환 결과물. 바이너리라 병합이 불가능하므로 원본 마크다운만
     커밋하고 변환본은 각자 로컬에서 생성
 - **`.gitignore`는 이미 추적 중인 파일에는 효과가 없다.** 위 파일들도 `.gitignore`에

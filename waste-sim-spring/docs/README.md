@@ -32,7 +32,6 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 - [설계 결정 기록](reference/DESIGN_DECISIONS.md)
 - [채팅 자연어 요청 카탈로그](reference/CHAT_REQUEST_CATALOG.md)
 - [디버깅 점검 목록](reference/DEBUGGING_ISSUES.md)
-- [LLM 벤치마크 해석 규칙](reference/LLM_BENCHMARK_GUIDE.md)
 
 설계 결정 기록은 통합 명세서 v1.7 이후 코드와 함께 확정된 결정의 근거를 보존하므로 삭제하지 않는다.
 디버깅 목록은 아직 명세서에 반영되지 않은 결함과 테스트 공백을 관리한다.

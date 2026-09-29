@@ -93,7 +93,6 @@ private SimulationConfig base() {
 - **D-01** 중복 시각 — `TimeExpressionDetector.count()`가 매칭된 문자열을 그대로
   세던 걸 `Set`으로 중복 제거하도록 수정(정규화 후 dedupe). "12시 12시"→1,
   "12시 17시"→2. `TimeExpressionDetectorTest.duplicateTimeCountsOnce`로 고정.
-  `llm_benchmark.py`의 `count_time_expressions()`도 동일 반영.
 - **D-02** 정규화 — 이미 만족된 상태였음을 확인: `OpenAiService.isValidCollectionTime()`은
   두 자리 시(00~23)만 허용해 `"8:30"`은 무효로 판정하고, `SimulationConfig`의
   `setCollectionTimeLabel`/`getCollectionTimeLabel` 라운드트립이 트림과 재포맷을

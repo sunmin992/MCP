@@ -51,7 +51,11 @@ MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도
 .\mvnw.cmd -q -pl simulator -am spring-boot:run
 ```
 
-VS Code 에서 이 폴더를 열었으면 `Ctrl+Shift+B` 로 둘을 함께 띄운다(`.vscode/tasks.json`).
+터미널에서 직접 띄울 때 로그의 한글이 깨지면 먼저 `chcp 65001` 을 실행한다 — 서버 로그는 UTF-8 인데
+Windows 터미널은 기본 코드 페이지 949 로 열린다.
+
+VS Code 에서 이 폴더를 열었으면 `Ctrl+Shift+B` 로 둘을 함께 띄운다(`.vscode/tasks.json`). 이 작업은
+터미널을 UTF-8 로 바꾼 뒤 서버를 띄우므로 따로 할 것이 없다.
 
 두 서버 터미널에는 도구 호출마다 명세 그림의 단계와 결과가 한 줄씩 찍힌다(로거 `mcp.calls`).
 LLM 쪽 화면에는 모델이 보낸 것과 받은 것만 보이므로, 서버가 무엇을 받아 어떻게 판정했는지는
@@ -69,12 +73,11 @@ MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 
 
 ## 시뮬레이터 구성
 
-"시뮬레이터를 만들어 줘"류 요청은 한 문장으로 답할 수 없으므로, 서버가 질문을 소유하고
-순서대로 물어 구성을 모은다. 질문 50개를 사용자 화면 8단계로 나누며, 관련 없는 항목도
-생략하지 않고 "해당 없음"을 정식 답변으로 받는다 — 진행 표시의 분모가 끝까지 같아야
-남은 질문 수를 알 수 있기 때문이다. 질문·순서·필수 여부는
-[`subtask/jangnyang-simulator-v2.json`](src/main/resources/subtask/jangnyang-simulator-v2.json)이
-소유하고 조회 경로에 LLM 호출이 없다. 정규화는 LLM이, 완료 판정과 실행 허용은 서버가 한다.
+"시뮬레이터를 만들어 줘"류 요청은 한 문장으로 답할 수 없으므로, 서버가 질문의 규칙을 소유하고
+LLM 이 그 규칙대로 물어 구성을 모은다. 규칙은 서브태스크 템플릿 15개
+([`ses/jangnyang-templates.json`](simulator/src/main/resources/ses/jangnyang-templates.json))다 —
+무엇을 묻는지, 언제 묻는지(생성 조건), 답이 실행 설정의 어느 필드로 가는지를 적는다. 조회 경로에
+LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 허용은 서버가 한다.
 
 ## 검증
 
@@ -85,8 +88,8 @@ MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **597건 중 594건 통과·3건 스킵**
-이다(브로커 62 · 시뮬레이터 535). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **594건 중 591건 통과·3건 스킵**
+이다(브로커 62 · 시뮬레이터 532). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
 엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트

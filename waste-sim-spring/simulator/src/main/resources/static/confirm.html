@@ -24,6 +24,7 @@
   th, td { border:1px solid var(--line); padding:5px 10px; text-align:left; font-size:14px; }
   th { background:#fafafa; font-weight:600; }
   .warn { border-left:3px solid var(--warn); background:#fdf6f0; padding:9px 12px; margin:12px 0; }
+  .approved { border-left:3px solid var(--line); background:#f6f6f6; padding:9px 12px; margin:12px 0; }
   #exposure { display:none; background:#a4501a; color:#fff; padding:8px 20px; font-size:13px; }
   #exposure.on { display:block; }
   button.go { padding:9px 18px; font:inherit; cursor:pointer; border:1px solid #333;
@@ -82,7 +83,9 @@ async function loadList() {
     <button data-id="${esc(r.scenarioId)}" aria-current="${r.scenarioId === current}">
       <code>${esc(r.scenarioId)}</code><br>
       <span class="state ${r.state}">${r.state}</span>
-      · ${r.runCount}벌${r.unapprovedCount ? ` · 미승인 ${r.unapprovedCount}` : ''}
+      · ${r.runCount}벌${r.unapprovedCount
+          ? (r.state === 'UNCONFIRMED' ? ` · 미승인 ${r.unapprovedCount}` : ` · 기본값 ${r.unapprovedCount}`)
+          : ''}
     </button>`).join('');
   $list.querySelectorAll('button').forEach(b =>
     b.onclick = () => loadDetail(b.dataset.id));
@@ -109,10 +112,17 @@ async function loadDetail(id) {
       SES ${esc(d.sesId)} ${esc(d.sesVersion)} · 실행 설정 ${d.runs.length}벌
     </p>
 
-    ${unapproved.length ? `<div class="warn"><strong>사용자가 승인하지 않은 기본값 ${unapproved.length}개</strong>
+    ${unapproved.length ? (d.state === 'UNCONFIRMED'
+      ? `<div class="warn"><strong>사용자가 승인하지 않은 기본값 ${unapproved.length}개</strong>
       <table><tr><th>항목</th><th>값</th></tr>
       ${unapproved.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}
-      </table>확인하면 이 값으로 돌아갑니다.</div>` : ''}
+      </table>확인하면 이 값으로 돌아갑니다.</div>`
+      // 확인은 시나리오 전체를 승인한다. 값의 출처(MODEL_DEFAULT)는 기록이라 바꾸지 않지만,
+      // 확인한 뒤에도 "승인하지 않은" 이라고 쓰면 사람이 누른 확인이 없던 일처럼 읽힌다.
+      : `<div class="approved"><strong>확인 때 함께 승인된 기본값 ${unapproved.length}개</strong>
+      <table><tr><th>항목</th><th>값</th></tr>
+      ${unapproved.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}
+      </table>사용자가 말하지 않은 값이지만, 확인 화면에서 이 값으로 승인했습니다.</div>`) : ''}
 
     ${d.blocks.length ? `<div class="warn"><strong>막힌 사유</strong><ul>
       ${d.blocks.map(b => `<li>${esc(b)}</li>`).join('')}</ul></div>` : ''}
