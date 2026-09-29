@@ -40,7 +40,7 @@ public class FindSimulatorsTool implements McpToolProvider {
     @Override
     public String description() {
         return "요청에서 뽑은 조건으로 시뮬레이터 MCP 서버를 찾는다. verdict 가 MATCH 면 recommended 의 "
-                + "서버(endpoint)로 가면 된다. ADJUST_REQUEST 면 그대로 받을 서버가 없다 — suggestions 의 "
+                + "서버(endpoint)로 가고, 그 대화에서는 브로커를 다시 부르지 않는다(nextStep 참고). ADJUST_REQUEST 면 그대로 받을 서버가 없다 — suggestions 의 "
                 + "requestAdjustments 가 요청을 어떻게 고치면 그 서버를 쓸 수 있는지 말하므로 사용자에게 "
                 + "그대로 전하고 고를지 묻는다(changesPurpose 가 참이면 다른 질문이 된다는 뜻이다). "
                 + "NONE 이면 부를 수 있는 서버가 없다. 모르는 항목은 비워 두고 추정해 채우지 않는다 — "
@@ -94,6 +94,12 @@ public class FindSimulatorsTool implements McpToolProvider {
             if (fit.isPresent()) {
                 root.put("verdict", "MATCH");
                 root.set("recommended", mapper.valueToTree(fit.get()));
+                // 넘겨준 뒤에는 브로커가 할 일이 없다. 안내하지 않으면 LLM 이 단계마다 브로커를 다시
+                // 불러 같은 조회를 되풀이한다.
+                root.put("nextStep", "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 "
+                        + fit.get().endpoint() + " 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → "
+                        + "plan_subtasks → validate_answers → build_scenario → get_scenario_status → "
+                        + "run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.");
                 callLog.info("[4 매칭] MATCH → {} ({}) · 근거 {}",
                         fit.get().serverId(), fit.get().endpoint(), fit.get().reasons().size());
             } else {
@@ -104,12 +110,15 @@ public class FindSimulatorsTool implements McpToolProvider {
                 matcher.outsideDomain(profile).stream().filter(m -> !m.fictional()).forEach(suggestions::add);
                 if (suggestions.isEmpty()) {
                     root.put("verdict", "NONE");
+                    root.put("nextStep", "사용자에게 지금 쓸 수 있는 시뮬레이터가 없다고 전하십시오.");
                     callLog.info("[4 매칭] NONE — 부를 수 있는 서버 없음");
                     root.put("note", "부를 수 있는 시뮬레이터 서버가 등록돼 있지 않습니다"
                             + (matches.isEmpty() ? "" : " — 도메인이 맞는 것은 지어낸 후보뿐입니다")
                             + ". list_candidates 로 등록된 서버를 확인하십시오.");
                 } else {
                     root.put("verdict", "ADJUST_REQUEST");
+                    root.put("nextStep", "사용자에게 requestAdjustments 를 전하고 요청을 고칠지 물으십시오. "
+                            + "고치기로 하면 고친 요청으로 find_simulators 를 다시 부릅니다.");
                     for (MatchResult m : suggestions.subList(0, Math.min(MAX_SUGGESTIONS, suggestions.size()))) {
                         callLog.info("[4 매칭] ADJUST_REQUEST → {} 쓰려면 고칠 것: {}", m.serverId(),
                                 m.requestAdjustments().stream()

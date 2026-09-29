@@ -75,6 +75,50 @@ class BrokerServerTest {
                 output.getOut());
     }
 
+    private JsonNode rpcIn(String session, String method, String params) throws Exception {
+        String body = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"" + method + "\""
+                + (params == null ? "" : ",\"params\":" + params) + "}";
+        String out = mvc.perform(post("/mcp").contentType(MediaType.APPLICATION_JSON)
+                        .header("Mcp-Session-Id", session).content(body))
+                .andExpect(status().isOk()).andReturn().getResponse().getContentAsString();
+        return mapper.readTree(out);
+    }
+
+    @Test
+    void 연결을_시작하면_세션_id_를_준다() throws Exception {
+        // 표준 MCP HTTP 방식 — 클라이언트는 이 id 를 이후 요청마다 붙인다. 채팅 세션 하나가 곧
+        // MCP 세션 하나라, 브로커가 "같은 대화" 를 알아볼 수 있는 유일한 단서다.
+        String sid = mvc.perform(post("/mcp").contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"initialize\",\"params\":{}}"))
+                .andExpect(status().isOk()).andReturn().getResponse().getHeader("Mcp-Session-Id");
+        assertNotNull(sid);
+        assertFalse(sid.isBlank());
+    }
+
+    @Test
+    void 같은_대화에서_매칭_뒤_다시_조회하면_알리고_로그에_남긴다(CapturedOutput output) throws Exception {
+        mvc.perform(post("/api/simulators").contentType(MediaType.APPLICATION_JSON)
+                .content(TestCards.jangnyang().toString())).andExpect(status().isOk());
+        String call = "{\"name\":\"find_simulators\",\"arguments\":{\"domain\":\"쓰레기수거\","
+                + "\"spatialScale\":\"한 동네\",\"environmentConditions\":[\"평일 교통량\"]}}";
+
+        JsonNode first = rpcIn("chat-1", "tools/call", call);
+        JsonNode firstBody = mapper.readTree(first.path("result").path("content").get(0).path("text").asText());
+        assertTrue(firstBody.path("previousMatch").isMissingNode(), "처음 조회에는 붙지 않는다");
+
+        JsonNode again = rpcIn("chat-1", "tools/call", call);
+        JsonNode body = mapper.readTree(again.path("result").path("content").get(0).path("text").asText());
+        assertEquals("MATCH", body.path("verdict").asText(),
+                "막지는 않는다 — 같은 대화에서 전혀 다른 시뮬레이션을 새로 물을 수도 있다");
+        assertEquals("jangnyang-waste-sim", body.path("previousMatch").path("serverId").asText(),
+                "이미 연결된 서버를 알려야 LLM 이 되풀이인지 새 요청인지 가를 수 있다");
+        assertTrue(output.getOut().contains("이미 jangnyang-waste-sim 로 연결된 대화에서 다시 조회"), output.getOut());
+
+        JsonNode other = rpcIn("chat-2", "tools/call", call);
+        JsonNode otherBody = mapper.readTree(other.path("result").path("content").get(0).path("text").asText());
+        assertTrue(otherBody.path("previousMatch").isMissingNode(), "다른 대화의 매칭은 섞지 않는다");
+    }
+
     @Test
     void 연결_정보_없는_등록은_400_이다() throws Exception {
         mvc.perform(post("/api/simulators").contentType(MediaType.APPLICATION_JSON)

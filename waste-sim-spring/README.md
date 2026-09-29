@@ -33,7 +33,7 @@ MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도
 
 | 모듈 | 서버 | 주소 | 하는 일 |
 |---|---|---|---|
-| `broker` | 브로커 MCP 서버 | `http://localhost:8089/mcp` | 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다(3·4단계). `verdict` 가 `MATCH` 면 추천 서버와 연결 정보(`endpoint`)를, `ADJUST_REQUEST` 면 요청을 어떻게 고치면 어느 서버를 쓸 수 있는지(`requestAdjustments`)를 낸다 |
+| `broker` | 브로커 MCP 서버 | `http://localhost:8089/mcp` | 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다(3·4단계). `verdict` 가 `MATCH` 면 추천 서버와 연결 정보(`endpoint`)를, `ADJUST_REQUEST` 면 요청을 어떻게 고치면 어느 서버를 쓸 수 있는지(`requestAdjustments`)를 낸다. `MATCH` 뒤에는 그 대화에서 브로커를 다시 부르지 말라고 안내하고(`nextStep`), 같은 MCP 세션에서 다시 조회하면 알리고 로그에 남긴다 |
 | `simulator` | 장량동 시뮬레이터 MCP 서버 | `http://localhost:8090/mcp` | 템플릿 · 서브태스크 · 시나리오 · 실행(5~14단계). 확인 화면 `http://localhost:8090/` |
 | `mcp-common` | — | — | 두 서버가 함께 쓰는 도구 계약(`McpToolProvider` · `ToolResult`)뿐 |
 
@@ -85,8 +85,8 @@ MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **593건 중 590건 통과·3건 스킵**
-이다(브로커 58 · 시뮬레이터 535). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **597건 중 594건 통과·3건 스킵**
+이다(브로커 62 · 시뮬레이터 535). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
 엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트

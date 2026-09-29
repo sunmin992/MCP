@@ -67,6 +67,24 @@ class BrokerVerdictTest {
     }
 
     @Test
+    void 매칭되면_이_대화에서는_브로커를_다시_부르지_말고_시뮬레이터만_쓰라고_안내한다() throws Exception {
+        JsonNode out = find(그림의_요청());
+        String next = out.path("nextStep").asText();
+        assertTrue(next.contains("http://localhost:8090/mcp"), "어느 서버로 넘어가는지 말해야 한다: " + next);
+        assertTrue(next.contains("다시 부르지"),
+                "안내가 없으면 LLM 이 단계마다 브로커를 다시 부르며 같은 조회를 되풀이한다: " + next);
+        assertTrue(next.contains("get_templates"), "넘어간 뒤 무엇부터 하는지 알려 준다: " + next);
+    }
+
+    @Test
+    void 고쳐야_하면_사용자에게_묻고_고친_요청으로_다시_조회하라고_안내한다() throws Exception {
+        ObjectNode a = 그림의_요청();
+        a.put("spatialScale", "장량동 전체");
+        String next = find(a).path("nextStep").asText();
+        assertTrue(next.contains("사용자") && next.contains("find_simulators"), next);
+    }
+
+    @Test
     void 목적도_매칭_근거가_된다() throws Exception {
         // 그림 4단계의 매칭 근거: 도메인 / 한 동네 규모 / 교통 반영 지원 / 수거 시각 비교 가능.
         String reasons = find(그림의_요청()).path("recommended").path("reasons").toString();

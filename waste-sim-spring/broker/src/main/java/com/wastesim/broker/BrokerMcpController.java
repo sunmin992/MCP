@@ -12,6 +12,7 @@ import org.slf4j.MDC;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.LinkedHashMap;
@@ -33,16 +34,22 @@ public class BrokerMcpController {
     /** 도구 호출마다 한 줄 — 시뮬레이터의 {@code mcp.calls} 와 같은 이름이라 두 터미널을 나란히 읽을 수 있다. */
     private static final Logger callLog = LoggerFactory.getLogger("mcp.calls");
 
+    /** 표준 MCP HTTP 방식의 세션 헤더. 연결 시작 때 주고, 클라이언트가 이후 요청마다 붙인다. */
+    private static final String SESSION_HEADER = "Mcp-Session-Id";
+
     private final Map<String, McpToolProvider> tools = new LinkedHashMap<>();
     private final ObjectMapper mapper;
+    private final BrokerSessions sessions;
 
-    public BrokerMcpController(List<McpToolProvider> providers, ObjectMapper mapper) {
+    public BrokerMcpController(List<McpToolProvider> providers, ObjectMapper mapper, BrokerSessions sessions) {
         providers.forEach(p -> tools.put(p.toolName(), p));
         this.mapper = mapper;
+        this.sessions = sessions;
     }
 
     @PostMapping(value = "/mcp", produces = "application/json")
-    public ResponseEntity<?> handle(@RequestBody JsonNode req) {
+    public ResponseEntity<?> handle(@RequestBody JsonNode req,
+                                    @RequestHeader(value = SESSION_HEADER, required = false) String session) {
         JsonNode id = req.get("id");
         // JSON-RPC 알림(id 없음) — 응답하지 않는다.
         if (id == null || id.isNull()) {
@@ -61,10 +68,11 @@ public class BrokerMcpController {
                     callLog.info("[연결] MCP 클라이언트 {} {}",
                             client.path("name").asText("(이름 없음)"), client.path("version").asText(""));
                     resp.set("result", initialize());
+                    return ResponseEntity.ok().header(SESSION_HEADER, sessions.open()).body(resp);
                 }
                 case "ping"       -> resp.set("result", mapper.createObjectNode());
                 case "tools/list" -> resp.set("result", toolsList());
-                case "tools/call" -> resp.set("result", call(req.path("params")));
+                case "tools/call" -> resp.set("result", call(req.path("params"), session));
                 default           -> resp.set("error", rpcError(-32601, "Method not found: " + method));
             }
         } catch (Exception e) {
@@ -97,7 +105,7 @@ public class BrokerMcpController {
         return r;
     }
 
-    private ObjectNode call(JsonNode params) throws Exception {
+    private ObjectNode call(JsonNode params, String session) throws Exception {
         String name = params.path("name").asText("");
         McpToolProvider tool = tools.get(name);
         if (tool == null) {
@@ -114,7 +122,34 @@ public class BrokerMcpController {
         // 도구가 이미 JSON 문자열을 돌려주면 그대로 싣는다. 한 번 더 직렬화하면 따옴표에 싸인
         // 문자열이 되어 클라이언트가 두 번 풀어야 한다.
         Object result = tr.result();
-        return textResult(result instanceof String s ? s : mapper.writeValueAsString(result), false);
+        String text = result instanceof String s ? s : mapper.writeValueAsString(result);
+        if ("find_simulators".equals(name)) text = rememberHandOff(text, session);
+        return textResult(text, false);
+    }
+
+    /**
+     * 이 대화가 이미 어느 시뮬레이터로 넘어갔는지 알리고, 이번에 넘겨주면 기억한다.
+     *
+     * <p>다시 조회해도 막지 않는다 — 같은 대화에서 전혀 다른 시뮬레이션을 새로 물을 수도 있다.
+     * 알려 주면 LLM 이 되풀이인지 새 요청인지 가를 수 있고, 로그에 남으면 사람이 볼 수 있다.
+     */
+    private String rememberHandOff(String text, String session) throws Exception {
+        if (session == null || session.isBlank()) return text;
+        ObjectNode body = (ObjectNode) mapper.readTree(text);
+        sessions.handedOff(session).ifPresent(prev -> {
+            callLog.info("[브로커] 이미 {} 로 연결된 대화에서 다시 조회했습니다 — 이번 판정 {}",
+                    prev[0], body.path("verdict").asText());
+            ObjectNode p = body.putObject("previousMatch");
+            p.put("serverId", prev[0]);
+            p.put("endpoint", prev[1]);
+            p.put("note", "이 대화는 이미 이 서버로 넘어갔습니다. 같은 시뮬레이션이면 브로커를 다시 부르지 말고 "
+                    + "이 서버를 계속 쓰십시오. 전혀 다른 시뮬레이션이면 이번 판정을 따르십시오.");
+        });
+        if ("MATCH".equals(body.path("verdict").asText())) {
+            JsonNode rec = body.path("recommended");
+            sessions.handOff(session, rec.path("serverId").asText(), rec.path("endpoint").asText());
+        }
+        return mapper.writeValueAsString(body);
     }
 
     private ObjectNode textResult(String text, boolean isError) {
