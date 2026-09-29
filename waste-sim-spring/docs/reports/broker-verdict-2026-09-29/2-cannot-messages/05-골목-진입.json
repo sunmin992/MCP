@@ -1,0 +1,28 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "05-골목-진입",
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "쓰레기수거",
+        "spatialScale": "원룸촌",
+        "objective": "골목 진입 가능한 차량 크기"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "05-골목-진입",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"쓰레기수거\",\"matchCount\":2,\"verdict\":\"ADJUST_REQUEST\",\"suggestions\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":2,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 원룸촌 → 원룸촌 한 블록(block)\"],\"mismatches\":[\"목적: 골목 진입 가능한 차량 크기 — 골목 진입 가능 여부 판정 미지원. 수거 지점이 등록되어 있지 않아 판정할 대상이 없다. 코드는 있으나 발동하지 않는다\"],\"requestAdjustments\":[{\"axis\":\"objective\",\"current\":\"골목 진입 가능한 차량 크기\",\"suggestion\":\"목적을 바꾸면 됩니다\",\"reason\":\"수거 지점이 등록되어 있지 않아 판정할 대상이 없다. 코드는 있으나 발동하지 않는다\",\"changesPurpose\":false}]}],\"note\":\"요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.\",\"matches\":[{\"serverId\":\"district-waste-sim\",\"name\":\"행정동 단위 생활폐기물 수거 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"fictional\":true,\"score\":2,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"목적: 골목 진입 가능한 차량 크기 → 차종\"],\"mismatches\":[\"공간 규모: 원룸촌 는 이 서버의 분석 단위(행정동 전체)와 맞지 않습니다\"],\"requestAdjustments\":[{\"axis\":\"spatialScale\",\"current\":\"원룸촌\",\"suggestion\":\"공간 규모를 '행정동 전체' 로 바꾸면 됩니다\",\"reason\":\"수거 지점을 좌표 없이 집계 단위로 다루므로 지점 수 상한이 없다. 대신 지점 하나하나의 적재·민원을 보지 못한다.\",\"changesPurpose\":false}]},{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":2,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 원룸촌 → 원룸촌 한 블록(block)\"],\"mismatches\":[\"목적: 골목 진입 가능한 차량 크기 — 골목 진입 가능 여부 판정 미지원. 수거 지점이 등록되어 있지 않아 판정할 대상이 없다. 코드는 있으나 발동하지 않는다\"],\"requestAdjustments\":[{\"axis\":\"objective\",\"current\":\"골목 진입 가능한 차량 크기\",\"suggestion\":\"목적을 바꾸면 됩니다\",\"reason\":\"수거 지점이 등록되어 있지 않아 판정할 대상이 없다. 코드는 있으나 발동하지 않는다\",\"changesPurpose\":false}]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}

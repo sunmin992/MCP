@@ -1,0 +1,38 @@
+# 도구 호출 로그(mcp.calls) — 두 서버 터미널에서 뽑은 줄, 손대지 않음
+
+## 브로커
+2026-09-29T15:47:01.672+09:00  INFO [f05cdb5e] 1271120 --- [waste-sim-broker] [0.1-8089-exec-2] mcp.calls                                : [연결] MCP 클라이언트 log-check 1
+2026-09-29T15:47:03.720+09:00  INFO [b5b23854] 1271120 --- [waste-sim-broker] [0.1-8089-exec-3] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=장량동 전체 · env=null · objective=비용이 적은 수거 시각
+2026-09-29T15:47:03.725+09:00  INFO [b5b23854] 1271120 --- [waste-sim-broker] [0.1-8089-exec-3] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [spatialScale='장량동 전체', objective='비용이 적은 수거 시각']
+2026-09-29T15:47:05.788+09:00  INFO [d6c4b648] 1271120 --- [waste-sim-broker] [0.1-8089-exec-4] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=[교통량] · objective=1대로 하루에 몇 번 수거하는 게 민원이 가장 적은지
+2026-09-29T15:47:05.788+09:00  INFO [d6c4b648] 1271120 --- [waste-sim-broker] [0.1-8089-exec-4] mcp.calls                                : [4 매칭] MATCH → jangnyang-waste-sim (http://localhost:8090/mcp) · 근거 4
+2026-09-29T16:04:38.632+09:00  INFO [55ca9fca] 1271120 --- [waste-sim-broker] [0.1-8089-exec-1] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=장량동 전체 · env=[평일 교통량] · objective=민원이 가장 적은 수거 시각
+2026-09-29T16:04:38.632+09:00  INFO [55ca9fca] 1271120 --- [waste-sim-broker] [0.1-8089-exec-1] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [spatialScale='장량동 전체']
+2026-09-29T16:04:38.648+09:00  INFO [60194c05] 1271120 --- [waste-sim-broker] [0.1-8089-exec-2] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=null · objective=수거 비용이 가장 적은 수거 시각
+2026-09-29T16:04:38.649+09:00  INFO [60194c05] 1271120 --- [waste-sim-broker] [0.1-8089-exec-2] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [objective='수거 비용이 가장 적은 수거 시각']
+2026-09-29T16:04:38.649+09:00  INFO [b7df470e] 1271120 --- [waste-sim-broker] [0.1-8089-exec-3] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=[실제 도로 이동시간] · objective=수거 완료 시각
+2026-09-29T16:04:38.649+09:00  INFO [b7df470e] 1271120 --- [waste-sim-broker] [0.1-8089-exec-3] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [environmentConditions='실제 도로 이동시간']
+2026-09-29T16:04:38.649+09:00  INFO [b9eba673] 1271120 --- [waste-sim-broker] [0.1-8089-exec-4] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=null · objective=차량별 차종을 섞었을 때 민원
+2026-09-29T16:04:38.649+09:00  INFO [b9eba673] 1271120 --- [waste-sim-broker] [0.1-8089-exec-4] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [objective='차량별 차종을 섞었을 때 민원']
+2026-09-29T16:04:38.649+09:00  INFO [2981134e] 1271120 --- [waste-sim-broker] [0.1-8089-exec-5] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=원룸촌 · env=null · objective=골목 진입 가능한 차량 크기
+2026-09-29T16:04:38.649+09:00  INFO [2981134e] 1271120 --- [waste-sim-broker] [0.1-8089-exec-5] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [objective='골목 진입 가능한 차량 크기']
+2026-09-29T16:04:38.649+09:00  INFO [f6f7ad05] 1271120 --- [waste-sim-broker] [0.1-8089-exec-6] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=null · objective=현재 운영 대비 민원 감소
+2026-09-29T16:04:38.649+09:00  INFO [f6f7ad05] 1271120 --- [waste-sim-broker] [0.1-8089-exec-6] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [objective='현재 운영 대비 민원 감소']
+2026-09-29T16:04:38.666+09:00  INFO [546d1e72] 1271120 --- [waste-sim-broker] [0.1-8089-exec-7] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=null · objective=시뮬레이션 결과가 실제와 맞는지 검증
+2026-09-29T16:04:38.666+09:00  INFO [546d1e72] 1271120 --- [waste-sim-broker] [0.1-8089-exec-7] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [objective='시뮬레이션 결과가 실제와 맞는지 검증']
+2026-09-29T16:04:38.666+09:00  INFO [f4315451] 1271120 --- [waste-sim-broker] [0.1-8089-exec-8] mcp.calls                                : [3 조회] domain=교통 신호 최적화 · scale=한 동네 · env=null · objective=신호 주기 최적화
+2026-09-29T16:04:38.666+09:00  INFO [f4315451] 1271120 --- [waste-sim-broker] [0.1-8089-exec-8] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [domain='교통 신호 최적화'(목적 바뀜)]
+2026-09-29T16:04:38.666+09:00  INFO [72a94b0e] 1271120 --- [waste-sim-broker] [0.1-8089-exec-9] mcp.calls                                : [3 조회] domain=상수도 누수 · scale=한 동네 · env=null · objective=누수 지점 찾기
+2026-09-29T16:04:38.666+09:00  INFO [72a94b0e] 1271120 --- [waste-sim-broker] [0.1-8089-exec-9] mcp.calls                                : [4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [domain='상수도 누수'(목적 바뀜)]
+2026-09-29T16:04:53.164+09:00  INFO [9f70e987] 1271120 --- [waste-sim-broker] [.1-8089-exec-10] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=부산 해운대구 한 동네 · env=null · objective=민원이 가장 적은 수거 시각
+2026-09-29T16:04:53.164+09:00  INFO [9f70e987] 1271120 --- [waste-sim-broker] [.1-8089-exec-10] mcp.calls                                : [4 매칭] MATCH → jangnyang-waste-sim (http://localhost:8090/mcp) · 근거 3
+2026-09-29T16:04:53.164+09:00  INFO [a8764ed9] 1271120 --- [waste-sim-broker] [0.1-8089-exec-1] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=건물 30동짜리 한 동네 · env=null · objective=민원이 가장 적은 수거 시각
+2026-09-29T16:04:53.164+09:00  INFO [a8764ed9] 1271120 --- [waste-sim-broker] [0.1-8089-exec-1] mcp.calls                                : [4 매칭] MATCH → jangnyang-waste-sim (http://localhost:8090/mcp) · 근거 3
+
+## 시뮬레이터
+2026-09-29T15:47:07.884+09:00  INFO [7560c073] 1263844 --- [waste-sim-spring] [0.1-8090-exec-1] mcp.calls                                : [연결] MCP 클라이언트 log-check 1
+2026-09-29T15:47:09.943+09:00  INFO [53676787] 1263844 --- [waste-sim-spring] [0.1-8090-exec-4] mcp.calls                                : [카드] get_capability → jangnyang-waste-sim · 원룸촌 한 블록
+2026-09-29T15:47:11.990+09:00  INFO [40612ada] 1263844 --- [waste-sim-spring] [0.1-8090-exec-3] mcp.calls                                : [5 템플릿] get_templates → 15개
+2026-09-29T15:47:14.068+09:00  INFO [2161178c] 1263844 --- [waste-sim-spring] [0.1-8090-exec-2] mcp.calls                                : [6 서브태스크] plan_subtasks → {"FILLED":2,"UNFILLED":8,"DEFERRED":3,"NOT_GENERATED":2} complete=false
+2026-09-29T15:47:16.096+09:00  INFO [4227f071] 1263844 --- [waste-sim-spring] [0.1-8090-exec-6] mcp.calls                                : [8 값 검증] validate_answers → valid=false 통과 0 · 거절 1 [{"answerKey":"collectionTimesMinutes","code":"DUPLICATE_VALUE","message":"collectionTimesMinutes 에 같은 값이 두 번 있습니다: 660"}]
+2026-09-29T15:47:18.168+09:00  INFO [93d75437] 1263844 --- [waste-sim-spring] [0.1-8090-exec-5] mcp.calls                                : [9·10 시나리오] build_scenario → scn-23986b85 · 2벌 · UNCONFIRMED · 미승인 1

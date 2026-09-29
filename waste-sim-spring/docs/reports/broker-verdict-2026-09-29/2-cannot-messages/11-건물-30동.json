@@ -1,0 +1,28 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "11-건물-30동",
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "쓰레기수거",
+        "spatialScale": "건물 30동짜리 한 동네",
+        "objective": "민원이 가장 적은 수거 시각"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "11-건물-30동",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"쓰레기수거\",\"matchCount\":2,\"verdict\":\"MATCH\",\"recommended\":{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 건물 30동짜리 한 동네 → 원룸촌 한 블록(block)\",\"목적: 민원이 가장 적은 수거 시각 → 수거 시각, 민원 수\"],\"mismatches\":[],\"requestAdjustments\":[]},\"matches\":[{\"serverId\":\"district-waste-sim\",\"name\":\"행정동 단위 생활폐기물 수거 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"fictional\":true,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 건물 30동짜리 한 동네 → 행정동 전체(district)\",\"목적: 민원이 가장 적은 수거 시각 → 수거 시각, 민원 수\"],\"mismatches\":[],\"requestAdjustments\":[]},{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 건물 30동짜리 한 동네 → 원룸촌 한 블록(block)\",\"목적: 민원이 가장 적은 수거 시각 → 수거 시각, 민원 수\"],\"mismatches\":[],\"requestAdjustments\":[]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}
