@@ -134,6 +134,30 @@ class BrokerVerdictTest {
         assertFalse(adj.path("changesPurpose").asBoolean(), "도메인은 같으니 같은 서버 안에서 질문을 좁히는 것이다");
     }
 
+    @Test
+    void 지금_운영과의_비교는_기준_자료가_없어_설정_간_비교를_제안한다() throws Exception {
+        // 채팅 시험에서 "지금 운영 방식 대비" 가 카드 키(현재 운영 · 지금보다 · …)에 걸리지 않아
+        // "민원" 만 보고 MATCH 로 통과했다.
+        ObjectNode a = mapper.createObjectNode();
+        a.put("domain", "쓰레기수거");
+        a.put("spatialScale", "한 동네");
+        a.put("objective", "지금 운영 방식 대비 민원 감소");
+        JsonNode out = find(a);
+        assertEquals("ADJUST_REQUEST", out.path("verdict").asText());
+        assertTrue(조정(제안(out, "jangnyang-waste-sim"), "objective").path("suggestion").asText()
+                .contains("설정 간 비교"));
+    }
+
+    @Test
+    void 설정끼리의_비교는_운영이라는_말이_들어가도_막지_않는다() throws Exception {
+        // 키를 넓히면(예: "운영 방식") 정당한 설정 비교까지 막는다 — 그 경계를 고정한다.
+        ObjectNode a = mapper.createObjectNode();
+        a.put("domain", "쓰레기수거");
+        a.put("spatialScale", "한 동네");
+        a.put("objective", "격일 운영 방식과 매일 운영 방식의 민원 비교");
+        assertEquals("MATCH", find(a).path("verdict").asText());
+    }
+
     // ── 지어낸 후보 ─────────────────────────────────────────────────────────
 
     @Test
