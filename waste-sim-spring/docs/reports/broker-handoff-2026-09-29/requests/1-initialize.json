@@ -1,0 +1,35 @@
+{
+  "요청헤더": {
+    "Mcp-Session-Id": null
+  },
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "initialize",
+    "params": {
+      "protocolVersion": "2025-06-18",
+      "capabilities": {},
+      "clientInfo": {
+        "name": "handoff-check",
+        "version": "1"
+      }
+    }
+  },
+  "응답헤더": {
+    "Mcp-Session-Id": "9933c2c2-a074-4ddd-8ff9-fcfe02e70a9f"
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": 1,
+    "result": {
+      "protocolVersion": "2024-11-05",
+      "capabilities": {
+        "tools": {}
+      },
+      "serverInfo": {
+        "name": "waste-sim-broker",
+        "version": "1.0.0"
+      }
+    }
+  }
+}

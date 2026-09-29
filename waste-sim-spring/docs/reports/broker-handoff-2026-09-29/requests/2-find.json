@@ -1,0 +1,37 @@
+{
+  "요청헤더": {
+    "Mcp-Session-Id": "9933c2c2-a074-4ddd-8ff9-fcfe02e70a9f"
+  },
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "쓰레기수거",
+        "spatialScale": "한 동네",
+        "environmentConditions": [
+          "교통량"
+        ],
+        "objective": "1대로 하루에 몇 번 수거하는 게 민원이 가장 적은지"
+      }
+    }
+  },
+  "응답헤더": {
+    "Mcp-Session-Id": null
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": 2,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"쓰레기수거\",\"matchCount\":2,\"verdict\":\"MATCH\",\"recommended\":{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":6,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\",\"환경 조건: 교통량 → traffic-profile\",\"목적: 1대로 하루에 몇 번 수거하는 게 민원이 가장 적은지 → 하루 수거 횟수, 민원 수\"],\"mismatches\":[],\"requestAdjustments\":[]},\"nextStep\":\"이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8090/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.\",\"matches\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":6,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\",\"환경 조건: 교통량 → traffic-profile\",\"목적: 1대로 하루에 몇 번 수거하는 게 민원이 가장 적은지 → 하루 수거 횟수, 민원 수\"],\"mismatches\":[],\"requestAdjustments\":[]},{\"serverId\":\"district-waste-sim\",\"name\":\"행정동 단위 생활폐기물 수거 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"fictional\":true,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 행정동 전체(district)\",\"목적: 1대로 하루에 몇 번 수거하는 게 민원이 가장 적은지 → 민원 수\"],\"mismatches\":[\"환경 조건: 교통량 — 교통 지체 반영 미지원. 이동시간을 구간 상수로만 다룬다. 시간대별 지체 배수가 모델에 없다\"],\"requestAdjustments\":[{\"axis\":\"environmentConditions\",\"current\":\"교통량\",\"suggestion\":\"'교통량' 조건을 빼면 됩니다\",\"reason\":\"이동시간을 구간 상수로만 다룬다. 시간대별 지체 배수가 모델에 없다\",\"changesPurpose\":false}]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}
