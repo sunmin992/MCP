@@ -1,0 +1,27 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "13-run-by-token",
+    "method": "tools/call",
+    "params": {
+      "name": "run_scenario_by_token",
+      "arguments": {
+        "scenarioId": "scn-fda468c1",
+        "confirmToken": "cft-dbaa3d550de79e86"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "13-run-by-token",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "\"{\\\"scenarioId\\\":\\\"scn-fda468c1\\\",\\\"state\\\":\\\"EXECUTED\\\",\\\"notForOperationalUse\\\":true,\\\"limitation\\\":\\\"이 결과는 설정 간 비교이며 운영 예측이 아니다.\\\",\\\"runs\\\":[{\\\"collectionTimeMinutes\\\":720,\\\"collectionTimesMinutes\\\":[660],\\\"meanComplaints\\\":26.9,\\\"stdComplaints\\\":4.8,\\\"truckUtilizationPercent\\\":59.33,\\\"uncollectedDemandKg\\\":0.0,\\\"seeds\\\":30,\\\"massBalanceErrorKg\\\":0.0,\\\"allTotals\\\":[29,25,29,26,31,28,32,23,28,30,17,28,31,18,29,24,28,32,32,35,25,28,30,21,20,28,35,18,28,20],\\\"dataQualityFlags\\\":[],\\\"assumptionNotes\\\":[],\\\"coordinateQuality\\\":\\\"좌표 미사용\\\"},{\\\"collectionTimeMinutes\\\":720,\\\"collectionTimesMinutes\\\":[660,1380],\\\"meanComplaints\\\":0.0,\\\"stdComplaints\\\":0.0,\\\"truckUtilizationPercent\\\":29.99,\\\"uncollectedDemandKg\\\":0.0,\\\"seeds\\\":30,\\\"massBalanceErrorKg\\\":0.0,\\\"allTotals\\\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\\\"dataQualityFlags\\\":[],\\\"assumptionNotes\\\":[],\\\"coordinateQuality\\\":\\\"좌표 미사용\\\"},{\\\"collectionTimeMinutes\\\":720,\\\"collectionTimesMinutes\\\":[180,660,1140],\\\"meanComplaints\\\":0.0,\\\"stdComplaints\\\":0.0,\\\"truckUtilizationPercent\\\":19.99,\\\"uncollectedDemandKg\\\":0.0,\\\"seeds\\\":30,\\\"massBalanceErrorKg\\\":0.0,\\\"allTotals\\\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\\\"dataQualityFlags\\\":[],\\\"assumptionNotes\\\":[],\\\"coordinateQuality\\\":\\\"좌표 미사용\\\"},{\\\"collectionTimeMinutes\\\":720,\\\"collectionTimesMinutes\\\":[180,660,1020,1380],\\\"meanComplaints\\\":0.0,\\\"stdComplaints\\\":0.0,\\\"truckUtilizationPercent\\\":15.0,\\\"uncollectedDemandKg\\\":0.0,\\\"seeds\\\":30,\\\"massBalanceErrorKg\\\":0.0,\\\"allTotals\\\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\\\"dataQualityFlags\\\":[],\\\"assumptionNotes\\\":[],\\\"coordinateQuality\\\":\\\"좌표 미사용\\\"}]}\""
+        }
+      ],
+      "isError": false
+    }
+  }
+}
