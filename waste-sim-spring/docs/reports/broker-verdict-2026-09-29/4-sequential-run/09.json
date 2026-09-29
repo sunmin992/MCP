@@ -1,0 +1,29 @@
+{
+  "입력 메시지": "우리 동네 상수도 누수 지점을 찾고 싶어",
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": 9,
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "상수도 누수",
+        "spatialScale": "한 동네",
+        "objective": "누수 지점 찾기"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": 9,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"상수도 누수\",\"matchCount\":1,\"verdict\":\"ADJUST_REQUEST\",\"suggestions\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":2,\"reasons\":[\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\"],\"mismatches\":[\"도메인: 상수도 누수 는 이 서버의 도메인(waste-collection)이 아닙니다\",\"목적: 누수 지점 찾기 — 이 서버가 답할 수 있는 질문에 없습니다\"],\"requestAdjustments\":[{\"axis\":\"domain\",\"current\":\"상수도 누수\",\"suggestion\":\"이 서버는 쓰레기수거, 생활쓰레기, 생활폐기물, 폐기물 수거, 쓰레기 를 다룹니다. 답할 수 있는 질문: 수거 시각, 하루 수거 횟수, 수거 주기, 수거 요일, 차량 수, 차종, 배차 간격, 교통 영향, 거주민 구성, 분리배출, 임대인 점검, 민원 수, 최대 적재량, 차량 가동률, 수거 완료 시각\",\"reason\":\"요청한 도메인을 다루지 않습니다 — 요청을 고치는 게 아니라 다른 질문을 하게 됩니다\",\"changesPurpose\":true}]}],\"note\":\"요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.\",\"matches\":[{\"serverId\":\"water-leak-sim\",\"name\":\"상수도 관로 누수 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"fictional\":true,\"score\":2,\"reasons\":[\"도메인: 상수도 누수 → water-supply\",\"목적: 누수 지점 찾기 → 누수 지점\"],\"mismatches\":[\"공간 규모: 한 동네 는 이 서버의 분석 단위(관로망 한 구역)와 맞지 않습니다\"],\"requestAdjustments\":[{\"axis\":\"spatialScale\",\"current\":\"한 동네\",\"suggestion\":\"공간 규모를 '관로망 한 구역' 로 바꾸면 됩니다\",\"reason\":\"관로 구간과 절점으로 이루어진 망이 분석 단위다. 행정 경계와 일치하지 않는다.\",\"changesPurpose\":false}]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}
