@@ -17,8 +17,8 @@ class TemplateCatalogTest {
     private final TemplateCatalog catalog = new TemplateCatalog();
 
     @Test
-    void 템플릿_열네개를_읽는다() {
-        assertEquals(14, catalog.all().size());
+    void 템플릿_열다섯개를_읽는다() {
+        assertEquals(15, catalog.all().size());
     }
 
     @Test

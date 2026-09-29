@@ -51,7 +51,7 @@
       "templateId": "jn.collectionTime",
       "answerKey": "collectionTimeMinutes",
       "valueType": "INTEGER",
-      "generateWhen": "ALWAYS",
+      "generateWhen": "SINGLE_COLLECTION_TIME",
       "min": 0,
       "max": 1439,
       "unit": "minute",
@@ -60,6 +60,21 @@
       "question": "하루 중 몇 시에 수거할까요?",
       "configField": "collectionTimeMinutes",
       "sesPath": "실험프레임/수거시각",
+      "nodeKind": "ATTRIBUTE"
+    },
+    {
+      "templateId": "jn.collectionTimes",
+      "answerKey": "collectionTimesMinutes",
+      "valueType": "INTEGER_LIST",
+      "generateWhen": "MULTI_COLLECTION_TIMES_GIVEN",
+      "min": 0,
+      "max": 1439,
+      "unit": "minute",
+      "defaultValue": null,
+      "defaultBasis": "없음 — 하루 1회가 기본이고, 여러 번이면 시각을 사람이 확인한다",
+      "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+      "configField": "collectionTimesMinutes",
+      "sesPath": "실험프레임/하루수거시각",
       "nodeKind": "ATTRIBUTE"
     },
     {

@@ -58,7 +58,8 @@ public class ValidateAnswersTool implements McpToolProvider {
 
             args.path("answers").fields().forEachRemaining(e -> {
                 String key = e.getKey();
-                String raw = e.getValue().asText();
+                // 배열의 asText() 는 빈 문자열이다 — 그대로 두면 목록 답이 "답 없음" 으로 거절된다.
+                String raw = e.getValue().isArray() ? e.getValue().toString() : e.getValue().asText();
                 Optional<SubtaskTemplate> t = catalog.byAnswerKey(key);
                 if (t.isEmpty()) {
                     var r = rejected.addObject();

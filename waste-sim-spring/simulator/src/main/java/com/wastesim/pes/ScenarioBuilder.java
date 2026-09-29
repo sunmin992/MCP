@@ -47,10 +47,11 @@ public class ScenarioBuilder {
         for (Object value : frame.values()) {
             Map<String, Object> values = new LinkedHashMap<>(pes.values());
             values.put(frame.variableAnswerKey(), value);
-            // 실험 변수의 출처는 실험 프레임이다. 삽입 순서를 유지해야 같은 입력이
-            // 같은 시나리오 식별자를 낸다 — HashMap 을 쓰면 순서가 흔들린다.
+            // 실험 변수의 출처는 실험 프레임이다 — 따로 적혀 오지 않았으면 사용자가 정한 비교로
+            // 본다. LLM 이 제안한 값(MODEL_DEFAULT)이면 그 출처를 지킨다. 삽입 순서를 유지해야
+            // 같은 입력이 같은 시나리오 식별자를 낸다 — HashMap 을 쓰면 순서가 흔들린다.
             Map<String, String> origins = new LinkedHashMap<>(pes.origins());
-            origins.put(frame.variableAnswerKey(), "USER");
+            origins.putIfAbsent(frame.variableAnswerKey(), "USER");
             Pes runPes = new Pes(pes.sesId(), pes.sesVersion(), values, origins);
 
             SimulationConfig cfg = flattener.flatten(runPes);

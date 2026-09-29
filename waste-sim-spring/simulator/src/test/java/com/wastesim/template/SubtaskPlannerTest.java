@@ -186,7 +186,8 @@ class SubtaskPlannerTest {
 
     @Test
     void 상태별_개수가_섞인_계획에서_맞게_집계된다() {
-        // FILLED 4개(truckType,truckCount,numBuildings,trafficMode) · NOT_GENERATED 1개(trafficProfile)
+        // FILLED 4개(truckType,truckCount,numBuildings,trafficMode) · NOT_GENERATED 2개(trafficProfile,
+        // collectionTimes — 다회 수거를 말하지 않았다)
         // · DEFERRED 2개(zoneAssignmentRule,intraZoneTravel) · UNFILLED 나머지 7개
         // (collectionTime·dispatchInterval·travelTimeMode·residentsPerBuilding·days·seeds
         //  ·routeAvailableCapacity).
@@ -202,7 +203,7 @@ class SubtaskPlannerTest {
         assertEquals(4, counts.get(SubtaskStatus.FILLED));
         assertEquals(7, counts.get(SubtaskStatus.UNFILLED));
         assertEquals(2, counts.get(SubtaskStatus.DEFERRED));
-        assertEquals(1, counts.get(SubtaskStatus.NOT_GENERATED));
+        assertEquals(2, counts.get(SubtaskStatus.NOT_GENERATED));
     }
 
     @Test

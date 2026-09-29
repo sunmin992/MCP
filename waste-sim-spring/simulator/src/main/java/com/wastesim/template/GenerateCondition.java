@@ -85,9 +85,42 @@ public enum GenerateCondition {
             }
             return equalsOrUnknown(answers, "zoneAssignmentRule", "CONTIGUOUS");
         }
+    },
+
+    /**
+     * 사용자가 하루 여러 번 수거를 말했을 때만. 하루 수거 시각 목록이 걸리는 조건이다.
+     *
+     * <p>이 결정은 서버가 먼저 묻지 않는다 — 기본은 하루 1회이고, 다회 수거를 말하지 않은
+     * 대화에 목록을 물으면 기존 흐름이 한 칸 늘어난다. 그래서 답이 들어왔을 때만 생성되고,
+     * 없으면 "필요 없음" 이지 "아직 모름" 이 아니다.
+     */
+    MULTI_COLLECTION_TIMES_GIVEN {
+        @Override
+        public Activation evaluate(Map<String, Object> answers) {
+            return hasTimesList(answers) ? Activation.ACTIVE : Activation.INACTIVE;
+        }
+    },
+
+    /**
+     * 하루 수거 시각 목록이 없을 때만. 수거 시각 하나가 걸리는 조건이다.
+     *
+     * <p>둘 다 받으면 엔진은 목록을 쓴다({@code SimulationConfig.resolveCollectionSlots}).
+     * 그러면 사용자가 준 시각 하나는 조용히 버려지므로, 목록이 있으면 아예 묻지 않는다.
+     */
+    SINGLE_COLLECTION_TIME {
+        @Override
+        public Activation evaluate(Map<String, Object> answers) {
+            return hasTimesList(answers) ? Activation.INACTIVE : Activation.ACTIVE;
+        }
     };
 
     public abstract Activation evaluate(Map<String, Object> answers);
+
+    static boolean hasTimesList(Map<String, Object> answers) {
+        Object v = answers.get("collectionTimesMinutes");
+        if (v instanceof java.util.Collection<?> c) return !c.isEmpty();
+        return v != null && !String.valueOf(v).isBlank();
+    }
 
     static Activation equalsOrUnknown(Map<String, Object> answers, String key, String expected) {
         Object v = answers.get(key);

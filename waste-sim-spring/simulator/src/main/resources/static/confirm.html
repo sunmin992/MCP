@@ -54,7 +54,10 @@ const $list = document.getElementById('list');
 const $detail = document.getElementById('detail');
 let current = null;
 
-const esc = s => String(s).replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// 목록은 괄호를 살려 낸다. String([[660],[660,1380]]) 은 "660,660,1380" 이라 어디서 한 조건이
+// 끝나는지 사라진다 — 사람이 무엇을 승인하는지 읽을 수 없으면 확인이 확인이 아니다.
+const esc = s => (Array.isArray(s) ? JSON.stringify(s) : String(s))
+  .replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
 
 async function loadList() {
   const body = await (await fetch('/api/scenarios')).json();

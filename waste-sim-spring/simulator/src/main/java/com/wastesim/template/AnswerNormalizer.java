@@ -65,6 +65,37 @@ public class AnswerNormalizer {
             return NormalizeResult.pass((int) n);
         }
 
+        // 정수 목록. 하루 수거 시각처럼 몇 개인지가 답의 일부인 값이다. JSON 배열("[660,1380]")
+        // 이나 쉼표 구분("660, 1380")을 받는다. 순서를 바꾸거나 겹친 값을 지워 주지 않는다 —
+        // 고쳐 주면 사용자가 확인한 것과 다른 목록이 돈다.
+        if ("INTEGER_LIST".equals(t.valueType())) {
+            String body = v.startsWith("[") && v.endsWith("]") ? v.substring(1, v.length() - 1) : v;
+            if (body.isBlank()) {
+                return NormalizeResult.fail("EMPTY_ANSWER", t.answerKey() + " 에 값이 하나도 없습니다.");
+            }
+            java.util.List<Integer> out = new java.util.ArrayList<>();
+            for (String part : body.split(",")) {
+                String p = part.trim().replaceAll("^\"|\"$", "");
+                int n;
+                try {
+                    n = Integer.parseInt(p);
+                } catch (NumberFormatException e) {
+                    return NormalizeResult.fail("NOT_A_NUMBER",
+                            t.answerKey() + " 의 값은 정수여야 합니다. 받은 값: " + p);
+                }
+                if ((t.min() != null && n < t.min()) || (t.max() != null && n > t.max())) {
+                    return NormalizeResult.fail("OUT_OF_RANGE",
+                            t.answerKey() + " 의 값은 " + t.min().intValue() + "~" + t.max().intValue()
+                                    + " 이어야 합니다. 받은 값: " + n);
+                }
+                if (out.contains(n)) {
+                    return NormalizeResult.fail("DUPLICATE_VALUE",
+                            t.answerKey() + " 에 같은 값이 두 번 있습니다: " + n);
+                }
+                out.add(n);
+            }
+            return NormalizeResult.pass(java.util.List.copyOf(out));
+        }
         // 실수형. 경로 배정용량처럼 상한이 다른 답(차종)에 달린 값은 min/max 를 비워 두고
         // SimulationConfigValidator 가 정본으로 남는다 — 범위를 두 곳에서 정의하지 않는다.
         if ("NUMBER".equals(t.valueType())) {

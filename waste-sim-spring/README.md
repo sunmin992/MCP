@@ -73,8 +73,8 @@ MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **572건 중 569건 통과·3건 스킵**
-이다(브로커 46 · 시뮬레이터 526). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **578건 중 575건 통과·3건 스킵**
+이다(브로커 46 · 시뮬레이터 532). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
 엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트

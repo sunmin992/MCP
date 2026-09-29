@@ -51,6 +51,21 @@ public class PesFlattener {
         if (p == Double.class && converted instanceof Number n) {
             converted = n.doubleValue();
         }
+        // 목록 세터(하루 수거 시각)는 List<Integer> 다. 원소가 Long 이나 문자열로 들어오면
+        // 엔진이 분을 읽다가 ClassCastException 으로 멈추므로 여기서 정수로 맞춘다. 맞출 수
+        // 없으면 세터를 부르지 않고 거절한다 — 고쳐 주지 않는다.
+        if (p == java.util.List.class && converted instanceof java.util.List<?> list) {
+            java.util.List<Integer> ints = new java.util.ArrayList<>();
+            for (Object e : list) {
+                if (e instanceof Number num && num.doubleValue() == Math.rint(num.doubleValue())) {
+                    ints.add(num.intValue());
+                } else {
+                    throw new IllegalArgumentException(
+                            field + " 의 값은 정수 목록이어야 합니다. 받은 값: " + list);
+                }
+            }
+            converted = ints;
+        }
         try {
             setter.invoke(cfg, converted);
         } catch (ReflectiveOperationException ex) {
@@ -81,6 +96,7 @@ public class PesFlattener {
             if ((p == int.class || p == Integer.class) && value instanceof Integer) return m;
             if ((p == boolean.class || p == Boolean.class) && value instanceof Boolean) return m;
             if ((p == double.class || p == Double.class) && value instanceof Number) return m;
+            if (p == java.util.List.class && value instanceof java.util.List) return m;
         }
         return null;
     }

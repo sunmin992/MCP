@@ -107,6 +107,11 @@ public class RunScenarioByTokenTool implements McpToolProvider {
                 SimulationResult r = simulations.runExperiment(cfg);
                 var node = runs.addObject();
                 node.put("collectionTimeMinutes", cfg.getCollectionTimeMinutes());
+                // 하루 여러 번 수거면 엔진은 이 목록으로 돈다. 빠뜨리면 행마다 기본 시각(720)만
+                // 보여 어느 조건의 결과인지 알 수 없다.
+                if (cfg.getCollectionTimesMinutes() != null && !cfg.getCollectionTimesMinutes().isEmpty()) {
+                    node.set("collectionTimesMinutes", mapper.valueToTree(cfg.getCollectionTimesMinutes()));
+                }
 
                 // 반복 집계가 채우는 값만 낸다. totalComplaints·peakFillKg·seed 는 한 번
                 // 돌렸을 때의 값이라 집계 요약에 없다 — 없는 것을 0 으로 내보내면 재지 않은

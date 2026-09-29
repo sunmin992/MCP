@@ -87,6 +87,16 @@ public class BuildScenarioTool implements McpToolProvider {
                     args.path("variableAnswerKey").asText(), variableValues, observations);
 
             Scenario scenario = builder.build(pes, frame);
+
+            // 실험 변수는 값이 여럿이라 기본 PES 에 들어 있지 않다. LLM 이 그 값들을 제안했으면
+            // (출처 MODEL_DEFAULT) 확인 화면이 경고할 수 있도록, 보관할 PES 에 비교할 값 목록을
+            // 함께 싣는다. 식별자와 토큰은 builder 가 이미 계산했으므로 바뀌지 않는다.
+            String variableKey = frame.variableAnswerKey();
+            if (origins.containsKey(variableKey) && !values.containsKey(variableKey)) {
+                Map<String, Object> shown = new LinkedHashMap<>(values);
+                shown.put(variableKey, List.copyOf(variableValues));
+                pes = new Pes(pes.sesId(), pes.sesVersion(), shown, origins);
+            }
             if (scenario.valid()) store.put(scenario, pes);
 
             var root = mapper.createObjectNode();

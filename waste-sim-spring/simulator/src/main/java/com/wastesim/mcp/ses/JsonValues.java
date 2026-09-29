@@ -14,6 +14,13 @@ final class JsonValues {
     private JsonValues() {}
 
     static Object plain(JsonNode v) {
+        // 배열의 asText() 는 빈 문자열이다. 하루 수거 시각 목록이 여기서 "" 가 되면 조용히
+        // 기본 1회로 돈다.
+        if (v.isArray()) {
+            java.util.List<Object> out = new java.util.ArrayList<>();
+            v.forEach(e -> out.add(plain(e)));
+            return java.util.List.copyOf(out);
+        }
         if (v.isInt()) return v.asInt();
         if (v.isBoolean()) return v.asBoolean();
         if (v.isNumber() && !v.isIntegralNumber()) return v.asDouble();
