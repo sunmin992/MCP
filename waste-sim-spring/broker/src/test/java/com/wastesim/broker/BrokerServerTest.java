@@ -3,6 +3,9 @@ package com.wastesim.broker;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.springframework.boot.test.system.CapturedOutput;
+import org.springframework.boot.test.system.OutputCaptureExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -22,6 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  */
 @SpringBootTest
 @AutoConfigureMockMvc
+@ExtendWith(OutputCaptureExtension.class)
 class BrokerServerTest {
 
     @Autowired MockMvc mvc;
@@ -56,6 +60,19 @@ class BrokerServerTest {
         JsonNode top = body.path("matches").get(0);
         assertEquals("jangnyang-waste-sim", top.path("serverId").asText());
         assertEquals("http://localhost:8090/mcp", top.path("endpoint").asText());
+    }
+
+    @Test
+    void 조회와_매칭을_서버_로그에_한_줄씩_남긴다(CapturedOutput output) throws Exception {
+        // LLM 쪽 화면에는 모델이 보낸 것과 받은 것만 보인다. 브로커가 실제로 무엇을 받아 어떻게
+        // 판정했는지는 서버 로그에서만 볼 수 있다.
+        mvc.perform(post("/api/simulators").contentType(MediaType.APPLICATION_JSON)
+                .content(TestCards.jangnyang().toString())).andExpect(status().isOk());
+        rpc("tools/call", "{\"name\":\"find_simulators\",\"arguments\":"
+                + "{\"domain\":\"쓰레기수거\",\"spatialScale\":\"장량동 전체\"}}");
+        assertTrue(output.getOut().contains("[3 조회] domain=쓰레기수거 · scale=장량동 전체"), output.getOut());
+        assertTrue(output.getOut().contains("[4 매칭] ADJUST_REQUEST → jangnyang-waste-sim 쓰려면 고칠 것: [spatialScale='장량동 전체']"),
+                output.getOut());
     }
 
     @Test

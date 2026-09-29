@@ -2,11 +2,11 @@
   "mcpServers": {
     "waste-broker": {
       "type": "http",
-      "url": "http://localhost:8089/mcp"
+      "url": "http://127.0.0.1:8089/mcp"
     },
     "jangnyang-simulator": {
       "type": "http",
-      "url": "http://localhost:8090/mcp"
+      "url": "http://127.0.0.1:8090/mcp"
     }
   }
 }

@@ -77,6 +77,59 @@
           "계절"
         ]
       }
+    ],
+    "objectiveMatchKeys": [
+      {
+        "key": "collection-time",
+        "label": "수거 시각",
+        "matchKeys": [
+          "수거 시각",
+          "수거시각",
+          "몇 시",
+          "시각"
+        ]
+      },
+      {
+        "key": "collection-interval",
+        "label": "수거 주기",
+        "matchKeys": [
+          "수거 주기",
+          "격일",
+          "며칠마다"
+        ]
+      },
+      {
+        "key": "collection-days",
+        "label": "수거 요일",
+        "matchKeys": [
+          "수거 요일",
+          "요일"
+        ]
+      },
+      {
+        "key": "truck-count",
+        "label": "차량 수",
+        "matchKeys": [
+          "차량 수",
+          "몇 대",
+          "대수"
+        ]
+      },
+      {
+        "key": "truck-type",
+        "label": "차종",
+        "matchKeys": [
+          "차종",
+          "차량 크기"
+        ]
+      },
+      {
+        "key": "complaint-rate",
+        "label": "민원 수",
+        "matchKeys": [
+          "민원"
+        ]
+      }
     ]
   },
   "unsupported": [

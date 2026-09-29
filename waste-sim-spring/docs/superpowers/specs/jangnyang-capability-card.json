@@ -349,6 +349,7 @@
     ],
     "answerableQuestions": [
       "collection-time",
+      "collection-count",
       "collection-interval",
       "collection-days",
       "truck-count",
@@ -443,6 +444,138 @@
         "matchKeys": [
           "월별",
           "계절"
+        ]
+      }
+    ],
+    "objectiveMatchKeys": [
+      {
+        "key": "collection-time",
+        "label": "수거 시각",
+        "matchKeys": [
+          "수거 시각",
+          "수거시각",
+          "몇 시",
+          "시각"
+        ]
+      },
+      {
+        "key": "collection-count",
+        "label": "하루 수거 횟수",
+        "matchKeys": [
+          "하루에 몇 번",
+          "하루 몇 번",
+          "수거 횟수",
+          "몇 번 수거"
+        ]
+      },
+      {
+        "key": "collection-interval",
+        "label": "수거 주기",
+        "matchKeys": [
+          "수거 주기",
+          "격일",
+          "며칠마다",
+          "며칠에 한 번"
+        ]
+      },
+      {
+        "key": "collection-days",
+        "label": "수거 요일",
+        "matchKeys": [
+          "수거 요일",
+          "요일",
+          "주말 수거"
+        ]
+      },
+      {
+        "key": "truck-count",
+        "label": "차량 수",
+        "matchKeys": [
+          "차량 수",
+          "몇 대",
+          "대수"
+        ]
+      },
+      {
+        "key": "truck-type",
+        "label": "차종",
+        "matchKeys": [
+          "차종",
+          "차량 크기",
+          "톤 차"
+        ]
+      },
+      {
+        "key": "dispatch-interval",
+        "label": "배차 간격",
+        "matchKeys": [
+          "배차 간격",
+          "배차"
+        ]
+      },
+      {
+        "key": "traffic-effect",
+        "label": "교통 영향",
+        "matchKeys": [
+          "교통 영향",
+          "교통량 영향",
+          "정체"
+        ]
+      },
+      {
+        "key": "occupation-mix",
+        "label": "거주민 구성",
+        "matchKeys": [
+          "거주민 구성",
+          "직업"
+        ]
+      },
+      {
+        "key": "waste-separation",
+        "label": "분리배출",
+        "matchKeys": [
+          "분리배출",
+          "재활용"
+        ]
+      },
+      {
+        "key": "landlord-inspection",
+        "label": "임대인 점검",
+        "matchKeys": [
+          "임대인",
+          "점검"
+        ]
+      },
+      {
+        "key": "complaint-rate",
+        "label": "민원 수",
+        "matchKeys": [
+          "민원"
+        ]
+      },
+      {
+        "key": "peak-fill",
+        "label": "최대 적재량",
+        "matchKeys": [
+          "적재",
+          "넘침",
+          "가득"
+        ]
+      },
+      {
+        "key": "truck-utilization",
+        "label": "차량 가동률",
+        "matchKeys": [
+          "가동률"
+        ]
+      },
+      {
+        "key": "completion-time",
+        "label": "수거 완료 시각",
+        "matchKeys": [
+          "완료 시각",
+          "수거 완료",
+          "끝나는 시각"
         ]
       }
     ]

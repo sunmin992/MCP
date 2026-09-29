@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.ses.ConfirmScenarioTool;
 import com.wastesim.mcp.ses.ScenarioStore;
 import com.wastesim.tool.ToolResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -31,6 +33,9 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/scenarios")
 public class ScenarioConfirmController {
+
+    /** MCP 도구 호출 로그와 같은 이름 — 12단계가 5~14단계 사이에 한 흐름으로 보이게 한다. */
+    private static final Logger callLog = LoggerFactory.getLogger("mcp.calls");
 
     /** 스프링이 바인딩한 주소. 지정하지 않으면 모든 인터페이스다. */
     private final String boundAddress;
@@ -110,9 +115,12 @@ public class ScenarioConfirmController {
         ToolResult result = confirmTool.call(
                 mapper.createObjectNode().put("scenarioId", scenarioId));
         if (!result.ready()) {
+            callLog.info("[12 확인] {} → 거절: {}", scenarioId, result.errors());
             return ResponseEntity.badRequest()
                     .body(mapper.writeValueAsString(Map.of("errors", result.errors())));
         }
+        // 확인은 MCP 를 거치지 않는다 — 사람이 화면에서 누른 자리다. 로그에서도 그것이 보여야 한다.
+        callLog.info("[12 확인] {} → 사람이 확인 화면에서 승인 · 토큰 발급", scenarioId);
         return ResponseEntity.ok(String.valueOf(result.result()));
     }
 }

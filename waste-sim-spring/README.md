@@ -33,7 +33,7 @@ MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도
 
 | 모듈 | 서버 | 주소 | 하는 일 |
 |---|---|---|---|
-| `broker` | 브로커 MCP 서버 | `http://localhost:8089/mcp` | 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다(3·4단계). 매칭 결과에 연결 정보(`endpoint`)를 싣는다 |
+| `broker` | 브로커 MCP 서버 | `http://localhost:8089/mcp` | 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다(3·4단계). `verdict` 가 `MATCH` 면 추천 서버와 연결 정보(`endpoint`)를, `ADJUST_REQUEST` 면 요청을 어떻게 고치면 어느 서버를 쓸 수 있는지(`requestAdjustments`)를 낸다 |
 | `simulator` | 장량동 시뮬레이터 MCP 서버 | `http://localhost:8090/mcp` | 템플릿 · 서브태스크 · 시나리오 · 실행(5~14단계). 확인 화면 `http://localhost:8090/` |
 | `mcp-common` | — | — | 두 서버가 함께 쓰는 도구 계약(`McpToolProvider` · `ToolResult`)뿐 |
 
@@ -52,6 +52,18 @@ MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도
 ```
 
 VS Code 에서 이 폴더를 열었으면 `Ctrl+Shift+B` 로 둘을 함께 띄운다(`.vscode/tasks.json`).
+
+두 서버 터미널에는 도구 호출마다 명세 그림의 단계와 결과가 한 줄씩 찍힌다(로거 `mcp.calls`).
+LLM 쪽 화면에는 모델이 보낸 것과 받은 것만 보이므로, 서버가 무엇을 받아 어떻게 판정했는지는
+여기서 본다. 줄 앞의 `[8자리]` 는 호출 하나의 요청 id 다.
+
+```
+[브로커]     [3 조회] domain=쓰레기수거 · scale=한 동네 · env=[교통량] · objective=…하루에 몇 번…
+[브로커]     [4 매칭] MATCH → jangnyang-waste-sim (http://localhost:8090/mcp) · 근거 4
+[시뮬레이터] [5 템플릿] get_templates → 15개
+[시뮬레이터] [9·10 시나리오] build_scenario → scn-… · 5벌 · UNCONFIRMED · 미승인 8
+[시뮬레이터] [12 확인] scn-… → 사람이 확인 화면에서 승인 · 토큰 발급
+```
 MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 잡는다. 상세 설정은
 [환경 설정 가이드](docs/guides/ENV_SETUP.md)를 참고한다.
 
@@ -73,8 +85,8 @@ MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **578건 중 575건 통과·3건 스킵**
-이다(브로커 46 · 시뮬레이터 532). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **591건 중 588건 통과·3건 스킵**
+이다(브로커 56 · 시뮬레이터 535). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
 엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트

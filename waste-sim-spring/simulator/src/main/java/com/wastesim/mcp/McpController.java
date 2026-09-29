@@ -43,14 +43,17 @@ public class McpController {
     private final SimulationModelRegistry models;
     private final McpToolRegistry independentTools;
     private final ExecutionConfirmation confirmation;
+    private final McpCallLog callLog;
 
     public McpController(SimulationTool tool, McpToolCatalog catalog, SimulationModelRegistry models,
-                         McpToolRegistry independentTools, ExecutionConfirmation confirmation) {
+                         McpToolRegistry independentTools, ExecutionConfirmation confirmation,
+                         McpCallLog callLog) {
         this.tool = tool;
         this.catalog = catalog;
         this.models = models;
         this.independentTools = independentTools;
         this.confirmation = confirmation;
+        this.callLog = callLog;
     }
 
     /** 유일한 MCP 엔드포인트. */
@@ -74,10 +77,17 @@ public class McpController {
         resp.set("id", idNode);
         try {
             switch (method) {
-                case "initialize"   -> resp.set("result", initialize());
+                case "initialize"   -> {
+                    callLog.connected(req.path("params"));
+                    resp.set("result", initialize());
+                }
                 case "ping"         -> resp.set("result", mapper.createObjectNode());
                 case "tools/list"   -> resp.set("result", catalog.toolsList(mapper));
-                case "tools/call"   -> resp.set("result", callTool(req.path("params")));
+                case "tools/call"   -> {
+                    ObjectNode result = callTool(req.path("params"));
+                    callLog.called(req.path("params").path("name").asText(""), result);
+                    resp.set("result", result);
+                }
                 default             -> resp.set("error", rpcError(-32601, "Method not found: " + method));
             }
         } catch (Exception e) {

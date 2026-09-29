@@ -71,6 +71,31 @@
           "성수기"
         ]
       }
+    ],
+    "objectiveMatchKeys": [
+      {
+        "key": "leak-location",
+        "label": "누수 지점",
+        "matchKeys": [
+          "누수 지점",
+          "누수"
+        ]
+      },
+      {
+        "key": "pressure-drop",
+        "label": "수압 저하",
+        "matchKeys": [
+          "수압"
+        ]
+      },
+      {
+        "key": "pipe-replacement-priority",
+        "label": "관 교체 우선순위",
+        "matchKeys": [
+          "교체",
+          "노후관"
+        ]
+      }
     ]
   },
   "unsupported": [
