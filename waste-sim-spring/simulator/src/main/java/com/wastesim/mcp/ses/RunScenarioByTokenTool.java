@@ -54,7 +54,7 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             {"type":"object",
              "properties":{
                "scenarioId":{"type":"string","description":"build_scenario 가 돌려준 시나리오 id"},
-               "confirmToken":{"type":"string","description":"build_scenario 가 발급한 확인 토큰"},
+               "confirmToken":{"type":"string","description":"사용자가 확인 화면에서 승인한 뒤 get_scenario_status 로 읽은 확인 토큰"},
                "seed":{"type":"integer","description":"쓰이지 않는다 — 반복 횟수는 시나리오의 seeds 가 정하고 시드는 1..seeds 로 고정이다"}},
              "required":["scenarioId","confirmToken"]}
             """;
@@ -90,7 +90,8 @@ public class RunScenarioByTokenTool implements McpToolProvider {
         if (scenario.confirmToken() == null) {
             return ToolFailure.of("confirmToken",
                     "아직 확인되지 않은 시나리오입니다: " + scenarioId
-                            + " — 사용자에게 설정을 보여주고 confirm_scenario 를 먼저 부르십시오.");
+                            + " — 사용자에게 확인 화면에서 설정을 승인해 달라고 안내하십시오. 화면 주소(confirmUrl)는"
+                            + " get_scenario_status 가 알려 주고, 승인 뒤 토큰도 거기서 읽습니다.");
         }
         if (!builder.tokenMatches(scenario, token)) {
             return ToolFailure.of("confirmToken",

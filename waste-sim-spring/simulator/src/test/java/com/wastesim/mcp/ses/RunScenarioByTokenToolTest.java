@@ -117,6 +117,9 @@ class RunScenarioByTokenToolTest {
         assertFalse(result.ready(),
                 "검증만 통과한 설정을 돌리면 사용자가 확인하지 않은 실험이 돈다");
         assertTrue(result.toString().contains("확인되지 않은"));
+        // confirm_scenario 는 MCP 도구가 아니다. 없는 도구를 가리키면 모델이 그것을 찾거나 우회한다.
+        assertFalse(result.toString().contains("confirm_scenario"));
+        assertTrue(result.toString().contains("get_scenario_status"));
     }
 
     @Test

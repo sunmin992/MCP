@@ -110,7 +110,7 @@ public class BuildScenarioTool implements McpToolProvider {
                     mapper.valueToTree(scenario.backVerificationBlocks()));
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
             // 토큰은 여기서 나오지 않는다. 검증을 통과해도 아직 미확인이며,
-            // confirm_scenario 가 사용자 동의를 받은 뒤 발급한다.
+            // 사람이 확인 화면에서 승인해야 발급된다(ScenarioConfirmController → ConfirmScenarioTool).
             root.put("state", store.entry(scenario.scenarioId())
                     .map(ScenarioStore.Entry::state).orElse("INVALID"));
             return ToolResult.ok(mapper.writeValueAsString(root));
