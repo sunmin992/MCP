@@ -1,7 +1,6 @@
 package com.wastesim.mcp.ses;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.capability.CapabilityCardLoader;
 import com.wastesim.mcp.McpToolProvider;
 import com.wastesim.tool.ToolResult;
@@ -17,11 +16,9 @@ import org.springframework.stereotype.Component;
 public class GetCapabilityTool implements McpToolProvider {
 
     private final CapabilityCardLoader loader;
-    private final ObjectMapper mapper;
 
-    public GetCapabilityTool(CapabilityCardLoader loader, ObjectMapper mapper) {
+    public GetCapabilityTool(CapabilityCardLoader loader) {
         this.loader = loader;
-        this.mapper = mapper;
     }
 
     @Override public String toolName() { return "get_capability"; }

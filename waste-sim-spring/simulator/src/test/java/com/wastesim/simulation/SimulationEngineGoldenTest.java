@@ -3,6 +3,7 @@ package com.wastesim.simulation;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.service.TrafficDataService;
@@ -57,9 +58,10 @@ class SimulationEngineGoldenTest {
         // 같은 코드를 실행해도 JVM 실행마다 달라질 수 있어(baseline을 만든 실행과 비교하는 실행이
         // 서로 다른 JVM 프로세스다), 정렬 없이는 엔진 로직이 그대로여도 순서만 바뀌어 골든
         // 테스트가 실패한다. 알파벳 순으로 고정해 이 흔들림을 없앤다.
-        ObjectMapper mapper = new ObjectMapper()
+        ObjectMapper mapper = JsonMapper.builder()
                 .enable(SerializationFeature.INDENT_OUTPUT)
-                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY);
+                .enable(MapperFeature.SORT_PROPERTIES_ALPHABETICALLY)
+                .build();
         SimulationEngine engine = new SimulationEngine(new TrafficDataService());
 
         for (Map.Entry<String, Consumer<SimulationConfig>> e : cases().entrySet()) {

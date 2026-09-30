@@ -34,7 +34,7 @@ class SesMcpToolsTest {
 
     @Test
     void 능력카드_도구가_카드를_그대로_낸다() throws Exception {
-        var tool = new GetCapabilityTool(new CapabilityCardLoader(), mapper);
+        var tool = new GetCapabilityTool(new CapabilityCardLoader());
         assertEquals("get_capability", tool.toolName());
         assertNotNull(mapper.readTree(tool.inputSchemaJson()));
         var result = tool.call(mapper.createObjectNode());
@@ -75,7 +75,7 @@ class SesMcpToolsTest {
     @Test
     void 모든_도구의_스키마가_유효한_JSON이다() throws Exception {
         var tools = java.util.List.of(
-                new GetCapabilityTool(new CapabilityCardLoader(), mapper),
+                new GetCapabilityTool(new CapabilityCardLoader()),
                 new GetTemplatesTool(catalog, mapper),
                 new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper),
                 new ValidateAnswersTool(catalog, new AnswerNormalizer(), mapper),

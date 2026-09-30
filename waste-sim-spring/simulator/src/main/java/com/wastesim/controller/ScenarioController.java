@@ -385,6 +385,7 @@ public class ScenarioController {
 
     /** 축 배열 파싱 실패 — {@link #badScenarioArg}가 400 ApiError로 바꾼다. */
     static class ScenarioArgException extends RuntimeException {
+        private static final long serialVersionUID = 1L;
         private final transient ValidationError error;
         ScenarioArgException(ValidationError error) {
             super(error.message());

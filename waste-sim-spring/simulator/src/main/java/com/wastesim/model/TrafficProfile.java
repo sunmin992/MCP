@@ -2,8 +2,6 @@ package com.wastesim.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-import java.util.Collections;
-import java.util.Set;
 
 /**
  * 포항시 교통량 데이터 — 시간대별·구역별 혼잡 가중치.
