@@ -5,8 +5,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check-mcp-servers.ps1",
-            "timeout": 10
+            "command": "java scripts/CheckMcpServers.java",
+            "timeout": 15
           }
         ]
       }
