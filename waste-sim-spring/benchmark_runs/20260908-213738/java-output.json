@@ -1,0 +1,6518 @@
+[ {
+  "id" : "oracle:scale",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 30,
+    "occupationPreset" : "BALANCED",
+    "days" : 7,
+    "seeds" : 10,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 30,
+    "occupationPreset" : "BALANCED",
+    "days" : 7,
+    "seeds" : 10,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:scale:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 30,
+    "occupationPreset" : "BALANCED",
+    "days" : 7,
+    "seeds" : 10,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 30,
+    "occupationPreset" : "BALANCED",
+    "days" : 7,
+    "seeds" : 10,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:normalize",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTime" : 510,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTime" : 510,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:normalize:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTime" : 510,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTime" : 510,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:waste",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 25.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 25.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:waste:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 25.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 25.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:waste:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 25.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 25.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:collection",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "POHANG_ACTUAL",
+    "dischargeWindow" : [ 1200, 360 ],
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : [ 510, 1050 ],
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "POHANG_ACTUAL",
+    "dischargeWindow" : [ 1200, 360 ],
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : [ 510, 1050 ],
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:collection:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "POHANG_ACTUAL",
+    "dischargeWindow" : [ 1200, 360 ],
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : [ 510, 1050 ],
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "POHANG_ACTUAL",
+    "dischargeWindow" : [ 1200, 360 ],
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : [ 510, 1050 ],
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:collection:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "POHANG_ACTUAL",
+    "dischargeWindow" : [ 1200, 360 ],
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : [ 510, 1050 ],
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "POHANG_ACTUAL",
+    "dischargeWindow" : [ 1200, 360 ],
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : [ 510, 1050 ],
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:route",
+  "mustAsk" : [ "simulationGoal", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "scenarioType" : "truck-route",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "MEDIUM_2P5T",
+    "truckCount" : 2,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : [ "Node_A", "Node_C", "Node_B" ]
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "truck-route",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "MEDIUM_2P5T",
+    "truckCount" : 2,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : [ "Node_A", "Node_C", "Node_B" ],
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:route:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "MEDIUM_2P5T",
+    "truckCount" : 2,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : [ "Node_A", "Node_C", "Node_B" ]
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "MEDIUM_2P5T",
+    "truckCount" : 2,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : [ "Node_A", "Node_C", "Node_B" ],
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:load",
+  "mustAsk" : [ "simulationGoal", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "scenarioType" : "multi-truck",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : 1800.0,
+    "initialTruckLoadKg" : 200.0,
+    "dispatchIntervalMinutes" : 45,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "multi-truck",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : 1800.0,
+    "initialTruckLoadKg" : 200.0,
+    "dispatchIntervalMinutes" : 45,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:load:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : 1800.0,
+    "initialTruckLoadKg" : 200.0,
+    "dispatchIntervalMinutes" : 45,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : 1800.0,
+    "initialTruckLoadKg" : 200.0,
+    "dispatchIntervalMinutes" : 45,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:load:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "routeAvailableCapacityKg", "initialTruckLoadKg", "dispatchIntervalMinutes", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:traffic",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "APPLY",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "ZONE_PROXY_HYBRID",
+    "routeTravelMinutes" : 0,
+    "intraZoneTravelMinutes" : 8,
+    "zoneAssignmentRule" : "ROUND_ROBIN",
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "APPLY",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "ZONE_PROXY_HYBRID",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 8,
+    "zoneAssignmentRule" : "ROUND_ROBIN",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:traffic:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "ZONE_PROXY_HYBRID",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "ZONE_PROXY_HYBRID",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:traffic:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "ZONE_PROXY_HYBRID",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "ZONE_PROXY_HYBRID",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:approval",
+  "mustAsk" : [ "simulationGoal", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule" ],
+  "defaults" : [ {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:approval:0",
+  "mustAsk" : [ "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "simulationGoal" : "이번 시뮬레이션으로 무엇을 확인하려고 하나요?",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:approval:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "engine", "numBuildings", "residentsPerBuilding", "occupationPreset", "days", "seeds", "wasteMeanKg", "wasteSigma", "leaveSigma", "dischargeTimeMode", "dischargeWindow", "capacity", "threshold", "collectionTime", "collectionTimes", "collectionSchedule", "truckType", "truckCount", "routeAvailableCapacityKg", "initialTruckLoadKg", "dispatchIntervalMinutes", "trafficMode", "trafficProfileId", "travelTimeMode", "routeTravelMinutes", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "routeSequence", "defaultApproval" ],
+  "defaults" : [ ],
+  "initialAnswers" : { },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:bad-count",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "numBuildings", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:bad-count:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "numBuildings", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:bad-count:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "numBuildings", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:bad-time",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 40.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 40.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:bad-time:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:bad-time:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 40.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 40.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:bad-enum",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "engine", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "UNIVERSITY",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "UNIVERSITY",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:bad-enum:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "engine", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "UNIVERSITY",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "UNIVERSITY",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:bad-enum:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "engine", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "UNIVERSITY",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "UNIVERSITY",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:no-invention",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:no-invention:0",
+  "mustAsk" : [ "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "simulationGoal" : "장량동 쓰레기 수거 시뮬레이션",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:no-invention:0",
+  "mustAsk" : [ "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "simulationGoal" : "장량동 쓰레기 수거 시뮬레이터",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:heldout-scale-a",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 5,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 5,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:heldout-scale-a:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 5,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 5,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:heldout-scale-a:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 5,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 5,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:heldout-scale-b",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 9,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 9,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:heldout-scale-b:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 9,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 9,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:heldout-scale-b:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTime",
+    "value" : 720,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "truckCount",
+    "value" : 1,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 9,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 9,
+    "residentsPerBuilding" : 42,
+    "occupationPreset" : "BALANCED",
+    "days" : 19,
+    "seeds" : 8,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "truckCount" : 1,
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "oracle:heldout-invalid",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionSchedule", "truckCount", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTime" : 1439,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTime" : 1439,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "baseline:heldout-invalid:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "truckCount", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+}, {
+  "id" : "extraction:heldout-invalid:0",
+  "mustAsk" : [ "simulationGoal", "scenarioType", "dischargeWindow", "collectionTime", "collectionSchedule", "truckCount", "serviceMinutesPerSite", "intraZoneTravelMinutes", "zoneAssignmentRule", "defaultApproval" ],
+  "defaults" : [ {
+    "field" : "engine",
+    "value" : "java",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "numBuildings",
+    "value" : 4,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "residentsPerBuilding",
+    "value" : 25,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "occupationPreset",
+    "value" : "BALANCED",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "days",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "seeds",
+    "value" : 30,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteMeanKg",
+    "value" : 0.9,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "wasteSigma",
+    "value" : 0.3,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "leaveSigma",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dischargeTimeMode",
+    "value" : "PAPER_BASELINE",
+    "reason" : "논문 모델과 포항시 규정 두 모드. 기본은 논문 재현"
+  }, {
+    "field" : "dischargeWindow",
+    "value" : [ 1200, 360 ],
+    "reason" : "포항시 북구 배출 시각 20:00~06:00"
+  }, {
+    "field" : "capacity",
+    "value" : 30.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "threshold",
+    "value" : 0.8,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionTimes",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "collectionSchedule",
+    "value" : [ 0, 1, 3, 4 ],
+    "reason" : "생활쓰레기 배출정보 표준데이터 경북 포항시 (배출 일·월·수·목 → 수거 +1일 해석)"
+  }, {
+    "field" : "truckType",
+    "value" : "LARGE_5TON",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeAvailableCapacityKg",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "initialTruckLoadKg",
+    "value" : 0.0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "dispatchIntervalMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficMode",
+    "value" : "NONE",
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "trafficProfileId",
+    "value" : "jangryang-weekday",
+    "reason" : "TMAP 24시간 288회 측정 2026-09-01"
+  }, {
+    "field" : "travelTimeMode",
+    "value" : "LEGACY_CONSTANT",
+    "reason" : "기본은 상수 모드. OSRM_HYBRID는 지점 좌표가 없어 막혀 있다"
+  }, {
+    "field" : "routeTravelMinutes",
+    "value" : 0,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  }, {
+    "field" : "routeSequence",
+    "value" : null,
+    "reason" : "이 시뮬레이터의 기본값 — 밖에서 대조할 출처가 없다"
+  } ],
+  "initialAnswers" : {
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "routeSequence" : "해당 없음"
+  },
+  "initialBuild" : false,
+  "followupErrors" : [ ],
+  "finalBuild" : false,
+  "buildMessage" : "아직 시나리오를 만들 수 없습니다(현재 상태: COLLECTING). 남은 질문에 먼저 답해 주세요.",
+  "finalAnswers" : {
+    "simulationGoal" : "민원 비교",
+    "scenarioType" : "single-run",
+    "engine" : "java",
+    "numBuildings" : 4,
+    "residentsPerBuilding" : 25,
+    "occupationPreset" : "BALANCED",
+    "days" : 30,
+    "seeds" : 30,
+    "wasteMeanKg" : 0.9,
+    "wasteSigma" : 0.3,
+    "leaveSigma" : 30.0,
+    "dischargeTimeMode" : "PAPER_BASELINE",
+    "capacity" : 30.0,
+    "threshold" : 0.8,
+    "collectionTimes" : "해당 없음",
+    "truckType" : "LARGE_5TON",
+    "routeAvailableCapacityKg" : "해당 없음",
+    "initialTruckLoadKg" : 0.0,
+    "dispatchIntervalMinutes" : 0,
+    "trafficMode" : "NONE",
+    "trafficProfileId" : "jangryang-weekday",
+    "travelTimeMode" : "LEGACY_CONSTANT",
+    "routeTravelMinutes" : 0,
+    "serviceMinutesPerSite" : 3,
+    "intraZoneTravelMinutes" : 5,
+    "zoneAssignmentRule" : "NONE",
+    "routeSequence" : "해당 없음",
+    "defaultApproval" : "ALL"
+  },
+  "scenario" : null
+} ]

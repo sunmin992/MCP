@@ -1,0 +1,695 @@
+{
+  "type": "object",
+  "properties": {
+    "values": {
+      "type": "array",
+      "items": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "simulationGoal"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "scenarioType"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "engine"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "numBuildings"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "residentsPerBuilding"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "occupationPreset"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "days"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "seeds"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "wasteMeanKg"
+              },
+              "value": {
+                "type": "number"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "wasteSigma"
+              },
+              "value": {
+                "type": "number"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "leaveSigma"
+              },
+              "value": {
+                "type": "number"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "dischargeTimeMode"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "dischargeWindow"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "capacity"
+              },
+              "value": {
+                "type": "number"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "threshold"
+              },
+              "value": {
+                "type": "number"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "collectionTime"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "collectionTimes"
+              },
+              "value": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "collectionSchedule"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "truckType"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "truckCount"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "routeAvailableCapacityKg"
+              },
+              "value": {
+                "type": "number"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "initialTruckLoadKg"
+              },
+              "value": {
+                "type": "number"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "dispatchIntervalMinutes"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "trafficMode"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "trafficProfileId"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "travelTimeMode"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "routeTravelMinutes"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "serviceMinutesPerSite"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "intraZoneTravelMinutes"
+              },
+              "value": {
+                "type": "integer"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "zoneAssignmentRule"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "routeSequence"
+              },
+              "value": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "field": {
+                "const": "defaultApproval"
+              },
+              "value": {
+                "type": "string"
+              },
+              "span": {
+                "type": "string",
+                "minLength": 2
+              }
+            },
+            "required": [
+              "field",
+              "value",
+              "span"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "maxItems": 32
+    }
+  },
+  "required": [
+    "values"
+  ],
+  "additionalProperties": false
+}
