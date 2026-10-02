@@ -1,0 +1,220 @@
+{
+  "allTotals" : null,
+  "assumptionNotes" : [ ],
+  "availableCollectionCapacityKg" : 70000.0,
+  "avgCompletionMinutes" : 0.0,
+  "byDay" : {
+    "3" : 1,
+    "6" : 1,
+    "7" : 2,
+    "8" : 2,
+    "9" : 4,
+    "12" : 3
+  },
+  "byOccupation" : {
+    "BlueCollar" : 0,
+    "Student" : 13,
+    "Housewife" : 0
+  },
+  "byOccupationSummary" : null,
+  "capacityExhaustedTripCount" : 0,
+  "collectedWasteKg" : 1217.23,
+  "collectionCapacityUtilizationPercent" : 1.74,
+  "collectionTimeLabel" : "12:00",
+  "coordinateQuality" : "NOT_USED",
+  "coordinateQualityLabel" : "좌표 미사용",
+  "dataQualityFlags" : [ ],
+  "dataQualityWarnings" : [ ],
+  "generatedWasteKg" : 1246.23,
+  "landlordComplaints" : 0,
+  "massBalanceErrorKg" : 0.0,
+  "maxResidualBuilding" : "Node_B",
+  "maxResidualBuildingKg" : 7.88,
+  "meanComplaints" : 0.0,
+  "meanLandlordComplaints" : 0.0,
+  "meanWasteOverflowComplaints" : 0.0,
+  "notForOperationalUse" : true,
+  "partialPickupCount" : 0,
+  "peakFillKg" : 25.72,
+  "residualByBuilding" : {
+    "Node_A" : 7.11,
+    "Node_B" : 7.88,
+    "Node_C" : 7.87,
+    "Node_D" : 6.14
+  },
+  "residualByTruck" : {
+    "T1" : 29.0
+  },
+  "residualByWasteType" : {
+    "GENERAL" : 29.0
+  },
+  "residualWasteKg" : 29.0,
+  "resultUseLabel" : "가정 비교 실험 (운영 예측 아님)",
+  "seed" : 1,
+  "simulationConfig" : null,
+  "stdComplaints" : 0.0,
+  "totalComplaints" : 13,
+  "trafficPenalty" : 0.0,
+  "tripMetrics" : [ {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 59.06,
+    "finalLoadKg" : 59.06,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D0-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4940.94,
+    "utilizationPercent" : 1.18
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 90.87,
+    "finalLoadKg" : 90.87,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D1-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4909.13,
+    "utilizationPercent" : 1.82
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 89.94,
+    "finalLoadKg" : 89.94,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D2-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4910.06,
+    "utilizationPercent" : 1.8
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 89.59,
+    "finalLoadKg" : 89.59,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D3-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4910.41,
+    "utilizationPercent" : 1.79
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 86.68,
+    "finalLoadKg" : 86.68,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D4-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4913.32,
+    "utilizationPercent" : 1.73
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 82.21,
+    "finalLoadKg" : 82.21,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D5-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4917.79,
+    "utilizationPercent" : 1.64
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 91.55,
+    "finalLoadKg" : 91.55,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D6-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4908.45,
+    "utilizationPercent" : 1.83
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 91.48,
+    "finalLoadKg" : 91.48,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D7-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4908.52,
+    "utilizationPercent" : 1.83
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 94.0,
+    "finalLoadKg" : 94.0,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D8-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4906.0,
+    "utilizationPercent" : 1.88
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 96.92,
+    "finalLoadKg" : 96.92,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D9-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4903.08,
+    "utilizationPercent" : 1.94
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 86.29,
+    "finalLoadKg" : 86.29,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D10-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4913.71,
+    "utilizationPercent" : 1.73
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 84.37,
+    "finalLoadKg" : 84.37,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D11-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4915.63,
+    "utilizationPercent" : 1.69
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 91.92,
+    "finalLoadKg" : 91.92,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D12-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4908.08,
+    "utilizationPercent" : 1.84
+  }, {
+    "allocatedCapacityKg" : 5000.0,
+    "availablePickupCapacityKg" : 5000.0,
+    "collectedKg" : 82.35,
+    "finalLoadKg" : 82.35,
+    "initialLoadKg" : 0.0,
+    "partialPickupCount" : 0,
+    "tripId" : "T1-D13-S0",
+    "truckId" : "T1",
+    "unusedCapacityKg" : 4917.65,
+    "utilizationPercent" : 1.65
+  } ],
+  "truckUtilizationPercent" : 1.74,
+  "uncollectedDemandKg" : 0.0,
+  "unservedPickupCount" : 0,
+  "wasteByMonth" : {
+    "0" : 1246.2
+  },
+  "wasteOverflowComplaints" : 13
+}

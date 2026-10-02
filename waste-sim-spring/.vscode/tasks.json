@@ -1,0 +1,40 @@
+{
+  "version": "2.0.0",
+  // 서버 로그는 UTF-8 인데 Windows 터미널은 기본 코드 페이지 949 로 열려 한글이 깨진다.
+  // 서버를 띄우기 전에 chcp 65001 로 터미널을 UTF-8 로 바꾼다. 사용자의 기본 셸(PowerShell ·
+  // cmd)과 상관없이 같게 돌도록 작업 셸을 cmd.exe 로 고정한다.
+  "tasks": [
+    {
+      "label": "waste-sim: 두 서버 실행",
+      "detail": "브로커(8089)와 장량동 시뮬레이터(8090)를 함께 띄운다. 시뮬레이터가 뜨면 브로커에 스스로 등록한다.",
+      "dependsOn": ["waste-sim: 브로커 실행", "waste-sim: 시뮬레이터 실행"],
+      "dependsOrder": "parallel",
+      "group": { "kind": "build", "isDefault": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "waste-sim: 브로커 실행",
+      "detail": "브로커 MCP 서버 — http://127.0.0.1:8089/mcp",
+      "type": "shell",
+      "command": "chcp 65001 >nul && .\\mvnw.cmd -q -pl broker -am spring-boot:run",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] }
+      },
+      "presentation": { "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "waste-sim: 시뮬레이터 실행",
+      "detail": "장량동 시뮬레이터 MCP 서버 — http://127.0.0.1:8090/mcp · 확인 화면 http://localhost:8090/",
+      "type": "shell",
+      "command": "chcp 65001 >nul && .\\mvnw.cmd -q -pl simulator -am spring-boot:run",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] }
+      },
+      "presentation": { "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    }
+  ]
+}

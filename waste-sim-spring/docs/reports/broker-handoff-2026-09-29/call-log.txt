@@ -1,0 +1,11 @@
+# 새 브로커(빈 포트 8189)의 mcp.calls 줄 — 손대지 않음
+# 8089 에는 사용자가 16:19 에 띄운 옛 브로커가 떠 있어서 그것을 끄지 않고 8189 에 따로 띄웠다.
+
+2026-09-29T16:44:21.288+09:00  INFO [] 1266012 --- [waste-sim-broker] [           main] com.wastesim.broker.BrokerApplication    : Started BrokerApplication in 1.453 seconds (process running for 1.684)
+2026-09-29T16:44:21.506+09:00  INFO [] 1266012 --- [waste-sim-broker] [0.1-8189-exec-1] c.w.b.SimulatorRegistrationController    : 시뮬레이터 등록: jangnyang-waste-sim (http://localhost:8090/mcp)
+2026-09-29T16:44:21.724+09:00  INFO [330ac1d7] 1266012 --- [waste-sim-broker] [0.1-8189-exec-3] mcp.calls                                : [연결] MCP 클라이언트 handoff-check 1
+2026-09-29T16:44:21.733+09:00  INFO [8e477c46] 1266012 --- [waste-sim-broker] [0.1-8189-exec-4] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=[교통량] · objective=1대로 하루에 몇 번 수거하는 게 민원이 가장 적은지
+2026-09-29T16:44:21.751+09:00  INFO [8e477c46] 1266012 --- [waste-sim-broker] [0.1-8189-exec-4] mcp.calls                                : [4 매칭] MATCH → jangnyang-waste-sim (http://localhost:8090/mcp) · 근거 4
+2026-09-29T16:44:21.765+09:00  INFO [a1fd0acb] 1266012 --- [waste-sim-broker] [0.1-8189-exec-5] mcp.calls                                : [3 조회] domain=쓰레기수거 · scale=한 동네 · env=[교통량] · objective=1대로 하루에 몇 번 수거하는 게 민원이 가장 적은지
+2026-09-29T16:44:21.766+09:00  INFO [a1fd0acb] 1266012 --- [waste-sim-broker] [0.1-8189-exec-5] mcp.calls                                : [4 매칭] MATCH → jangnyang-waste-sim (http://localhost:8090/mcp) · 근거 4
+2026-09-29T16:44:21.766+09:00  INFO [a1fd0acb] 1266012 --- [waste-sim-broker] [0.1-8189-exec-5] mcp.calls                                : [브로커] 이미 jangnyang-waste-sim 로 연결된 대화에서 다시 조회했습니다 — 이번 판정 MATCH

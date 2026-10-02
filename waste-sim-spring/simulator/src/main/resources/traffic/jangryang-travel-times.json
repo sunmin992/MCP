@@ -1,0 +1,12 @@
+{
+  "id": "jangryang-travel-times",
+  "version": 3,
+  "unit": "freeFlowSeconds — 정차·상차를 뺀 순수 주행시간(초)",
+  "purpose": "OSRM_HYBRID 모드가 읽는 **수거 지점 간** 자유주행시간 행렬.",
+  "coordinateSource": "MEASURED_SITE_REQUIRED",
+  "whyEmpty": "**비어 있는 것이 맞다.** 이 행렬은 실제 수거 지점 좌표로 잰 값만 담는다. collection/jangnyang-collection-sites.json이 아직 0곳이므로 잴 대상이 없다. v2에서 교통 구역 좌표 측정치를 잠정으로 넣었다가 되돌렸다 — 구역 좌표로 잰 값을 지점 간 행렬이라고 부르면, 교통 구역과 수거 지점을 갈라낸 작업이 무의미해진다. 그 값은 이제 traffic/jangryang-zone-travel-times.json에 있고 ZONE_PROXY_HYBRID가 읽는다.",
+  "howToFill": "수거 지점 좌표를 등록한 뒤 osrm.enabled=true로 띄우고 POST /api/traffic/osrm/route로 각 순서쌍을 조회한다. 300m 스냅 방어를 통과한 좌표만 유효하다.",
+  "keyFormat": "\"Node_A->Node_B\" — 수거 지점 id. 방향이 있다: OSRM은 일방통행과 중앙분리대를 반영하므로 A->B와 B->A가 다를 수 있다.",
+  "coverageRule": "경로의 모든 구간이 여기 있어야 OSRM_HYBRID를 쓸 수 있다(V-T6). 하나라도 없으면 실행을 막는다 — 조용히 다른 모드로 되돌리면 무엇으로 계산한 값인지 구별할 수 없다. 지금은 비어 있으므로 OSRM_HYBRID가 항상 막히고, 그것이 좌표가 없다는 사실의 정확한 반영이다.",
+  "pairs": {}
+}

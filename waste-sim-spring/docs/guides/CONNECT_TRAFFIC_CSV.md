@@ -14,13 +14,13 @@
 
 | 항목 | 값 |
 |---|---|
-| `congestionThresholdRed` | **1.7**(실측 데이터 스케일에 맞춤 — 최대 1.78이라 임계 2.0이면 RED가 하나도 안 뜬다) |
-| 정체 피크 시각 | **점심 12~13시**(전역 `hourlyWeight[13]≈1.78`) |
-| 최혼잡 노드 | **Node_A(장성초등학교)**, 12~13시 2.20 — RED |
+| `congestionThresholdRed` | **1.45**(TMAP 실측 스케일에 맞춤 — 구역×시간 96개 값의 90 백분위가 1.41이다. 통행량 시절 값은 1.7이었고 그 스케일에서만 유효하다) |
+| 정체 피크 시각 | **저녁 18시**(전역 `hourlyWeight[18]=1.73`). 통행량 시절에는 점심 12~13시로 봤는데 **실측과 반대였다**(§3.5) |
+| 최혼잡 구역 | **Node_C(장성초등사거리) 2.14 · Node_A(장성초등학교) 2.12**, 둘 다 18시 — RED. 최한산은 **Node_D(1.40)** 로, 통행량 시절 2위로 보던 구역이다 |
 | 비교적 한산 | Node_B(양덕사거리), 최대 1.46 |
 | 08:30 시각 | 전역 1.54로 RED 아님(과거 가정 시나리오의 "출근 피크"와 다름) |
-| `alleyNodeIds` | `["Node_C","Node_D"]` 고정(데이터와 무관한 물리적 속성 — 골목 진입 가능 여부) |
-| 프로파일 id 구성 | `jangryang-weekday` 단일. 과거 가정용 시나리오와 병행하던 `jangryang-weekday-real.json`은 삭제, `SEED_IDS`도 단일 항목 |
+| `alleyNodeIds` | **제거됨(2026-09-01).** 대형 차량 진입 가능 여부는 교통량이 아니라 수거 지점의 성질이라 `collection/jangnyang-collection-sites.json`의 `largeTruckAllowed`로 옮겼다(§3.1) |
+| 프로파일 id 구성 | **둘.** `jangryang-weekday`(TMAP 실측 소요시간, 기본) + `jangryang-volume-weekday`(이 CSV의 통행량 기반, 비교용 보존). 원래는 과거 가정용 시나리오와 병행하던 `jangryang-weekday-real.json`은 삭제, `SEED_IDS`도 단일 항목 |
 
 관련 테스트(`SimulationConfigValidatorTest.redPeakTimeWarnsButDoesNotBlock` 등)는
 이미 13:00 기준으로 갱신돼 있다.
@@ -53,76 +53,296 @@
 | `Node_C` (장성초등사거리/창포) | `장성초등사거리`, `창포` | 5 | 1.72 @ 13시 |
 | `Node_D` (두산위브/포항온천) | `두산위브`, `포항온천` | 2 | 1.81 @ 17시 |
 
+## 3.1 alleyNodeIds를 걷어냈다 (2026-09-01)
+
+`traffic/jangryang-traffic-zones.json`이 네 구역의 위치를 못박은 뒤 OSM으로 대조한 결과다.
+
+| 노드 | 확정 좌표의 실제 도로 | 현재 표시 |
+|---|---|---|
+| Node_A (장성초등학교) | `residential` 새천년대로1123번길 | 골목 아님 |
+| Node_B (양덕교차로) | **`primary` 새천년대로** | 골목 아님 |
+| Node_C (장성초등사거리) | **`primary` 새천년대로(4차로)** × `residential` 대곡로 | **골목** |
+| Node_D (두산위브↔포항온천) | **`secondary` 삼흥로(6차로)** | **골목** |
+
+6차로 도로변인 Node_D를 "5톤 차량 진입 불가"로 두고 있다. Node_C도 4차로 간선과
+만나는 교차로다.
+
+6차로 도로변인 Node_D를 "5톤 차량 진입 불가"로 두고 있었다. Node_C도 4차로 간선과
+만나는 교차로다. **골목으로 유지할 근거가 없으므로 운영 데이터에서 제거했다.**
+
+옮긴 곳은 수거 지점이다. 대형 차량이 닿는지는 교통량의 성질이 아니라 **그 지점의 물리적
+성질**이므로, `CollectionSite.largeTruckAllowed`가 그 자리다. 함께 따라온 변화가 둘 있다.
+
+- **V-T3가 교통 게이트보다 앞으로 나왔다.** 골목은 교통 레이어를 꺼도 골목이다. 전에는
+  교통을 켠 경우에만 판정됐다.
+- **등록되지 않은 지점은 막지 않는다.** 접근성을 모르는 것과 못 들어간다는 것은 다르다.
+
+수거 지점 좌표가 아직 비어 있으므로 **지금 V-T3는 어떤 실제 실행도 막지 않는다.** 그것이
+실제 데이터에 맞는 결과다 — 확정 좌표 기준 장량동 네 지점은 모두 간선에 접한다.
+
+검증 로직 자체는 `src/test/resources/collection/test-alley-sites.json`의 **가상 지점**으로
+계속 지킨다(`TestSites.withAlleys()`). 테스트를 통과시키려고 운영 데이터를 사실과 다르게
+두지 않기 위한 분리다.
+
+## 3.2 노드는 이제 "교통 구역"이다 (2026-09-01)
+
+`Node_A`~`Node_D`가 두 가지를 동시에 뜻하던 것을 갈랐다.
+
+| | 무엇인가 | 어디에 있나 |
+|---|---|---|
+| **교통 구역** | 이 CSV의 링크를 키워드로 귀속시킨 **관측 지점**. `nodeHourlyWeight`의 키가 이것이다. 학교·사거리·아파트가 여기 오는 이유 | `traffic/jangryang-traffic-zones.json` (구 `jangryang-nodes.json`) |
+| **수거 지점** | 쓰레기가 나오는 곳. 원본 DEVS 모델의 `GarbageCan`, 건물당 하나 | `collection/jangnyang-collection-sites.json` |
+
+수거 지점은 자신이 속한 구역을 `trafficZone`으로 가리키고, **여러 지점이 한 구역을 공유할 수
+있다** — 같은 골목의 원룸 여러 동은 같은 혼잡을 겪는다. 겹쳐 있던 시절에는 표현할 수 없던
+관계다. 없는 구역을 가리키면 기동을 막는다(조용히 전역 가중치로 떨어지면 설정 오류가 정상
+동작처럼 보인다).
+
+라벨 체계(`Node_A~Z`)는 같지만 **별개의 이름공간**이다. 수거 지점 `Node_A`와 교통 구역
+`Node_A`는 서로 다른 것을 가리킬 수 있다.
+
+혼잡 가중치를 찾는 두 자리(`SimulationEngine`·`RouteDurationEstimator`)와 채팅 경로는 이제
+`CollectionSiteRegistry.trafficZoneOf()`를 거친다. **매핑이 없으면 지점 id를 그대로 구역 id로
+본다** — 겹쳐 있던 시절의 동작이며, 매핑을 채우기 전까지 결과를 그대로 유지하기 위한 잠정
+처리다. 매핑이 다 채워지면 이 되돌림을 없앤다.
+
+## 3.3 이동시간 모드 (2026-09-01)
+
+`routeTravelMinutes=15` 하나가 이동과 정차·상차를 함께 떠맡고 있었다. 그래서 OSRM 시간으로
+그대로 갈아치우면 정차분이 사라져 결과가 과도하게 짧아진다. 모드로 갈랐다.
+
+| 모드 | 계산 | 상태 |
+|---|---|---|
+| `LEGACY_CONSTANT` (기본) | `round(기본분 / 기동성 × 혼잡)` | v1.0부터의 계산. **결과가 예전과 완전히 같다** |
+| `OSRM_HYBRID` | `round(자유주행분 / 기동성 × 혼잡) + 지점 정차분` | 선택 기능 |
+
+- 자유주행시간은 `traffic/jangryang-travel-times.json`에서 **미리 계산된 값**을 읽는다.
+  시뮬레이션 도중 OSRM을 부르지 않는다 — 같은 시드·같은 파라미터가 같은 결과를 내야
+  하는데(NFR-02), 외부 호출은 그 보장을 깨고 결과를 네트워크 가용성에 묶는다.
+- 경로의 구간 하나라도 값이 없으면 **실행을 막는다**(V-T6). 조용히 상수 모드로 되돌리면
+  나온 숫자가 무엇으로 계산된 것인지 구별할 수 없다.
+- 정차시간(`serviceMinutesPerSite`) 기본은 0이고 **혼합 모드에서만 쓴다**. 상수 모드에서
+  더하면 정차분이 이중으로 세어진다.
+- 기동성 배수는 **주행분에만** 곱한다. 상·하차에 걸리는 시간이 차종 배수로 설명되지는 않는다.
+
+행렬이 비어 있으므로 지금 `OSRM_HYBRID`는 검증에서 막힌다. **채우는 방법** — 수거 지점 좌표를
+등록하고, `osrm.enabled=true`로 띄운 뒤 `POST /api/traffic/osrm/route`로 각 순서쌍을 조회해
+`freeFlowSeconds`에 적는다. 300m 스냅 방어를 통과한 좌표만 유효하다.
+
+> **남은 것은 실측 대조다.** 상수 15분 대비 실측 구간이 2.5~3.2분이라 혼합 모드는 순회
+> 시간을 크게 줄인다. 그 차이 중 얼마가 "정차분이 빠져서"인지 가려야 기본 모드를 바꿀지
+> 판단할 수 있다.
+
+## 3.4 데이터의 한계 — 고치지 않고 수용한 것 (2026-09-01)
+
+아래는 **결함이 아니라 수용한 한계**다. 고칠 수 있지만 고치면 시뮬레이션 결과가 바뀌고,
+어느 값이 옳은지 판단할 근거(구역별 실제 통행속도 실측)가 없다. 그래서 값을 건드리지 않고
+무엇을 믿을 수 없는지만 적어 둔다. 결과를 해석할 때 이 목록을 함께 본다.
+
+각 항목에 **무엇이 생기면 결정을 다시 볼지**를 적었다. 그 조건이 충족되기 전에는 다시
+논의하지 않는다.
+
+### (1) 이 가중치는 통행량 지수이지 혼잡도가 아니다
+
+`1 + K × (통행량 / 전역최대)`에 **도로 용량 항이 없다**(§4). 차선이 많아 통행량이 많은
+간선이 높은 값을 받는다.
+
+| 구역 | 피크 통행량 | 가중치 | 실제 도로 |
+|---|---|---|---|
+| Node_A | 1,357대/시 | **2.20** | **4차로** 새천년대로 |
+| Node_D | 913대/시 | 1.81 | **6차로** 삼흥로 |
+| Node_C | 818대/시 | 1.72 | 4차로 간선 × 대곡로 |
+| Node_B | 525대/시 | 1.46 | 새천년대로 |
+
+Node_A의 4차로 1,357대/시는 차선당 340대로 정체라 보기 어렵다. 반대로 1차선 골목의
+300대/시는 정체다. **원리적으로 순서가 뒤집힐 수 있다.**
+
+> **해소됨(2026-09-02).** TMAP 실측 소요시간을 얻는 경로가 열렸고, 대조 결과 이 한계가
+> **실제 오류로 확인됐다** — 피크 시각이 반대였다. 기본 프로파일을 실측 기반으로 교체했다(§3.5).
+> 통행량 기반 프로파일은 `jangryang-volume-weekday`로 남아 있고, 그 프로파일을 쓸 때는 이
+> 한계가 여전히 적용된다.
+
+### (2) Node_C는 15.2배 차이 나는 링크 5개를 단순 평균한다
+
+| Node_C의 링크 | 일교통량 |
+|---|---|
+| 두산위브→장성초등사거리 | 17,762 |
+| 장성초등→창포아이파크사거리 | 16,161 |
+| 창포우체국→장성초등사거리 | 16,097 |
+| 장성초등→장성초등사거리 | 5,504 |
+| **현진에버빌→장성초등사거리** | **1,172** |
+
+다른 구역은 링크 간 차이가 1.2~1.9배인데 Node_C만 15.2배다. 마지막 링크를 빼면 가중치가
+**1.72 → 1.89**로 올라간다. RED 판정(임계 1.7)은 어느 쪽이든 바뀌지 않는다.
+
+### (3) Node_C의 `창포` 키워드가 장량동 밖을 끌어온다
+
+| 지점 | 행정동 |
+|---|---|
+| 창포사거리 | 창포동·**우창동** |
+| 창포아이파크사거리 | **두호동** |
+| 창포우체국 | 장성동·**우창동** |
+
+이 프로젝트는 장량동만 다루는데 Node_C의 가중치를 만든 통행량 일부가 다른 동의 것이다.
+**확정된 Node_C 좌표 자체는 장량동 안이다** — 위치는 맞고 데이터가 구역을 넘는다.
+
+> **(2)와 (3)을 다시 볼 조건** — 둘은 한 질문으로 묶인다: **Node_C가 대표하는 구역은
+> 어디까지인가.** 사거리 하나라면 저교통량 링크와 다른 동 링크를 빼야 하고, 그 일대
+> 전체라면 지금이 맞고 편차는 구역 특성이다. **수거 지점 좌표가 확정되어 어느 지점이 어느
+> 구역에 속하는지 정해지면** 그때 답이 나온다(`trafficZone` 매핑, §3.2).
+
+### (4) "weekday"에 데이터 근거가 없다
+
+- `std_dt` 컬럼이 **전부 비어 있다** — 어느 날짜·어떤 기간의 값인지 파일에 없다
+- `collection_dt`는 15개 행 전부 `2025-05-18 02:34:00.211032` — 추출 시각이며 **단일 스냅샷**이다
+- 즉 요일 구분도, 여러 날 평균도, 분산도 없다
+
+프로파일 id의 `weekday`는 **파일이 뒷받침하지 않는 이름**이다. 평일 평균처럼 읽으면 안 된다.
+
+> **다시 볼 조건** — `std_dt`가 채워진 CSV, 또는 요일·기간이 명시된 추출본. 그때 프로파일을
+> 요일별로 갈라 id를 정확하게 붙인다.
+
+### 이 한계들이 결과 해석에 미치는 영향
+
+- **절대값보다 경향** — 원 논문도 같은 입장이다(`waste_sim/MODEL_SPECIFICATION.md`).
+  "12시 수거가 3시 수거보다 나쁘다"는 읽을 수 있고, "12시 수거는 정확히 74분 걸린다"는 아니다
+- **구역 간 비교는 (1) 때문에 특히 조심** — Node_A가 Node_B보다 1.5배 혼잡하다는 결론은
+  통행량 비교이고 정체 비교가 아니다
+- **하루 단위 결론에는 (4)가 걸린다** — 단일 스냅샷이라 그날의 특성과 평일 일반 경향을
+  구별할 수 없다
+
+## 3.5 TMAP 실측으로 프로파일을 교체했다 (2026-09-02)
+
+§3.4의 한계 (1)—*"이 가중치는 통행량 지수이지 혼잡도가 아니다"*—를 실측으로 확인했고,
+**그 결과 프로파일의 피크 시각이 틀렸다는 것이 드러났다.**
+
+### 무엇을 어떻게 쟀나
+
+SK TMAP `/tmap/routes/prediction`으로 교통 구역 4곳 사이 **12개 순서쌍 × 24시간 = 288회**
+조회(2026-09-03 목요일 각 정시 출발 기준, 실패 0). 원자료는
+`traffic/jangryang-tmap-measurements-24h.json`.
+
+> **`predictionType`의 이름이 직관과 반대다.** `"arrival"`이 출발 시각을 고정하고,
+> `"departure"`는 `predictionTime`을 도착 시각으로 잡는다. 같은 08:30으로 두 번 호출해
+> 확인했다(출발 08:22→도착 08:30 vs 출발 08:30→도착 08:38).
+
+각 구간의 하루 최소 소요시간을 1.0으로 두고 그 대비 배수를 낸 뒤, 도착 구역으로 들어오는
+구간들을 평균했다. `Node_A ↔ Node_C`(53m)는 소요시간이 7~21초라 배수가 노이즈가 되어
+제외했다 — 두 구역이 사실상 같은 장소라는 사실의 결과다(§3.4).
+
+### 결과 — 진폭은 같고 시간 분포가 다르다
+
+| | 피크 | 최저 | 진폭 |
+|---|---|---|---|
+| 통행량 기반(구) | **13시** 1.78 | 03시 1.04 | 1.71배 |
+| TMAP 실측(신) | **18시** 1.73 | 03시 1.01 | 1.71배 |
+
+**진폭이 정확히 같다.** `K=1.2`로 잡은 정체 강도의 *크기*는 맞았고, 틀린 것은 *언제*
+막히는지였다. 두 곡선 상관계수는 +0.763으로 큰 흐름(야간 낮음·주간 높음)은 일치한다.
+
+세 가지가 다르다.
+
+1. **피크가 13시 → 18시.** 구 프로파일은 09~17시가 평평한 고원(1.68~1.78)이고 18시부터
+   내려간다. 실측은 17시부터 급등해 18시에 단독 최고점을 찍고 19시에 급락한다 — 퇴근 피크가
+   구 프로파일에는 없었다.
+2. **오전이 약 40% 과대평가.** 09~12시에 구 프로파일은 1.68~1.76, 실측은 1.23~1.26.
+3. **07~08시 방향이 반대.** 구 프로파일은 07시 1.35 → 08시 1.54로 오르는데, 실측은
+   07시 1.12(06시보다 낮다) → 08시 1.29다.
+
+구역 순위도 다르다. **네 구역 모두 18시 피크**이며, `Node_D`는 구 프로파일이 1.81로 2위로
+보던 곳인데 실측 1.40으로 최하위다.
+
+### 왜 이렇게 됐나
+
+통행량은 낮 시간대에 고르게 많고(그래서 09~17시 고원), **지체는 용량을 넘어서는 순간
+급증**하므로 퇴근 시간에 몰린다. 용량 항이 없는 공식이 이 차이를 담을 수 없었다.
+
+### 시뮬레이션 결과에 미친 영향
+
+30일·5톤·4개 지점·경로 A→B→C→D 기준:
+
+| 수거 시각 | 통행량 기반(구) | TMAP 실측(신) |
+|---|---|---|
+| 03:00 | 47.0분 / 민원 23 | 45.0분 / 23 |
+| 08:30 | 66.0분 / 47 | 58.0분 / 46 |
+| **13:00** | **74.0분 / 53** ← 최악 | 58.0분 / 45 |
+| **18:00** | 70.0분 / 23 | **76.0분 / 23** ← 최악 |
+
+**가장 나쁜 수거 시각이 13:00에서 18:00으로 뒤집혔다.**
+
+### 무엇을 어떻게 바꿨나
+
+- `jangryang-weekday.json`을 실측값으로 교체하고 **id는 유지**했다 — 이 id가 서브태스크
+  세트의 `allowedRange`·LLM 프롬프트·Python 어댑터에 박혀 있어서, 새 id를 쓰면 해시로 잠긴
+  세트의 버전을 올려야 한다(D-45).
+- 실측 배수를 **그대로** 쓴다(재정규화 없음). `1 + K × 정규화` 형식으로 다시 감싸면 실측
+  진폭을 K가 덮어써 버린다.
+- `congestionThresholdRed` **1.7 → 1.45**. 구역×시간 96개 값의 90 백분위가 1.41이고,
+  1.45면 혼잡한 두 구역(A·C)의 16~19시와 Node_B의 18시가 RED가 되며 Node_D는 걸리지
+  않는다 — Node_D가 실측상 가장 한산하다는 사실과 맞는다.
+- **구 프로파일을 `jangryang-volume-weekday`로 보존**했다. 지금까지의 모든 결과가 그 값으로
+  나왔으므로 지우면 대조가 불가능해진다. `SEED_IDS`가 둘을 함께 로드하므로 같은 시나리오를
+  두 프로파일로 돌려 비교할 수 있다(위 표가 그 방식으로 뽑은 것이다).
+- **전처리 스크립트의 기본 출력을 `jangryang-volume-weekday`로 돌렸다.** 안 그러면 스크립트를
+  돌리는 순간 실측 프로파일이 통행량 값으로 되돌아간다.
+
+### 두 엔진이 기본값에서 갈라졌다
+
+Python 참조 엔진(`waste_sim/traffic.py`)은 자기 사본의 CSV에서 통행량 프로파일을 직접
+만들고(`K=1.2`, `threshold=1.7`), **`trafficProfileId` 값을 읽지 않는다** —
+`trafficEnabled`만으로 그 프로파일을 켠다(`PythonWasteSimAdapter` javadoc). 그래서 지금은
+**같은 요청을 두 엔진에 보내면 서로 다른 교통 가중치로 계산한다.**
+
+두 엔진을 대조할 때는 Java 쪽에 `trafficProfileId=jangryang-volume-weekday`를 명시한다 —
+Python이 그 id를 받아들이기 때문이 아니라, 그것이 Python이 항상 쓰는 프로파일이기 때문이다.
+Python도 실측으로 맞추려면 `waste_sim/traffic.py`를 함께 고쳐야 한다.
+
+> 자동 회귀가 이 어긋남을 잡아 주지 않는다. `PythonWasteSimAdapterTest`는 Python 엔진이
+> 실행되는지만 보고 두 엔진의 결과를 비교하지 않는다 — 비교 테스트가 있었다면 이 변경에서
+> 깨졌을 것이다.
+
+### 남은 한계
+
+§3.4의 (2)(3)(4)는 그대로다. 이 실측 자체에도 세 가지가 붙는다.
+
+- **교통 구역 좌표로 쟀다** — 수거 지점 실측이 아니다. 수거 지점 좌표가 확정되면 다시 재야 한다.
+- **평일 하루(2026-09-03) 예측값**이다. TMAP의 예측이지 관측이 아니고, 요일·계절 변동은 표본에 없다.
+- **승용차 기준**이라 5톤 화물차의 통행 제한을 반영하지 않는다.
+
 ## 4. 변환 스크립트
 
-**파일:** `scripts/preprocess_response_filtered.py`
+**파일:** `scripts/preprocess_response_filtered.py` — 이 문서는 코드를 복사해 싣지 않는다.
+전에는 전문을 실어 뒀는데, 진실 원천이 둘이 되어 한쪽만 낡았다(기본 출력 대상이 실제
+스크립트와 달라졌고, 그래서 갱신 절차가 조용히 아무 일도 하지 않았다).
+
 **실행:** `python scripts/preprocess_response_filtered.py [response_filtered.csv]`
-표준 라이브러리만 사용(pandas 불필요).
+표준 라이브러리만 쓴다(pandas 불필요).
 
-```python
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""response_filtered.csv(장량동 인근 교통량) → TrafficProfile JSON.
-link_id가 비어 있어 지점명(begin/end) 키워드로 4개 시뮬 노드에 귀속한다.
-"""
-import sys, json, os, csv
+| 항목 | 기본값 | 바꾸는 방법 |
+|---|---|---|
+| 입력 CSV | `response_filtered.csv` | 첫 번째 인자 |
+| 출력 파일 | `simulator/src/main/resources/traffic/jangryang-weekday.json` | `--out <경로>` |
+| 프로파일 id | `jangryang-weekday` | `--id <id>` |
 
-SRC = sys.argv[1] if len(sys.argv) > 1 else "response_filtered.csv"
-OUT = "src/main/resources/traffic/jangryang-weekday.json"
-K = 1.2                              # 피크 지연 강도(글로벌 최대 대비). 1+K = 최대 가중치
-ALLEY = ["Node_C", "Node_D"]        # 시뮬레이션상 골목(테스트 보존)
+출력 기본값은 `TrafficDataService.SEED_IDS`가 실제로 로드하는 프로파일과 같아야 한다 —
+다르면 갱신했는데 반영되지 않고, 그 사실이 아무 데도 드러나지 않는다.
+`ScriptOutputTargetTest`가 이 일치를 고정한다.
 
-# 지점명 키워드 → 시뮬 노드. begin/end 노드명에 키워드가 있으면 귀속.
-NODE_KEYWORDS = {
-    "Node_B": ["양덕"],
-    "Node_A": ["장성초등학교"],
-    "Node_C": ["장성초등사거리", "창포"],
-    "Node_D": ["두산위브", "포항온천"],
-}
-HOURS = ["hour_%02d" % h for h in range(24)]   # hour_00..hour_23 → index 0..23
+**계산 방식** — `link_id`가 비어 있어 지점명(`begin_node_nm`/`end_node_nm`) 키워드로 링크를
+노드에 귀속시키고(§3), 노드별 시간대 평균을 낸 뒤 전역 최대로 정규화한다:
 
-def classify(begin, end):
-    text = (begin or "") + " " + (end or "")
-    for node, kws in NODE_KEYWORDS.items():
-        if any(k in text for k in kws):
-            return node
-    return None
-
-def main():
-    rows = list(csv.DictReader(open(SRC, encoding="utf-8-sig")))
-    agg = {n: [0.0] * 24 for n in NODE_KEYWORDS}
-    cnt = {n: 0 for n in NODE_KEYWORDS}
-    unmapped = 0
-    for r in rows:
-        node = classify(r.get("begin_node_nm"), r.get("end_node_nm"))
-        if node is None:
-            unmapped += 1
-            continue
-        cnt[node] += 1
-        for h in range(24):
-            try:
-                agg[node][h] += float(r.get(HOURS[h]) or 0)
-            except ValueError:
-                pass
-    node_vol = {n: [agg[n][h] / cnt[n] if cnt[n] else 0.0 for h in range(24)] for n in NODE_KEYWORDS}
-    vmax = max((v for arr in node_vol.values() for v in arr), default=1.0) or 1.0
-    node_hourly = {n: [round(1.0 + K * (node_vol[n][h] / vmax), 2) for h in range(24)] for n in NODE_KEYWORDS}
-    global_hourly = [round(sum(node_hourly[n][h] for n in NODE_KEYWORDS) / len(NODE_KEYWORDS), 2) for h in range(24)]
-
-    profile = {
-        "id": "jangryang-weekday",
-        "congestionThresholdRed": 1.7,
-        "hourlyWeight": global_hourly,
-        "nodeHourlyWeight": node_hourly,
-        "alleyNodeIds": ALLEY,
-    }
-    os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(profile, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
-    print("WROTE", OUT, "| 매핑:", {n: cnt[n] for n in NODE_KEYWORDS}, "| 미매핑:", unmapped)
-
-if __name__ == "__main__":
-    main()
 ```
+가중치[노드][시] = 1 + K × (그 노드의 시간평균[시] / 전역 최대 시간평균)
+K = 1.2  →  최대 가중치 2.2
+```
+
+키워드는 순서가 곧 우선순위이고 **첫 일치가 이긴다** — 예를 들어 `장성초등학교→두산위브`는
+두 노드의 키워드에 모두 걸리지만 Node_A로 간다.
+
+> **이 가중치는 통행량 지수이지 혼잡도가 아니다.** 공식에 도로 용량 항이 없어서, 차선이
+> 많아 통행량이 많은 간선이 높은 값을 받는다 — Node_A가 2.20을 받는 이유는 4차로
+> 새천년대로의 1,357대/시인데, 차선당 340대는 정체라 보기 어렵다. 반대로 1차선 골목의
+> 300대/시는 정체다. 이동시간에 곱하는 값으로 쓸 때 이 한계를 감안해야 한다.
 
 ## 5. 새 CSV로 갱신하는 절차(재사용)
 
@@ -130,14 +350,14 @@ if __name__ == "__main__":
 
 1. 새 CSV를 프로젝트 루트(또는 `scripts/`)에 둔다.
 2. `python scripts/preprocess_response_filtered.py <csv경로>` 실행 →
-   `src/main/resources/traffic/jangryang-weekday.json` 갱신.
+   `simulator/src/main/resources/traffic/jangryang-weekday.json` 갱신.
 3. 스키마 검증: `python scripts/validate_profile.py` → `PROFILE OK` 확인.
 4. `mvn test` 실행 — RED 판정 관련 테스트가 새 데이터의 피크 시각과 어긋나면
    (`SimulationConfigValidatorTest`의 13:00 기준 등) 테스트의 기준 시각을 새
    피크로 맞춰 수정한다.
 5. 서버 기동 후 MCP로 반영 확인:
    ```
-   curl -s localhost:8080/mcp -H "Content-Type: application/json" \
+   curl -s localhost:8090/mcp -H "Content-Type: application/json" \
      -d '{"jsonrpc":"2.0","id":1,"method":"tools/call","params":{"name":"run_waste_simulation","arguments":{"collectionTime":"12:00","trafficEnabled":true,"trafficProfileId":"jangryang-weekday","days":3,"seeds":3}}}'
    ```
    → 피크 시각(RED 노드) 반영으로 수거 완료시간·민원이 평시 대비 상승하는지 확인.

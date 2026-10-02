@@ -81,7 +81,7 @@ public interface SimulationModelProvider {
   Python 7.4±3.0건으로 완전히 같지는 않지만(난수 알고리즘이 다름) 같은 경향(학생 직업군이
   지배적, 생산직·주부는 0건)을 보였다. 공통 검증 게이트(`days=0` 등 범위 밖 값)가 두 도구
   모두 동일하게 차단하는 것도 확인했다.
-- 정확한 코드는 `src/main/java/com/wastesim/mcp/PythonWasteSimAdapter.java`,
+- 정확한 코드는 `simulator/src/main/java/com/wastesim/mcp/PythonWasteSimAdapter.java`,
   `waste_sim/mcp_bridge.py` 참고.
 
 ## 3. 확장점 B — `McpToolProvider` (독립 도구/모델용, 구현 완료·미사용)

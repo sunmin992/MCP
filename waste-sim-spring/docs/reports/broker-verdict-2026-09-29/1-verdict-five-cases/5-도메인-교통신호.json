@@ -1,0 +1,28 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "5b",
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "교통 신호 최적화",
+        "spatialScale": "한 동네",
+        "objective": "신호 주기 최적화"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "5b",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"교통 신호 최적화\",\"matchCount\":0,\"verdict\":\"ADJUST_REQUEST\",\"suggestions\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":2,\"reasons\":[\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\"],\"mismatches\":[\"도메인: 교통 신호 최적화 는 이 서버의 도메인(waste-collection)이 아닙니다\",\"목적: 신호 주기 최적화 — 이 서버가 답할 수 있는 질문에 없습니다\"],\"requestAdjustments\":[{\"axis\":\"domain\",\"current\":\"교통 신호 최적화\",\"suggestion\":\"이 서버는 쓰레기수거, 생활쓰레기, 생활폐기물, 폐기물 수거, 쓰레기 를 다룹니다. 답할 수 있는 질문: 수거 시각, 하루 수거 횟수, 수거 주기, 수거 요일, 차량 수, 차종, 배차 간격, 교통 영향, 거주민 구성, 분리배출, 임대인 점검, 민원 수, 최대 적재량, 차량 가동률, 수거 완료 시각\",\"reason\":\"요청한 도메인을 다루지 않습니다 — 요청을 고치는 게 아니라 다른 질문을 하게 됩니다\",\"changesPurpose\":true}]}],\"note\":\"도메인 '교통 신호 최적화' 을 다루는 서버가 등록돼 있지 않습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.\",\"matches\":[]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}

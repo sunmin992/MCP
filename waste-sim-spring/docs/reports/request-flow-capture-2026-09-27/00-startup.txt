@@ -1,0 +1,5 @@
+교통 구역 4개 등록 (/traffic/jangryang-traffic-zones.json)
+수거 지점 좌표 0곳 등록 (/collection/jangnyang-collection-sites.json)
+자유주행시간 0쌍 등록 (/traffic/jangryang-travel-times.json)
+자유주행시간 12쌍 등록 (/traffic/jangryang-zone-travel-times.json)
+Started WasteSimApplication in 3.324 seconds (process running for 3.69)

@@ -1,0 +1,32 @@
+{
+  "입력 메시지": "한 동네에서 실제 도로 이동시간으로 계산해서 수거가 몇 시에 끝나는지 알고 싶어",
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "쓰레기수거",
+        "spatialScale": "한 동네",
+        "environmentConditions": [
+          "실제 도로 이동시간"
+        ],
+        "objective": "수거 완료 시각"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": 3,
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"쓰레기수거\",\"matchCount\":2,\"verdict\":\"ADJUST_REQUEST\",\"suggestions\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\",\"목적: 수거 완료 시각 → 수거 시각, 수거 완료 시각\"],\"mismatches\":[\"환경 조건: 실제 도로 이동시간 — 실제 도로 기반 이동시간 미지원. 수거 지점 좌표 미확보. 구현은 되어 있다\"],\"requestAdjustments\":[{\"axis\":\"environmentConditions\",\"current\":\"실제 도로 이동시간\",\"suggestion\":\"'실제 도로 이동시간' 조건을 빼면 됩니다. 카드가 적은 대안: feature:zoneProxyTravel\",\"reason\":\"수거 지점 좌표 미확보. 구현은 되어 있다\",\"changesPurpose\":false}]}],\"note\":\"요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.\",\"matches\":[{\"serverId\":\"district-waste-sim\",\"name\":\"행정동 단위 생활폐기물 수거 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"fictional\":true,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 행정동 전체(district)\",\"목적: 수거 완료 시각 → 수거 시각\"],\"mismatches\":[\"환경 조건: 실제 도로 이동시간 — 이 카드가 다루는지 적혀 있지 않습니다\"],\"requestAdjustments\":[{\"axis\":\"environmentConditions\",\"current\":\"실제 도로 이동시간\",\"suggestion\":\"'실제 도로 이동시간' 조건을 빼면 됩니다. 이 서버가 다루는 환경 조건: weekday-schedule, holidays, monthly-variation\",\"reason\":\"이 카드가 다루는지 적혀 있지 않습니다\",\"changesPurpose\":false}]},{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\",\"목적: 수거 완료 시각 → 수거 시각, 수거 완료 시각\"],\"mismatches\":[\"환경 조건: 실제 도로 이동시간 — 실제 도로 기반 이동시간 미지원. 수거 지점 좌표 미확보. 구현은 되어 있다\"],\"requestAdjustments\":[{\"axis\":\"environmentConditions\",\"current\":\"실제 도로 이동시간\",\"suggestion\":\"'실제 도로 이동시간' 조건을 빼면 됩니다. 카드가 적은 대안: feature:zoneProxyTravel\",\"reason\":\"수거 지점 좌표 미확보. 구현은 되어 있다\",\"changesPurpose\":false}]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}

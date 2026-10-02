@@ -1,0 +1,74 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "09-build-scenario",
+    "method": "tools/call",
+    "params": {
+      "name": "build_scenario",
+      "arguments": {
+        "values": {
+          "truckType": "SMALL_1TON",
+          "truckCount": 1,
+          "numBuildings": 4,
+          "residentsPerBuilding": 25,
+          "days": 30,
+          "seeds": 30,
+          "trafficMode": "APPLY",
+          "trafficProfileId": "jangryang-weekday",
+          "travelTimeMode": "LEGACY_CONSTANT",
+          "routeAvailableCapacityKg": 150
+        },
+        "origins": {
+          "truckType": "MODEL_DEFAULT",
+          "truckCount": "USER",
+          "numBuildings": "MODEL_DEFAULT",
+          "residentsPerBuilding": "MODEL_DEFAULT",
+          "days": "MODEL_DEFAULT",
+          "seeds": "MODEL_DEFAULT",
+          "trafficMode": "USER",
+          "trafficProfileId": "USER",
+          "travelTimeMode": "MODEL_DEFAULT",
+          "routeAvailableCapacityKg": "MODEL_DEFAULT",
+          "collectionTimesMinutes": "MODEL_DEFAULT"
+        },
+        "variableAnswerKey": "collectionTimesMinutes",
+        "variableValues": [
+          [
+            660
+          ],
+          [
+            660,
+            1380
+          ],
+          [
+            180,
+            660,
+            1140
+          ],
+          [
+            180,
+            660,
+            1020,
+            1380
+          ]
+        ],
+        "observations": [
+          "meanComplaints"
+        ]
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "09-build-scenario",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "\"{\\\"sesId\\\":\\\"jangnyang-ses\\\",\\\"sesVersion\\\":\\\"1.0.0\\\",\\\"scenarioId\\\":\\\"scn-fda468c1\\\",\\\"valid\\\":true,\\\"runCount\\\":4,\\\"blocks\\\":[],\\\"backVerificationBlocks\\\":[],\\\"unapprovedDefaults\\\":{\\\"seeds\\\":30,\\\"routeAvailableCapacityKg\\\":150,\\\"collectionTimesMinutes\\\":[[660],[660,1380],[180,660,1140],[180,660,1020,1380]],\\\"travelTimeMode\\\":\\\"LEGACY_CONSTANT\\\",\\\"days\\\":30,\\\"residentsPerBuilding\\\":25,\\\"numBuildings\\\":4,\\\"truckType\\\":\\\"SMALL_1TON\\\"},\\\"state\\\":\\\"UNCONFIRMED\\\"}\""
+        }
+      ],
+      "isError": false
+    }
+  }
+}

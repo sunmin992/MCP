@@ -1,0 +1,32 @@
+{
+  "id": "jangryang-zone-travel-times",
+  "version": 1,
+  "unit": "freeFlowSeconds — 정차·상차를 뺀 순수 주행시간(초)",
+  "purpose": "ZONE_PROXY_HYBRID 모드가 읽는 **교통 구역 간** 자유주행시간 행렬.",
+  "coordinateSource": "TRAFFIC_ZONE_PROXY",
+  "whatKindOfMeasurement": "**현장 주행 기록이 아니다.** OSRM(router.project-osrm.org)이 OpenStreetMap 도로망 형상과 도로 등급별 가정 속도로 산출한 자유주행시간이다. 실제 청소차가 그 구간을 달린 시간을 잰 것이 아니므로, 차량 특성·정차·신호 대기·계절이 반영돼 있지 않다. '실측'이라는 말은 현장 주행 기록에만 쓰고, 이 값은 'OSRM 산출 자유주행시간'이라고 부른다 — 두 가지를 같은 말로 부르면 근거의 강도가 부풀려진다.",
+  "howToGetRealDrivingTimes": "청소차에 시각을 기록하면 된다: 도착 시각 / 수거 시작 시각 / 출발 시각. 구간 주행시간은 (다음 지점 도착 - 이전 지점 출발)이고, 정차·상차 시간은 (출발 - 도착)이다. 20~30건 모으면 중앙값과 상위 90%를 낼 수 있다.",
+  "keysAreZones": "구간 키의 Node_A~D는 **교통 구역** id다(traffic/jangryang-traffic-zones.json). 수거 지점 id와 라벨 체계가 같지만 별개의 이름공간이며, 수거 지점은 자신이 속한 구역을 trafficZone으로 가리킨다. 수거 지점 간 행렬은 traffic/jangryang-travel-times.json이고 그쪽은 실제 지점 좌표를 요구한다.",
+  "measuredAt": "2026-09-01 (router.project-osrm.org, driving, overview=false)",
+  "provenance": "traffic/jangryang-traffic-zones.json의 measuredOsrm에서 시간 성분만 가져왔다. 두 파일의 값이 일치하는지는 TravelTimeMatrixProvenanceTest가 확인한다.",
+  "noDiagonal": "같은 구역끼리의 구간(Node_A->Node_A)은 없고 있을 수도 없다 — 구역은 점이 아니라 영역이라 자기 자신까지의 거리가 정의되지 않는다. 같은 구역 안의 이동은 SimulationConfig.intraZoneTravelMinutes가 담당한다.",
+  "whyPrecomputed": "시뮬레이션 도중 OSRM을 부르지 않는다. 같은 시드·같은 파라미터가 같은 결과를 내야 하는데(NFR-02), 외부 호출은 그 보장을 깨고 결과를 네트워크 가용성에 묶는다.",
+  "notTrafficWeights": "여기 있는 것은 자유주행시간이다. 시간대 혼잡은 traffic/jangryang-weekday.json의 가중치가 따로 곱해진다. TMAP totalTime처럼 이미 교통이 반영된 값을 넣으면 두 번 센다.",
+  "knownIssues": [
+    "Node_A <-> Node_C가 10.2초다. 두 구역이 도로 거리 57.8m로 사실상 같은 장소이기 때문이며, 이 구간의 배수는 노이즈에 가까워 교통 프로파일 유도에서는 제외했다."
+  ],
+  "pairs": {
+    "Node_A->Node_B": 162.0,
+    "Node_A->Node_C": 10.2,
+    "Node_A->Node_D": 163.8,
+    "Node_B->Node_A": 186.6,
+    "Node_B->Node_C": 180.6,
+    "Node_B->Node_D": 190.8,
+    "Node_C->Node_A": 10.2,
+    "Node_C->Node_B": 151.8,
+    "Node_C->Node_D": 153.6,
+    "Node_D->Node_A": 157.2,
+    "Node_D->Node_B": 167.4,
+    "Node_D->Node_C": 151.2
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "A-other-config",
+    "method": "tools/call",
+    "params": {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 2,
+        "seeds": 2,
+        "numTrucks": 1,
+        "confirmToken": "cft-0c98458488ca4afc"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "A-other-config",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "이 설정은 확인 토큰의 시나리오(scn-557d3c7)에서 사용자가 확인한 설정이 아닙니다 — 확인한 설정 그대로 보내거나 토큰을 빼십시오."
+        }
+      ],
+      "isError": true
+    }
+  }
+}

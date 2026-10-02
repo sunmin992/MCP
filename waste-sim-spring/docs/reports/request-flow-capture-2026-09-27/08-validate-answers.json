@@ -1,0 +1,40 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "08-validate-answers.json",
+    "method": "tools/call",
+    "params": {
+      "name": "validate_answers",
+      "arguments": {
+        "answers": {
+          "truckType": "MEDIUM_3TON",
+          "days": "삼십일",
+          "seeds": "30",
+          "routeAvailableCapacityKg": "150.5"
+        }
+      }
+    }
+  },
+  "응답": {
+    "isError": false,
+    "본문": {
+      "valid": false,
+      "normalized": {
+        "seeds": 30,
+        "routeAvailableCapacityKg": 150.5
+      },
+      "rejected": [
+        {
+          "answerKey": "truckType",
+          "code": "OUT_OF_CLOSURE",
+          "message": "truckType 에 허용되지 않은 값입니다: MEDIUM_3TON (허용: LARGE_5TON, MEDIUM_2P5T, SMALL_1TON)"
+        },
+        {
+          "answerKey": "days",
+          "code": "NOT_A_NUMBER",
+          "message": "days 는 정수여야 합니다. 받은 값: 삼십일"
+        }
+      ]
+    }
+  }
+}

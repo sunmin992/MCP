@@ -1,0 +1,40 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "08-validate-answers",
+    "method": "tools/call",
+    "params": {
+      "name": "validate_answers",
+      "arguments": {
+        "answers": {
+          "truckType": "SMALL_1TON",
+          "truckCount": 3,
+          "numBuildings": 4,
+          "residentsPerBuilding": 25,
+          "days": 30,
+          "seeds": 30,
+          "trafficMode": "APPLY",
+          "trafficProfileId": "jangryang-weekday",
+          "travelTimeMode": "LEGACY_CONSTANT",
+          "zoneAssignmentRule": "ROUND_ROBIN",
+          "dispatchIntervalMinutes": 15,
+          "routeAvailableCapacityKg": 150.0,
+          "collectionTimeMinutes": 720
+        }
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "08-validate-answers",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "\"{\\\"valid\\\":true,\\\"normalized\\\":{\\\"truckType\\\":\\\"SMALL_1TON\\\",\\\"truckCount\\\":3,\\\"numBuildings\\\":4,\\\"residentsPerBuilding\\\":25,\\\"days\\\":30,\\\"seeds\\\":30,\\\"trafficMode\\\":\\\"APPLY\\\",\\\"trafficProfileId\\\":\\\"jangryang-weekday\\\",\\\"travelTimeMode\\\":\\\"LEGACY_CONSTANT\\\",\\\"zoneAssignmentRule\\\":\\\"ROUND_ROBIN\\\",\\\"dispatchIntervalMinutes\\\":15,\\\"routeAvailableCapacityKg\\\":150.0,\\\"collectionTimeMinutes\\\":720},\\\"rejected\\\":[]}\""
+        }
+      ],
+      "isError": false
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "12a-status-before-confirm.json",
+    "method": "tools/call",
+    "params": {
+      "name": "get_scenario_status",
+      "arguments": {
+        "scenarioId": "scn-4a7dc5dc"
+      }
+    }
+  },
+  "응답": {
+    "isError": false,
+    "본문": {
+      "scenarioId": "scn-4a7dc5dc",
+      "state": "UNCONFIRMED",
+      "runCount": 5,
+      "unapprovedDefaultCount": 2,
+      "confirmUrl": "/confirm.html",
+      "nextStep": "사용자에게 /confirm.html 을 열어 설정을 확인하도록 안내하십시오. 확인은 사람만 할 수 있습니다."
+    }
+  }
+}

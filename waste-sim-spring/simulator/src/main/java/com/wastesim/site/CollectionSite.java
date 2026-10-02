@@ -1,0 +1,64 @@
+package com.wastesim.site;
+
+/**
+ * 쓰레기를 배출하는 수거 대상 한 곳과 그 실제 좌표.
+ *
+ * <p><b>교통 앵커와 다른 것이다.</b> {@code traffic/jangryang-nodes.json}의 Node_A~D는 실측
+ * 교통량 링크의 귀속점이고 — 학교·사거리·아파트가 그 자리에 오는 이유다 — 이 레코드는
+ * 쓰레기가 나오는 곳이다. 하나의 교통 앵커를 여러 수거 지점이 공유할 수 있다.
+ *
+ * <p>v1.12까지 이 둘은 {@code Node_A} 하나로 겹쳐 있었고, 그래서 "노드가 교통 관측 지점인가
+ * 수거 대상 건물인가"라는 질문에 코드 안에서 답이 나오지 않았다. 답은 둘 다이며 서로 다른
+ * 것이었다.
+ *
+ * <h2>원본 모델에서의 정의</h2>
+ * 참조 구현({@code waste_sim/MODEL_SPECIFICATION.md})은 수거 지점을 이렇게 정의한다 —
+ * {@code Building[b] = { ResidentGenerator × N, GarbageCan × 1 }}. 즉 <b>수거 지점은
+ * {@code GarbageCan}이고 건물마다 정확히 하나다.</b> 트럭 경로는 건물 인덱스의 나열이고,
+ * 트럭은 {@code target == building_id}인 통만 비운다. 민원이 발생하는 자리도 이 통이다
+ * ({@code fill / capacity ≥ θ}).
+ *
+ * <p>그래서 이 레코드의 id는 건물과 1:1이다. 좌표는 원본 모델에 없는 것을 여기서 더하는
+ * 것이며, 통의 용량·청결 임계({@code capacity}·{@code threshold})는 모델상 통의 속성이지만
+ * 두 구현 모두 아직 전역 값 하나를 모든 통에 쓴다({@code SimulationConfig}). 지점별로
+ * 달리하게 되면 그 값들이 올 자리가 이 레코드다.
+ *
+ * @param id            지점 id. {@code Node_A}~{@code Node_Z} — 엔진이 건물 인덱스에 붙이는
+ *                      라벨, 서브태스크 ST-005가 사용자에게 받는 이름과 같은 체계다.
+ * @param longitude     경도(WGS84)
+ * @param latitude      위도(WGS84)
+ * @param name          사람이 알아보는 이름
+ * @param adminDivision 행정동 — 이 프로젝트는 장량동만 다루므로 확인 대상이다
+ * @param source        좌표의 출처. <b>무엇을 보고 이 좌표를 정했는지</b>가 들어간다 —
+ *                      비어 있으면 다음 사람은 그 좌표를 신뢰할 근거가 없다
+ * @param snapMeters    OSRM이 이 좌표를 도로로 스냅하며 밀린 거리(m). 임계값을 넘으면
+ *                      그 지점의 이동시간은 요청한 위치의 값이 아니다
+ * @param trafficZone   이 지점이 겪는 혼잡을 대표하는 교통 구역 id
+ *                      ({@link com.wastesim.traffic.TrafficZoneRegistry}). 비어 있으면
+ *                      매핑 없음이고, 그때는 구역별 가중치 대신 전역 시간대 가중치를 쓴다.
+ *                      <b>여러 수거 지점이 한 구역을 공유할 수 있다</b> — 같은 골목의 원룸
+ *                      여러 동은 같은 혼잡을 겪는다. 그래서 이 값은 지점 id와 별개이며,
+ *                      같은 이름이 오더라도 우연이지 같은 대상이라는 뜻이 아니다
+ * @param largeTruckAllowed 대형(5톤) 차량이 이 지점까지 들어올 수 있는가.
+ *                      <b>접근성은 이 지점의 물리적 성질</b>이며 교통량과 무관하다 —
+ *                      그래서 교통 프로파일이 아니라 여기 있고, 교통 레이어를 끄고 돌려도
+ *                      판정된다. 값을 생략할 수 없다: 등록한다는 것은 이 지점에 대형
+ *                      차량이 닿는지 안다는 뜻이고, 모르면 기본값으로 얼버무리는 대신
+ *                      등록하지 않는 편이 낫다
+ */
+public record CollectionSite(
+        String id,
+        double longitude,
+        double latitude,
+        String name,
+        String adminDivision,
+        String source,
+        double snapMeters,
+        String trafficZone,
+        boolean largeTruckAllowed) {
+
+    /** 이 지점에 교통 구역이 지정돼 있는가. 없으면 전역 시간대 가중치를 쓴다. */
+    public boolean hasTrafficZone() {
+        return trafficZone != null && !trafficZone.isBlank();
+    }
+}

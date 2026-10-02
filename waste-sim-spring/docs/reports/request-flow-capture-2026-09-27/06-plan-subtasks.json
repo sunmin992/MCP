@@ -1,0 +1,142 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "06-plan-subtasks.json",
+    "method": "tools/call",
+    "params": {
+      "name": "plan_subtasks",
+      "arguments": {
+        "answers": {
+          "numBuildings": 4,
+          "truckCount": 1
+        }
+      }
+    }
+  },
+  "응답": {
+    "isError": false,
+    "본문": {
+      "instances": [
+        {
+          "templateId": "jn.truckType",
+          "answerKey": "truckType",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)"
+        },
+        {
+          "templateId": "jn.truckCount",
+          "answerKey": "truckCount",
+          "status": "FILLED",
+          "value": 1,
+          "origin": "USER",
+          "question": "수거차량은 몇 대인가요? (1 이상)"
+        },
+        {
+          "templateId": "jn.dispatchInterval",
+          "answerKey": "dispatchIntervalMinutes",
+          "status": "NOT_GENERATED",
+          "value": null,
+          "origin": null,
+          "question": "차량 간 배차 간격을 몇 분으로 할까요?"
+        },
+        {
+          "templateId": "jn.collectionTime",
+          "answerKey": "collectionTimeMinutes",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "하루 중 몇 시에 수거할까요?"
+        },
+        {
+          "templateId": "jn.trafficMode",
+          "answerKey": "trafficMode",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "교통량을 반영할까요?"
+        },
+        {
+          "templateId": "jn.trafficProfile",
+          "answerKey": "trafficProfileId",
+          "status": "DEFERRED",
+          "value": null,
+          "origin": null,
+          "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)"
+        },
+        {
+          "templateId": "jn.travelTimeMode",
+          "answerKey": "travelTimeMode",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)"
+        },
+        {
+          "templateId": "jn.zoneAssignmentRule",
+          "answerKey": "zoneAssignmentRule",
+          "status": "DEFERRED",
+          "value": null,
+          "origin": null,
+          "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다"
+        },
+        {
+          "templateId": "jn.intraZoneTravel",
+          "answerKey": "intraZoneTravelMinutes",
+          "status": "DEFERRED",
+          "value": null,
+          "origin": null,
+          "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다"
+        },
+        {
+          "templateId": "jn.numBuildings",
+          "answerKey": "numBuildings",
+          "status": "FILLED",
+          "value": 4,
+          "origin": "USER",
+          "question": "건물은 몇 동인가요? (1~26동)"
+        },
+        {
+          "templateId": "jn.residentsPerBuilding",
+          "answerKey": "residentsPerBuilding",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "한 동에 몇 세대인가요?"
+        },
+        {
+          "templateId": "jn.days",
+          "answerKey": "days",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "며칠치를 볼까요? (1~365일)"
+        },
+        {
+          "templateId": "jn.seeds",
+          "answerKey": "seeds",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "몇 번 반복할까요? (1~100회)"
+        },
+        {
+          "templateId": "jn.routeAvailableCapacity",
+          "answerKey": "routeAvailableCapacityKg",
+          "status": "UNFILLED",
+          "value": null,
+          "origin": null,
+          "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다)"
+        }
+      ],
+      "counts": {
+        "FILLED": 2,
+        "UNFILLED": 8,
+        "DEFERRED": 3,
+        "NOT_GENERATED": 1
+      },
+      "complete": false
+    }
+  }
+}

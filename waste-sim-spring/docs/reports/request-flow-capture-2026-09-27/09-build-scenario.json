@@ -1,0 +1,59 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "09-build-scenario.json",
+    "method": "tools/call",
+    "params": {
+      "name": "build_scenario",
+      "arguments": {
+        "values": {
+          "truckType": "SMALL_1TON",
+          "truckCount": 3,
+          "numBuildings": 4,
+          "residentsPerBuilding": 25,
+          "days": 30,
+          "seeds": 5,
+          "trafficMode": "APPLY",
+          "trafficProfileId": "jangryang-weekday",
+          "travelTimeMode": "LEGACY_CONSTANT",
+          "zoneAssignmentRule": "ROUND_ROBIN",
+          "dispatchIntervalMinutes": 15,
+          "routeAvailableCapacityKg": 150.0
+        },
+        "origins": {
+          "seeds": "MODEL_DEFAULT",
+          "routeAvailableCapacityKg": "MODEL_DEFAULT"
+        },
+        "variableAnswerKey": "collectionTimeMinutes",
+        "variableValues": [
+          360,
+          540,
+          720,
+          900,
+          1080
+        ],
+        "observations": [
+          "meanComplaints",
+          "peakFillKg"
+        ]
+      }
+    }
+  },
+  "응답": {
+    "isError": false,
+    "본문": {
+      "sesId": "jangnyang-ses",
+      "sesVersion": "1.0.0",
+      "scenarioId": "scn-4a7dc5dc",
+      "valid": true,
+      "runCount": 5,
+      "blocks": [],
+      "backVerificationBlocks": [],
+      "unapprovedDefaults": {
+        "routeAvailableCapacityKg": 150.0,
+        "seeds": 5
+      },
+      "state": "UNCONFIRMED"
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "3-legacy",
+    "method": "tools/call",
+    "params": {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "truckType": "SMALL_1TON",
+        "truckCount": 3,
+        "numBuildings": 4,
+        "residentsPerBuilding": 25,
+        "days": 30,
+        "seeds": 30,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "LEGACY_CONSTANT",
+        "dispatchIntervalMinutes": 15,
+        "routeAvailableCapacityKg": 150.0,
+        "collectionTime": "12:00",
+        "confirmToken": "cft-0c98458488ca4afc"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "3-legacy",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "이미 실행한 시나리오의 토큰입니다 — 다시 돌리려면 사용자가 확인 화면에서 다시 확인해야 합니다."
+        }
+      ],
+      "isError": true
+    }
+  }
+}

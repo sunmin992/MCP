@@ -6,10 +6,10 @@
 
 | 항목 | 내용 |
 |---|---|
-| 문서명 | waste-sim-spring SRS / SDD / TDD 통합 명세서 |
-| 현행 버전 | **v1.11** (2026-08-20) |
+| 문서명 | 장량동 생활쓰레기 시뮬레이터 SRS / SDD / TDD 통합 명세서 |
+| 현행 버전 | 파일 **v1.15** · 문서 버전 **2.3** (2026-09-03) |
 | 기준 형식 | **Markdown** — `.docx`는 편집 원본일 뿐 기준이 아니다(아래 참조) |
-| 파일명 | [`docs_waste-sim-spring_SRS_SDD_TDD_v1_11.md`](docs_waste-sim-spring_SRS_SDD_TDD_v1_11.md) (이전: [v1.10](docs_waste-sim-spring_SRS_SDD_TDD_v1_10.md)) |
+| 파일명 | [`waste-sim-spring_SRS_SDD_TDD_v1.15.md`](waste-sim-spring_SRS_SDD_TDD_v1.15.md). 이전 판은 파일을 남기지 않고 git 이력으로 되짚는다 — 2,300줄 문서를 판마다 복제하면 개정 내용이 아니라 전체 파일이 diff로 잡혀, Markdown으로 옮긴 이유(어느 문단이 언제 왜 바뀌었는지 본다)가 사라진다 |
 
 ## 기준 문서는 Markdown이다 — `.docx`는 편집 원본일 뿐이다
 
@@ -41,25 +41,27 @@ v1.9부터 같은 문서를 Markdown으로 내보내 커밋하므로 diff·PR �
 
 ## 버전 체계 — 문서 버전과 애플리케이션 버전은 다르다
 
-명세서는 `1.11`, `pom.xml`은 `1.1.1`이다. 비슷하게 생겨서 같은 값으로 읽기 쉽지만
-서로 다른 축이고, 통일하지 않는다 — 문서만 고치는 개정(v1.11이 그렇다)과 코드만 고치는
+명세서 파일은 `v1.15`(문서 버전 `2.3`), `pom.xml`은 `1.1.1`이다. 비슷하게 생겨서 같은 값으로
+읽기 쉽지만 서로 다른 축이고, 통일하지 않는다 — 문서만 고치는 개정과 코드만 고치는
 핫픽스(1.1.1이 그렇다)가 실제로 따로 일어나기 때문에 한 숫자로 묶으면 둘 중 하나가
 거짓이 된다.
 
 | 축 | 값의 출처 | 언제 올라가는가 |
 |---|---|---|
-| 명세 버전 | `spec.version` (`application.properties`) | 통합 명세서를 개정할 때 |
+| 명세 파일 번호 | `info.spec.version` (`application.properties`) | 통합 명세서를 개정할 때 |
+| 명세 문서 버전 | `info.spec.doc-version` (`application.properties`) | 같음 — 문서 안에서 쓰는 판 번호다(2.0 도메인 분리 이후 축이 갈렸다) |
 | 애플리케이션 버전 | `pom.xml`의 `<version>` | 코드를 릴리스할 때 |
 
-실행 중인 서버가 **어느 명세로 빌드된 것인지**는 `/actuator/info`가 두 값을 함께
-알려준다. 표기는 "명세 v1.11 / 앱 1.1.1"처럼 항상 둘을 붙여 쓴다.
+실행 중인 서버가 **어느 명세로 빌드된 것인지**는 `/actuator/info`가 함께
+알려준다. 표기는 "명세 v1.15(문서 2.3) / 앱 1.1.1"처럼 항상 붙여 쓴다.
 
 ```bash
 curl -s http://localhost:8090/actuator/info
 ```
 
 ```json
-{ "app": { "version": "1.1.1" }, "spec": { "version": "1.11", "date": "2026-08-20" } }
+{ "app": { "version": "1.1.1" },
+  "spec": { "version": "1.15", "doc-version": "2.3", "date": "2026-09-03" } }
 ```
 
 ## 코드와의 정합 상태 (2026-08-17 재대조)

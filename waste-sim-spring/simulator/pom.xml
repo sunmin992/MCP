@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.wastesim</groupId>
+        <artifactId>waste-sim-spring</artifactId>
+        <version>1.1.1</version>
+    </parent>
+    <artifactId>waste-sim-simulator</artifactId>
+    <name>waste-sim-simulator</name>
+    <description>장량동 시뮬레이터 MCP 서버 — SES · 서브태스크 · 시나리오 · 실행 · 확인 화면</description>
+
+    <properties>
+        <spring-boot.run.skip>false</spring-boot.run.skip>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.wastesim</groupId>
+            <artifactId>mcp-common</artifactId>
+        </dependency>
+        <!-- Spring Web (REST API) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- Actuator + Micrometer (관측성: /actuator/health·metrics) -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+        <!-- OkHttp — OpenAI 호환 LLM 백엔드(OpenAI·Ollama·Gemini) 호출용.
+             프로바이더는 Spring 프로파일로 고른다(application-openai/ollama.properties).
+             전용 SDK를 쓰지 않고 HTTP로 직접 부르는 이유가 그 호환성이다 — 백엔드를
+             바꿔도 코드가 아니라 프로파일만 바뀐다(SDD 2.17.4). -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+        </dependency>
+        <!-- Test -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <!-- MockWebServer — LLM 백엔드 응답을 고정 주입해 "LLM이 무엇을 돌려주든 서버의
+             판단은 그대로"임을 검증한다(TDD 3.17.5, UT-328~332). 실제 모델을 띄우면
+             그 검증이 모델의 그날 컨디션에 좌우된다 — 여기서 보는 것은 모델의 품질이
+             아니라 <b>경계</b>다. 버전은 okhttp와 함께 스프링 부트 부모 POM이 관리한다. -->
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>mockwebserver</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 시험 중에는 브로커로 등록을 보내지 않는다. 시험마다 스프링 컨텍스트가 뜨면서
+                 8089 로 요청이 나가고, 그때 떠 있는 브로커가 있으면 목록이 바뀐다.
+                 등록 동작 자체는 BrokerRegistrarTest 가 가짜 서버로 따로 본다. -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <broker.registration.enabled>false</broker.registration.enabled>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

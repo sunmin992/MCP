@@ -11,7 +11,7 @@
 기본:
   csv = response_filtered.csv
   ID  = jangryang-weekday-real
-  out = src/main/resources/traffic/jangryang-weekday-real.json
+  out = simulator/src/main/resources/traffic/jangryang-weekday-real.json
 """
 import sys, json, os, csv
 
@@ -19,10 +19,23 @@ args = [a for a in sys.argv[1:] if not a.startswith("--")]
 opts = {sys.argv[i]: sys.argv[i + 1] for i in range(1, len(sys.argv) - 1) if sys.argv[i].startswith("--")}
 
 SRC = args[0] if args else "response_filtered.csv"
-PROFILE_ID = opts.get("--id", "jangryang-weekday-real")
-OUT = opts.get("--out", "src/main/resources/traffic/jangryang-weekday-real.json")
+# 이 스크립트가 만드는 것은 **통행량 기반** 프로파일이다. 2026-09-02부터 시스템의 기본
+# 프로파일(jangryang-weekday)은 TMAP 실측 소요시간에서 나오므로, 이 스크립트의 산출물은
+# 별도 id(jangryang-volume-weekday)로 나간다 — 덮어쓰면 실측 프로파일이 통행량 값으로
+# 되돌아간다.
+#
+# 기본값은 TrafficDataService.SEED_IDS가 실제로 로드하는 프로파일이어야 한다.
+# 한동안 기본값이 "-real"이었는데, 그 파일은 SEED_IDS에 없어서 로드되지 않는다 —
+# 갱신 절차를 그대로 따라도 "WROTE ..."가 찍히고 테스트도 통과하면서 운영 프로파일은
+# 그대로 남았다. 아무 경고 없이 "갱신했다고 믿는" 상태가 되는 것이 문제였다.
+# ScriptOutputTargetTest가 이 기본값과 SEED_IDS의 일치를 고정한다.
+PROFILE_ID = opts.get("--id", "jangryang-volume-weekday")
+OUT = opts.get("--out", "simulator/src/main/resources/traffic/jangryang-volume-weekday.json")
 K = 1.2                               # 피크 지연 강도(글로벌 최대 대비). 1+K = 최대 가중치
-ALLEY = ["Node_C", "Node_D"]         # 시뮬레이션상 골목(물리 속성, 데이터 무관)
+# alleyNodeIds는 이 프로파일에서 제거됐다(2026-09-01). 대형 차량 진입 가능 여부는 교통량이
+# 아니라 수거 지점의 물리적 성질이라 collection/jangnyang-collection-sites.json의
+# largeTruckAllowed로 옮겼다. 확정된 좌표로 대조해 보니 골목으로 표시돼 있던 두 곳이
+# 각각 4차로 교차로와 6차로 도로변이었고, 근거 없는 값이 실측 옆에 앉아 있었다.
 
 # 지점명 키워드 → 시뮬 노드. begin/end 노드명에 키워드가 있으면 귀속.
 NODE_KEYWORDS = {
@@ -68,10 +81,13 @@ def main():
         "congestionThresholdRed": 1.7,
         "hourlyWeight": global_hourly,
         "nodeHourlyWeight": node_hourly,
-        "alleyNodeIds": ALLEY,
     }
     os.makedirs(os.path.dirname(OUT), exist_ok=True)
-    json.dump(profile, open(OUT, "w", encoding="utf-8"), ensure_ascii=False, indent=2)
+    # 마지막 개행을 붙인다 — 없으면 같은 CSV로 다시 돌려도 파일이 dirty해져서
+    # "데이터가 실제로 바뀐 것"과 구별되지 않는다.
+    with open(OUT, "w", encoding="utf-8", newline="\n") as f:
+        json.dump(profile, f, ensure_ascii=False, indent=2)
+        f.write("\n")
     print("WROTE", OUT, "| id:", PROFILE_ID, "| 매핑:", {n: cnt[n] for n in NODE_KEYWORDS}, "| 미매핑:", unmapped)
 
 

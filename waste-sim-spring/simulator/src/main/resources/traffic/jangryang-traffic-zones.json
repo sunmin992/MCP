@@ -1,0 +1,220 @@
+{
+  "id": "jangryang-traffic-zones",
+  "version": 1,
+  "coordinateHash": "a4cfc5067b9b9cbd6e9edd3aa386d39cc677eee86f7bcd6084541f7b30a76d3d",
+  "coordinateSystem": "WGS84 (EPSG:4326), [경도, 위도]",
+  "whatThisIs": "**교통 구역(traffic zone)**의 위치다. 실측 교통량 CSV의 15개 링크를 키워드로 귀속시킨 지점이며, jangryang-weekday.json의 nodeHourlyWeight가 이 구역들의 시간대별 혼잡 가중치다. 학교·사거리·아파트가 여기 오는 이유는 그것이 교통을 관측한 자리이기 때문이다.",
+  "notCollectionSites": "**수거 지점이 아니다.** 쓰레기를 배출하는 곳은 collection/jangnyang-collection-sites.json에 따로 있다. v1.12까지 둘은 Node_A 하나로 겹쳐 있었고, 그래서 '노드가 교통 관측 지점인가 수거 대상 건물인가'에 코드 안에서 답이 나오지 않았다. 수거 지점은 자신이 속한 구역을 trafficZone으로 가리키며, 여러 지점이 한 구역을 공유할 수 있다.",
+  "idFormat": "Node_A ~ Node_Z. 수거 지점과 같은 라벨 체계를 쓰지만 별개의 이름공간이다 — 수거 지점 Node_A와 교통 구역 Node_A는 서로 다른 것을 가리킬 수 있다.",
+  "rule": "노드 좌표 = 그 노드에 귀속된 실측 링크들의 공통 종점. 공통 종점이 없으면 구간 중간점.",
+  "source": "response_filtered.csv (공공데이터포털, 포항 장량동 인근 실측 교통량) 15개 링크. 노드 귀속 규칙은 scripts/preprocess_response_filtered.py의 NODE_KEYWORDS와 동일하며, jangryang-weekday.json의 혼잡 가중치도 같은 귀속으로 만들어졌다.",
+  "purpose": "교통 가중치와 거리가 같은 장소를 가리키도록 노드 위치를 고정한다. 이 파일은 아직 어떤 프로덕션 코드도 읽지 않는다 — 좌표를 근거와 함께 못박고 테스트로 잠그는 것이 목적이다.",
+  "snapThresholdMeters": 300,
+  "snapVerifiedWith": "OSRM /nearest/v1/driving (router.project-osrm.org). osrm.max-snap-meters=300 기준 전부 통과.",
+  "zones": {
+    "Node_A": {
+      "longitude": 129.37185,
+      "latitude": 36.06962,
+      "landmark": "장성초등학교",
+      "endpointRole": "4개 링크 전부가 접하는 공통 종점",
+      "geocodeSource": "OSM/Nominatim 검색 '포항 장성초등학교'",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 61.5,
+      "snapRoad": "새천년대로1123번길",
+      "links": [
+        {
+          "begin": "장성초등학교",
+          "end": "창포사거리"
+        },
+        {
+          "begin": "창포사거리",
+          "end": "장성초등학교"
+        },
+        {
+          "begin": "장성초등학교",
+          "end": "두산위브"
+        },
+        {
+          "begin": "두산위브",
+          "end": "장성초등학교"
+        }
+      ],
+      "linkCount": 4
+    },
+    "Node_B": {
+      "longitude": 129.39554,
+      "latitude": 36.07622,
+      "landmark": "양덕교차로",
+      "endpointRole": "4개 링크 전부의 도착 종점",
+      "geocodeSource": "OSM/Nominatim 검색 '포항 양덕사거리' — CSV의 '양덕교차로'는 OSM에 그 이름으로 없어 동일 지점의 통용 명칭으로 조회",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 17.6,
+      "snapRoad": "새천년대로",
+      "links": [
+        {
+          "begin": "천마로사거리",
+          "end": "양덕교차로"
+        },
+        {
+          "begin": "죽천",
+          "end": "양덕교차로"
+        },
+        {
+          "begin": "청소년수련관",
+          "end": "양덕교차로"
+        },
+        {
+          "begin": "두산위브",
+          "end": "양덕교차로"
+        }
+      ],
+      "linkCount": 4
+    },
+    "Node_C": {
+      "longitude": 129.37235,
+      "latitude": 36.06898,
+      "landmark": "장성초등사거리",
+      "endpointRole": "5개 링크 중 4개의 도착 종점",
+      "geocodeSource": "OSM에 이 이름의 지점이 없어 도로 기하로 확정 — Overpass로 새천년대로와 다른 명명 도로가 공유하는 노드를 뽑고, 이 노드에 링크를 보내는 3개 지점(장성초등학교 84m·창포우체국 179m·현진에버빌 291m)에 동시에 가장 가까운 교차점을 택함. 새천년대로 × 대곡로 × 새천년대로1123번길이 만나는 사거리이며, 현진에버빌이 대곡로에 접한다는 점이 이 링크의 경로와 일치한다",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 0.3,
+      "snapRoad": "대곡로",
+      "links": [
+        {
+          "begin": "장성초등",
+          "end": "창포아이파크사거리"
+        },
+        {
+          "begin": "두산위브",
+          "end": "장성초등사거리"
+        },
+        {
+          "begin": "현진에버빌",
+          "end": "장성초등사거리"
+        },
+        {
+          "begin": "창포우체국",
+          "end": "장성초등사거리"
+        },
+        {
+          "begin": "장성초등",
+          "end": "장성초등사거리"
+        }
+      ],
+      "linkCount": 5
+    },
+    "Node_D": {
+      "longitude": 129.38066,
+      "latitude": 36.08027,
+      "landmark": "두산위브↔포항온천 구간 중간점",
+      "endpointRole": "공통 종점 없음(2개 링크가 서로 역방향 쌍) → 구간 중간점",
+      "geocodeSource": "OSM/Nominatim '포항 두산위브'(129.38052, 36.07677)와 '포항 포항온천'(129.38080, 36.08377)의 중간점. 두 지점 간 직선거리 약 780m",
+      "adminDivision": "경상북도 포항시 북구 장성동 (행정동 장량동)",
+      "snapMeters": 7.1,
+      "snapRoad": "",
+      "links": [
+        {
+          "begin": "포항온천",
+          "end": "두산위브"
+        },
+        {
+          "begin": "두산위브",
+          "end": "포항온천"
+        }
+      ],
+      "linkCount": 2
+    }
+  },
+  "roadClassAtCoordinate": {
+    "measuredAt": "2026-09-01",
+    "source": "OSM Overpass — 좌표 반경 40m 안의 highway 태그",
+    "note": "alleyNodeIds가 실제 도로 등급과 어긋나는지 확인하려고 재 봤다. residential/service/living_street이면 이면도로, primary/secondary/trunk면 간선이다.",
+    "nodes": {
+      "Node_A": [
+        "residential 새천년대로1123번길(스냅 61.5m, 반경 40m 안에는 도로 없음)"
+      ],
+      "Node_B": [
+        "primary 새천년대로"
+      ],
+      "Node_C": [
+        "primary 새천년대로(4차로)",
+        "residential 대곡로",
+        "residential 새천년대로1123번길"
+      ],
+      "Node_D": [
+        "secondary 삼흥로(6차로)",
+        "residential 법원로63번길",
+        "residential (이름 없음)"
+      ]
+    }
+  },
+  "measuredOsrm": {
+    "profile": "driving",
+    "host": "router.project-osrm.org",
+    "unit": [
+      "distanceMeters",
+      "durationSeconds"
+    ],
+    "note": "각 순서쌍을 단독 조회한 값. OSRM은 경로 안의 구간을 진입 방향을 이어받아 계산하므로, 이 행렬을 구간별로 합친 값은 전체 경로 조회와 다를 수 있다.",
+    "pairs": {
+      "Node_A->Node_B": [
+        2403.5,
+        162.0
+      ],
+      "Node_A->Node_C": [
+        57.8,
+        10.2
+      ],
+      "Node_A->Node_D": [
+        1796.7,
+        163.8
+      ],
+      "Node_B->Node_A": [
+        2690.6,
+        186.6
+      ],
+      "Node_B->Node_C": [
+        2633.4,
+        180.6
+      ],
+      "Node_B->Node_D": [
+        2175.7,
+        190.8
+      ],
+      "Node_C->Node_A": [
+        57.8,
+        10.2
+      ],
+      "Node_C->Node_B": [
+        2345.7,
+        151.8
+      ],
+      "Node_C->Node_D": [
+        1738.9,
+        153.6
+      ],
+      "Node_D->Node_A": [
+        1788.4,
+        157.2
+      ],
+      "Node_D->Node_B": [
+        1900.2,
+        167.4
+      ],
+      "Node_D->Node_C": [
+        1731.2,
+        151.2
+      ]
+    }
+  },
+  "knownIssues": [
+    "Node_A와 Node_C는 도로 거리 57.8m(직선 84m)로 사실상 같은 장소다. 실측 CSV가 '장성초등학교'와 '장성초등사거리'를 별개 키워드로 나눠 귀속한 결과이며, 기존 엔진은 이 구간에도 15분을 부과한다(함의 속도 0.23km/h, 88배 과대).",
+    "[한계로 수용 2026-09-01] Node_C는 일교통량이 15.2배 차이 나는 링크 5개를 단순 평균한다(두산위브→장성초등사거리 17,762 ~ 현진에버빌→장성초등사거리 1,172). 다른 구역은 링크 간 차이가 1.2~1.9배인데 Node_C만 그렇다. 저교통량 링크를 빼면 가중치가 1.72에서 1.89로 오르지만 RED 판정(임계 1.7)은 어느 쪽이든 바뀌지 않는다. 고치지 않은 이유는 시뮬레이션 결과가 바뀌는데 어느 값이 옳은지 판단할 근거(구역별 실측 통행속도)가 없기 때문이다. 다시 볼 조건은 아래 창포 항목과 같다. docs/guides/CONNECT_TRAFFIC_CSV.md §3.4(2).",
+    "[한계로 수용 2026-09-01] Node_C의 '창포' 키워드로 귀속된 링크의 지점(창포사거리·창포아이파크사거리·창포우체국)은 우창동·두호동으로 장량동 밖이다. 이 프로젝트는 장량동만 다루는데 Node_C 가중치를 만든 통행량 일부가 다른 동의 것이다. 확정된 Node_C 좌표 자체는 장량동 안이므로 위치는 맞고 데이터가 구역을 넘는다. 이 항목과 위 링크 편차 항목은 한 질문으로 묶인다 — Node_C가 대표하는 구역은 어디까지인가. 수거 지점 좌표가 확정되어 trafficZone 매핑이 정해지면 그때 답이 나오므로 그전까지 값을 건드리지 않는다. docs/guides/CONNECT_TRAFFIC_CSV.md §3.4(3).",
+    "[해소됨 2026-09-01] alleyNodeIds는 교통 프로파일에서 제거되고 CollectionSite.largeTruckAllowed로 옮겨졌다. 확정 좌표의 실제 도로는 Node_C가 4차로 새천년대로(primary) × 대곡로(residential) 교차로, Node_D가 6차로 삼흥로(secondary)변이라 골목으로 볼 근거가 없었고, 운영 데이터에서 뺐다. V-T3 검증은 테스트 전용 가상 지점으로 유지한다. 아래 roadClassAtCoordinate가 그 판단의 근거다.",
+    "CSV의 '죽천'은 지오코딩이 엉뚱한 지점(장흥초등학교)으로 매칭된다. Node_B의 좌표는 공통 종점(양덕교차로)으로 정해지므로 이 실패는 영향이 없다.",
+    "[해소됨 2026-09-02] 가중치가 통행량 지수이지 혼잡도가 아니라는 한계를 TMAP 24시간 실측으로 대조했고, 실제 오류로 확인됐다 — 통행량 기반 프로파일의 피크가 13시였는데 실측 소요시간은 18시 피크였다(진폭 1.71배는 양쪽 동일, 시간 분포만 달랐다). 기본 프로파일 jangryang-weekday를 실측 기반으로 교체하고 통행량 기반은 jangryang-volume-weekday로 보존했다. docs/guides/CONNECT_TRAFFIC_CSV.md §3.5.",
+    "[한계로 수용 2026-09-01] 프로파일 id의 'weekday'는 데이터가 뒷받침하지 않는 이름이다. response_filtered.csv의 std_dt 컬럼이 전부 비어 있어 어느 날짜·어떤 기간의 값인지 알 수 없고, collection_dt는 15개 행 모두 2025-05-18 02:34로 추출 시각이며 단일 스냅샷이다. 요일 구분도 여러 날 평균도 분산도 없으므로 평일 평균처럼 읽으면 안 된다. std_dt가 채워진 추출본이 생기면 프로파일을 요일별로 갈라 id를 정확하게 붙인다. docs/guides/CONNECT_TRAFFIC_CSV.md §3.4(4)."
+  ],
+  "howToReadResults": "이 데이터로 얻은 결과는 절대값보다 경향으로 읽는다(원 논문도 같은 입장 — waste_sim/MODEL_SPECIFICATION.md). '12시 수거가 3시 수거보다 나쁘다'는 읽을 수 있고 '12시 수거는 정확히 74분 걸린다'는 아니다. 구역 간 비교는 특히 조심할 것 — 가중치가 통행량 지수라서 'A가 B보다 1.5배 혼잡하다'는 통행량 비교이고 정체 비교가 아니다. 수용한 한계 전체는 docs/guides/CONNECT_TRAFFIC_CSV.md §3.4."
+}

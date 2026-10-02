@@ -1,0 +1,28 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "04-차종-섞기",
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "쓰레기수거",
+        "spatialScale": "한 동네",
+        "objective": "차량별 차종을 섞었을 때 민원"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "04-차종-섞기",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"쓰레기수거\",\"matchCount\":2,\"verdict\":\"ADJUST_REQUEST\",\"suggestions\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":2,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\"],\"mismatches\":[\"목적: 차량별 차종을 섞었을 때 민원 — 차량마다 다른 차종 미지원. truckType 이 전역 단일값이다\"],\"requestAdjustments\":[{\"axis\":\"objective\",\"current\":\"차량별 차종을 섞었을 때 민원\",\"suggestion\":\"목적을 바꾸면 됩니다. 카드가 적은 대안: 차종을 바꿔 여러 번 실행해 비교\",\"reason\":\"truckType 이 전역 단일값이다\",\"changesPurpose\":false}]}],\"note\":\"요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.\",\"matches\":[{\"serverId\":\"district-waste-sim\",\"name\":\"행정동 단위 생활폐기물 수거 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"fictional\":true,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 행정동 전체(district)\",\"목적: 차량별 차종을 섞었을 때 민원 → 차종, 민원 수\"],\"mismatches\":[],\"requestAdjustments\":[]},{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":2,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 한 동네 → 원룸촌 한 블록(block)\"],\"mismatches\":[\"목적: 차량별 차종을 섞었을 때 민원 — 차량마다 다른 차종 미지원. truckType 이 전역 단일값이다\"],\"requestAdjustments\":[{\"axis\":\"objective\",\"current\":\"차량별 차종을 섞었을 때 민원\",\"suggestion\":\"목적을 바꾸면 됩니다. 카드가 적은 대안: 차종을 바꿔 여러 번 실행해 비교\",\"reason\":\"truckType 이 전역 단일값이다\",\"changesPurpose\":false}]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}

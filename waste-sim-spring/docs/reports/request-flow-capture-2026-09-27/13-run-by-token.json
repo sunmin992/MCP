@@ -1,0 +1,115 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "13-run-by-token.json",
+    "method": "tools/call",
+    "params": {
+      "name": "run_scenario_by_token",
+      "arguments": {
+        "scenarioId": "scn-4a7dc5dc",
+        "confirmToken": "cft-d72a9866cc7b1f3d"
+      }
+    }
+  },
+  "응답": {
+    "isError": false,
+    "본문": {
+      "scenarioId": "scn-4a7dc5dc",
+      "state": "EXECUTED",
+      "notForOperationalUse": true,
+      "limitation": "이 결과는 설정 간 비교이며 운영 예측이 아니다.",
+      "runs": [
+        {
+          "collectionTimeMinutes": 360,
+          "totalComplaints": 32,
+          "meanComplaints": 0.0,
+          "peakFillKg": 26.08,
+          "truckUtilizationPercent": 19.45,
+          "uncollectedDemandKg": 0.0,
+          "seed": 42,
+          "massBalanceErrorKg": 0.0,
+          "allTotals": null,
+          "dataQualityFlags": [
+            "ZONE_ASSIGNMENT_ASSUMED"
+          ],
+          "assumptionNotes": [
+            "건물의 교통 구역 배정을 규칙(ROUND_ROBIN)으로 가정했습니다. 실제 위치를 조사한 것이 아니므로 **이 결과는 운영 예측이 아니라 가정 비교 실험입니다.** CONTIGUOUS와 ROUND_ROBIN을 함께 돌려 범위로 보고하세요 — 실제 배치가 무엇이든 그 사이에 있습니다."
+          ],
+          "coordinateQuality": "좌표 미사용"
+        },
+        {
+          "collectionTimeMinutes": 540,
+          "totalComplaints": 64,
+          "meanComplaints": 0.0,
+          "peakFillKg": 31.68,
+          "truckUtilizationPercent": 19.84,
+          "uncollectedDemandKg": 0.0,
+          "seed": 42,
+          "massBalanceErrorKg": 0.0,
+          "allTotals": null,
+          "dataQualityFlags": [
+            "ZONE_ASSIGNMENT_ASSUMED"
+          ],
+          "assumptionNotes": [
+            "건물의 교통 구역 배정을 규칙(ROUND_ROBIN)으로 가정했습니다. 실제 위치를 조사한 것이 아니므로 **이 결과는 운영 예측이 아니라 가정 비교 실험입니다.** CONTIGUOUS와 ROUND_ROBIN을 함께 돌려 범위로 보고하세요 — 실제 배치가 무엇이든 그 사이에 있습니다."
+          ],
+          "coordinateQuality": "좌표 미사용"
+        },
+        {
+          "collectionTimeMinutes": 720,
+          "totalComplaints": 36,
+          "meanComplaints": 0.0,
+          "peakFillKg": 26.86,
+          "truckUtilizationPercent": 19.9,
+          "uncollectedDemandKg": 0.0,
+          "seed": 42,
+          "massBalanceErrorKg": 0.0,
+          "allTotals": null,
+          "dataQualityFlags": [
+            "ZONE_ASSIGNMENT_ASSUMED"
+          ],
+          "assumptionNotes": [
+            "건물의 교통 구역 배정을 규칙(ROUND_ROBIN)으로 가정했습니다. 실제 위치를 조사한 것이 아니므로 **이 결과는 운영 예측이 아니라 가정 비교 실험입니다.** CONTIGUOUS와 ROUND_ROBIN을 함께 돌려 범위로 보고하세요 — 실제 배치가 무엇이든 그 사이에 있습니다."
+          ],
+          "coordinateQuality": "좌표 미사용"
+        },
+        {
+          "collectionTimeMinutes": 900,
+          "totalComplaints": 33,
+          "meanComplaints": 0.0,
+          "peakFillKg": 26.08,
+          "truckUtilizationPercent": 20.1,
+          "uncollectedDemandKg": 0.0,
+          "seed": 42,
+          "massBalanceErrorKg": 0.0,
+          "allTotals": null,
+          "dataQualityFlags": [
+            "ZONE_ASSIGNMENT_ASSUMED"
+          ],
+          "assumptionNotes": [
+            "건물의 교통 구역 배정을 규칙(ROUND_ROBIN)으로 가정했습니다. 실제 위치를 조사한 것이 아니므로 **이 결과는 운영 예측이 아니라 가정 비교 실험입니다.** CONTIGUOUS와 ROUND_ROBIN을 함께 돌려 범위로 보고하세요 — 실제 배치가 무엇이든 그 사이에 있습니다."
+          ],
+          "coordinateQuality": "좌표 미사용"
+        },
+        {
+          "collectionTimeMinutes": 1080,
+          "totalComplaints": 30,
+          "meanComplaints": 0.0,
+          "peakFillKg": 26.08,
+          "truckUtilizationPercent": 20.1,
+          "uncollectedDemandKg": 0.0,
+          "seed": 42,
+          "massBalanceErrorKg": 0.0,
+          "allTotals": null,
+          "dataQualityFlags": [
+            "ZONE_ASSIGNMENT_ASSUMED"
+          ],
+          "assumptionNotes": [
+            "건물의 교통 구역 배정을 규칙(ROUND_ROBIN)으로 가정했습니다. 실제 위치를 조사한 것이 아니므로 **이 결과는 운영 예측이 아니라 가정 비교 실험입니다.** CONTIGUOUS와 ROUND_ROBIN을 함께 돌려 범위로 보고하세요 — 실제 배치가 무엇이든 그 사이에 있습니다."
+          ],
+          "coordinateQuality": "좌표 미사용"
+        }
+      ]
+    }
+  }
+}

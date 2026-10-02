@@ -1,0 +1,31 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "01-장량동-전체",
+    "method": "tools/call",
+    "params": {
+      "name": "find_simulators",
+      "arguments": {
+        "domain": "쓰레기수거",
+        "spatialScale": "장량동 전체",
+        "environmentConditions": [
+          "평일 교통량"
+        ],
+        "objective": "민원이 가장 적은 수거 시각"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "01-장량동-전체",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "{\"domain\":\"쓰레기수거\",\"matchCount\":2,\"verdict\":\"ADJUST_REQUEST\",\"suggestions\":[{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"환경 조건: 평일 교통량 → traffic-profile\",\"목적: 민원이 가장 적은 수거 시각 → 수거 시각, 민원 수\"],\"mismatches\":[\"공간 규모: 장량동 전체 는 이 서버의 분석 단위(원룸촌 한 블록)와 맞지 않습니다\"],\"requestAdjustments\":[{\"axis\":\"spatialScale\",\"current\":\"장량동 전체\",\"suggestion\":\"공간 규모를 '원룸촌 한 블록' 로 바꾸면 됩니다. 카드가 적은 대안: scale:block\",\"reason\":\"수거 지점 26개 상한. 장량동 전체(70,576명)는 약 2,700개가 필요하다\",\"changesPurpose\":false}]}],\"note\":\"요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.\",\"matches\":[{\"serverId\":\"district-waste-sim\",\"name\":\"행정동 단위 생활폐기물 수거 시뮬레이터 (가상)\",\"endpoint\":\"http://example.invalid/mcp\",\"fictional\":true,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"공간 규모: 장량동 전체 → 행정동 전체(district)\",\"목적: 민원이 가장 적은 수거 시각 → 수거 시각, 민원 수\"],\"mismatches\":[\"환경 조건: 평일 교통량 — 교통 지체 반영 미지원. 이동시간을 구간 상수로만 다룬다. 시간대별 지체 배수가 모델에 없다\"],\"requestAdjustments\":[{\"axis\":\"environmentConditions\",\"current\":\"평일 교통량\",\"suggestion\":\"'평일 교통량' 조건을 빼면 됩니다\",\"reason\":\"이동시간을 구간 상수로만 다룬다. 시간대별 지체 배수가 모델에 없다\",\"changesPurpose\":false}]},{\"serverId\":\"jangnyang-waste-sim\",\"name\":\"장량동 생활쓰레기 수거 시뮬레이터\",\"endpoint\":\"http://localhost:8090/mcp\",\"fictional\":false,\"score\":4,\"reasons\":[\"도메인: 쓰레기수거 → waste-collection\",\"환경 조건: 평일 교통량 → traffic-profile\",\"목적: 민원이 가장 적은 수거 시각 → 수거 시각, 민원 수\"],\"mismatches\":[\"공간 규모: 장량동 전체 는 이 서버의 분석 단위(원룸촌 한 블록)와 맞지 않습니다\"],\"requestAdjustments\":[{\"axis\":\"spatialScale\",\"current\":\"장량동 전체\",\"suggestion\":\"공간 규모를 '원룸촌 한 블록' 로 바꾸면 됩니다. 카드가 적은 대안: scale:block\",\"reason\":\"수거 지점 26개 상한. 장량동 전체(70,576명)는 약 2,700개가 필요하다\",\"changesPurpose\":false}]}]}"
+        }
+      ],
+      "isError": false
+    }
+  }
+}

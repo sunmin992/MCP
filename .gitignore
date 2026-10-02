@@ -17,7 +17,10 @@ replay_pid*
 *.iml
 *.ipr
 *.iws
-.vscode/
+# 폴더째 빼면 안의 파일 하나를 되살릴 수 없어 내용물을 뺀다. 두 MCP 서버를 한 번에 띄우는
+# 작업(Ctrl+Shift+B)만 공유한다 — 개인 설정(settings.json 등)은 계속 뺀다.
+**/.vscode/*
+!waste-sim-spring/.vscode/tasks.json
 .settings/
 .classpath
 .project
@@ -42,9 +45,6 @@ logs/
 *.tmp
 
 # --- 생성 산출물 (실행·변환할 때마다 덮어써져 3대에서 충돌) ---
-# 벤치마크 결과물: llm_benchmark.py가 매 실행 때 통째로 새로 쓴다.
-# (benchmark_detail.log는 위 *.log 규칙에 이미 걸린다.)
-waste-sim-spring/benchmark_report.md
 # 문서 변환 결과물(.docx)은 바이너리라 병합이 아예 불가능하다 — 원본 마크다운만
 # 커밋하고, 변환본은 각자 로컬에서 생성해 쓴다.
 *.docx
@@ -55,3 +55,32 @@ waste-sim-spring/benchmark_report.md
 application-local.properties
 # Claude Code 머신별 권한 허용목록(윈도우 경로·PowerShell 명령이 들어가 맥과 다르다)
 .claude/settings.local.json
+
+# --- 에이전트 도구가 저장소 안에 푸는 실행 파일 ---
+# gh CLI 등을 저장소 하위에 설치하면 그 산출물이 커밋 후보로 올라온다. 도구 바이너리는
+# 머신마다 다르고 버전도 각자 관리하므로 저장소가 들고 있을 이유가 없다.
+# (실제로 .tools/github-cli/.../LICENSE 한 개가 이렇게 커밋된 적이 있다.)
+.tools/
+
+# --- Superpowers SDD 작업 공간 (원장·브리프·리뷰 패키지) ---
+.superpowers/
+
+# --- 실행할 때마다 새로 쌓이는 산출물 ---
+# 다이어그램·발표자료 변환 결과물. 원본(render_ses.py·마크다운)만 커밋한다.
+output/
+
+# --- 스크래치 ---
+# 그때그때 그려 보는 스크립트와 확인용 화면 캡처를 두는 자리.
+tmp/
+# 도구가 저장소 루트에 떨구는 자리. 남길 문서는 docs/ 아래로 옮겨서 커밋한다.
+Claude outputs/
+
+# --- 머신별 Maven 로컬 저장소 ---
+# -Dmaven.repo.local 로 저장소 안을 가리키면 의존성 캐시가 통째로 커밋 후보가 된다.
+waste-sim-spring/.m2/
+
+# --- SES 추출 실행 산출물 ---
+# exp/<run-id>/ 에는 스냅샷 사본(소스 전문)·요청·응답 원문이 들어간다. 저장소에 두 번
+# 담지 않는다. 남길 것은 보고서와 판정 기록이며, 필요하면 개별 파일로 골라 커밋한다.
+waste-sim-spring/docs/research/s1-ses-extraction/exp/
+waste-sim-spring/docs/research/s1-ses-extraction/**/__pycache__/

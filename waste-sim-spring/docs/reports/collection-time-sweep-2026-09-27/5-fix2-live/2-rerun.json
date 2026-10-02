@@ -1,0 +1,27 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "2-rerun",
+    "method": "tools/call",
+    "params": {
+      "name": "run_scenario_by_token",
+      "arguments": {
+        "scenarioId": "scn-557d3c7",
+        "confirmToken": "cft-0c98458488ca4afc"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "2-rerun",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "검증 실패: [{\"code\":\"EXECUTION_ERROR\",\"field\":\"confirmToken\",\"message\":\"이미 실행한 시나리오입니다: scn-557d3c7 — 다시 돌리려면 사용자가 확인 화면에서 다시 확인해야 합니다.\"}]"
+        }
+      ],
+      "isError": true
+    }
+  }
+}

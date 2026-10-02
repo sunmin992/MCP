@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "waste-broker": {
+      "type": "http",
+      "url": "http://127.0.0.1:8089/mcp"
+    },
+    "jangnyang-simulator": {
+      "type": "http",
+      "url": "http://127.0.0.1:8090/mcp"
+    }
+  }
+}

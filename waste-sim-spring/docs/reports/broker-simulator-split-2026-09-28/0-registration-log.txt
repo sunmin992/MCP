@@ -1,0 +1,21 @@
+# 0단계 등록 — 두 서버의 로그에서 등록 관련 줄만 뽑았다(시각 순, 손대지 않음)
+
+## 처음 띄움 — 브로커 먼저, 시뮬레이터 나중
+2026-09-28T14:54:46.555+09:00  INFO 9624 --- [waste-sim-broker] [           main] com.wastesim.broker.BrokerApplication    : Started BrokerApplication in 1.614 seconds (process running for 1.85)
+2026-09-28T14:55:02.283+09:00  INFO [] 1245816 --- [waste-sim-spring] [           main] com.wastesim.WasteSimApplication         : Started WasteSimApplication in 2.058 seconds (process running for 2.344)
+2026-09-28T14:55:02.345+09:00  INFO 9624 --- [waste-sim-broker] [0.1-8089-exec-3] c.w.b.SimulatorRegistrationController    : 시뮬레이터 등록: jangnyang-waste-sim (http://localhost:8090/mcp)
+2026-09-28T14:55:02.368+09:00  INFO [] 1245816 --- [waste-sim-spring] [   scheduling-1] c.wastesim.capability.BrokerRegistrar    : 브로커에 등록했습니다: jangnyang-waste-sim → http://localhost:8089/api/simulators
+
+## 브로커만 다시 띄움 — 시뮬레이터가 다음 주기에 다시 등록
+2026-09-28T14:55:51.384+09:00  INFO 1255176 --- [waste-sim-broker] [           main] com.wastesim.broker.BrokerApplication    : Started BrokerApplication in 1.591 seconds (process running for 1.841)
+2026-09-28T14:56:02.442+09:00  INFO 1255176 --- [waste-sim-broker] [0.1-8089-exec-5] c.w.b.SimulatorRegistrationController    : 시뮬레이터 등록: jangnyang-waste-sim (http://localhost:8090/mcp)
+
+## 종단 시험 — 두 서버 새로 띄움
+2026-09-28T15:02:09.070+09:00  INFO 1266996 --- [waste-sim-broker] [           main] com.wastesim.broker.BrokerApplication    : Started BrokerApplication in 1.613 seconds (process running for 1.842)
+2026-09-28T15:02:17.708+09:00  INFO [] 1254936 --- [waste-sim-spring] [           main] com.wastesim.WasteSimApplication         : Started WasteSimApplication in 2.001 seconds (process running for 2.251)
+2026-09-28T15:02:17.828+09:00  INFO 1266996 --- [waste-sim-broker] [0.1-8089-exec-1] c.w.b.SimulatorRegistrationController    : 시뮬레이터 등록: jangnyang-waste-sim (http://localhost:8090/mcp)
+2026-09-28T15:02:17.863+09:00  INFO [] 1254936 --- [waste-sim-spring] [   scheduling-1] c.wastesim.capability.BrokerRegistrar    : 브로커에 등록했습니다: jangnyang-waste-sim → http://localhost:8089/api/simulators
+
+## 6단계 수정 뒤 시뮬레이터만 다시 띄움
+2026-09-28T15:07:38.298+09:00  INFO [] 1241748 --- [waste-sim-spring] [           main] com.wastesim.WasteSimApplication         : Started WasteSimApplication in 2.033 seconds (process running for 2.287)
+2026-09-28T15:07:38.366+09:00  INFO [] 1241748 --- [waste-sim-spring] [   scheduling-1] c.wastesim.capability.BrokerRegistrar    : 브로커에 등록했습니다: jangnyang-waste-sim → http://localhost:8089/api/simulators

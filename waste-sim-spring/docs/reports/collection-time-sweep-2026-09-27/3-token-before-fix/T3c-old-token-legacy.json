@@ -1,0 +1,29 @@
+{
+  "요청": {
+    "jsonrpc": "2.0",
+    "id": "T3c-old-token-legacy",
+    "method": "tools/call",
+    "params": {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 2,
+        "seeds": 2,
+        "confirmToken": "cft-0c98458488ca4afc"
+      }
+    }
+  },
+  "응답": {
+    "jsonrpc": "2.0",
+    "id": "T3c-old-token-legacy",
+    "result": {
+      "content": [
+        {
+          "type": "text",
+          "text": "확인 토큰이 보관된 시나리오와 맞지 않습니다 — 서버가 다시 떴거나 다른 서버의 토큰입니다."
+        }
+      ],
+      "isError": true
+    }
+  }
+}
