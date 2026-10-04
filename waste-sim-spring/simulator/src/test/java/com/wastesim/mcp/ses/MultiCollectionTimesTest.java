@@ -59,6 +59,7 @@ class MultiCollectionTimesTest {
         v.put("trafficProfileId", "jangryang-weekday");
         v.put("travelTimeMode", "LEGACY_CONSTANT");
         v.put("routeAvailableCapacityKg", 150);
+        v.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         return v;
     }
 

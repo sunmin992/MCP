@@ -37,6 +37,28 @@ public class AnswerNormalizer {
         }
         String v = raw.trim();
 
+        // 열거값 목록. 직업 구성처럼 원소마다 닫힌 선택지가 있고, 겹친 값이 비중을 뜻하므로
+        // 겹쳐도 지우지 않는다. JSON 배열("[\"Student\"]")이나 쉼표 구분("Student, Housewife")을 받는다.
+        if ("ENUM_LIST".equals(t.valueType())) {
+            String body = v.startsWith("[") && v.endsWith("]") ? v.substring(1, v.length() - 1) : v;
+            if (body.isBlank()) {
+                return NormalizeResult.fail("EMPTY_ANSWER", t.answerKey() + " 에 값이 하나도 없습니다.");
+            }
+            java.util.List<String> out = new java.util.ArrayList<>();
+            for (String part : body.split(",")) {
+                String p = part.trim().replaceAll("^\"|\"$", "");
+                String matched = t.allowed().stream()
+                        .filter(c -> c.equalsIgnoreCase(p)).findFirst().orElse(null);
+                if (matched == null) {
+                    return NormalizeResult.fail("OUT_OF_CLOSURE",
+                            t.answerKey() + " 에 허용되지 않은 값입니다: " + p
+                                    + " (허용: " + String.join(", ", t.allowed()) + ")");
+                }
+                out.add(matched);
+            }
+            return NormalizeResult.pass(java.util.List.copyOf(out));
+        }
+
         if (!t.allowed().isEmpty()) {
             for (String candidate : t.allowed()) {
                 if (candidate.equalsIgnoreCase(v)) return NormalizeResult.pass(candidate);

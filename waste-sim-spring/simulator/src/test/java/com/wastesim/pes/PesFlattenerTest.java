@@ -146,4 +146,22 @@ class PesFlattenerTest {
         Pes p = new Pes("jangnyang-ses", "1.0.0", values, origins);
         assertEquals(Map.of("seeds", 30), p.unapprovedDefaults());
     }
+
+    @Test
+    void 직업_구성이_문자열_목록으로_실리고_엔진이_그대로_읽는다() {
+        Map<String, Object> v = new LinkedHashMap<>();
+        v.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
+        SimulationConfig cfg = flattener.flatten(pes(v));
+        assertEquals(List.of("BlueCollar", "Student", "Housewife"), cfg.getOccupationMix());
+        assertEquals(com.wastesim.model.OccupationType.baseMix(), cfg.resolveOccupationMix(),
+                "기본값을 명시해도 미지정과 같은 구성이어야 결과가 바뀌지 않는다");
+        assertTrue(verifier.verify(pes(v), cfg).isEmpty());
+    }
+
+    @Test
+    void 허용되지_않은_직업은_평탄화가_거절한다() {
+        Map<String, Object> v = new LinkedHashMap<>();
+        v.put("occupationMix", List.of("BlueCollar", "생산직"));
+        assertThrows(IllegalArgumentException.class, () -> flattener.flatten(pes(v)));
+    }
 }

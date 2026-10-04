@@ -183,6 +183,29 @@
       "nodeKind": "MULTI_ASPECT"
     },
     {
+      "templateId": "jn.occupationMix",
+      "answerKey": "occupationMix",
+      "valueType": "ENUM_LIST",
+      "generateWhen": "ALWAYS",
+      "allowed": [
+        "BlueCollar",
+        "Student",
+        "Housewife",
+        "NightShift",
+        "OfficeWorker"
+      ],
+      "defaultValue": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "defaultBasis": "OccupationType.baseMix (논문 기준선) — 4동×25명이면 34/33/33",
+      "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+      "configField": "occupationMix",
+      "sesPath": "건물/거주민집합/직업구성",
+      "nodeKind": "SPECIALIZATION"
+    },
+    {
       "templateId": "jn.days",
       "answerKey": "days",
       "valueType": "INTEGER",

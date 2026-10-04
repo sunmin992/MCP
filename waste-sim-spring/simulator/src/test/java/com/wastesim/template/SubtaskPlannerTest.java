@@ -3,6 +3,7 @@ package com.wastesim.template;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -38,6 +39,7 @@ class SubtaskPlannerTest {
         answers.put("days", 30);
         answers.put("seeds", 30);
         answers.put("routeAvailableCapacityKg", 150);
+        answers.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
         SubtaskPlan plan = planner.plan(answers);
         assertEquals(SubtaskStatus.NOT_GENERATED, find(plan, "jn.intraZoneTravel").status());
         assertTrue(plan.complete(), "필요한 값을 다 채웠는데 완결이 아니면 LLM 이 오지 않을 질문을 기다린다: "
@@ -154,6 +156,7 @@ class SubtaskPlannerTest {
         answers.put("seeds", 30);
         // 경로 배정용량은 ALWAYS 라 항상 생성된다 — 채우지 않으면 계획이 완결이 아니다.
         answers.put("routeAvailableCapacityKg", 150.0);
+        answers.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
         // travelTimeMode 가 ZONE_PROXY_HYBRID 가 아니므로 zoneAssignmentRule 자체는 NOT_GENERATED 지만,
         // intraZoneTravel 의 CONTIGUOUS_ZONE_RULE 은 zoneAssignmentRule 값을 직접 보므로 채워 둬야
         // UNKNOWN(DEFERRED) 이 아니라 INACTIVE(NOT_GENERATED) 로 판정된다.
@@ -188,9 +191,9 @@ class SubtaskPlannerTest {
     void 상태별_개수가_섞인_계획에서_맞게_집계된다() {
         // FILLED 4개(truckType,truckCount,numBuildings,trafficMode) · NOT_GENERATED 2개(trafficProfile,
         // collectionTimes — 다회 수거를 말하지 않았다)
-        // · DEFERRED 2개(zoneAssignmentRule,intraZoneTravel) · UNFILLED 나머지 7개
+        // · DEFERRED 2개(zoneAssignmentRule,intraZoneTravel) · UNFILLED 나머지 8개
         // (collectionTime·dispatchInterval·travelTimeMode·residentsPerBuilding·days·seeds
-        //  ·routeAvailableCapacity).
+        //  ·routeAvailableCapacity·occupationMix).
         Map<String, Object> answers = new HashMap<>();
         answers.put("truckType", "SMALL_1TON");
         answers.put("truckCount", 3);
@@ -201,7 +204,7 @@ class SubtaskPlannerTest {
         Map<SubtaskStatus, Integer> counts = plan.counts();
         assertEquals(4, counts.size(), "네 상태 키가 다 있어야 한다 — 없으면 counts().get(DEFERRED) 가 null 이 된다");
         assertEquals(4, counts.get(SubtaskStatus.FILLED));
-        assertEquals(7, counts.get(SubtaskStatus.UNFILLED));
+        assertEquals(8, counts.get(SubtaskStatus.UNFILLED));
         assertEquals(2, counts.get(SubtaskStatus.DEFERRED));
         assertEquals(2, counts.get(SubtaskStatus.NOT_GENERATED));
     }

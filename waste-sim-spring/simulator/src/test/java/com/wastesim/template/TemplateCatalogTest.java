@@ -17,8 +17,8 @@ class TemplateCatalogTest {
     private final TemplateCatalog catalog = new TemplateCatalog();
 
     @Test
-    void 템플릿_열다섯개를_읽는다() {
-        assertEquals(15, catalog.all().size());
+    void 템플릿_열여섯개를_읽는다() {
+        assertEquals(16, catalog.all().size());
     }
 
     @Test
@@ -100,5 +100,17 @@ class TemplateCatalogTest {
 
     private static String capitalize(String s) {
         return Character.toUpperCase(s.charAt(0)) + s.substring(1);
+    }
+
+    @Test
+    void 직업_구성의_기본값은_기준선_세_직업이다() {
+        SubtaskTemplate t = catalog.byId("jn.occupationMix").orElseThrow();
+        assertEquals("occupationMix", t.configField());
+        assertEquals("ENUM_LIST", t.valueType());
+        assertFalse(t.requiresExplicitAnswer());
+        assertEquals(List.of("BlueCollar", "Student", "Housewife"), t.defaultValue());
+        for (com.wastesim.model.OccupationType o : com.wastesim.model.OccupationType.values()) {
+            assertTrue(t.allowed().contains(o.name()), "엔진이 아는 직업은 모두 고를 수 있어야 한다: " + o);
+        }
     }
 }

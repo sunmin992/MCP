@@ -51,10 +51,22 @@ public class PesFlattener {
         if (p == Double.class && converted instanceof Number n) {
             converted = n.doubleValue();
         }
+        // 열거값 목록(직업 구성)은 List<String> 이다. 원소가 허용값이 아니면 거절한다.
+        if ("ENUM_LIST".equals(t.valueType()) && converted instanceof java.util.List<?> list) {
+            java.util.List<String> names = new java.util.ArrayList<>();
+            for (Object e : list) {
+                if (!(e instanceof String s) || !t.allowed().contains(s)) {
+                    throw new IllegalArgumentException(
+                            field + " 의 값은 " + t.allowed() + " 중에서 골라야 합니다. 받은 값: " + list);
+                }
+                names.add(s);
+            }
+            converted = names;
+        }
         // 목록 세터(하루 수거 시각)는 List<Integer> 다. 원소가 Long 이나 문자열로 들어오면
         // 엔진이 분을 읽다가 ClassCastException 으로 멈추므로 여기서 정수로 맞춘다. 맞출 수
         // 없으면 세터를 부르지 않고 거절한다 — 고쳐 주지 않는다.
-        if (p == java.util.List.class && converted instanceof java.util.List<?> list) {
+        else if (p == java.util.List.class && converted instanceof java.util.List<?> list) {
             java.util.List<Integer> ints = new java.util.ArrayList<>();
             for (Object e : list) {
                 if (e instanceof Number num && num.doubleValue() == Math.rint(num.doubleValue())) {

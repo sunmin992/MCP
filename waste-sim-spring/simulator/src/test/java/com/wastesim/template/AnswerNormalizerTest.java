@@ -99,4 +99,26 @@ class AnswerNormalizerTest {
         assertEquals("NOT_A_NUMBER", r.errorCode(),
                 "Double.parseDouble 은 Infinity 를 받는다 — 여기서 막지 않으면 설정까지 간다");
     }
+
+    @Test
+    void 직업_구성은_목록으로_받고_겹친_값을_비중으로_남긴다() {
+        var r = run("jn.occupationMix", "[\"bluecollar\", \"Student\", \"BlueCollar\"]");
+        assertTrue(r.ok(), r.message());
+        assertEquals(java.util.List.of("BlueCollar", "Student", "BlueCollar"), r.value());
+        var csv = run("jn.occupationMix", "Housewife, NightShift");
+        assertEquals(java.util.List.of("Housewife", "NightShift"), csv.value());
+    }
+
+    @Test
+    void 허용되지_않은_직업은_거절한다() {
+        var r = run("jn.occupationMix", "BlueCollar, Teacher");
+        assertFalse(r.ok());
+        assertEquals("OUT_OF_CLOSURE", r.errorCode());
+        assertTrue(r.message().contains("OfficeWorker"), "허용값을 알려줘야 다시 답할 수 있다");
+    }
+
+    @Test
+    void 빈_직업_목록은_거절한다() {
+        assertEquals("EMPTY_ANSWER", run("jn.occupationMix", "[]").errorCode());
+    }
 }

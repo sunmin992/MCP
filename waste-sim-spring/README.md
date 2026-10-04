@@ -64,7 +64,7 @@ LLM 쪽 화면에는 모델이 보낸 것과 받은 것만 보이므로, 서버�
 ```
 [브로커]     [3 조회] domain=쓰레기수거 · scale=한 동네 · env=[교통량] · objective=…하루에 몇 번…
 [브로커]     [4 매칭] MATCH → jangnyang-waste-sim (http://localhost:8090/mcp) · 근거 4
-[시뮬레이터] [5 템플릿] get_templates → 15개
+[시뮬레이터] [5 템플릿] get_templates → 16개
 [시뮬레이터] [9·10 시나리오] build_scenario → scn-… · 5벌 · UNCONFIRMED · 미승인 8
 [시뮬레이터] [12 확인] scn-… → 사람이 확인 화면에서 승인 · 토큰 발급
 ```
@@ -74,7 +74,7 @@ MCP 클라이언트(Claude Code 등)는 `.mcp.json` 으로 두 서버를 따로 
 ## 시뮬레이터 구성
 
 "시뮬레이터를 만들어 줘"류 요청은 한 문장으로 답할 수 없으므로, 서버가 질문의 규칙을 소유하고
-LLM 이 그 규칙대로 물어 구성을 모은다. 규칙은 서브태스크 템플릿 15개
+LLM 이 그 규칙대로 물어 구성을 모은다. 규칙은 서브태스크 템플릿 16개
 ([`ses/jangnyang-templates.json`](simulator/src/main/resources/ses/jangnyang-templates.json))다 —
 무엇을 묻는지, 언제 묻는지(생성 조건), 답이 실행 설정의 어느 필드로 가는지를 적는다. 조회 경로에
 LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 허용은 서버가 한다.
@@ -88,8 +88,8 @@ LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 �
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **594건 중 591건 통과·3건 스킵**
-이다(브로커 62 · 시뮬레이터 532). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **600건 중 597건 통과·3건 스킵**
+이다(브로커 62 · 시뮬레이터 538). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
 엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트
