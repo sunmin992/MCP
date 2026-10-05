@@ -1,6 +1,6 @@
 # 서브태스크 템플릿을 시뮬레이터 코드에서 뽑아 손으로 쓴 것과 대조한 기록
 
-2026-10-05 · `feature/simulator-mcp` · 새 모듈 `template-generator` · 전체 테스트 640개 중 637개 통과(스킵 3)
+2026-10-05 · `feature/simulator-mcp` · 새 모듈 `template-generator` · 전체 테스트 646개 중 643개 통과(스킵 3)
 
 ## 왜 만들었나
 
@@ -28,7 +28,7 @@
 | 후보 | 설정 클래스 | 세터가 있는 인스턴스 필드 |
 | `valueType` | 필드 타입 | `int`→INTEGER · `double`→NUMBER · `List<Integer>`→INTEGER_LIST · enum 으로 해석되는 `String`→ENUM 등 |
 | `allowed` | enum 선언 | 필드가 `X.fromName(..)`/`X.valueOf(..)`로 해석되면 X 의 상수 |
-| `defaultValue` | 필드 초기값 | 리터럴 · 사칙연산(`20 * 60`) · `Enum.X.name()` |
+| `defaultValue` | 필드 초기값, 없으면 대체값 | 리터럴 · 사칙연산(`20 * 60`) · `Enum.X.name()`. 초기값이 null 이면 설정 클래스가 그 자리를 무엇으로 대신하는지 따라간다(아래) |
 | `min`/`max` | 검증기 | **오류를 만드는 `if`** 의 "필드 비교 상수". `x < 1`→하한 1, `x <= 0`→0 초과 |
 | `unit` | 필드 이름 | `…Minutes`→minute · `…Kg`→kg |
 | `question` | Javadoc | 첫 문장(초안) |
@@ -53,8 +53,8 @@
 |---|---|
 | 코드에서 나온 후보 | 40개 (옮기지 못한 필드 2개: `List<WasteType>`, `double[]`) |
 | 손으로 쓴 템플릿 | 16개 — **16개 모두 짝을 찾음** |
-| 채점 칸 일치 (6칸 × 16) | **87 / 96 (90.6%)** |
-| 손으로 쓴 값이 있는 칸만 | **46 / 54 (85.2%)** |
+| 채점 칸 일치 (6칸 × 16) | **88 / 96 (91.7%)** |
+| 손으로 쓴 값이 있는 칸만 | **47 / 54 (87.0%)** |
 
 둘째 줄이 더 정직한 숫자다. 첫째 줄에는 "둘 다 비어 있어서" 맞은 칸(정수 필드의 선택지 등)이 들어 있다.
 
@@ -64,12 +64,38 @@
 | `max` | 6/6 |
 | `unit` | 5/5 |
 | `valueType` | 15/16 |
-| `defaultValue` | 9/12 |
+| `defaultValue` | 10/12 |
 | `allowed` | 2/6 |
 
 **범위·단위는 검증기에서 전부 나왔다.** 어긋남은 선택지와 기본값에 몰렸다.
 
-### 어긋난 9칸 — 코드에 없는 지식이 무엇인가
+### 필드 밖 기본값 — null 일 때 무엇으로 대신하는가
+
+같은 날 덧붙였다. 처음 판은 필드 초기값만 봐서 `private List<String> occupationMix = null;` 의 기본값을
+"없음" 으로 적었다. 실제 기본값은 설정 클래스의 해석 메서드에 있다.
+
+```java
+public List<OccupationType> resolveOccupationMix() {
+    if (occupationMix == null || occupationMix.isEmpty()) {
+        return OccupationType.baseMix();          // → Arrays.asList(BlueCollar, Student, Housewife)
+    }
+```
+
+초기값이 null 이면 설정 클래스 안에서 "비었으면 X" 꼴(`if (f == null …) return X;` · 삼항식 ·
+`if (f 가 있으면) return f; return X;`)을 찾아 X 를 푼다. 인자 없는 static 메서드는 한 줄 `return` 을
+따라간다. X 가 **상수로 풀릴 때만** 기본값으로 채우고, 아니면 그 사실만 검토 항목에 적는다.
+
+| 필드 | 대체값 | 결과 |
+|---|---|---|
+| `occupationMix` | `OccupationType.baseMix()` | **기본값으로 채움** — 손으로 쓴 값과 같다 |
+| `collectionTimesMinutes` | 다른 필드 `collectionTimeMinutes` 하나짜리 목록 | 채우지 않음 — "다른 필드로 대신함" 으로 알림 |
+| `routeAvailableCapacityKg` | 매개변수 `nominalPayloadKg`(차종 정격용량) | 채우지 않음 — "매개변수로 대신함" 으로 알림 |
+
+따라가지 않는 것: 설정 클래스 **밖**의 대체값. `zoneAssignmentRule` 은 `ZoneAssignmentRule.fromName(null)` 이
+`NONE` 을 돌려주지만, 손으로 쓴 템플릿은 5동부터 막히는 `NONE` 을 피하려고 일부러 "반드시 묻기"(null)로
+뒀다 — 따라가면 코드상 맞는 값이 정책과 어긋난다. `trafficProfileId` 는 엔진 경로에 대체값이 없다(아래 표).
+
+### 어긋난 8칸 — 코드에 없는 지식이 무엇인가
 
 어긋남을 "생성기가 틀렸다" 로 뭉개지 않고, 손으로 쓴 템플릿에 **코드 밖의 무엇**이 들어갔는지로 나눴다.
 이것이 RQ1 에서 제공자에게 끝까지 남는 몫이다.
@@ -78,7 +104,7 @@
 |---|---|---|---|
 | **선택지 좁히기** | 2 | `travelTimeMode` 에서 `OSRM_HYBRID`, `zoneAssignmentRule` 에서 `NONE` 을 뺐다 | 낮다 — 제공자의 판단(OSRM 은 좌표 0곳이라 못 쓰고, NONE 은 5동부터 막힌다). 단 검증기가 막는 조합을 따라가면 근거는 찾을 수 있다 |
 | **표현 바꾸기** | 3 | 불리언 `trafficEnabled` 를 APPLY/IGNORE 열거로 물었다(값 종류·선택지·기본값 3칸) | 중간 — 선택지 이름만 정하면 된다. 생성기가 "불리언" 검토 항목으로 표시한다 |
-| **기본값이 필드 밖에** | 2 | `occupationMix` 는 `resolveOccupationMix()` 의 `baseMix()`, `trafficProfileId` 는 `TrafficDataService.DEFAULT_PROFILE_ID` | 높다 — 해석 메서드의 null 폴백을 따라가면 된다. 다음 판의 대상 |
+| **기본값이 대화의 제안값** | 1 | `trafficProfileId` 의 `jangryang-weekday`. 엔진 경로에서 null 은 null 로 남고(`TrafficDataService.find(null)` → null, 검증기가 교통 반영 시 id 를 요구), 이 값은 "교통 반영해줘" 라고만 했을 때 제안하는 값이다 | 낮다 — 엔진의 대체값이 아니라 대화 규칙이다 |
 | **선택지가 데이터 파일에** | 1 | `trafficProfileId` 의 선택지는 교통 프로파일 JSON 파일 이름이다 | 중간 — 코드가 아니라 리소스를 읽어야 한다 |
 | **템플릿이 일부러 비움** | 1 | `routeAvailableCapacityKg` 하한. 검증기에는 `<= 0` 거절이 있지만 템플릿은 "범위를 두 곳에서 정의하지 않는다" 며 비웠다 | 해당 없음 — 생성기 값이 코드상 맞다 |
 
@@ -160,13 +186,14 @@ public 메서드)에서 닿는 메서드만 훑고, 필드를 읽는 자리마�
 
 ## RQ1 에 대해 이 판이 말하는 것
 
-- 제공자가 템플릿 6칸을 손으로 쓰던 일 중 **값이 있는 칸의 85% 는 코드에서 근거와 함께 나온다.**
-  남는 15%는 대부분 선택지를 좁히거나 표현을 바꾸는 **판단**이다.
+- 제공자가 템플릿 6칸을 손으로 쓰던 일 중 **값이 있는 칸의 87% 는 코드에서 근거와 함께 나온다.**
+  남는 13%는 대부분 선택지를 좁히거나 표현을 바꾸는 **판단**이다.
 - **생성 조건 16개 중 12개가 손으로 쓴 것과 같고, 나머지 4개도 필요조건으로 맞다**(빠뜨리는 쪽 0).
   조건부 6개만 보면 2개가 같고, 4개는 제공자가 좁혀야 한다.
 - 제공자에게 남는 일은 셋으로 요약된다: ① 40개 후보 중 무엇을 물을지 고르기, ② 더 넓게 나온 생성 조건을
   좁히고 이름 붙이기(대화 규칙 포함), ③ 선택지를 좁히고 질문 문장 다듬기.
-- 다음에 숫자를 키울 곳은 **필드 밖 기본값**(2칸)과 **계산을 거친 실행 조건**(배차 간격의 `routes.size()`)이다.
+- 다음에 숫자를 키울 곳은 **선택지 좁히기**(검증기가 막는 조합에서 근거 찾기)와 **계산을 거친 실행 조건**
+  (배차 간격의 `routes.size()`)이다.
 
 ## 한계
 

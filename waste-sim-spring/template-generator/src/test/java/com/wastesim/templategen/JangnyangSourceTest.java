@@ -111,6 +111,18 @@ class JangnyangSourceTest {
     }
 
     @Test
+    void 직업_구성의_기본값을_해석_메서드의_대체값에서_찾는다() {
+        assertEquals(List.of("BlueCollar", "Student", "Housewife"), t("occupationMix").defaultValue(),
+                "resolveOccupationMix() 의 OccupationType.baseMix()");
+    }
+
+    @Test
+    void 매개변수로_대신하는_기본값은_채우지_않는다() {
+        assertNull(t("routeAvailableCapacityKg").defaultValue(), "차종 정격용량은 고정값이 아니다");
+        assertTrue(t("routeAvailableCapacityKg").needsReview().stream().anyMatch(r -> r.contains("nominalPayloadKg")));
+    }
+
+    @Test
     void 결과_라벨로만_읽는_자리는_조건에서_빠진다() {
         assertTrue(t("collectionTimeMinutes").readSites().stream().anyMatch(r -> r.contains("(결과 기록)")),
                 t("collectionTimeMinutes").readSites().toString());

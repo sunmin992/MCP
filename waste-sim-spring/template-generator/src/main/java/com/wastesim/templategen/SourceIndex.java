@@ -38,6 +38,7 @@ final class SourceIndex {
 
     private final Map<String, CompilationUnit> unitsBySimpleName = new HashMap<>();
     private final Map<String, List<String>> enumConstants = new HashMap<>();
+    private final Map<String, EnumDeclaration> enums = new HashMap<>();
 
     SourceIndex(Path sourceRoot) throws IOException {
         ParserConfiguration cfg = new ParserConfiguration()
@@ -55,6 +56,7 @@ final class SourceIndex {
                     List<String> names = new ArrayList<>();
                     e.getEntries().forEach(en -> names.add(en.getNameAsString()));
                     enumConstants.put(e.getNameAsString(), names);
+                    enums.put(e.getNameAsString(), e);
                 }
             }
         }
@@ -66,6 +68,10 @@ final class SourceIndex {
 
     List<String> enumConstants(String simpleName) {
         return enumConstants.get(simpleName);
+    }
+
+    EnumDeclaration findEnum(String simpleName) {
+        return enums.get(simpleName);
     }
 
     ClassOrInterfaceDeclaration classOf(String name) {

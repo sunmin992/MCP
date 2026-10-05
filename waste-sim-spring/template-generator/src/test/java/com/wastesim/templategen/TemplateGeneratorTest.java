@@ -114,6 +114,36 @@ class TemplateGeneratorTest {
     }
 
     @Test
+    void 초기값이_null_이면_설정_클래스의_대체값을_따라간다() {
+        // if (crew == null || crew.isEmpty()) return Role.defaults();  →  Arrays.asList(PILOT)
+        GeneratedTemplate crew = t("crew");
+        assertEquals(List.of("PILOT"), crew.defaultValue());
+        assertTrue(crew.defaultBasis().contains("resolveCrew()"), crew.defaultBasis());
+        assertTrue(crew.needsReview().stream().anyMatch(r -> r.contains("대체값에서 찾음")));
+    }
+
+    @Test
+    void 삼항식의_대체값도_따라간다() {
+        // profileId == null ? "basic" : profileId
+        assertEquals("basic", t("profileId").defaultValue());
+    }
+
+    @Test
+    void 다른_필드로_대신하면_기본값을_채우지_않고_알린다() {
+        // if (slotsMinutes 가 있으면) return slotsMinutes;  return List.of(startMinutes);
+        GeneratedTemplate slots = t("slotsMinutes");
+        assertNull(slots.defaultValue(), "건물 수만큼 같은 값은 고정 기본값이 아니다");
+        assertTrue(slots.needsReview().stream().anyMatch(r -> r.contains("다른 필드 startMinutes")),
+                slots.needsReview().toString());
+    }
+
+    @Test
+    void 대체값이_없으면_그대로_null_이다() {
+        assertNull(t("budgetKg").defaultValue());
+        assertTrue(t("budgetKg").needsReview().stream().anyMatch(r -> r.startsWith("기본값: 초기값이 null 이다")));
+    }
+
+    @Test
     void 불리언은_선택지_이름을_사람이_정하라고_표시한다() {
         GeneratedTemplate v = t("verbose");
         assertEquals("BOOLEAN", v.valueType());

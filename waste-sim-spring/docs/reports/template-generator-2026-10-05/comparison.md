@@ -9,8 +9,8 @@
 |---|---|
 | 손으로 쓴 템플릿 | 16개 |
 | 짝을 찾은 템플릿 | 16개 |
-| 채점 칸 일치 | 87 / 96 (90.6%) |
-| 손으로 쓴 값이 있는 칸만 | 46 / 54 (85.2%) |
+| 채점 칸 일치 | 88 / 96 (91.7%) |
+| 손으로 쓴 값이 있는 칸만 | 47 / 54 (87.0%) |
 | 생성 조건 같음 | 12 / 16 (75.0%) |
 | 코드에는 있으나 노출하지 않은 후보 | 24개 |
 | 템플릿으로 옮기지 못한 필드 | 2개 |
@@ -23,7 +23,7 @@
 |---|---|---|
 | valueType | 15/16 | 15/16 |
 | allowed | 12/16 | 2/6 |
-| defaultValue | 13/16 | 9/12 |
+| defaultValue | 14/16 | 10/12 |
 | min | 15/16 | 9/9 |
 | max | 16/16 | 6/6 |
 | unit | 16/16 | 5/5 |
@@ -39,7 +39,6 @@
 | jn.trafficProfile | `trafficProfileId` | defaultValue | jangryang-weekday | null |
 | jn.travelTimeMode | `travelTimeMode` | allowed | [LEGACY_CONSTANT, ZONE_PROXY_HYBRID] | [LEGACY_CONSTANT, OSRM_HYBRID, ZONE_PROXY_HYBRID] |
 | jn.zoneAssignmentRule | `zoneAssignmentRule` | allowed | [CONTIGUOUS, ROUND_ROBIN] | [NONE, CONTIGUOUS, ROUND_ROBIN] |
-| jn.occupationMix | `occupationMix` | defaultValue | [BlueCollar, Student, Housewife] | null |
 | jn.routeAvailableCapacity | `routeAvailableCapacityKg` | min | null | 0 |
 
 ## 생성 조건

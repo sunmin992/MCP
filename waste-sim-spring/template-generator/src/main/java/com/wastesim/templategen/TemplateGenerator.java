@@ -33,7 +33,8 @@ import java.util.Optional;
  * <p>읽는 것은 넷이다.
  * <ul>
  *   <li><b>설정 클래스</b> — 세터가 있는 필드가 사용자가 정할 수 있는 후보다. 타입이 값 종류를,
- *       초기값이 기본값을, Javadoc 이 질문 초안을 준다.</li>
+ *       초기값이 기본값을, Javadoc 이 질문 초안을 준다. 초기값이 null 이면 설정 클래스가 그 자리를
+ *       무엇으로 대신하는지 따라간다({@link FallbackFinder}).</li>
  *   <li><b>검증기</b> — 오류를 내는 {@code if}의 비교식이 범위를 준다. {@code days < 1 || days > 365}
  *       면 1~365 다. 검증기가 범위의 정본이므로 범위를 다른 데서 추측하지 않는다.</li>
  *   <li><b>enum</b> — 문자열 필드가 {@code X.fromName(...)}/{@code X.valueOf(...)}로 해석되면
@@ -48,6 +49,7 @@ public final class TemplateGenerator {
 
     private final SourceIndex index;
     private ConfigModel config;
+    private FallbackFinder fallbacks;
 
     /** @param sourceRoot 시뮬레이터 소스 루트(예: {@code simulator/src/main/java}) */
     public TemplateGenerator(Path sourceRoot) throws IOException {
@@ -79,6 +81,7 @@ public final class TemplateGenerator {
      */
     public Result generate(String configClass, List<String> validatorClasses, List<String> modelClasses) {
         this.config = new ConfigModel(index, configClass);
+        this.fallbacks = new FallbackFinder(index, config);
 
         Map<String, Draft> drafts = new LinkedHashMap<>();
         Map<String, String> skipped = new LinkedHashMap<>();
@@ -334,7 +337,19 @@ public final class TemplateGenerator {
                         : "필드 초기값 " + f.name() + " = " + f.initializer();
             }
             if (def == null) {
-                review("기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인");
+                // 필드가 null 이면 설정 클래스가 그 자리를 무엇으로 대신하는지 따라간다.
+                Optional<FallbackFinder.Fallback> fb = fallbacks.find(f.name());
+                if (fb.isPresent() && fb.get().value() != null) {
+                    def = fb.get().value();
+                    basis = "필드는 null — " + fb.get().where() + " 가 " + fb.get().description();
+                    evidence.add("기본값 " + fb.get().where() + " " + fb.get().description());
+                    review("기본값: 필드 초기값이 아니라 null 일 때의 대체값에서 찾음 — 이 값을 사용자에게 제안해도 되는지 확인");
+                } else if (fb.isPresent()) {
+                    review("기본값: 초기값이 null 이고 상수 기본값이 없다 — " + fb.get().where() + " 가 "
+                            + fb.get().description());
+                } else {
+                    review("기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인");
+                }
             }
             if ("BOOLEAN".equals(valueType)) {
                 review("값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함");

@@ -27,7 +27,7 @@
       "generateWhenExpr" : "?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && !(present(collectionTimesMinutes) && !empty(collectionTimesMinutes))",
       "conditionHints" : [ "isTruckDay(d, cfg, types)", "isWeekend(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:12 int collectionTimeMinutes = 12 * 60", "하한 SimulationConfigValidator.java:79 t < 0", "상한 SimulationConfigValidator.java:79 t > 1439" ],
-      "readSites" : [ "SimulationConfig.java:432 collectionTimeMinutes", "SimulationConfig.java:496 (결과 기록) collectionTimeMinutes" ],
+      "readSites" : [ "SimulationConfig.java:496 (결과 기록) collectionTimeMinutes", "SimulationConfig.java:432 collectionTimeMinutes" ],
       "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — ?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && !(present(collectionTimesMinutes) && !empty(collectionTimesMinutes))", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
@@ -241,17 +241,17 @@
     "valueType" : "ENUM_LIST",
     "generateWhen" : "ALWAYS",
     "allowed" : [ "BlueCollar", "Student", "Housewife", "NightShift", "OfficeWorker" ],
-    "defaultValue" : null,
-    "defaultBasis" : null,
+    "defaultValue" : [ "BlueCollar", "Student", "Housewife" ],
+    "defaultBasis" : "필드는 null — SimulationConfig.java:405 resolveOccupationMix() 가 OccupationType.baseMix() 로 대신함",
     "question" : "거주민 직업 구성 비율 (round-robin 배정).",
     "configField" : "occupationMix",
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
       "generateWhenExpr" : "true",
-      "evidence" : [ "필드 SimulationConfig.java:62 List<String> occupationMix = null", "선택지 SimulationConfig.java:409 OccupationType.fromName(s)" ],
+      "evidence" : [ "필드 SimulationConfig.java:62 List<String> occupationMix = null", "선택지 SimulationConfig.java:409 OccupationType.fromName(s)", "기본값 SimulationConfig.java:405 resolveOccupationMix() OccupationType.baseMix() 로 대신함" ],
       "readSites" : [ "SimulationConfig.java:405 occupationMix", "SimulationConfig.java:409 occupationMix", "SimulationConfig.java:409 s" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "needsReview" : [ "기본값: 필드 초기값이 아니라 null 일 때의 대체값에서 찾음 — 이 값을 사용자에게 제안해도 되는지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.collectionTimesMinutes",
@@ -272,7 +272,7 @@
       "conditionHints" : [ "isTruckDay(d, cfg, types)", "isWeekend(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:66 List<Integer> collectionTimesMinutes = null", "하한 SimulationConfigValidator.java:163 m < 0", "상한 SimulationConfigValidator.java:163 m > MAX_MINUTE_OF_DAY" ],
       "readSites" : [ "SimulationConfig.java:429 collectionTimesMinutes", "SimulationConfig.java:430 collectionTimesMinutes" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — isTruckDay(d, cfg, types) / isWeekend(day)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "needsReview" : [ "기본값: 초기값이 null 이고 상수 기본값이 없다 — SimulationConfig.java:429 resolveCollectionSlots() 가 다른 필드 collectionTimeMinutes 의 값으로 대신함 — Collections.singletonList(collectionTimeMinutes)", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — isTruckDay(d, cfg, types) / isWeekend(day)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.collectionIntervalDays",
@@ -289,10 +289,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
-      "generateWhenExpr" : "(!?{cfg.usesDaysOfWeek()} && !(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes)",
+      "generateWhenExpr" : "!present(wasteTypes) || empty(wasteTypes) || (!?{cfg.usesDaysOfWeek()} && !(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)}))",
       "conditionHints" : [ "cfg.usesDaysOfWeek()", "cfg.getHolidays().contains(day)", "isWeekend(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:68 int collectionIntervalDays = 1", "하한 SimulationConfigValidator.java:248 c.getCollectionIntervalDays() < 1", "상한 SimulationConfigValidator.java:248 c.getCollectionIntervalDays() > 365" ],
-      "readSites" : [ "SimulationEngine.java:640 cfg.getCollectionIntervalDays()", "SimulationConfig.java:416 collectionIntervalDays" ],
+      "readSites" : [ "SimulationConfig.java:416 collectionIntervalDays", "SimulationEngine.java:640 cfg.getCollectionIntervalDays()" ],
       "needsReview" : [ "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — cfg.usesDaysOfWeek() / cfg.getHolidays().contains(day) / isWeekend(day)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
@@ -307,11 +307,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
-      "generateWhenExpr" : "(!(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes) || (((!(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes)) && ?{자기 자신: present(collectionDaysOfWeek)}) || (?{cfg.usesDaysOfWeek()} && !(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || (?{usesDaysOfWeek()} && (!present(wasteTypes) || empty(wasteTypes)))",
-      "conditionHints" : [ "cfg.getHolidays().contains(day)", "isWeekend(day)", "cfg.usesDaysOfWeek()", "usesDaysOfWeek()" ],
+      "generateWhenExpr" : "(?{usesDaysOfWeek()} && (!present(wasteTypes) || empty(wasteTypes))) || (!(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes) || (((!(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes)) && ?{자기 자신: present(collectionDaysOfWeek)}) || (?{cfg.usesDaysOfWeek()} && !(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)}))",
+      "conditionHints" : [ "usesDaysOfWeek()", "cfg.getHolidays().contains(day)", "isWeekend(day)", "cfg.usesDaysOfWeek()" ],
       "evidence" : [ "필드 SimulationConfig.java:85 List<Integer> collectionDaysOfWeek = null" ],
-      "readSites" : [ "SimulationConfig.java:302 collectionDaysOfWeek", "SimulationEngine.java:639 cfg.getCollectionDaysOfWeek()", "SimulationConfig.java:422 collectionDaysOfWeek" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — cfg.getHolidays().contains(day) / isWeekend(day) / cfg.usesDaysOfWeek() / usesDaysOfWeek()", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:422 collectionDaysOfWeek", "SimulationConfig.java:302 collectionDaysOfWeek", "SimulationEngine.java:639 cfg.getCollectionDaysOfWeek()" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — usesDaysOfWeek() / cfg.getHolidays().contains(day) / isWeekend(day) / cfg.usesDaysOfWeek()", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.dischargeTimeMode",
@@ -348,7 +348,7 @@
       "generateWhenExpr" : "(?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{자기 자신: present(intraZoneTravelMinutes)} && ?{fromZone.equals(toZone)})",
       "conditionHints" : [ "pos > 0", "route.isEmpty()", "isTruckDay(d, cfg, types)", "fromZone.equals(toZone)" ],
       "evidence" : [ "필드 SimulationConfig.java:116 Integer intraZoneTravelMinutes = null", "하한 SimulationConfigValidator.java:461 c.getIntraZoneTravelMinutes() < 0" ],
-      "readSites" : [ "SimulationEngine.java:557 (결과 기록) cfg.getIntraZoneTravelMinutes()", "SimulationConfig.java:272 intraZoneTravelMinutes", "SimulationEngine.java:123 cfg.hasIntraZoneTravelMinutes()", "SimulationEngine.java:129 cfg.getIntraZoneTravelMinutes()" ],
+      "readSites" : [ "SimulationEngine.java:123 cfg.hasIntraZoneTravelMinutes()", "SimulationEngine.java:129 cfg.getIntraZoneTravelMinutes()", "SimulationEngine.java:557 (결과 기록) cfg.getIntraZoneTravelMinutes()", "SimulationConfig.java:272 intraZoneTravelMinutes" ],
       "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 이름 붙은 조건이 필요 — (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{자기 자신: present(intraZoneTravelMinutes)} && ?{fromZone.equals(toZone)})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
@@ -516,11 +516,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
-      "generateWhenExpr" : "(?{pos == 0} && travelTimeMode != LEGACY_CONSTANT && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && !(travelTimeMode == LEGACY_CONSTANT) && !(travelTimeMode == ZONE_PROXY_HYBRID) && !?{ff.isEmpty()}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && present(intraZoneTravelMinutes) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && !?{fromZone.equals(toZone)} && !?{ff.isEmpty()})",
-      "conditionHints" : [ "pos == 0", "route.isEmpty()", "isTruckDay(d, cfg, types)", "pos > 0", "ff.isEmpty()", "fromZone.equals(toZone)" ],
+      "generateWhenExpr" : "(?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && present(intraZoneTravelMinutes) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && !?{fromZone.equals(toZone)} && !?{ff.isEmpty()}) || (?{pos == 0} && travelTimeMode != LEGACY_CONSTANT && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && !(travelTimeMode == LEGACY_CONSTANT) && !(travelTimeMode == ZONE_PROXY_HYBRID) && !?{ff.isEmpty()})",
+      "conditionHints" : [ "pos > 0", "route.isEmpty()", "isTruckDay(d, cfg, types)", "fromZone.equals(toZone)", "ff.isEmpty()", "pos == 0" ],
       "evidence" : [ "필드 SimulationConfig.java:176 int serviceMinutesPerSite = 0", "하한 SimulationConfigValidator.java:457 c.getServiceMinutesPerSite() < 0" ],
-      "readSites" : [ "SimulationEngine.java:325 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:104 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:129 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:137 cfg.getServiceMinutesPerSite()" ],
-      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — (?{pos == 0} && travelTimeMode != LEGACY_CONSTANT && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && !(travelTimeMode == LEGACY_CONSTANT) && !(travelTimeMode == ZONE_PROXY_HYBRID) && !?{ff.isEmpty()}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && present(intraZoneTravelMinutes) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && !?{fromZone.equals(toZone)} && !?{ff.isEmpty()})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:129 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:137 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:325 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:104 cfg.getServiceMinutesPerSite()" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && present(intraZoneTravelMinutes) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && !?{fromZone.equals(toZone)} && !?{ff.isEmpty()}) || (?{pos == 0} && travelTimeMode != LEGACY_CONSTANT && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && !(travelTimeMode == LEGACY_CONSTANT) && !(travelTimeMode == ZONE_PROXY_HYBRID) && !?{ff.isEmpty()})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.returnDischarge",
@@ -681,7 +681,7 @@
       "minExclusive" : true,
       "evidence" : [ "필드 SimulationConfig.java:204 Double routeAvailableCapacityKg = null", "하한 SimulationConfigValidator.java:572 allocated <= 0" ],
       "readSites" : [ "SimulationConfig.java:485 routeAvailableCapacityKg", "SimulationConfig.java:486 routeAvailableCapacityKg" ],
-      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:573 allocated > truckType.capacityKg", "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:573 allocated > truckType.capacityKg", "기본값: 초기값이 null 이고 상수 기본값이 없다 — SimulationConfig.java:485 resolveRouteCapacityKg() 가 호출하는 쪽이 주는 매개변수 nominalPayloadKg 로 대신함", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.initialTruckLoadKg",
@@ -699,7 +699,7 @@
     "_extraction" : {
       "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:206 double initialTruckLoadKg = 0.0", "하한 SimulationConfigValidator.java:580 initialLoad < 0" ],
-      "readSites" : [ "SimulationEngine.java:307 initialTruckLoadKg", "SimulationEngine.java:311 initialTruckLoadKg", "SimulationConfig.java:491 initialTruckLoadKg" ],
+      "readSites" : [ "SimulationConfig.java:491 initialTruckLoadKg", "SimulationEngine.java:307 initialTruckLoadKg", "SimulationEngine.java:311 initialTruckLoadKg" ],
       "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:580 initialLoad > routeCapacity", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {

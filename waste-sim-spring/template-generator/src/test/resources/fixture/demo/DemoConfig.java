@@ -72,6 +72,19 @@ public class DemoConfig {
         return Mode.fromName(mode);
     }
 
+    /** crew 가 비었으면 enum 의 static 메서드가 주는 목록으로 대신한다. */
+    public List<Role> resolveCrew() {
+        if (crew == null || crew.isEmpty()) {
+            return Role.defaults();
+        }
+        return crew.stream().map(Role::valueOf).toList();
+    }
+
+    /** profileId 가 없으면 삼항식으로 "basic" 을 쓴다. */
+    public String resolveProfile() {
+        return profileId == null ? "basic" : profileId;
+    }
+
     /** 목록이 있으면 목록, 없으면 시작 시각 하나 — 둘 중 하나만 쓰인다. */
     public List<Integer> resolveSlots() {
         if (slotsMinutes != null && !slotsMinutes.isEmpty()) {
