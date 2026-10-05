@@ -1,0 +1,669 @@
+{
+  "sesId" : "generated",
+  "sesVersion" : "0.0.0",
+  "_generation" : {
+    "source" : "simulator/src/main/java",
+    "configClass" : "com.wastesim.model.SimulationConfig",
+    "skipped" : {
+      "wasteTypes" : "템플릿 값 종류로 옮길 수 없는 타입: List<WasteType>",
+      "monthlyWasteFactor" : "템플릿 값 종류로 옮길 수 없는 타입: double[]"
+    }
+  },
+  "templates" : [ {
+    "templateId" : "gen.collectionTimeMinutes",
+    "answerKey" : "collectionTimeMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "max" : 1439,
+    "unit" : "minute",
+    "defaultValue" : 720,
+    "defaultBasis" : "필드 초기값 collectionTimeMinutes = 12 * 60",
+    "question" : null,
+    "configField" : "collectionTimeMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:12 int collectionTimeMinutes = 12 * 60", "하한 SimulationConfigValidator.java:79 t < 0", "상한 SimulationConfigValidator.java:79 t > 1439" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.days",
+    "answerKey" : "days",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 1,
+    "max" : 365,
+    "defaultValue" : 30,
+    "defaultBasis" : "필드 초기값 days = 30",
+    "question" : null,
+    "configField" : "days",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:13 int days = 30", "하한 SimulationConfigValidator.java:82 c.getDays() < 1", "상한 SimulationConfigValidator.java:82 c.getDays() > 365" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.seeds",
+    "answerKey" : "seeds",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 1,
+    "max" : 100,
+    "defaultValue" : 30,
+    "defaultBasis" : "필드 초기값 seeds = 30",
+    "question" : null,
+    "configField" : "seeds",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:14 int seeds = 30", "하한 SimulationConfigValidator.java:85 c.getSeeds() < 1", "상한 SimulationConfigValidator.java:85 c.getSeeds() > 100" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.leaveSigma",
+    "answerKey" : "leaveSigma",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "defaultValue" : 30.0,
+    "defaultBasis" : "필드 초기값 leaveSigma = 30.0",
+    "question" : null,
+    "configField" : "leaveSigma",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:15 double leaveSigma = 30.0", "하한 SimulationConfigValidator.java:88 c.getLeaveSigma() < 0" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.wasteSigma",
+    "answerKey" : "wasteSigma",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "defaultValue" : 0.3,
+    "defaultBasis" : "필드 초기값 wasteSigma = 0.3",
+    "question" : null,
+    "configField" : "wasteSigma",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:16 double wasteSigma = 0.3", "하한 SimulationConfigValidator.java:91 c.getWasteSigma() < 0" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.wasteMeanKg",
+    "answerKey" : "wasteMeanKg",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "unit" : "kg",
+    "defaultValue" : 0.9,
+    "defaultBasis" : "필드 초기값 wasteMeanKg = 0.9",
+    "question" : "1인 1일 평균 배출량(kg).",
+    "configField" : "wasteMeanKg",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "minExclusive" : true,
+      "evidence" : [ "필드 SimulationConfig.java:26 double wasteMeanKg = 0.9", "하한 SimulationConfigValidator.java:94 c.getWasteMeanKg() <= 0" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.capacity",
+    "answerKey" : "capacity",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "defaultValue" : 30.0,
+    "defaultBasis" : "필드 초기값 capacity = 30.0",
+    "question" : null,
+    "configField" : "capacity",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "minExclusive" : true,
+      "evidence" : [ "필드 SimulationConfig.java:27 double capacity = 30.0", "하한 SimulationConfigValidator.java:97 c.getCapacity() <= 0" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.threshold",
+    "answerKey" : "threshold",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "max" : 1.0,
+    "defaultValue" : 0.8,
+    "defaultBasis" : "필드 초기값 threshold = 0.8",
+    "question" : null,
+    "configField" : "threshold",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:28 double threshold = 0.8", "하한 SimulationConfigValidator.java:100 c.getThreshold() < 0", "상한 SimulationConfigValidator.java:100 c.getThreshold() > 1" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.scenarioScale",
+    "answerKey" : "scenarioScale",
+    "valueType" : "ENUM",
+    "generateWhen" : "ALWAYS",
+    "allowed" : [ "PAPER_BASELINE", "JANGRYANG_CAPACITY" ],
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "시나리오 규모 이름.",
+    "configField" : "scenarioScale",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:39 String scenarioScale = null", "선택지 SimulationConfig.java:253 ScenarioScale.fromName(scenarioScale)" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.zoneAssignmentRule",
+    "answerKey" : "zoneAssignmentRule",
+    "valueType" : "ENUM",
+    "generateWhen" : "ALWAYS",
+    "allowed" : [ "NONE", "CONTIGUOUS", "ROUND_ROBIN" ],
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "건물을 교통 구역에 배정하는 <b>가정</b>.",
+    "configField" : "zoneAssignmentRule",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:53 String zoneAssignmentRule = null", "선택지 SimulationConfig.java:245 ZoneAssignmentRule.fromName(zoneAssignmentRule)" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.numBuildings",
+    "answerKey" : "numBuildings",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 1,
+    "max" : 26,
+    "defaultValue" : 4,
+    "defaultBasis" : "필드 초기값 numBuildings = 4",
+    "question" : null,
+    "configField" : "numBuildings",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:55 int numBuildings = 4", "상한 SimulationConfigValidator.java:110 c.getNumBuildings() > 26", "하한 SimulationConfigValidator.java:115 c.getNumBuildings() < 1" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.residentsPerBuilding",
+    "answerKey" : "residentsPerBuilding",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 1,
+    "defaultValue" : 25,
+    "defaultBasis" : "필드 초기값 residentsPerBuilding = 25",
+    "question" : null,
+    "configField" : "residentsPerBuilding",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:56 int residentsPerBuilding = 25", "하한 SimulationConfigValidator.java:118 c.getResidentsPerBuilding() < 1" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.occupationMix",
+    "answerKey" : "occupationMix",
+    "valueType" : "ENUM_LIST",
+    "generateWhen" : "ALWAYS",
+    "allowed" : [ "BlueCollar", "Student", "Housewife", "NightShift", "OfficeWorker" ],
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "거주민 직업 구성 비율 (round-robin 배정).",
+    "configField" : "occupationMix",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:62 List<String> occupationMix = null", "선택지 SimulationConfig.java:409 OccupationType.fromName(s)" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.collectionTimesMinutes",
+    "answerKey" : "collectionTimesMinutes",
+    "valueType" : "INTEGER_LIST",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "max" : 1439,
+    "unit" : "minute",
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "하루 중 수거 시각 목록(분).",
+    "configField" : "collectionTimesMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:66 List<Integer> collectionTimesMinutes = null", "하한 SimulationConfigValidator.java:163 m < 0", "상한 SimulationConfigValidator.java:163 m > MAX_MINUTE_OF_DAY" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.collectionIntervalDays",
+    "answerKey" : "collectionIntervalDays",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 1,
+    "max" : 365,
+    "unit" : "day",
+    "defaultValue" : 1,
+    "defaultBasis" : "필드 초기값 collectionIntervalDays = 1",
+    "question" : "수거 주기(일).",
+    "configField" : "collectionIntervalDays",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:68 int collectionIntervalDays = 1", "하한 SimulationConfigValidator.java:248 c.getCollectionIntervalDays() < 1", "상한 SimulationConfigValidator.java:248 c.getCollectionIntervalDays() > 365" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.collectionDaysOfWeek",
+    "answerKey" : "collectionDaysOfWeek",
+    "valueType" : "INTEGER_LIST",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "수거하는 요일 집합.",
+    "configField" : "collectionDaysOfWeek",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:85 List<Integer> collectionDaysOfWeek = null" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.dischargeTimeMode",
+    "answerKey" : "dischargeTimeMode",
+    "valueType" : "ENUM",
+    "generateWhen" : "ALWAYS",
+    "allowed" : [ "PAPER_BASELINE", "POHANG_ACTUAL" ],
+    "defaultValue" : "PAPER_BASELINE",
+    "defaultBasis" : "필드 초기값 dischargeTimeMode = DischargeTimeMode.PAPER_BASELINE.name()",
+    "question" : "배출 시각 모델.",
+    "configField" : "dischargeTimeMode",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:91 String dischargeTimeMode = DischargeTimeMode.PAPER_BASELINE.name()", "선택지 SimulationConfig.java:279 DischargeTimeMode.fromName(dischargeTimeMode)" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.intraZoneTravelMinutes",
+    "answerKey" : "intraZoneTravelMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "unit" : "minute",
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "같은 교통 구역 안에서 지점을 옮길 때 걸리는 분.",
+    "configField" : "intraZoneTravelMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:116 Integer intraZoneTravelMinutes = null", "하한 SimulationConfigValidator.java:461 c.getIntraZoneTravelMinutes() < 0" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.dischargeWindowStartMinutes",
+    "answerKey" : "dischargeWindowStartMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "unit" : "minute",
+    "defaultValue" : 1200,
+    "defaultBasis" : "필드 초기값 dischargeWindowStartMinutes = 20 * 60",
+    "question" : "배출 허용 창의 시작 시각(자정 기준 분).",
+    "configField" : "dischargeWindowStartMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:122 int dischargeWindowStartMinutes = 20 * 60" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.dischargeWindowEndMinutes",
+    "answerKey" : "dischargeWindowEndMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "unit" : "minute",
+    "defaultValue" : 360,
+    "defaultBasis" : "필드 초기값 dischargeWindowEndMinutes = 6 * 60",
+    "question" : "배출 허용 창의 종료 시각(자정 기준 분).",
+    "configField" : "dischargeWindowEndMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:129 int dischargeWindowEndMinutes = 6 * 60" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.skipWeekends",
+    "answerKey" : "skipWeekends",
+    "valueType" : "BOOLEAN",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : false,
+    "defaultBasis" : "필드 초기값 skipWeekends = false",
+    "question" : "주말(토·일) 미수거 여부",
+    "configField" : "skipWeekends",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:131 boolean skipWeekends = false" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.weekendCollectionTimeMinutes",
+    "answerKey" : "weekendCollectionTimeMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "max" : 1439,
+    "unit" : "minute",
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "주말 별도 수거 시각(분).",
+    "configField" : "weekendCollectionTimeMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:133 Integer weekendCollectionTimeMinutes = null", "하한 SimulationConfigValidator.java:173 weekend < 0", "상한 SimulationConfigValidator.java:173 weekend > MAX_MINUTE_OF_DAY" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.holidays",
+    "answerKey" : "holidays",
+    "valueType" : "INTEGER_LIST",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "공휴일(미수거) day 인덱스 목록",
+    "configField" : "holidays",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:135 List<Integer> holidays = null", "하한 SimulationConfigValidator.java:296 d < 0" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.numTrucks",
+    "answerKey" : "numTrucks",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 1,
+    "defaultValue" : 1,
+    "defaultBasis" : "필드 초기값 numTrucks = 1",
+    "question" : "트럭 수.",
+    "configField" : "numTrucks",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:139 int numTrucks = 1", "하한 SimulationConfigValidator.java:557 c.getTruckCount() < 1" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.routeTravelMinutes",
+    "answerKey" : "routeTravelMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "max" : 600,
+    "unit" : "minute",
+    "defaultValue" : 0,
+    "defaultBasis" : "필드 초기값 routeTravelMinutes = 0",
+    "question" : "순회 이동시간(분/건물).",
+    "configField" : "routeTravelMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:141 int routeTravelMinutes = 0", "하한 SimulationConfigValidator.java:252 c.getRouteTravelMinutes() < 0", "상한 SimulationConfigValidator.java:252 c.getRouteTravelMinutes() > MAX_TRAVEL_MINUTES" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.travelTimeMode",
+    "answerKey" : "travelTimeMode",
+    "valueType" : "ENUM",
+    "generateWhen" : "ALWAYS",
+    "allowed" : [ "LEGACY_CONSTANT", "OSRM_HYBRID", "ZONE_PROXY_HYBRID" ],
+    "defaultValue" : "LEGACY_CONSTANT",
+    "defaultBasis" : "필드 초기값 travelTimeMode = TravelTimeMode.LEGACY_CONSTANT.name()",
+    "question" : "구간 이동시간을 무엇으로 계산할지.",
+    "configField" : "travelTimeMode",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:147 String travelTimeMode = TravelTimeMode.LEGACY_CONSTANT.name()", "선택지 SimulationConfig.java:336 TravelTimeMode.fromName(travelTimeMode)" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.serviceMinutesPerSite",
+    "answerKey" : "serviceMinutesPerSite",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "defaultValue" : 0,
+    "defaultBasis" : "필드 초기값 serviceMinutesPerSite = 0",
+    "question" : "지점 하나에서의 정차·상차 시간(분).",
+    "configField" : "serviceMinutesPerSite",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:176 int serviceMinutesPerSite = 0", "하한 SimulationConfigValidator.java:457 c.getServiceMinutesPerSite() < 0" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.returnDischarge",
+    "answerKey" : "returnDischarge",
+    "valueType" : "BOOLEAN",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : false,
+    "defaultBasis" : "필드 초기값 returnDischarge = false",
+    "question" : "외출·귀가 2회 배출",
+    "configField" : "returnDischarge",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:184 boolean returnDischarge = false" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.returnFraction",
+    "answerKey" : "returnFraction",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : 0.4,
+    "defaultBasis" : "필드 초기값 returnFraction = 0.4",
+    "question" : "귀가 시 배출 비율(0~1).",
+    "configField" : "returnFraction",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:186 double returnFraction = 0.4" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.landlordEnabled",
+    "answerKey" : "landlordEnabled",
+    "valueType" : "BOOLEAN",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : false,
+    "defaultBasis" : "필드 초기값 landlordEnabled = false",
+    "question" : "임대인(Check만 가진) 에이전트: 매일 수거장 점검 후 더러우면 민원",
+    "configField" : "landlordEnabled",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:188 boolean landlordEnabled = false" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.landlordInspectMinutes",
+    "answerKey" : "landlordInspectMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "max" : 1439,
+    "unit" : "minute",
+    "defaultValue" : 1200,
+    "defaultBasis" : "필드 초기값 landlordInspectMinutes = 20 * 60",
+    "question" : null,
+    "configField" : "landlordInspectMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:189 int landlordInspectMinutes = 20 * 60", "하한 SimulationConfigValidator.java:264 c.getLandlordInspectMinutes() < 0", "상한 SimulationConfigValidator.java:264 c.getLandlordInspectMinutes() > MAX_MINUTE_OF_DAY" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.landlordThreshold",
+    "answerKey" : "landlordThreshold",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : 0.6,
+    "defaultBasis" : "필드 초기값 landlordThreshold = 0.6",
+    "question" : null,
+    "configField" : "landlordThreshold",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:190 double landlordThreshold = 0.6" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.trafficEnabled",
+    "answerKey" : "trafficEnabled",
+    "valueType" : "BOOLEAN",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : false,
+    "defaultBasis" : "필드 초기값 trafficEnabled = false",
+    "question" : "교통 레이어 사용 여부.",
+    "configField" : "trafficEnabled",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:198 boolean trafficEnabled = false" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.trafficProfileId",
+    "answerKey" : "trafficProfileId",
+    "valueType" : "STRING",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "적용할 TrafficProfile id (예: \"jangryang-weekday\").",
+    "configField" : "trafficProfileId",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:200 String trafficProfileId = null" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.truckType",
+    "answerKey" : "truckType",
+    "valueType" : "ENUM",
+    "generateWhen" : "ALWAYS",
+    "allowed" : [ "LARGE_5TON", "MEDIUM_2P5T", "SMALL_1TON" ],
+    "defaultValue" : "LARGE_5TON",
+    "defaultBasis" : "필드 초기값 truckType = \"LARGE_5TON\"",
+    "question" : "차량 종류(TruckType 이름).",
+    "configField" : "truckType",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:202 String truckType = \"LARGE_5TON\"", "선택지 SimulationConfigValidator.java:565 TruckType.fromName(c.getTruckType())" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.routeAvailableCapacityKg",
+    "answerKey" : "routeAvailableCapacityKg",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "unit" : "kg",
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "운행 1회당 이 경로에 배정된 적재용량(kg).",
+    "configField" : "routeAvailableCapacityKg",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "minExclusive" : true,
+      "evidence" : [ "필드 SimulationConfig.java:204 Double routeAvailableCapacityKg = null", "하한 SimulationConfigValidator.java:572 allocated <= 0" ],
+      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:573 allocated > truckType.capacityKg", "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.initialTruckLoadKg",
+    "answerKey" : "initialTruckLoadKg",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "unit" : "kg",
+    "defaultValue" : 0.0,
+    "defaultBasis" : "필드 초기값 initialTruckLoadKg = 0.0",
+    "question" : "운행 시작 시 이미 실려 있는 적재량(kg).",
+    "configField" : "initialTruckLoadKg",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:206 double initialTruckLoadKg = 0.0", "하한 SimulationConfigValidator.java:580 initialLoad < 0" ],
+      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:580 initialLoad > routeCapacity", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.dispatchIntervalMinutes",
+    "answerKey" : "dispatchIntervalMinutes",
+    "valueType" : "INTEGER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0,
+    "max" : 1439,
+    "unit" : "minute",
+    "defaultValue" : 0,
+    "defaultBasis" : "필드 초기값 dispatchIntervalMinutes = 0",
+    "question" : "트럭 간 시차 배차(분).",
+    "configField" : "dispatchIntervalMinutes",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:208 int dispatchIntervalMinutes = 0", "하한 SimulationConfigValidator.java:257 c.getDispatchIntervalMinutes() < 0", "상한 SimulationConfigValidator.java:257 c.getDispatchIntervalMinutes() > MAX_MINUTE_OF_DAY" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.routeSequence",
+    "answerKey" : "routeSequence",
+    "valueType" : "STRING_LIST",
+    "generateWhen" : "ALWAYS",
+    "defaultValue" : null,
+    "defaultBasis" : null,
+    "question" : "수거장 방문 순서(노드 id, 예: \"Node_A\").",
+    "configField" : "routeSequence",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:210 List<String> routeSequence = null" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  }, {
+    "templateId" : "gen.trafficComplaintWeight",
+    "answerKey" : "trafficComplaintWeight",
+    "valueType" : "NUMBER",
+    "generateWhen" : "ALWAYS",
+    "min" : 0.0,
+    "defaultValue" : 1.0,
+    "defaultBasis" : "필드 초기값 trafficComplaintWeight = 1.0",
+    "question" : "교통 유발 민원 가중(RED 구간 통과 시 total에 더해지는 값).",
+    "configField" : "trafficComplaintWeight",
+    "sesPath" : null,
+    "nodeKind" : null,
+    "_extraction" : {
+      "evidence" : [ "필드 SimulationConfig.java:212 double trafficComplaintWeight = 1.0", "하한 SimulationConfigValidator.java:272 c.getTrafficComplaintWeight() < 0" ],
+      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+    }
+  } ]
+}

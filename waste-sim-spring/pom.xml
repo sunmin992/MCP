@@ -29,6 +29,7 @@
         <module>mcp-common</module>
         <module>broker</module>
         <module>simulator</module>
+        <module>template-generator</module>
     </modules>
 
     <properties>

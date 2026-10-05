@@ -36,6 +36,7 @@ MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도
 | `broker` | 브로커 MCP 서버 | `http://localhost:8089/mcp` | 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다(3·4단계). `verdict` 가 `MATCH` 면 추천 서버와 연결 정보(`endpoint`)를, `ADJUST_REQUEST` 면 요청을 어떻게 고치면 어느 서버를 쓸 수 있는지(`requestAdjustments`)를 낸다. `MATCH` 뒤에는 그 대화에서 브로커를 다시 부르지 말라고 안내하고(`nextStep`), 같은 MCP 세션에서 다시 조회하면 알리고 로그에 남긴다 |
 | `simulator` | 장량동 시뮬레이터 MCP 서버 | `http://localhost:8090/mcp` | 템플릿 · 서브태스크 · 시나리오 · 실행(5~14단계). 확인 화면 `http://localhost:8090/` |
 | `mcp-common` | — | — | 두 서버가 함께 쓰는 도구 계약(`McpToolProvider` · `ToolResult`)뿐 |
+| `template-generator` | — | — | 서버가 아니다. 시뮬레이터 소스를 읽어 서브태스크 템플릿 초안을 만들고, 손으로 쓴 템플릿과 칸별로 대조한다([기록](docs/reports/template-generator-2026-10-05/REPORT.md)) |
 
 시뮬레이터는 뜰 때와 그 뒤 30초마다 자기 능력 카드를 브로커의 `POST /api/simulators` 로
 등록한다(0단계). 등록은 MCP 도구가 아니다 — LLM 이 카드를 지어 등록하지 못하게 문을 나눴다.
@@ -79,6 +80,15 @@ LLM 이 그 규칙대로 물어 구성을 모은다. 규칙은 서브태스크 �
 무엇을 묻는지, 언제 묻는지(생성 조건), 답이 실행 설정의 어느 필드로 가는지를 적는다. 조회 경로에
 LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 허용은 서버가 한다.
 
+템플릿 초안은 코드에서 뽑을 수 있다. `template-generator` 가 설정 클래스 · 검증기 · enum 을 읽어
+값 종류 · 선택지 · 기본값 · 범위 · 단위를 근거와 함께 채운다. 장량동 템플릿과 대조하면 손으로 쓴 값이 있는
+칸의 85%(46/54)가 일치한다. 생성 조건과 어느 필드를 물을지는 아직 제공자가 정한다.
+
+```powershell
+.\mvnw.cmd -q -pl template-generator -am install -DskipTests
+.\mvnw.cmd -q -pl template-generator exec:java
+```
+
 ## 검증
 
 전체 테스트는 래퍼로 돌린다 — 개발 머신과 CI가 같은 Maven(3.9.14)을 쓰게 하려는 것이다.
@@ -88,8 +98,8 @@ LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 �
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **600건 중 597건 통과·3건 스킵**
-이다(브로커 62 · 시뮬레이터 538). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **627건 중 624건 통과·3건 스킵**
+이다(브로커 62 · 시뮬레이터 544 · 템플릿 생성기 21). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
 엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트

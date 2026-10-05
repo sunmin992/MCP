@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>com.wastesim</groupId>
+        <artifactId>waste-sim-spring</artifactId>
+        <version>1.1.1</version>
+    </parent>
+    <artifactId>template-generator</artifactId>
+    <name>template-generator</name>
+    <description>시뮬레이터 소스 코드를 읽어 서브태스크 템플릿 초안을 만들고, 손으로 쓴 템플릿과 칸별로 대조한다</description>
+
+    <!-- 시뮬레이터 클래스를 컴파일 의존성으로 두지 않는다. 소스만 읽어야 "기존 시뮬레이션의
+         코드베이스에서 뽑는다" 는 조건이 지켜지고, 다른 시뮬레이터에도 같은 방식으로 붙는다. -->
+    <dependencies>
+        <dependency>
+            <groupId>com.github.javaparser</groupId>
+            <artifactId>javaparser-core</artifactId>
+            <version>3.26.2</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <!-- 루트에서 `-pl template-generator exec:java` 로 장량동 시뮬레이터에 바로 돌린다.
+                 다른 시뮬레이터에 쓰려면 -Dexec.args 로 인자를 바꾼다(Main 의 사용법 참고). -->
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.wastesim.templategen.Main</mainClass>
+                    <workingDirectory>${maven.multiModuleProjectDirectory}</workingDirectory>
+                    <arguments>
+                        <argument>--source</argument>
+                        <argument>simulator/src/main/java</argument>
+                        <argument>--config</argument>
+                        <argument>com.wastesim.model.SimulationConfig</argument>
+                        <argument>--validator</argument>
+                        <argument>com.wastesim.tool.SimulationConfigValidator</argument>
+                        <argument>--out</argument>
+                        <argument>template-generator/target/generated-templates.json</argument>
+                        <argument>--compare</argument>
+                        <argument>simulator/src/main/resources/ses/jangnyang-templates.json</argument>
+                        <argument>--report</argument>
+                        <argument>template-generator/target/comparison.md</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
