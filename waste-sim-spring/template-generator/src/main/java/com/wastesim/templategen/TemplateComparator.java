@@ -33,7 +33,21 @@ public final class TemplateComparator {
                       String handGenerateWhen) {
     }
 
-    public record Report(List<Row> rows, List<String> notExposed, Map<String, String> skipped) {
+    /**
+     * 생성 조건 대조 한 줄. 손으로 쓴 조건은 이름({@code TRAFFIC_APPLIED})이라, 조건 사전으로 식을
+     * 얻어 생성한 식과 진리표로 맞댄다.
+     */
+    public record ConditionRow(String templateId, String configField, String handName, String handExpr,
+                               String generatedExpr, Truth.Relation relation, String counterexample,
+                               List<String> hints) {
+    }
+
+    public record Report(List<Row> rows, List<String> notExposed, Map<String, String> skipped,
+                         List<ConditionRow> conditions) {
+
+        public long conditionsMatching(Truth.Relation r) {
+            return conditions.stream().filter(c -> c.relation() == r).count();
+        }
 
         public int total() {
             return rows.size() * SCORED.size();
@@ -59,6 +73,15 @@ public final class TemplateComparator {
     }
 
     public Report compare(JsonNode handRoot, TemplateGenerator.Result generated) {
+        return compare(handRoot, generated, null);
+    }
+
+    /**
+     * @param conditionDictionary 손으로 쓴 조건 이름 → 설정 필드에 대한 조건식({@link Cond#parse}).
+     *                            {@code null}이거나 초안에 생성 조건식이 없으면 생성 조건은 대조하지 않는다
+     */
+    public Report compare(JsonNode handRoot, TemplateGenerator.Result generated,
+                          Map<String, String> conditionDictionary) {
         Map<String, GeneratedTemplate> byField = new LinkedHashMap<>();
         generated.templates().forEach(t -> byField.put(t.configField(), t));
 
@@ -79,7 +102,28 @@ public final class TemplateComparator {
                     h.path("generateWhen").asText()));
         }
         List<String> notExposed = byField.keySet().stream().filter(f -> !used.contains(f)).toList();
-        return new Report(rows, notExposed, generated.skipped());
+        return new Report(rows, notExposed, generated.skipped(),
+                conditions(handRoot, byField, generated.kinds(), conditionDictionary));
+    }
+
+    private List<ConditionRow> conditions(JsonNode handRoot, Map<String, GeneratedTemplate> byField,
+                                          Map<String, Truth.Kind> kinds, Map<String, String> dictionary) {
+        List<ConditionRow> out = new ArrayList<>();
+        if (dictionary == null) return out;
+        for (JsonNode h : handRoot.path("templates")) {
+            String field = h.path("configField").asText();
+            GeneratedTemplate g = byField.get(field);
+            if (g == null || g.condition() == null) continue;
+            String name = h.path("generateWhen").asText();
+            String handExpr = dictionary.get(name);
+            if (handExpr == null) {
+                throw new IllegalArgumentException("조건 사전에 없는 생성 조건: " + name);
+            }
+            Truth.Comparison c = Truth.compare(Cond.parse(handExpr), g.condition(), kinds);
+            out.add(new ConditionRow(h.path("templateId").asText(), field, name, handExpr,
+                    g.generateWhenExpr(), c.relation(), c.counterexample(), g.conditionHints()));
+        }
+        return out;
     }
 
     private static Object handValue(JsonNode h, String f) {

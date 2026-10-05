@@ -13,7 +13,7 @@
     "templateId" : "gen.collectionTimeMinutes",
     "answerKey" : "collectionTimeMinutes",
     "valueType" : "INTEGER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0,
     "max" : 1439,
     "unit" : "minute",
@@ -24,8 +24,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && !(present(collectionTimesMinutes) && !empty(collectionTimesMinutes))",
+      "conditionHints" : [ "isTruckDay(d, cfg, types)", "isWeekend(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:12 int collectionTimeMinutes = 12 * 60", "하한 SimulationConfigValidator.java:79 t < 0", "상한 SimulationConfigValidator.java:79 t > 1439" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:432 collectionTimeMinutes", "SimulationConfig.java:496 (결과 기록) collectionTimeMinutes" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — ?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && !(present(collectionTimesMinutes) && !empty(collectionTimesMinutes))", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.days",
@@ -41,8 +44,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:13 int days = 30", "하한 SimulationConfigValidator.java:82 c.getDays() < 1", "상한 SimulationConfigValidator.java:82 c.getDays() > 365" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:247 days", "SimulationEngine.java:293 days", "SimulationEngine.java:356 days", "SimulationEngine.java:364 days", "SimulationEngine.java:373 days" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.seeds",
@@ -58,14 +63,16 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:14 int seeds = 30", "하한 SimulationConfigValidator.java:85 c.getSeeds() < 1", "상한 SimulationConfigValidator.java:85 c.getSeeds() > 100" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationService.java:56 cfg.getSeeds()" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.leaveSigma",
     "answerKey" : "leaveSigma",
     "valueType" : "NUMBER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0.0,
     "defaultValue" : 30.0,
     "defaultBasis" : "필드 초기값 leaveSigma = 30.0",
@@ -74,8 +81,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "!(dischargeTimeMode == POHANG_ACTUAL)",
       "evidence" : [ "필드 SimulationConfig.java:15 double leaveSigma = 30.0", "하한 SimulationConfigValidator.java:88 c.getLeaveSigma() < 0" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:714 cfg.getLeaveSigma()" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — !(dischargeTimeMode == POHANG_ACTUAL)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.wasteSigma",
@@ -90,8 +99,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:16 double wasteSigma = 0.3", "하한 SimulationConfigValidator.java:91 c.getWasteSigma() < 0" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:375 cfg.getWasteSigma()" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.wasteMeanKg",
@@ -107,15 +118,17 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "minExclusive" : true,
       "evidence" : [ "필드 SimulationConfig.java:26 double wasteMeanKg = 0.9", "하한 SimulationConfigValidator.java:94 c.getWasteMeanKg() <= 0" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:375 cfg.getWasteMeanKg()" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.capacity",
     "answerKey" : "capacity",
     "valueType" : "NUMBER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0.0,
     "defaultValue" : 30.0,
     "defaultBasis" : "필드 초기값 capacity = 30.0",
@@ -124,15 +137,17 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "!present(wasteTypes) || empty(wasteTypes)",
       "minExclusive" : true,
       "evidence" : [ "필드 SimulationConfig.java:27 double capacity = 30.0", "하한 SimulationConfigValidator.java:97 c.getCapacity() <= 0" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:416 capacity" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — !present(wasteTypes) || empty(wasteTypes)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.threshold",
     "answerKey" : "threshold",
     "valueType" : "NUMBER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0.0,
     "max" : 1.0,
     "defaultValue" : 0.8,
@@ -142,14 +157,16 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "!present(wasteTypes) || empty(wasteTypes)",
       "evidence" : [ "필드 SimulationConfig.java:28 double threshold = 0.8", "하한 SimulationConfigValidator.java:100 c.getThreshold() < 0", "상한 SimulationConfigValidator.java:100 c.getThreshold() > 1" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:416 threshold" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — !present(wasteTypes) || empty(wasteTypes)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.scenarioScale",
     "answerKey" : "scenarioScale",
     "valueType" : "ENUM",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "allowed" : [ "PAPER_BASELINE", "JANGRYANG_CAPACITY" ],
     "defaultValue" : null,
     "defaultBasis" : null,
@@ -158,14 +175,15 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "false",
       "evidence" : [ "필드 SimulationConfig.java:39 String scenarioScale = null", "선택지 SimulationConfig.java:253 ScenarioScale.fromName(scenarioScale)" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 엔진이 이 필드를 읽지 않음 — 결과에 영향이 없는 값인지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.zoneAssignmentRule",
     "answerKey" : "zoneAssignmentRule",
     "valueType" : "ENUM",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "allowed" : [ "NONE", "CONTIGUOUS", "ROUND_ROBIN" ],
     "defaultValue" : null,
     "defaultBasis" : null,
@@ -174,8 +192,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "(?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT)) || travelTimeMode == ZONE_PROXY_HYBRID || (trafficEnabled == true && ?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)})",
+      "conditionHints" : [ "pos > 0", "route.isEmpty()", "isTruckDay(d, cfg, types)" ],
       "evidence" : [ "필드 SimulationConfig.java:53 String zoneAssignmentRule = null", "선택지 SimulationConfig.java:245 ZoneAssignmentRule.fromName(zoneAssignmentRule)" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:561 (결과 기록) cfg.resolveZoneAssignmentRule()", "SimulationEngine.java:564 (결과 기록) cfg.resolveZoneAssignmentRule()", "SimulationEngine.java:189 cfg.resolveZoneAssignmentRule()" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 이름 붙은 조건이 필요 — (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT)) || travelTimeMode == ZONE_PROXY_HYBRID || (trafficEnabled == true && ?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.numBuildings",
@@ -191,8 +212,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:55 int numBuildings = 4", "상한 SimulationConfigValidator.java:110 c.getNumBuildings() > 26", "하한 SimulationConfigValidator.java:115 c.getNumBuildings() < 1" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:254 nB", "SimulationEngine.java:255 nB", "SimulationEngine.java:359 nB", "SimulationEngine.java:370 nB", "SimulationEngine.java:494 nB", "SimulationEngine.java:496 nB", "SimulationEngine.java:505 nB", "SimulationEngine.java:512 nB", "SimulationEngine.java:189 cfg.getNumBuildings()", "RoutePlanner.java:30 buildings", "RoutePlanner.java:33 buildings", "RoutePlanner.java:36 buildings" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.residentsPerBuilding",
@@ -207,8 +230,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:56 int residentsPerBuilding = 25", "하한 SimulationConfigValidator.java:118 c.getResidentsPerBuilding() < 1" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:371 rPB", "SimulationEngine.java:372 rPB" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.occupationMix",
@@ -223,8 +248,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:62 List<String> occupationMix = null", "선택지 SimulationConfig.java:409 OccupationType.fromName(s)" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:405 occupationMix", "SimulationConfig.java:409 occupationMix", "SimulationConfig.java:409 s" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.collectionTimesMinutes",
@@ -241,8 +268,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "(?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes))) || (?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && ?{자기 자신: present(collectionTimesMinutes)}) || (?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && ?{자기 자신: present(collectionTimesMinutes)} && !?{자기 자신: empty(collectionTimesMinutes)})",
+      "conditionHints" : [ "isTruckDay(d, cfg, types)", "isWeekend(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:66 List<Integer> collectionTimesMinutes = null", "하한 SimulationConfigValidator.java:163 m < 0", "상한 SimulationConfigValidator.java:163 m > MAX_MINUTE_OF_DAY" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:429 collectionTimesMinutes", "SimulationConfig.java:430 collectionTimesMinutes" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — isTruckDay(d, cfg, types) / isWeekend(day)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.collectionIntervalDays",
@@ -259,8 +289,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "(!?{cfg.usesDaysOfWeek()} && !(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes)",
+      "conditionHints" : [ "cfg.usesDaysOfWeek()", "cfg.getHolidays().contains(day)", "isWeekend(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:68 int collectionIntervalDays = 1", "하한 SimulationConfigValidator.java:248 c.getCollectionIntervalDays() < 1", "상한 SimulationConfigValidator.java:248 c.getCollectionIntervalDays() > 365" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:640 cfg.getCollectionIntervalDays()", "SimulationConfig.java:416 collectionIntervalDays" ],
+      "needsReview" : [ "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — cfg.usesDaysOfWeek() / cfg.getHolidays().contains(day) / isWeekend(day)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.collectionDaysOfWeek",
@@ -274,8 +307,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "(!(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes) || (((!(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || !present(wasteTypes) || empty(wasteTypes)) && ?{자기 자신: present(collectionDaysOfWeek)}) || (?{cfg.usesDaysOfWeek()} && !(present(holidays) && ?{cfg.getHolidays().contains(day)}) && !(skipWeekends == true && ?{isWeekend(day)})) || (?{usesDaysOfWeek()} && (!present(wasteTypes) || empty(wasteTypes)))",
+      "conditionHints" : [ "cfg.getHolidays().contains(day)", "isWeekend(day)", "cfg.usesDaysOfWeek()", "usesDaysOfWeek()" ],
       "evidence" : [ "필드 SimulationConfig.java:85 List<Integer> collectionDaysOfWeek = null" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:302 collectionDaysOfWeek", "SimulationEngine.java:639 cfg.getCollectionDaysOfWeek()", "SimulationConfig.java:422 collectionDaysOfWeek" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — cfg.getHolidays().contains(day) / isWeekend(day) / cfg.usesDaysOfWeek() / usesDaysOfWeek()", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.dischargeTimeMode",
@@ -290,14 +326,16 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:91 String dischargeTimeMode = DischargeTimeMode.PAPER_BASELINE.name()", "선택지 SimulationConfig.java:279 DischargeTimeMode.fromName(dischargeTimeMode)" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:710 cfg.resolveDischargeTimeMode()" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.intraZoneTravelMinutes",
     "answerKey" : "intraZoneTravelMinutes",
     "valueType" : "INTEGER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0,
     "unit" : "minute",
     "defaultValue" : null,
@@ -307,14 +345,17 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "(?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{자기 자신: present(intraZoneTravelMinutes)} && ?{fromZone.equals(toZone)})",
+      "conditionHints" : [ "pos > 0", "route.isEmpty()", "isTruckDay(d, cfg, types)", "fromZone.equals(toZone)" ],
       "evidence" : [ "필드 SimulationConfig.java:116 Integer intraZoneTravelMinutes = null", "하한 SimulationConfigValidator.java:461 c.getIntraZoneTravelMinutes() < 0" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:557 (결과 기록) cfg.getIntraZoneTravelMinutes()", "SimulationConfig.java:272 intraZoneTravelMinutes", "SimulationEngine.java:123 cfg.hasIntraZoneTravelMinutes()", "SimulationEngine.java:129 cfg.getIntraZoneTravelMinutes()" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 이름 붙은 조건이 필요 — (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{자기 자신: present(intraZoneTravelMinutes)} && ?{fromZone.equals(toZone)})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.dischargeWindowStartMinutes",
     "answerKey" : "dischargeWindowStartMinutes",
     "valueType" : "INTEGER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "unit" : "minute",
     "defaultValue" : 1200,
     "defaultBasis" : "필드 초기값 dischargeWindowStartMinutes = 20 * 60",
@@ -323,14 +364,17 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "dischargeTimeMode == POHANG_ACTUAL || (dischargeTimeMode == POHANG_ACTUAL && ?{end > start}) || (dischargeTimeMode == POHANG_ACTUAL && !?{end > start})",
+      "conditionHints" : [ "end > start" ],
       "evidence" : [ "필드 SimulationConfig.java:122 int dischargeWindowStartMinutes = 20 * 60" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:712 cfg.getDischargeWindowStartMinutes()", "SimulationConfig.java:294 start" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — dischargeTimeMode == POHANG_ACTUAL || (dischargeTimeMode == POHANG_ACTUAL && ?{end > start}) || (dischargeTimeMode == POHANG_ACTUAL && !?{end > start})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.dischargeWindowEndMinutes",
     "answerKey" : "dischargeWindowEndMinutes",
     "valueType" : "INTEGER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "unit" : "minute",
     "defaultValue" : 360,
     "defaultBasis" : "필드 초기값 dischargeWindowEndMinutes = 6 * 60",
@@ -339,8 +383,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "dischargeTimeMode == POHANG_ACTUAL || (dischargeTimeMode == POHANG_ACTUAL && ?{end > start}) || (dischargeTimeMode == POHANG_ACTUAL && !?{end > start})",
+      "conditionHints" : [ "end > start" ],
       "evidence" : [ "필드 SimulationConfig.java:129 int dischargeWindowEndMinutes = 6 * 60" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:294 end" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — dischargeTimeMode == POHANG_ACTUAL || (dischargeTimeMode == POHANG_ACTUAL && ?{end > start}) || (dischargeTimeMode == POHANG_ACTUAL && !?{end > start})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.skipWeekends",
@@ -354,8 +401,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "!(present(holidays) && ?{cfg.getHolidays().contains(day)})",
+      "conditionHints" : [ "cfg.getHolidays().contains(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:131 boolean skipWeekends = false" ],
-      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:634 cfg.isSkipWeekends()" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — cfg.getHolidays().contains(day)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.weekendCollectionTimeMinutes",
@@ -372,8 +422,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "(?{isTruckDay(d, cfg, types)} && ?{isWeekend(day)}) || (?{isTruckDay(d, cfg, types)} && ?{isWeekend(day)} && ?{자기 자신: present(weekendCollectionTimeMinutes)})",
+      "conditionHints" : [ "isTruckDay(d, cfg, types)", "isWeekend(day)" ],
       "evidence" : [ "필드 SimulationConfig.java:133 Integer weekendCollectionTimeMinutes = null", "하한 SimulationConfigValidator.java:173 weekend < 0", "상한 SimulationConfigValidator.java:173 weekend > MAX_MINUTE_OF_DAY" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:688 cfg.getWeekendCollectionTimeMinutes()", "SimulationEngine.java:689 cfg.getWeekendCollectionTimeMinutes()" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — isTruckDay(d, cfg, types) / isWeekend(day)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.holidays",
@@ -388,8 +441,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:135 List<Integer> holidays = null", "하한 SimulationConfigValidator.java:296 d < 0" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:633 cfg.getHolidays()" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.numTrucks",
@@ -404,8 +459,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "!(numBuildings < 1 || numBuildings > 26)",
       "evidence" : [ "필드 SimulationConfig.java:139 int numTrucks = 1", "하한 SimulationConfigValidator.java:557 c.getTruckCount() < 1" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "RoutePlanner.java:33 config.getTruckCount()" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.routeTravelMinutes",
@@ -422,8 +479,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}",
+      "conditionHints" : [ "pos > 0", "route.isEmpty()", "isTruckDay(d, cfg, types)" ],
       "evidence" : [ "필드 SimulationConfig.java:141 int routeTravelMinutes = 0", "하한 SimulationConfigValidator.java:252 c.getRouteTravelMinutes() < 0", "상한 SimulationConfigValidator.java:252 c.getRouteTravelMinutes() > MAX_TRAVEL_MINUTES" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:344 travel" ],
+      "needsReview" : [ "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — pos > 0 / route.isEmpty() / isTruckDay(d, cfg, types)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.travelTimeMode",
@@ -438,14 +498,16 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:147 String travelTimeMode = TravelTimeMode.LEGACY_CONSTANT.name()", "선택지 SimulationConfig.java:336 TravelTimeMode.fromName(travelTimeMode)" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:316 mode", "SimulationEngine.java:554 mode", "SimulationEngine.java:555 (결과 기록) mode", "SimulationEngine.java:92 mode", "SimulationEngine.java:95 mode" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.serviceMinutesPerSite",
     "answerKey" : "serviceMinutesPerSite",
     "valueType" : "INTEGER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0,
     "defaultValue" : 0,
     "defaultBasis" : "필드 초기값 serviceMinutesPerSite = 0",
@@ -454,8 +516,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "(?{pos == 0} && travelTimeMode != LEGACY_CONSTANT && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && !(travelTimeMode == LEGACY_CONSTANT) && !(travelTimeMode == ZONE_PROXY_HYBRID) && !?{ff.isEmpty()}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && present(intraZoneTravelMinutes) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && !?{fromZone.equals(toZone)} && !?{ff.isEmpty()})",
+      "conditionHints" : [ "pos == 0", "route.isEmpty()", "isTruckDay(d, cfg, types)", "pos > 0", "ff.isEmpty()", "fromZone.equals(toZone)" ],
       "evidence" : [ "필드 SimulationConfig.java:176 int serviceMinutesPerSite = 0", "하한 SimulationConfigValidator.java:457 c.getServiceMinutesPerSite() < 0" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:325 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:104 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:129 cfg.getServiceMinutesPerSite()", "SimulationEngine.java:137 cfg.getServiceMinutesPerSite()" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — (?{pos == 0} && travelTimeMode != LEGACY_CONSTANT && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && !(travelTimeMode == LEGACY_CONSTANT) && !(travelTimeMode == ZONE_PROXY_HYBRID) && !?{ff.isEmpty()}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && present(intraZoneTravelMinutes) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && !?{fromZone.equals(toZone)} && !?{ff.isEmpty()})", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.returnDischarge",
@@ -469,8 +534,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:184 boolean returnDischarge = false" ],
-      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:379 retDis" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.returnFraction",
@@ -484,8 +551,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:186 double returnFraction = 0.4" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:369 cfg.getReturnFraction()" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.landlordEnabled",
@@ -499,14 +568,16 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:188 boolean landlordEnabled = false" ],
-      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:355 cfg.isLandlordEnabled()" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.landlordInspectMinutes",
     "answerKey" : "landlordInspectMinutes",
     "valueType" : "INTEGER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0,
     "max" : 1439,
     "unit" : "minute",
@@ -517,8 +588,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "landlordEnabled == true",
       "evidence" : [ "필드 SimulationConfig.java:189 int landlordInspectMinutes = 20 * 60", "하한 SimulationConfigValidator.java:264 c.getLandlordInspectMinutes() < 0", "상한 SimulationConfigValidator.java:264 c.getLandlordInspectMinutes() > MAX_MINUTE_OF_DAY" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:357 cfg.getLandlordInspectMinutes()" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — landlordEnabled == true", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.landlordThreshold",
@@ -532,8 +605,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "?{e instanceof InspectEvt ie} && !?{e instanceof DischargeEvt de} && !?{e instanceof CollectEvt ce} && !?{e.time > totalMinutes}",
+      "conditionHints" : [ "e instanceof InspectEvt ie", "e instanceof DischargeEvt de", "e instanceof CollectEvt ce", "e.time > totalMinutes" ],
       "evidence" : [ "필드 SimulationConfig.java:190 double landlordThreshold = 0.6" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:473 cfg.getLandlordThreshold()" ],
+      "needsReview" : [ "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — e instanceof InspectEvt ie / e instanceof DischargeEvt de / e instanceof CollectEvt ce / e.time > totalMinutes", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.trafficEnabled",
@@ -547,14 +623,16 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:198 boolean trafficEnabled = false" ],
-      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:269 cfg.isTrafficEnabled()" ],
+      "needsReview" : [ "값 종류: 불리언 — 사용자에게 물을 선택지 이름(예: APPLY/IGNORE)을 정해야 함", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.trafficProfileId",
     "answerKey" : "trafficProfileId",
     "valueType" : "STRING",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "defaultValue" : null,
     "defaultBasis" : null,
     "question" : "적용할 TrafficProfile id (예: \"jangryang-weekday\").",
@@ -562,8 +640,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "trafficEnabled == true",
       "evidence" : [ "필드 SimulationConfig.java:200 String trafficProfileId = null" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:270 cfg.getTrafficProfileId()" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 이름 붙은 조건이 필요 — trafficEnabled == true", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.truckType",
@@ -578,8 +658,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:202 String truckType = \"LARGE_5TON\"", "선택지 SimulationConfigValidator.java:565 TruckType.fromName(c.getTruckType())" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:265 cfg.getTruckType()" ],
+      "needsReview" : [ "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.routeAvailableCapacityKg",
@@ -595,9 +677,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "minExclusive" : true,
       "evidence" : [ "필드 SimulationConfig.java:204 Double routeAvailableCapacityKg = null", "하한 SimulationConfigValidator.java:572 allocated <= 0" ],
-      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:573 allocated > truckType.capacityKg", "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationConfig.java:485 routeAvailableCapacityKg", "SimulationConfig.java:486 routeAvailableCapacityKg" ],
+      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:573 allocated > truckType.capacityKg", "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.initialTruckLoadKg",
@@ -613,8 +697,10 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "true",
       "evidence" : [ "필드 SimulationConfig.java:206 double initialTruckLoadKg = 0.0", "하한 SimulationConfigValidator.java:580 initialLoad < 0" ],
-      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:580 initialLoad > routeCapacity", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:307 initialTruckLoadKg", "SimulationEngine.java:311 initialTruckLoadKg", "SimulationConfig.java:491 initialTruckLoadKg" ],
+      "needsReview" : [ "범위: 상수로 풀리지 않는 경계 — SimulationConfigValidator.java:580 initialLoad > routeCapacity", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.dispatchIntervalMinutes",
@@ -631,8 +717,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "?{반복 변수 k ≥ 1 일 때만 값이 쓰인다 — 반복이 두 번 이상 돌아야 함 (k < routes.size())} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}",
+      "conditionHints" : [ "반복 변수 k ≥ 1 일 때만 값이 쓰인다 — 반복이 두 번 이상 돌아야 함 (k < routes.size())", "route.isEmpty()", "isTruckDay(d, cfg, types)" ],
       "evidence" : [ "필드 SimulationConfig.java:208 int dispatchIntervalMinutes = 0", "하한 SimulationConfigValidator.java:257 c.getDispatchIntervalMinutes() < 0", "상한 SimulationConfigValidator.java:257 c.getDispatchIntervalMinutes() > MAX_MINUTE_OF_DAY" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:312 cfg.getDispatchIntervalMinutes()" ],
+      "needsReview" : [ "생성 조건: 설정만으로는 ALWAYS 지만 실행 중에만 갈리는 조건이 있음 — 반복 변수 k ≥ 1 일 때만 값이 쓰인다 — 반복이 두 번 이상 돌아야 함 (k < routes.size()) / route.isEmpty() / isTruckDay(d, cfg, types)", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.routeSequence",
@@ -646,14 +735,16 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "!(numBuildings < 1 || numBuildings > 26)",
       "evidence" : [ "필드 SimulationConfig.java:210 List<String> routeSequence = null" ],
-      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "RoutePlanner.java:36 config.getRouteSequence()" ],
+      "needsReview" : [ "기본값: 초기값이 null 이다 — 반드시 물을지, 다른 곳(해석 메서드 등)에 기본값이 있는지 확인", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   }, {
     "templateId" : "gen.trafficComplaintWeight",
     "answerKey" : "trafficComplaintWeight",
     "valueType" : "NUMBER",
-    "generateWhen" : "ALWAYS",
+    "generateWhen" : null,
     "min" : 0.0,
     "defaultValue" : 1.0,
     "defaultBasis" : "필드 초기값 trafficComplaintWeight = 1.0",
@@ -662,8 +753,11 @@
     "sesPath" : null,
     "nodeKind" : null,
     "_extraction" : {
+      "generateWhenExpr" : "?{trafficProfile.isRed(minuteOfDay, zone)} && trafficEnabled == true && ?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}",
+      "conditionHints" : [ "trafficProfile.isRed(minuteOfDay, zone)", "pos > 0", "route.isEmpty()", "isTruckDay(d, cfg, types)" ],
       "evidence" : [ "필드 SimulationConfig.java:212 double trafficComplaintWeight = 1.0", "하한 SimulationConfigValidator.java:272 c.getTrafficComplaintWeight() < 0" ],
-      "needsReview" : [ "생성 조건: 뽑지 않음 — ALWAYS 로 둠", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
+      "readSites" : [ "SimulationEngine.java:338 cfg.getTrafficComplaintWeight()" ],
+      "needsReview" : [ "생성 조건: 이름 붙은 조건이 필요 — ?{trafficProfile.isRed(minuteOfDay, zone)} && trafficEnabled == true && ?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}", "노출 여부: 사용자에게 물을 결정인지 내부 매개변수인지 판단 필요" ]
     }
   } ]
 }

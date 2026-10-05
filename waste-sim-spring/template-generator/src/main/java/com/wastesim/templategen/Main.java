@@ -21,9 +21,11 @@ import java.util.Map;
  * --source    시뮬레이터 소스 루트            (필수)
  * --config    설정 클래스                     (필수)
  * --validator 검증 클래스, 쉼표로 여럿        (필수)
+ * --engine    엔진 클래스, 쉼표로 여럿 — 첫 클래스의 public 메서드가 진입점 (선택, 주면 생성 조건을 뽑는다)
  * --out       생성한 템플릿 JSON 경로         (필수)
  * --compare   대조할 손으로 쓴 템플릿 JSON    (선택)
  * --report    대조 결과 Markdown 경로         (선택, --compare 와 함께)
+ * --conditions 손으로 쓴 생성 조건 이름 → 조건식 사전 JSON (선택, --compare 와 함께)
  * </pre>
  */
 public final class Main {
@@ -32,8 +34,9 @@ public final class Main {
         Map<String, String> a = parse(args);
         Path source = Path.of(require(a, "source"));
         TemplateGenerator gen = new TemplateGenerator(source);
+        List<String> engine = a.containsKey("engine") ? Arrays.asList(a.get("engine").split(",")) : List.of();
         TemplateGenerator.Result result = gen.generate(require(a, "config"),
-                Arrays.asList(require(a, "validator").split(",")));
+                Arrays.asList(require(a, "validator").split(",")), engine);
 
         ObjectMapper mapper = new ObjectMapper().enable(SerializationFeature.INDENT_OUTPUT);
         Path out = Path.of(require(a, "out"));
@@ -46,7 +49,16 @@ public final class Main {
 
         if (a.containsKey("compare")) {
             JsonNode hand = mapper.readTree(Path.of(a.get("compare")).toFile());
-            TemplateComparator.Report report = new TemplateComparator().compare(hand, result);
+            Map<String, String> dictionary = null;
+            if (a.containsKey("conditions")) {
+                dictionary = new LinkedHashMap<>();
+                JsonNode d = mapper.readTree(Path.of(a.get("conditions")).toFile()).path("conditions");
+                for (var it = d.fields(); it.hasNext(); ) {
+                    var e = it.next();
+                    dictionary.put(e.getKey(), e.getValue().asText());
+                }
+            }
+            TemplateComparator.Report report = new TemplateComparator().compare(hand, result, dictionary);
             String md = ComparisonMarkdown.render(report, a.get("compare"), out.toString());
             if (a.containsKey("report")) {
                 Path rp = Path.of(a.get("report"));
@@ -56,6 +68,14 @@ public final class Main {
             }
             console.printf("채점 칸 %d/%d 일치 · 손으로 쓴 값이 있는 칸만 %d/%d%n",
                     report.matched(), report.total(), report.matchedWithValue(), report.totalWithValue());
+            if (!report.conditions().isEmpty()) {
+                console.printf("생성 조건 %d개 중 같음 %d · 더 넓음 %d · 더 좁음 %d · 다름 %d%n",
+                        report.conditions().size(),
+                        report.conditionsMatching(Truth.Relation.EQUIVALENT),
+                        report.conditionsMatching(Truth.Relation.WEAKER),
+                        report.conditionsMatching(Truth.Relation.STRONGER),
+                        report.conditionsMatching(Truth.Relation.DIFFERENT));
+            }
         }
     }
 

@@ -48,12 +48,16 @@
                         <argument>com.wastesim.model.SimulationConfig</argument>
                         <argument>--validator</argument>
                         <argument>com.wastesim.tool.SimulationConfigValidator</argument>
+                        <argument>--engine</argument>
+                        <argument>com.wastesim.service.SimulationService,com.wastesim.simulation.SimulationEngine,com.wastesim.simulation.RoutePlanner,com.wastesim.simulation.TravelTimeCalculator</argument>
                         <argument>--out</argument>
                         <argument>template-generator/target/generated-templates.json</argument>
                         <argument>--compare</argument>
                         <argument>simulator/src/main/resources/ses/jangnyang-templates.json</argument>
                         <argument>--report</argument>
                         <argument>template-generator/target/comparison.md</argument>
+                        <argument>--conditions</argument>
+                        <argument>template-generator/conditions/jangnyang-generate-conditions.json</argument>
                     </arguments>
                 </configuration>
             </plugin>

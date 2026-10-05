@@ -6,7 +6,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -25,10 +27,15 @@ class JangnyangSourceTest {
     static void run() throws Exception {
         TemplateGenerator gen = new TemplateGenerator(Path.of("../simulator/src/main/java"));
         result = gen.generate("com.wastesim.model.SimulationConfig",
-                List.of("com.wastesim.tool.SimulationConfigValidator"));
+                List.of("com.wastesim.tool.SimulationConfigValidator"),
+                List.of("com.wastesim.service.SimulationService", "com.wastesim.simulation.SimulationEngine",
+                        "com.wastesim.simulation.RoutePlanner", "com.wastesim.simulation.TravelTimeCalculator"));
         JsonNode hand = new ObjectMapper().readTree(
                 Path.of("../simulator/src/main/resources/ses/jangnyang-templates.json").toFile());
-        report = new TemplateComparator().compare(hand, result);
+        Map<String, String> dictionary = new LinkedHashMap<>();
+        new ObjectMapper().readTree(Path.of("conditions/jangnyang-generate-conditions.json").toFile())
+                .path("conditions").fields().forEachRemaining(e -> dictionary.put(e.getKey(), e.getValue().asText()));
+        report = new TemplateComparator().compare(hand, result, dictionary);
     }
 
     static GeneratedTemplate t(String field) {
@@ -78,5 +85,34 @@ class JangnyangSourceTest {
         assertEquals(report.rows().size() * TemplateComparator.SCORED.size(), report.total());
         assertTrue(report.matched() <= report.total());
         assertTrue(report.matchedWithValue() <= report.totalWithValue());
+    }
+
+    static TemplateComparator.ConditionRow cond(String templateId) {
+        return report.conditions().stream().filter(c -> c.templateId().equals(templateId)).findFirst().orElseThrow();
+    }
+
+    @Test
+    void 생성_조건이_손으로_쓴_것과_같은_것() {
+        assertEquals(Truth.Relation.EQUIVALENT, cond("jn.trafficProfile").relation(), "삼항식 isTrafficEnabled() ? … : null");
+        assertEquals(Truth.Relation.EQUIVALENT, cond("jn.collectionTime").relation(), "resolveCollectionSlots 의 조기 반환");
+    }
+
+    @Test
+    void 뽑은_생성_조건은_물어야_할_때를_빠뜨리지_않는다() {
+        assertEquals(0, report.conditionsMatching(Truth.Relation.STRONGER),
+                "더 좁은 조건은 필요한 질문을 건너뛴다: " + report.conditions());
+        assertEquals(0, report.conditionsMatching(Truth.Relation.DIFFERENT));
+    }
+
+    @Test
+    void 배차_간격은_실행_조건으로_남는다() {
+        assertTrue(cond("jn.dispatchInterval").hints().stream().anyMatch(h -> h.startsWith("반복 변수 k")),
+                cond("jn.dispatchInterval").hints().toString());
+    }
+
+    @Test
+    void 결과_라벨로만_읽는_자리는_조건에서_빠진다() {
+        assertTrue(t("collectionTimeMinutes").readSites().stream().anyMatch(r -> r.contains("(결과 기록)")),
+                t("collectionTimeMinutes").readSites().toString());
     }
 }

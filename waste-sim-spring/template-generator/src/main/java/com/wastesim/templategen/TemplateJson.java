@@ -11,7 +11,8 @@ import java.util.Map;
  *
  * <p>같은 모양이어야 제공자가 초안을 고쳐 그대로 시뮬레이터 리소스로 쓸 수 있다. 근거와 검토
  * 항목은 {@code _extraction} 에 둔다 — 시뮬레이터의 {@code TemplateCatalog} 는 모르는 칸을
- * 무시하므로 지우지 않아도 읽힌다.
+ * 무시한다. 단 조건부 템플릿의 {@code generateWhen} 은 {@code null} 로 나가므로, 이름 붙은 조건을
+ * 채우기 전에는 시뮬레이터가 읽지 못한다 — 초안이지 완성본이 아니다.
  */
 final class TemplateJson {
 
@@ -47,9 +48,12 @@ final class TemplateJson {
             m.put("sesPath", null);
             m.put("nodeKind", null);
             Map<String, Object> ext = new LinkedHashMap<>();
+            if (t.generateWhenExpr() != null) ext.put("generateWhenExpr", t.generateWhenExpr());
+            if (!t.conditionHints().isEmpty()) ext.put("conditionHints", t.conditionHints());
             if (t.minExclusive()) ext.put("minExclusive", true);
             if (t.maxExclusive()) ext.put("maxExclusive", true);
             ext.put("evidence", t.evidence());
+            if (!t.readSites().isEmpty()) ext.put("readSites", t.readSites());
             ext.put("needsReview", t.needsReview());
             m.put("_extraction", ext);
             list.add(m);

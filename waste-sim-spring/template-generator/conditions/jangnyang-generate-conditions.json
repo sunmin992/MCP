@@ -1,0 +1,12 @@
+{
+  "_comment": "장량동 템플릿이 쓰는 생성 조건 이름을 설정 필드에 대한 식으로 옮긴 대조용 정답지. simulator/src/main/java/com/wastesim/template/GenerateCondition.java 의 evaluate 를 손으로 옮겼다 — 손으로 쓴 템플릿과 같은 자리(정답지)다. 답변키가 아니라 설정 필드 이름(numTrucks, trafficEnabled)을 쓰고, APPLY 는 trafficEnabled == true 로 옮긴다. 보류(UNKNOWN)는 진리표에 없다 — 값이 다 정해진 설정만 본다.",
+  "conditions": {
+    "ALWAYS": "true",
+    "EFFECTIVE_TRUCKS_AT_LEAST_2": "numTrucks >= 2 && numBuildings >= 2",
+    "TRAFFIC_APPLIED": "trafficEnabled == true",
+    "ZONE_PROXY_OVER_4_BUILDINGS": "travelTimeMode == ZONE_PROXY_HYBRID && numBuildings > 4",
+    "CONTIGUOUS_ZONE_RULE": "travelTimeMode == ZONE_PROXY_HYBRID && numBuildings > 4 && zoneAssignmentRule == CONTIGUOUS",
+    "MULTI_COLLECTION_TIMES_GIVEN": "given(collectionTimesMinutes)",
+    "SINGLE_COLLECTION_TIME": "!given(collectionTimesMinutes)"
+  }
+}
