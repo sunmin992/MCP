@@ -2,9 +2,15 @@
   "version": "0.0.1",
   "configurations": [
     {
-      "name": "waste-sim",
-      "runtimeExecutable": "mvn",
-      "runtimeArgs": ["spring-boot:run"],
+      "name": "broker",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", ".\\mvnw.cmd", "-q", "-pl", "broker", "-am", "spring-boot:run"],
+      "port": 8089
+    },
+    {
+      "name": "simulator",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", ".\\mvnw.cmd", "-q", "-pl", "simulator", "-am", "spring-boot:run"],
       "port": 8090
     }
   ]
