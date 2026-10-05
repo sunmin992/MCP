@@ -94,4 +94,21 @@ class SimulationEngineTest {
         assertEquals(100.0, r.getCollectionCapacityUtilizationPercent());
         assertEquals(r.getGeneratedWasteKg(), r.getCollectedWasteKg() + r.getResidualWasteKg());
     }
+
+    @Test
+    void dischargeWindowCrossingMidnightKeepsMassBalance() {
+        // 배출 창이 자정을 넘으면 마지막 날 밤의 자정 이후 몫은 기간 밖이다. 그 몫을 생성량에
+        // 넣으면 배출 − 수거 − 잔여 가 약 54kg(하루치의 6/10) 어긋났다.
+        SimulationConfig cfg = new SimulationConfig();
+        cfg.setDays(30);
+        cfg.setRouteAvailableCapacityKg(150.0);
+        cfg.setCollectionTimeLabel("11:00");
+        cfg.setDischargeTimeMode("POHANG_ACTUAL");
+        cfg.setDischargeWindowStartMinutes(20 * 60);
+        cfg.setDischargeWindowEndMinutes(6 * 60);
+
+        SimulationResult r = new SimulationEngine(new TrafficDataService()).run(cfg, 1);
+
+        assertEquals(0.0, r.getMassBalanceErrorKg(), 0.01);
+    }
 }

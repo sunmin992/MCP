@@ -373,14 +373,15 @@ public class SimulationEngine {
                 for (int d = 0; d < days; d++) {
                     int monthIdx = d / 30;
                     double dailyAmount = sampleWaste(rng, cfg.getWasteSigma(), cfg.getWasteMeanKg()) * cfg.resolveMonthlyFactor(monthIdx);
-                    wasteByMonth[monthIdx] += dailyAmount;
                     int leaveT = d * DAY + dischargeOffset(rng, cfg, occ.leaveMeanMinutes);
+                    // 생성량은 기간 안에서 실제로 배출된 몫만 센다. 배출 창이 자정을 넘으면 마지막 날
+                    // 밤의 자정 이후 몫은 기간 밖이라 버려지는데, 그것까지 세면 질량 수지가 어긋난다.
                     if (retDis) {
                         int retT = d * DAY + dischargeOffset(rng, cfg, occ.returnMeanMinutes);
-                        offerDischarge(pq, leaveT, occ, b, d, dailyAmount * (1.0 - retFrac), totalMinutes);
-                        offerDischarge(pq, retT,   occ, b, d, dailyAmount * retFrac,         totalMinutes);
+                        wasteByMonth[monthIdx] += offerDischarge(pq, leaveT, occ, b, d, dailyAmount * (1.0 - retFrac), totalMinutes);
+                        wasteByMonth[monthIdx] += offerDischarge(pq, retT,   occ, b, d, dailyAmount * retFrac,         totalMinutes);
                     } else {
-                        offerDischarge(pq, leaveT, occ, b, d, dailyAmount, totalMinutes);
+                        wasteByMonth[monthIdx] += offerDischarge(pq, leaveT, occ, b, d, dailyAmount, totalMinutes);
                     }
                 }
             }
@@ -603,9 +604,12 @@ public class SimulationEngine {
 
     // ── 헬퍼 ─────────────────────────────────────────────────────────────────
 
-    private static void offerDischarge(PriorityQueue<Evt> pq, int time, OccupationType occ,
-                                       int building, int day, double amount, int totalMinutes) {
-        if (time <= totalMinutes) pq.offer(new DischargeEvt(time, occ, building, day, amount));
+    /** 기간 안이면 배출 이벤트를 넣고 그 양을, 기간 밖이면 0 을 돌려준다. */
+    private static double offerDischarge(PriorityQueue<Evt> pq, int time, OccupationType occ,
+                                         int building, int day, double amount, int totalMinutes) {
+        if (time > totalMinutes) return 0.0;
+        pq.offer(new DischargeEvt(time, occ, building, day, amount));
+        return amount;
     }
 
     /**
