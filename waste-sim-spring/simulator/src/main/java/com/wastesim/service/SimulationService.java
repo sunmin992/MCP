@@ -47,6 +47,7 @@ public class SimulationService {
         List<Integer> exhaustedTrips = new ArrayList<>();
         List<Double> uncollectedDemand = new ArrayList<>();
         List<Double> massBalanceErrors = new ArrayList<>();
+        List<Double> peakFills = new ArrayList<>();
         List<List<com.wastesim.model.TripMetric>> perSeedTrips = new ArrayList<>();
         List<Map<String, Double>> perSeedResidualBuilding = new ArrayList<>();
         List<Map<String, Double>> perSeedResidualType = new ArrayList<>();
@@ -74,6 +75,7 @@ public class SimulationService {
             exhaustedTrips.add(r.getCapacityExhaustedTripCount());
             uncollectedDemand.add(r.getUncollectedDemandKg());
             massBalanceErrors.add(r.getMassBalanceErrorKg());
+            peakFills.add(r.getPeakFillKg());
             if (r.getTripMetrics() != null) perSeedTrips.add(r.getTripMetrics());
             if (r.getResidualByBuilding() != null) perSeedResidualBuilding.add(r.getResidualByBuilding());
             if (r.getResidualByWasteType() != null) perSeedResidualType.add(r.getResidualByWasteType());
@@ -116,6 +118,9 @@ public class SimulationService {
         summary.setCapacityExhaustedTripCount((int) Math.round(meanInt(exhaustedTrips)));
         summary.setUncollectedDemandKg(round2(mean(uncollectedDemand)));
         summary.setMassBalanceErrorKg(round2(mean(massBalanceErrors)));
+        // 최대 적재량은 한 번 돌릴 때 모든 수거장 · 기간 중 가장 많이 쌓인 양이다. 반복 요약에서는
+        // 시드마다의 최댓값을 평균한다 — 30회 중 가장 큰 값을 내면 드문 시드 하나가 결과를 정한다.
+        summary.setPeakFillKg(round2(mean(peakFills)));
         summary.setTripMetrics(averageTripMetrics(perSeedTrips));   // §3.4
 
         // P4(§3.5): 잔류 분포는 키(건물·유형·트럭)가 시드 무관하게 같아 키별로 평균한다.

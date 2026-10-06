@@ -275,4 +275,44 @@ class RunScenarioByTokenToolTest {
         assertTrue(run.path("meanComplaints").isNumber(),
                 "반복 평균이 없으면 '몇 회 돌린 값인가' 를 결과가 말하지 못한다");
     }
+
+    @Test
+    void 결과를_설명하는_데_필요한_지표를_함께_낸다() throws Exception {
+        // 결과 설명(15단계)은 직업별로 누가 불편한지, 적재율이 임계를 넘는지, 운행이 얼마나
+        // 걸리는지를 말한다. 응답에 없으면 LLM 이 그 설명을 지어내야 한다.
+        var b = built();
+        var out = mapper.readTree(runTool.call(
+                runArgs(b.path("scenarioId").asText(), b.path("confirmToken").asText()))
+                .result().toString());
+
+        for (var run : out.path("runs")) {
+            var occ = run.path("complaintsByOccupation");
+            assertEquals(3, occ.size(), "기본 직업 구성 셋의 평균 민원이 모두 있어야 한다: " + occ);
+            double sum = 0;
+            for (var v : occ) sum += v.asDouble();
+            assertEquals(run.path("meanComplaints").asDouble(), sum, 0.31,
+                    "직업별 평균의 합은 전체 평균과 같아야 한다(반올림 오차만)");
+
+            assertTrue(run.path("peakFillKg").asDouble() > 0, "쌓인 적이 없다면 배출이 없다는 뜻이다");
+            assertEquals(30.0, run.path("siteCapacityKg").asDouble());
+            assertEquals(run.path("peakFillKg").asDouble() / 30.0, run.path("peakFillRatio").asDouble(), 0.001);
+            assertEquals(0.8, run.path("complaintThresholdRatio").asDouble());
+            assertTrue(run.has("residualWasteKg"));
+        }
+    }
+
+    @Test
+    void 이동시간을_계산하지_않는_설정에서는_운행_소요_시간을_0_으로_내지_않는다() throws Exception {
+        // 구간 상수 모드에 건물 간 이동시간 0분(기본값)이면 엔진은 이동을 계산하지 않는다.
+        // 그때 0 을 내보내면 "0분 만에 다 돌았다" 로 읽힌다.
+        var b = built();
+        var out = mapper.readTree(runTool.call(
+                runArgs(b.path("scenarioId").asText(), b.path("confirmToken").asText()))
+                .result().toString());
+
+        for (var run : out.path("runs")) {
+            assertTrue(run.path("avgRouteDurationMinutes").isNull(), run.toString());
+            assertTrue(run.path("routeDurationNote").asText().contains("계산하지 않는"), run.toString());
+        }
+    }
 }
