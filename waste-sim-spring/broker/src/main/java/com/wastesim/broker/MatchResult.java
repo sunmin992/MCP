@@ -20,7 +20,6 @@ public record MatchResult(
         String name,
         String endpoint,
         boolean fictional,
-        int score,
         List<String> reasons,
         List<String> mismatches,
         List<RequestAdjustment> requestAdjustments) {

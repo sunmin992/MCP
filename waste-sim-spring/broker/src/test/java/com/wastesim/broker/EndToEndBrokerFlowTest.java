@@ -43,7 +43,7 @@ class EndToEndBrokerFlowTest {
     @Test
     void 고른_서버의_연결_정보가_함께_나온다() throws Exception {
         // 3·4단계 — 브로커가 고른다.
-        JsonNode top = 장량동_조회().path("matches").get(0);
+        JsonNode top = 장량동_조회().path("recommended");
         assertEquals("jangnyang-waste-sim", top.path("serverId").asText());
         assertEquals(TestCards.jangnyang().path("endpoint").asText(), top.path("endpoint").asText(),
                 "연결 정보 없이 이름만 내주면 LLM 이 고른 서버로 갈 수 없다 — 그림의 4단계가 끊긴다");
@@ -53,12 +53,16 @@ class EndToEndBrokerFlowTest {
     }
 
     @Test
-    void 교통을_요구하면_교통을_못_하는_후보가_뒤로_간다() throws Exception {
+    void 교통을_요구하면_교통을_못_하는_후보에_어긋난_점이_적힌다() throws Exception {
         JsonNode matches = 장량동_조회().path("matches");
         assertEquals(2, matches.size());
-        assertEquals("district-waste-sim", matches.get(1).path("serverId").asText());
-        assertTrue(String.join(" ", 목록(matches.get(1).path("mismatches"))).contains("교통"),
-                "왜 2등인지 말하지 않으면 사용자가 그 서버를 고집할 때 답할 수 없다");
+        JsonNode district = null;
+        for (JsonNode m : matches) {
+            if (m.path("serverId").asText().equals("district-waste-sim")) district = m;
+        }
+        assertNotNull(district);
+        assertTrue(String.join(" ", 목록(district.path("mismatches"))).contains("교통"),
+                "왜 추천되지 않았는지 말하지 않으면 사용자가 그 서버를 고집할 때 답할 수 없다");
     }
 
     // ── 이것이 계획 2 전체의 요점이다 ─────────────────────────────────────────

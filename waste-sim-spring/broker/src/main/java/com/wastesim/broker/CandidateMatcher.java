@@ -10,10 +10,9 @@ import java.util.List;
 /**
  * 요청 프로필과 능력 카드를 대조해 후보를 고른다 — 명세 4단계.
  *
- * <p><b>거르고 나서 점수를 센다.</b> 도메인이 다른 서버는 다른 축이 아무리 맞아도 답을 낼
- * 수 없으므로 점수로 깎지 않고 뺀다. 점수로 깎으면 도메인이 다른 서버가 조건을 많이 맞춰
- * 1등이 되는 일이 생긴다. 도메인이 다른 서버는 {@link #outsideDomain} 이 따로 내고, 그때는
- * 요청의 목적 자체가 바뀐다는 것을 조정 제안에 밝힌다.
+ * <p><b>점수를 세지 않는다.</b> 도메인이 다른 서버는 뺀다. 같은 도메인 안에서는 요청 조건마다
+ * 맞는지만 보고, 하나라도 어긋나면 그 자리와 고칠 방법을 남긴다. 그대로 맞는 서버가 여럿이면
+ * 브로커가 고르지 않는다 — 서로 다른 점을 내고 사용자가 고른다.
  *
  * <p><b>어휘는 카드가 선언한다.</b> 요청은 사람 말("쓰레기수거")로 오고 카드는 슬러그
  * ("waste-collection")를 쓴다. 그 사이를 잇는 표를 매칭기가 들면 서버가 늘 때마다
@@ -26,13 +25,6 @@ import java.util.List;
  */
 @Component
 public class CandidateMatcher {
-
-    /** 공간 규모가 맞았을 때. 도메인 다음으로 크게 가르는 축이다. */
-    private static final int SCALE_POINT = 2;
-    /** 환경 조건 하나가 지원될 때. */
-    private static final int ENV_POINT = 2;
-    /** 목적이 카드의 답할 수 있는 질문에 닿을 때. 몇 개에 닿든 한 번만 센다. */
-    private static final int OBJECTIVE_POINT = 2;
 
     private final CandidateRegistry registry;
 
@@ -59,13 +51,11 @@ public class CandidateMatcher {
             if (domainMatches(card, profile.domain()) != domainMatched) continue;
             out.add(evaluate(card, profile, domainMatched));
         }
-        out.sort(Comparator.comparingInt(MatchResult::score).reversed()
-                .thenComparing(MatchResult::serverId));
+        out.sort(Comparator.comparing(MatchResult::serverId));
         return List.copyOf(out);
     }
 
     private MatchResult evaluate(JsonNode card, RequestProfile profile, boolean domainMatched) {
-        int score = 0;
         List<String> reasons = new ArrayList<>();
         List<String> mismatches = new ArrayList<>();
         List<RequestAdjustment> adjustments = new ArrayList<>();
@@ -91,7 +81,6 @@ public class CandidateMatcher {
             // 별칭에 걸려 규모 점수를 받으면 안 된다.
             JsonNode blocked = findUnsupported(card, scale);
             if (blocked == null && anyKeyMatches(unit.path("matchKeys"), scale)) {
-                score += SCALE_POINT;
                 reasons.add("공간 규모: " + scale + " → " + unitLabel
                         + "(" + unit.path("scope").asText() + ")");
             } else {
@@ -103,6 +92,28 @@ public class CandidateMatcher {
                         blocked != null ? blocked.path("reason").asText()
                                 : unit.path("rationale").asText("이 서버의 분석 단위는 " + unitLabel + " 입니다"),
                         false));
+            }
+        }
+
+        // 거주민 — 사용자가 말한 구절 하나하나가 카드의 거주민 유형에 닿아야 한다. 카드가 거주민을
+        // 적지 않았으면 된다고 하지 않는다 — 적혀 있지 않은 능력을 약속하면 엉뚱한 서버로 간다.
+        if (profile.population() != null) {
+            JsonNode types = card.path("populationTypes");
+            for (String phrase : profile.population()) {
+                JsonNode type = findPopulation(card, phrase);
+                if (type != null) {
+                    reasons.add("거주민: " + phrase + " → " + type.path("key").asText());
+                } else if (!types.isArray() || types.isEmpty()) {
+                    mismatches.add("거주민: " + phrase + " — 이 카드는 다루는 거주민을 적지 않았습니다");
+                    adjustments.add(new RequestAdjustment("population", phrase,
+                            "'" + phrase + "' 조건을 빼면 됩니다",
+                            "이 카드는 다루는 거주민을 적지 않았습니다", false));
+                } else {
+                    mismatches.add("거주민: " + phrase + " — 이 서버가 모델링하는 거주민에 없습니다");
+                    adjustments.add(new RequestAdjustment("population", phrase,
+                            "이 서버가 다루는 거주민으로 바꾸면 됩니다: " + populationLabels(card),
+                            "이 서버가 모델링하는 거주민에 없습니다", false));
+                }
             }
         }
 
@@ -124,7 +135,6 @@ public class CandidateMatcher {
                 }
                 JsonNode supported = findEnvironment(card, cond);
                 if (supported != null) {
-                    score += ENV_POINT;
                     reasons.add("환경 조건: " + cond + " → " + supported.path("key").asText());
                 } else {
                     mismatches.add("환경 조건: " + cond + " — 이 카드가 다루는지 적혀 있지 않습니다");
@@ -154,7 +164,6 @@ public class CandidateMatcher {
                     if (anyKeyMatches(q.path("matchKeys"), objective)) hits.add(q.path("label").asText());
                 }
                 if (!hits.isEmpty()) {
-                    score += OBJECTIVE_POINT;
                     reasons.add("목적: " + objective + " → " + String.join(", ", hits));
                 } else if (keys.isArray() && !keys.isEmpty()) {
                     mismatches.add("목적: " + objective + " — 이 서버가 답할 수 있는 질문에 없습니다");
@@ -171,7 +180,7 @@ public class CandidateMatcher {
 
         return new MatchResult(card.path("serverId").asText(), card.path("name").asText(),
                 card.path("endpoint").asText(), card.path("fictional").asBoolean(false),
-                score, reasons, mismatches, adjustments);
+                reasons, mismatches, adjustments);
     }
 
     /** 슬러그로도, 카드가 선언한 말로도 맞는다. */
@@ -192,6 +201,22 @@ public class CandidateMatcher {
             if (anyKeyMatches(u.path("matchKeys"), phrase)) return u;
         }
         return null;
+    }
+
+    /** 요청 구절에 맞는 거주민 유형. 없으면 {@code null}. 차이 찾기도 같은 대조를 쓴다. */
+    static JsonNode findPopulation(JsonNode card, String phrase) {
+        for (JsonNode t : card.path("populationTypes")) {
+            if (anyKeyMatches(t.path("matchKeys"), phrase)) return t;
+        }
+        return null;
+    }
+
+    /** 조정 제안에 보일 거주민 목록. 사람 말(첫 matchKey)과 서버 값(key)을 함께 적는다. */
+    private String populationLabels(JsonNode card) {
+        List<String> out = new ArrayList<>();
+        card.path("populationTypes").forEach(t ->
+                out.add(t.path("matchKeys").path(0).asText() + "(" + t.path("key").asText() + ")"));
+        return String.join(", ", out);
     }
 
     /** 미지원 항목이 적은 대안. 없으면 빈 문자열 — 대안이 없는데 있는 척하지 않는다. */
@@ -218,7 +243,7 @@ public class CandidateMatcher {
      * <p>{@code CapabilityCardLoader.matchOne} 과 같은 방향이다 — 카드의 말을 요청 안에서
      * 찾는다. 반대로 하면 "교통" 이라는 말 하나가 "교통량 반영 안 함" 같은 문장에도 걸린다.
      */
-    private boolean anyKeyMatches(JsonNode keys, String phrase) {
+    private static boolean anyKeyMatches(JsonNode keys, String phrase) {
         if (phrase == null || phrase.isBlank() || !keys.isArray()) return false;
         String haystack = phrase.toLowerCase();
         for (JsonNode k : keys) {

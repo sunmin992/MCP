@@ -24,13 +24,21 @@ class CandidateMatcherTest {
                 "민원이 가장 적은 수거 시각", List.of("수거 시각"));
     }
 
+    private RequestProfile 거주민_요청(String... population) {
+        return new RequestProfile("쓰레기수거", "한 동네", null, null, null, List.of(population));
+    }
+
+    private MatchResult byId(List<MatchResult> results, String serverId) {
+        return results.stream().filter(m -> m.serverId().equals(serverId)).findFirst()
+                .orElseThrow(() -> new AssertionError(serverId + " 가 결과에 없다"));
+    }
+
     @Test
-    void 장량동이_일등이고_후보A가_이등이다() {
+    void 장량동은_그대로_맞고_후보A는_어긋난_점이_있다() {
         List<MatchResult> r = matcher.match(장량동_요청());
-        assertEquals(List.of("jangnyang-waste-sim", "district-waste-sim"),
-                r.stream().map(MatchResult::serverId).toList());
-        assertTrue(r.get(0).score() > r.get(1).score(),
-                "점수가 같으면 무엇 때문에 이겼는지 말할 수 없다");
+        assertTrue(byId(r, "jangnyang-waste-sim").fitsAsIs());
+        assertFalse(byId(r, "district-waste-sim").fitsAsIs(),
+                "점수가 없으니 갈리는 것은 어긋난 점이 있느냐다");
     }
 
     @Test
@@ -41,8 +49,8 @@ class CandidateMatcherTest {
     }
 
     @Test
-    void 일등의_근거에_규모와_교통이_둘_다_적힌다() {
-        MatchResult top = matcher.match(장량동_요청()).get(0);
+    void 장량동의_근거에_규모와_교통이_둘_다_적힌다() {
+        MatchResult top = byId(matcher.match(장량동_요청()), "jangnyang-waste-sim");
         String 근거 = String.join(" | ", top.reasons());
         assertTrue(근거.contains("한 동네"), "요청의 어느 항목이 맞았는지 없다: " + 근거);
         assertTrue(근거.contains("평일 교통량"), "교통 근거가 없다: " + 근거);
@@ -82,16 +90,11 @@ class CandidateMatcherTest {
     }
 
     @Test
-    void 점수가_같으면_순서가_흔들리지_않는다() {
-        RequestProfile p = new RequestProfile("쓰레기수거", null, null, null, null);
-        assertEquals(matcher.match(p).stream().map(MatchResult::serverId).toList(),
-                matcher.match(p).stream().map(MatchResult::serverId).toList());
-        // 점수 동률이면 serverId 오름차순
-        List<MatchResult> r = matcher.match(p);
-        if (r.get(0).score() == r.get(1).score()) {
-            assertTrue(r.get(0).serverId().compareTo(r.get(1).serverId()) < 0,
-                    "동률 순서가 환경에 따라 달라지면 같은 요청이 같은 답을 낸다고 말할 수 없다");
-        }
+    void 순서는_서버_id_오름차순이다() {
+        // 조건이 갈리는 요청으로 본다 — 조건이 없으면 예전 점수도 동점이라 이 시험이 아무것도 가르지 못한다.
+        List<String> ids = matcher.match(장량동_요청()).stream().map(MatchResult::serverId).toList();
+        assertEquals(List.of("district-waste-sim", "jangnyang-waste-sim"), ids,
+                "순서에 추천의 뜻이 없다 — 환경에 따라 흔들리지 않게 id 로 고정한다");
     }
 
     @Test
@@ -101,5 +104,58 @@ class CandidateMatcherTest {
         assertFalse(String.join(" ", top.reasons()).contains("null"));
         assertTrue(top.mismatches().isEmpty(),
                 "묻지 않아 모르는 것을 어긋난 점으로 세면 서버가 못하는 일로 둔갑한다");
+    }
+
+    @Test
+    void 거주민_조건이_맞으면_근거에_유형이_적힌다() {
+        MatchResult j = byId(matcher.match(거주민_요청("학생이 많음", "주부가 많음")), "jangnyang-waste-sim");
+        assertTrue(j.fitsAsIs(), j.mismatches().toString());
+        String 근거 = String.join(" | ", j.reasons());
+        assertTrue(근거.contains("학생이 많음") && 근거.contains("Student"), 근거);
+        assertTrue(근거.contains("주부가 많음") && 근거.contains("Housewife"), 근거);
+    }
+
+    @Test
+    void 생산직도_거주민으로_받는다() {
+        MatchResult j = byId(matcher.match(거주민_요청("생산직이 많음")), "jangnyang-waste-sim");
+        assertTrue(j.fitsAsIs(), j.mismatches().toString());
+        assertTrue(String.join(" | ", j.reasons()).contains("BlueCollar"));
+    }
+
+    @Test
+    void 한_구절에_직업이_둘이어도_통과한다() {
+        MatchResult j = byId(matcher.match(거주민_요청("학생과 주부가 많음")), "jangnyang-waste-sim");
+        assertTrue(j.fitsAsIs(), j.mismatches().toString());
+    }
+
+    @Test
+    void 거주민을_적지_않은_카드는_거주민_조건에서_어긋난다() {
+        MatchResult d = byId(matcher.match(거주민_요청("학생이 많음")), "district-waste-sim");
+        assertTrue(String.join(" | ", d.mismatches()).contains("적지 않았습니다"), d.mismatches().toString());
+    }
+
+    @Test
+    void 모델링하지_않는_거주민이면_다루는_거주민을_조정_제안으로_보인다() {
+        MatchResult j = byId(matcher.match(거주민_요청("노인이 많음")), "jangnyang-waste-sim");
+        assertFalse(j.fitsAsIs());
+        RequestAdjustment a = j.requestAdjustments().stream()
+                .filter(x -> x.axis().equals("population")).findFirst().orElseThrow();
+        assertEquals("노인이 많음", a.current());
+        assertTrue(a.suggestion().contains("생산직") && a.suggestion().contains("학생"), a.suggestion());
+        assertFalse(a.changesPurpose());
+    }
+
+    @Test
+    void 거주민을_말하지_않으면_거주민으로_거르지_않는다() {
+        MatchResult j = byId(matcher.match(new RequestProfile("쓰레기수거", "한 동네", null, null, null)),
+                "jangnyang-waste-sim");
+        assertTrue(j.requestAdjustments().stream().noneMatch(a -> a.axis().equals("population")));
+    }
+
+    @Test
+    void 거주민이_빈_목록이면_거르지_않는다() {
+        MatchResult d = byId(matcher.match(거주민_요청()), "district-waste-sim");
+        assertTrue(d.requestAdjustments().stream().noneMatch(a -> a.axis().equals("population")),
+                "'거주민 조건 없음' 을 '거주민을 못 다룸' 으로 세면 안 된다");
     }
 }

@@ -50,7 +50,7 @@ class BrokerToolsTest {
     }
 
     @Test
-    void 장량동_요청에서_장량동이_일등으로_나온다() throws Exception {
+    void 장량동_요청에서_장량동을_추천한다() throws Exception {
         var args = mapper.createObjectNode();
         args.put("domain", "쓰레기수거");
         args.put("spatialScale", "한 동네");
@@ -59,9 +59,10 @@ class BrokerToolsTest {
 
         JsonNode out = call(find, args);
         assertEquals(2, out.path("matchCount").asInt());
-        JsonNode top = out.path("matches").get(0);
+        // matches 는 서버 id 순이라 순서에 추천의 뜻이 없다. 고른 서버는 recommended 에 있다.
+        JsonNode top = out.path("recommended");
         assertEquals("jangnyang-waste-sim", top.path("serverId").asText());
-        assertFalse(top.path("reasons").isEmpty(), "근거 없이 1등만 내면 되물을 수 없다");
+        assertFalse(top.path("reasons").isEmpty(), "근거 없이 추천만 내면 되물을 수 없다");
     }
 
     @Test
