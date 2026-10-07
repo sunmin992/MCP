@@ -11,6 +11,7 @@ import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,7 +90,7 @@ public class CandidateRegistry {
      * 시뮬레이터 서버의 등록을 받는다. 같은 서버의 재등록은 새 카드로 바꾼다.
      *
      * @return 처음 등록이면 {@code true}, 재등록이면 {@code false}
-     * @throws IllegalArgumentException 카드에 serverId·endpoint 가 없거나 후보 파일의 id 와 겹칠 때
+     * @throws IllegalArgumentException 카드에 serverId·endpoint 가 없거나, 후보 파일의 id 와 겹치거나, 거주민 유형 key 가 겹칠 때
      */
     public boolean register(JsonNode card) {
         String serverId = requireServerId(card, "등록 요청");
@@ -102,6 +103,15 @@ public class CandidateRegistry {
             throw new IllegalArgumentException(
                     "후보 파일의 서버와 id 가 겹칩니다: " + serverId
                             + " — 지어낸 후보를 실제 서버로 덮으면 어느 쪽을 고른 것인지 알 수 없습니다");
+        }
+        Set<String> populationKeys = new HashSet<>();
+        for (JsonNode t : card.path("populationTypes")) {
+            String key = t.path("key").asText();
+            if (!populationKeys.add(key)) {
+                throw new IllegalArgumentException(
+                        "거주민 유형 key 가 겹칩니다: " + serverId + " / " + key
+                                + " — 같은 유형이 두 번 있으면 어느 모델로 간 것인지 알 수 없습니다");
+            }
         }
         return byServerId.put(serverId, card) == null;
     }

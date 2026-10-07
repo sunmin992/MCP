@@ -1,5 +1,7 @@
 package com.wastesim.broker;
 
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -104,5 +106,16 @@ class CandidateRegistryTest {
         var fake = new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode()
                 .put("serverId", "alpha-sim").put("endpoint", "http://localhost:9999/mcp");
         assertThrows(IllegalArgumentException.class, () -> registry.register(fake));
+    }
+
+    @Test
+    void 거주민_유형_key_가_겹치는_카드는_등록을_거절한다() {
+        ObjectNode card = (ObjectNode) TestCards.jangnyang().deepCopy();
+        ArrayNode types = (ArrayNode) card.path("populationTypes");
+        types.add(types.get(0).deepCopy());
+        var registry = new CandidateRegistry(null, "classpath*:/mcp/candidates/*.json");
+
+        var e = assertThrows(IllegalArgumentException.class, () -> registry.register(card));
+        assertTrue(e.getMessage().contains("BlueCollar"), e.getMessage());
     }
 }
