@@ -2,6 +2,7 @@ package com.wastesim.broker;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -67,5 +68,25 @@ class RequestProfileTest {
         원본.add("나중에 끼워넣기");
         assertEquals(List.of("평일 교통량"), p.environmentConditions(),
                 "프로필이 만들어진 뒤 조건이 늘면 어느 조건으로 고른 것인지 말할 수 없다");
+    }
+
+    @Test
+    void 거주민을_말하지_않으면_null_이다() {
+        assertNull(new RequestProfile("쓰레기수거", null, null, null, null).population(),
+                "묻지 않은 것을 빈 목록으로 뭉개면 '조건 없음' 과 구분할 수 없다");
+    }
+
+    @Test
+    void 거주민_구절의_빈칸은_버린다() {
+        var p = new RequestProfile("쓰레기수거", null, null, null, null,
+                Arrays.asList(" 학생이 많음 ", "  ", null));
+        assertEquals(List.of("학생이 많음"), p.population(),
+                "빈칸 구절이 남으면 어느 카드와도 맞지 않아 모든 서버가 못 하는 것으로 둔갑한다");
+    }
+
+    @Test
+    void 거주민이_빈_목록이면_빈_목록으로_남는다() {
+        assertEquals(List.of(),
+                new RequestProfile("쓰레기수거", null, null, null, null, List.of()).population());
     }
 }

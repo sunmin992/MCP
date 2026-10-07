@@ -18,13 +18,16 @@ import java.util.List;
  * @param environmentConditions 환경 조건. 예: ["평일 교통량"]
  * @param objective             목적. 예: "민원이 가장 적은 수거 시각"
  * @param comparisonAxes        무엇을 바꿔 가며 비교할 것인가. 예: ["수거 시각"]
+ * @param population            거주민에 관한 구절. 예: ["학생이 많음", "주부가 많음"]. 해석하지 않고 카드의
+ *                              거주민 유형 matchKeys 와 대조만 한다
  */
 public record RequestProfile(
         String domain,
         String spatialScale,
         List<String> environmentConditions,
         String objective,
-        List<String> comparisonAxes) {
+        List<String> comparisonAxes,
+        List<String> population) {
 
     public RequestProfile {
         if (domain == null || domain.isBlank()) {
@@ -36,6 +39,15 @@ public record RequestProfile(
         objective = blankToNull(objective);
         environmentConditions = copyOrNull(environmentConditions);
         comparisonAxes = copyOrNull(comparisonAxes);
+        // 빈칸 구절은 버린다 — 남기면 어느 카드와도 맞지 않아 모든 서버가 못 하는 것으로 둔갑한다.
+        population = population == null ? null
+                : population.stream().filter(s -> s != null && !s.isBlank()).map(String::trim).toList();
+    }
+
+    /** 거주민 조건이 없던 시절의 호출부를 그대로 두는 생성자. 거주민은 묻지 않은 것({@code null})이다. */
+    public RequestProfile(String domain, String spatialScale, List<String> environmentConditions,
+                          String objective, List<String> comparisonAxes) {
+        this(domain, spatialScale, environmentConditions, objective, comparisonAxes, null);
     }
 
     /** 공백만 있는 값은 미제시다. 그대로 두면 매칭이 빈 문자열과 대조한다. */
