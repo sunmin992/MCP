@@ -2,6 +2,8 @@ package com.wastesim.broker;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import org.springframework.test.annotation.DirtiesContext;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.boot.test.system.CapturedOutput;
@@ -125,5 +127,29 @@ class BrokerServerTest {
                         .content("{\"serverId\":\"no-endpoint\"}"))
                 .andExpect(status().isBadRequest());
         assertTrue(registry.byServerId("no-endpoint").isEmpty());
+    }
+
+    @Test
+    @DirtiesContext
+    void 동등한_후보로_보낸_뒤_다시_조회하면_알린다() throws Exception {
+        mvc.perform(post("/api/simulators").contentType(MediaType.APPLICATION_JSON)
+                .content(TestCards.jangnyang().toString())).andExpect(status().isOk());
+        ObjectNode twin = (ObjectNode) TestCards.jangnyang().deepCopy();
+        twin.put("serverId", "twin-waste-sim");
+        twin.put("endpoint", "http://localhost:9999/mcp");
+        mvc.perform(post("/api/simulators").contentType(MediaType.APPLICATION_JSON)
+                .content(twin.toString())).andExpect(status().isOk());
+        String call = "{\"name\":\"find_simulators\",\"arguments\":{\"domain\":\"쓰레기수거\","
+                + "\"spatialScale\":\"한 동네\",\"environmentConditions\":[\"평일 교통량\"]}}";
+
+        JsonNode first = mapper.readTree(rpcIn("chat-same", "tools/call", call)
+                .path("result").path("content").get(0).path("text").asText());
+        assertEquals("CHOOSE", first.path("verdict").asText());
+        assertEquals(0, first.path("differences").size());
+
+        JsonNode again = mapper.readTree(rpcIn("chat-same", "tools/call", call)
+                .path("result").path("content").get(0).path("text").asText());
+        assertEquals("jangnyang-waste-sim", again.path("previousMatch").path("serverId").asText(),
+                "차이가 없으면 브로커가 첫 서버로 보냈다 — MATCH 와 같이 기억해야 되풀이를 알린다");
     }
 }

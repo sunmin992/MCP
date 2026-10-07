@@ -100,8 +100,8 @@ LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 �
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **666건 모두 통과**
-다(브로커 79 · 시뮬레이터 547 · 템플릿 생성기 40). Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서는
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **672건 모두 통과**
+다(브로커 85 · 시뮬레이터 547 · 템플릿 생성기 40). Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서는
 그중 3건(`PythonWasteSimAdapterTest`)이 시험을 중단해 스킵으로 나온다 — 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트

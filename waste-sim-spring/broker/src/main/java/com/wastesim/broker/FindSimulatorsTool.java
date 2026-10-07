@@ -61,7 +61,7 @@ public class FindSimulatorsTool implements McpToolProvider {
                "comparisonAxes":{"type":"array","items":{"type":"string"},
                  "description":"무엇을 바꿔 가며 비교할 것인가"},
                "population":{"type":"array","items":{"type":"string"},
-                 "description":"거주민에 관한 구절. 사용자 말 그대로. 예: [\\"학생이 많음\\",\\"주부가 많음\\"]"}},
+                 "description":"거주민에 관한 구절. 구절 하나에 거주민 하나로 나눠 사용자 말 그대로 적는다. 예: [\\"학생이 많음\\",\\"주부가 많음\\"]"}},
              "required":["domain"]}
             """;
     }

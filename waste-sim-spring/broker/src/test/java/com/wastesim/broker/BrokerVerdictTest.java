@@ -302,4 +302,26 @@ class BrokerVerdictTest {
         JsonNode a = 조정(제안(out, "jangnyang-waste-sim"), "population");
         assertEquals("노인이 많음", a.path("current").asText());
     }
+
+    @Test
+    void 한_구절에_직업이_둘이면_둘째_모델의_차이도_낸다() throws Exception {
+        ObjectNode twin = 쌍둥이_카드();
+        for (JsonNode t : twin.path("populationTypes")) {
+            if (t.path("key").asText().equals("Housewife")) ((ObjectNode) t).put("model", "오후 랜덤");
+        }
+        registry.register(twin);
+
+        JsonNode out = find(거주민_요청("학생과 주부가 많음"));
+
+        assertEquals("CHOOSE", out.path("verdict").asText());
+        JsonNode d = 차이(out, "population:학생과 주부가 많음");
+        assertNotNull(d, "둘째 유형의 모델이 다른데 같다고 하면 사용자가 묻지도 못하고 첫 서버로 간다");
+        assertTrue(d.path("values").path("twin-waste-sim").asText().contains("오후 랜덤"), d.toString());
+    }
+
+    @Test
+    void 거주민_입력은_구절_하나에_거주민_하나로_받는다고_안내한다() {
+        assertTrue(find.inputSchemaJson().contains("구절 하나에 거주민 하나"),
+                "브로커는 구절을 해석하지 않는다 — '학생과 노인' 을 한 구절로 받으면 노인을 못 다뤄도 통과한다");
+    }
 }

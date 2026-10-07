@@ -158,4 +158,26 @@ class CandidateMatcherTest {
         assertTrue(d.requestAdjustments().stream().noneMatch(a -> a.axis().equals("population")),
                 "'거주민 조건 없음' 을 '거주민을 못 다룸' 으로 세면 안 된다");
     }
+
+    @Test
+    void 한_구절에_직업이_둘이면_근거에_둘_다_적힌다() {
+        MatchResult j = byId(matcher.match(거주민_요청("학생과 주부가 많음")), "jangnyang-waste-sim");
+        String 근거 = String.join(" | ", j.reasons());
+        assertTrue(근거.contains("Student") && 근거.contains("Housewife"),
+                "첫 유형만 적으면 구절이 좁혀진 것을 아무도 모른다: " + 근거);
+    }
+
+    @Test
+    void 교대생은_야간_교대로_읽지_않는다() {
+        MatchResult j = byId(matcher.match(거주민_요청("교대생이 많음")), "jangnyang-waste-sim");
+        assertTrue(j.reasons().stream().noneMatch(r -> r.contains("NightShift")), j.reasons().toString());
+    }
+
+    @Test
+    void 자취하는_직장인은_학생으로_읽지_않는다() {
+        MatchResult j = byId(matcher.match(거주민_요청("자취하는 직장인이 많음")), "jangnyang-waste-sim");
+        String 근거 = String.join(" | ", j.reasons());
+        assertTrue(근거.contains("OfficeWorker"), 근거);
+        assertFalse(근거.contains("Student"), 근거);
+    }
 }

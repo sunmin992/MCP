@@ -63,9 +63,8 @@ public class CandidateMatcher {
             put(items, "calibration", m.serverId(), calibration(card));
             if (profile.population() != null) {
                 for (String phrase : profile.population()) {
-                    JsonNode type = findPopulation(card, phrase);
                     put(items, "population:" + phrase, m.serverId(),
-                            type == null ? "" : type.path("model").asText());
+                            populationModel(findPopulations(card, phrase)));
                 }
             }
         }
@@ -147,9 +146,10 @@ public class CandidateMatcher {
         if (profile.population() != null) {
             JsonNode types = card.path("populationTypes");
             for (String phrase : profile.population()) {
-                JsonNode type = findPopulation(card, phrase);
-                if (type != null) {
-                    reasons.add("거주민: " + phrase + " → " + type.path("key").asText());
+                List<JsonNode> hit = findPopulations(card, phrase);
+                if (!hit.isEmpty()) {
+                    reasons.add("거주민: " + phrase + " → " + String.join(", ",
+                            hit.stream().map(t -> t.path("key").asText()).toList()));
                 } else if (!types.isArray() || types.isEmpty()) {
                     mismatches.add("거주민: " + phrase + " — 이 카드는 다루는 거주민을 적지 않았습니다");
                     adjustments.add(new RequestAdjustment("population", phrase,
@@ -250,12 +250,27 @@ public class CandidateMatcher {
         return null;
     }
 
-    /** 요청 구절에 맞는 거주민 유형. 없으면 {@code null}. 차이 찾기도 같은 대조를 쓴다. */
-    static JsonNode findPopulation(JsonNode card, String phrase) {
+    /**
+     * 요청 구절에 걸리는 거주민 유형 전부. 없으면 빈 목록. 차이 찾기도 같은 대조를 쓴다.
+     *
+     * <p>첫 유형만 쓰면 "학생과 주부가 많음" 이 학생으로 좁혀지고, 주부 모델이 다른 서버와도
+     * 같다고 판정한다 — 카드에 적힌 유형 순서가 결과를 정하게 된다.
+     */
+    static List<JsonNode> findPopulations(JsonNode card, String phrase) {
+        List<JsonNode> out = new ArrayList<>();
         for (JsonNode t : card.path("populationTypes")) {
-            if (anyKeyMatches(t.path("matchKeys"), phrase)) return t;
+            if (anyKeyMatches(t.path("matchKeys"), phrase)) out.add(t);
         }
-        return null;
+        return out;
+    }
+
+    /** 구절에 걸린 유형들의 모델. 하나면 모델 그대로, 여럿이면 key 순으로 "key: 모델" 을 잇는다. */
+    private static String populationModel(List<JsonNode> types) {
+        if (types.size() == 1) return types.get(0).path("model").asText();
+        return types.stream()
+                .sorted(Comparator.comparing((JsonNode t) -> t.path("key").asText()))
+                .map(t -> t.path("key").asText() + ": " + t.path("model").asText())
+                .collect(java.util.stream.Collectors.joining("; "));
     }
 
     /** 조정 제안에 보일 거주민 목록. 사람 말(첫 matchKey)과 서버 값(key)을 함께 적는다. */

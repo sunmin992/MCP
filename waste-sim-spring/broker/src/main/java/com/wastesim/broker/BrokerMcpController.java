@@ -145,9 +145,14 @@ public class BrokerMcpController {
             p.put("note", "이 대화는 이미 이 서버로 넘어갔습니다. 같은 시뮬레이션이면 브로커를 다시 부르지 말고 "
                     + "이 서버를 계속 쓰십시오. 전혀 다른 시뮬레이션이면 이번 판정을 따르십시오.");
         });
-        if ("MATCH".equals(body.path("verdict").asText())) {
+        String verdict = body.path("verdict").asText();
+        if ("MATCH".equals(verdict)) {
             JsonNode rec = body.path("recommended");
             sessions.handOff(session, rec.path("serverId").asText(), rec.path("endpoint").asText());
+        } else if ("CHOOSE".equals(verdict) && body.path("differences").isEmpty()) {
+            // 차이가 없으면 브로커가 첫 서버로 보냈다. 차이가 있으면 사용자가 고르므로 어디로 갔는지 모른다.
+            JsonNode first = body.path("candidates").path(0);
+            sessions.handOff(session, first.path("serverId").asText(), first.path("endpoint").asText());
         }
         return mapper.writeValueAsString(body);
     }
