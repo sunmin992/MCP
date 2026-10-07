@@ -57,7 +57,7 @@ class BrokerServerTest {
         JsonNode res = rpc("tools/call", "{\"name\":\"find_simulators\",\"arguments\":"
                 + "{\"domain\":\"쓰레기수거\",\"spatialScale\":\"한 동네\",\"environmentConditions\":[\"평일 교통량\"]}}");
         JsonNode body = mapper.readTree(res.path("result").path("content").get(0).path("text").asText());
-        JsonNode top = body.path("matches").get(0);
+        JsonNode top = body.path("recommended");
         assertEquals("jangnyang-waste-sim", top.path("serverId").asText());
         assertEquals("http://localhost:8090/mcp", top.path("endpoint").asText());
     }

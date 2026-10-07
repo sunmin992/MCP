@@ -100,9 +100,9 @@ LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 �
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **646건 중 643건 통과·3건 스킵**
-이다(브로커 62 · 시뮬레이터 544 · 템플릿 생성기 40). 스킵 3건은 모두 `PythonWasteSimAdapterTest` 로, Python 참조
-엔진(`adev-master/waste_sim`)이 없는 머신에서 시험을 중단하는 것이며 실패가 아니다.
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **666건 모두 통과**
+다(브로커 79 · 시뮬레이터 547 · 템플릿 생성기 40). Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서는
+그중 3건(`PythonWasteSimAdapterTest`)이 시험을 중단해 스킵으로 나온다 — 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트
 클래스가 삭제된 클래스를 참조해 JUnit 탐색 자체가 깨지고, 실패 지점이 테스트가 아니라
