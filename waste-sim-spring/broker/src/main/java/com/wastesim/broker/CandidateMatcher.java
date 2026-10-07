@@ -5,7 +5,10 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 요청 프로필과 능력 카드를 대조해 후보를 고른다 — 명세 4단계.
@@ -32,7 +35,7 @@ public class CandidateMatcher {
         this.registry = registry;
     }
 
-    /** 도메인이 맞는 후보. @return 점수 내림차순. 동점이면 서버 id 오름차순. 없으면 빈 목록 */
+    /** 도메인이 맞는 후보. @return 서버 id 오름차순 — 순서에 추천의 뜻이 없다. 없으면 빈 목록 */
     public List<MatchResult> match(RequestProfile profile) {
         return evaluateAll(profile, true);
     }
@@ -43,6 +46,50 @@ public class CandidateMatcher {
      */
     public List<MatchResult> outsideDomain(RequestProfile profile) {
         return evaluateAll(profile, false);
+    }
+
+    private static final String UNWRITTEN = "적혀 있지 않음";
+
+    /**
+     * 그대로 맞는 후보끼리 다른 항목. 브로커는 여기서 고르지 않는다 — 다른 점을 사용자에게 보이고
+     * 사용자가 고른다. 값이 모두 같은 항목은 내지 않는다. 다 같으면 빈 목록이다.
+     */
+    public List<Difference> differences(List<MatchResult> candidates, RequestProfile profile) {
+        Map<String, Map<String, String>> items = new LinkedHashMap<>();
+        for (MatchResult m : candidates) {
+            JsonNode card = registry.byServerId(m.serverId()).orElseThrow();
+            put(items, "region", m.serverId(), card.path("region").asText());
+            put(items, "unit", m.serverId(), card.path("analysisUnit").path("label").asText());
+            put(items, "calibration", m.serverId(), calibration(card));
+            if (profile.population() != null) {
+                for (String phrase : profile.population()) {
+                    JsonNode type = findPopulation(card, phrase);
+                    put(items, "population:" + phrase, m.serverId(),
+                            type == null ? "" : type.path("model").asText());
+                }
+            }
+        }
+        List<Difference> out = new ArrayList<>();
+        items.forEach((item, values) -> {
+            if (new HashSet<>(values.values()).size() > 1) out.add(new Difference(item, values));
+        });
+        return out;
+    }
+
+    private static void put(Map<String, Map<String, String>> items, String item, String serverId, String value) {
+        items.computeIfAbsent(item, k -> new LinkedHashMap<>())
+                .put(serverId, value == null || value.isBlank() ? UNWRITTEN : value);
+    }
+
+    /** 실측으로 보정한 것만 — 가정값까지 이으면 차이가 보정이 아니라 문구에서 생긴다. */
+    private static String calibration(JsonNode card) {
+        List<String> out = new ArrayList<>();
+        for (JsonNode c : card.path("quality").path("calibration")) {
+            if (c.path("measured").asBoolean(false)) {
+                out.add(c.path("what").asText() + " (" + c.path("source").asText() + ")");
+            }
+        }
+        return String.join(", ", out);
     }
 
     private List<MatchResult> evaluateAll(RequestProfile profile, boolean domainMatched) {

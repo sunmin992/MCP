@@ -5,6 +5,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -51,6 +54,34 @@ class BrokerVerdictTest {
             if (a.path("axis").asText().equals(axis)) return a;
         }
         fail(axis + " 조정이 없다: " + suggestion.path("requestAdjustments"));
+        return null;
+    }
+
+    /** 장량동과 id · endpoint 만 다른 카드. 테스트마다 다른 점을 하나씩 심는다. */
+    private ObjectNode 쌍둥이_카드() {
+        ObjectNode twin = (ObjectNode) TestCards.jangnyang().deepCopy();
+        twin.put("serverId", "twin-waste-sim");
+        twin.put("endpoint", "http://localhost:9999/mcp");
+        return twin;
+    }
+
+    private ObjectNode 거주민_요청(String... population) {
+        ObjectNode a = 그림의_요청();
+        var arr = a.putArray("population");
+        for (String p : population) arr.add(p);
+        return a;
+    }
+
+    private List<String> 후보_id(JsonNode out) {
+        List<String> ids = new ArrayList<>();
+        out.path("candidates").forEach(c -> ids.add(c.path("serverId").asText()));
+        return ids;
+    }
+
+    private JsonNode 차이(JsonNode out, String item) {
+        for (JsonNode d : out.path("differences")) {
+            if (d.path("item").asText().equals(item)) return d;
+        }
         return null;
     }
 
@@ -197,5 +228,78 @@ class BrokerVerdictTest {
         JsonNode out = mapper.readTree(noReal.call(그림의_요청()).result().toString());
         assertEquals("NONE", out.path("verdict").asText());
         assertFalse(out.path("note").asText().isBlank(), "왜 아무것도 없는지 말해야 한다");
+    }
+
+    // ── 그대로 맞는 서버가 여럿이면 — 사용자가 고른다 ────────────────────────
+
+    @Test
+    void 거주민_조건으로도_장량동을_추천한다() throws Exception {
+        JsonNode out = find(거주민_요청("학생이 많음", "주부가 많음"));
+        assertEquals("MATCH", out.path("verdict").asText());
+        assertEquals("jangnyang-waste-sim", out.path("recommended").path("serverId").asText());
+    }
+
+    @Test
+    void 그대로_맞는_서버가_여럿이면_차이를_보여_주고_사용자에게_고르게_한다() throws Exception {
+        ObjectNode twin = 쌍둥이_카드();
+        twin.put("region", "대한민국 대전광역시 유성구");
+        registry.register(twin);
+
+        JsonNode out = find(거주민_요청("학생이 많음", "주부가 많음"));
+
+        assertEquals("CHOOSE", out.path("verdict").asText());
+        assertEquals(List.of("jangnyang-waste-sim", "twin-waste-sim"), 후보_id(out),
+                "가상 후보는 조건이 맞아도 선택지에 나오면 안 된다");
+        assertEquals(1, out.path("differences").size(), out.path("differences").toString());
+        JsonNode region = 차이(out, "region");
+        assertNotNull(region);
+        assertEquals("대한민국 대전광역시 유성구", region.path("values").path("twin-waste-sim").asText());
+        assertEquals("대한민국 경상북도 포항시 북구 장량동",
+                region.path("values").path("jangnyang-waste-sim").asText());
+        assertTrue(out.path("nextStep").asText().contains("물으십시오"), out.path("nextStep").asText());
+    }
+
+    @Test
+    void 거주민_모델이_다르면_그_구절의_차이만_낸다() throws Exception {
+        ObjectNode twin = 쌍둥이_카드();
+        for (JsonNode t : twin.path("populationTypes")) {
+            if (t.path("key").asText().equals("Student")) ((ObjectNode) t).put("model", "수업 시간표 기반");
+        }
+        registry.register(twin);
+
+        JsonNode out = find(거주민_요청("학생이 많음", "주부가 많음"));
+
+        assertEquals("CHOOSE", out.path("verdict").asText());
+        JsonNode student = 차이(out, "population:학생이 많음");
+        assertNotNull(student, out.path("differences").toString());
+        assertEquals("수업 시간표 기반", student.path("values").path("twin-waste-sim").asText());
+        assertNull(차이(out, "population:주부가 많음"), "같은 모델은 차이가 아니다");
+    }
+
+    @Test
+    void 차이가_없으면_동등하다고_밝히고_첫_서버로_보낸다() throws Exception {
+        registry.register(쌍둥이_카드());
+
+        JsonNode out = find(거주민_요청("학생이 많음"));
+
+        assertEquals("CHOOSE", out.path("verdict").asText());
+        assertEquals(0, out.path("differences").size());
+        assertTrue(out.path("nextStep").asText().contains("jangnyang-waste-sim"), out.path("nextStep").asText());
+    }
+
+    @Test
+    void 같은_서버가_다시_등록해도_선택지는_늘지_않는다() throws Exception {
+        registry.register(쌍둥이_카드());
+        registry.register(쌍둥이_카드());
+
+        assertEquals(List.of("jangnyang-waste-sim", "twin-waste-sim"), 후보_id(find(거주민_요청("학생이 많음"))));
+    }
+
+    @Test
+    void 거주민을_모델링하는_서버가_없으면_요청을_고치라고_한다() throws Exception {
+        JsonNode out = find(거주민_요청("노인이 많음"));
+        assertEquals("ADJUST_REQUEST", out.path("verdict").asText());
+        JsonNode a = 조정(제안(out, "jangnyang-waste-sim"), "population");
+        assertEquals("노인이 많음", a.path("current").asText());
     }
 }
