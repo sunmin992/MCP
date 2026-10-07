@@ -99,4 +99,24 @@ class CapabilityCardLoaderTest {
         assertEquals(fromDocs, fromResource,
                 "문서의 정본과 서빙 리소스가 갈라졌다. 문서를 고쳤으면 리소스에도 복사하라");
     }
+
+    @Test
+    void 카드의_거주민_유형이_템플릿의_직업_선택지와_같다() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var templates = mapper.readTree(
+                CapabilityCardLoaderTest.class.getResourceAsStream("/ses/jangnyang-templates.json"));
+        java.util.Set<String> allowed = new java.util.TreeSet<>();
+        for (var t : templates.path("templates")) {
+            if (t.path("answerKey").asText().equals("occupationMix")) {
+                t.path("allowed").forEach(a -> allowed.add(a.asText()));
+            }
+        }
+        java.util.Set<String> declared = new java.util.TreeSet<>();
+        loader.rawJson().path("populationTypes").forEach(p -> declared.add(p.path("key").asText()));
+
+        assertFalse(allowed.isEmpty(), "템플릿에서 occupationMix 선택지를 찾지 못했다");
+        assertEquals(allowed, declared,
+                "카드가 선언한 거주민과 시뮬레이터가 받는 직업이 다르다 — 브로커가 못 하는 직업으로 "
+                        + "이 서버를 고르거나, 할 수 있는 직업으로 이 서버를 떨어뜨린다");
+    }
 }

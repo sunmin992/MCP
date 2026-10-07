@@ -30,6 +30,13 @@
       "한 블록"
     ]
   },
+  "populationTypes": [
+    { "key": "BlueCollar",   "matchKeys": ["생산직", "공장", "현장직", "노동자"], "model": "07:22 ± 30분에 배출" },
+    { "key": "Student",      "matchKeys": ["학생", "대학생", "자취"],            "model": "08:58 ± 30분에 배출" },
+    { "key": "Housewife",    "matchKeys": ["주부", "전업주부"],                  "model": "14:00 ± 30분에 배출" },
+    { "key": "NightShift",   "matchKeys": ["야간", "교대", "야근"],              "model": "21:00 ± 30분에 배출" },
+    { "key": "OfficeWorker", "matchKeys": ["직장인", "회사원", "1인 직장인"],    "model": "07:50 ± 30분에 배출" }
+  ],
   "sesDigest": {
     "sesId": "jangnyang-ses",
     "sesVersion": "1.0.0",
