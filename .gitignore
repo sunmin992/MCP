@@ -84,3 +84,6 @@ waste-sim-spring/.m2/
 # 담지 않는다. 남길 것은 보고서와 판정 기록이며, 필요하면 개별 파일로 골라 커밋한다.
 waste-sim-spring/docs/research/s1-ses-extraction/exp/
 waste-sim-spring/docs/research/s1-ses-extraction/**/__pycache__/
+
+# 브로커가 남기는 시뮬레이터 등록(실행 상태 — 저장소에 넣지 않는다)
+waste-sim-spring/broker/data/

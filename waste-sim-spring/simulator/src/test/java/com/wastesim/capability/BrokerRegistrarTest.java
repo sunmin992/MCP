@@ -59,4 +59,47 @@ class BrokerRegistrarTest {
         r.register();
         assertEquals(Boolean.TRUE, r.lastOk());
     }
+
+    @Test
+    void 성공한_뒤에는_다시_보내지_않는다() {
+        broker.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        BrokerRegistrar r = registrar();
+        r.register();
+        r.register();
+        r.register();
+        assertEquals(1, broker.getRequestCount(), "한 번 등록하면 브로커가 기억한다 — 주기마다 카드를 다시 보낼 이유가 없다");
+    }
+
+    @Test
+    void 실패하면_성공할_때까지만_다시_보낸다() {
+        broker.enqueue(new MockResponse().setResponseCode(503));
+        broker.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        BrokerRegistrar r = registrar();
+        r.register();
+        r.register();
+        r.register();
+        assertEquals(2, broker.getRequestCount(), "브로커가 늦게 떠도 등록돼야 하고, 된 뒤에는 멈춰야 한다");
+        assertEquals(Boolean.TRUE, r.lastOk());
+    }
+
+    @Test
+    void 꺼질_때_등록을_해제한다() throws Exception {
+        broker.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        broker.enqueue(new MockResponse().setResponseCode(200).setBody("{}"));
+        BrokerRegistrar r = registrar();
+        r.register();
+        r.unregister();
+
+        broker.takeRequest(2, TimeUnit.SECONDS);
+        RecordedRequest req = broker.takeRequest(2, TimeUnit.SECONDS);
+        assertNotNull(req, "꺼진 서버가 브로커에 남으면 그 서버로 MATCH 가 나간다");
+        assertEquals("DELETE", req.getMethod());
+        assertEquals("/api/simulators/" + loader.card().serverId(), req.getPath());
+    }
+
+    @Test
+    void 등록한_적이_없으면_해제하지_않는다() {
+        assertDoesNotThrow(() -> registrar().unregister());
+        assertEquals(0, broker.getRequestCount());
+    }
 }

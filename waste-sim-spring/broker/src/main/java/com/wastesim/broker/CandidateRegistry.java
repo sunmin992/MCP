@@ -2,6 +2,8 @@ package com.wastesim.broker;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 import org.springframework.stereotype.Component;
@@ -9,6 +11,9 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -24,8 +29,9 @@ import java.util.Optional;
  * <p>카드는 두 길로 들어온다.
  * <ul>
  *   <li><b>등록</b> — 명세 0단계. 시뮬레이터 서버가 떠서 자기 카드를 보낸다
- *       ({@code POST /api/simulators}). 같은 서버가 다시 보내면 새 카드로 바꾼다 —
- *       시뮬레이터는 브로커가 다시 떠도 목록에 남도록 주기적으로 다시 등록한다.</li>
+ *       ({@code POST /api/simulators}). 시뮬레이터는 한 번만 등록하므로 등록을 파일
+ *       ({@code broker.registry.file})에 남겨 브로커가 다시 떠도 기억한다. 꺼질 때는 해제한다
+ *       ({@code DELETE /api/simulators/{serverId}}).</li>
  *   <li><b>후보 파일</b> — {@code mcp/candidates/*.json}. 매칭을 시험하려고 지어낸 서버들이다.
  *       카드가 스스로 {@code fictional} 을 밝힌다. 등록으로 덮을 수 없다.</li>
  * </ul>
@@ -43,9 +49,13 @@ public class CandidateRegistry {
 
     private final Map<String, JsonNode> byServerId = new ConcurrentHashMap<>();
     private final Set<String> fromFiles = ConcurrentHashMap.newKeySet();
+    private final ObjectMapper mapper = new ObjectMapper();
+    /** 등록을 남기는 파일. 시뮬레이터는 한 번만 등록하므로 브로커가 다시 떠도 잊으면 안 된다. {@code null} 이면 남기지 않는다. */
+    private final Path store;
 
-    public CandidateRegistry() {
-        this(null, PATTERN);
+    @Autowired
+    public CandidateRegistry(@Value("${broker.registry.file:}") String storeFile) {
+        this(null, PATTERN, storeFile == null || storeFile.isBlank() ? null : Path.of(storeFile));
     }
 
     /**
@@ -54,7 +64,16 @@ public class CandidateRegistry {
      * @param registered 등록된 것으로 칠 카드. 없으면 {@code null}
      */
     CandidateRegistry(JsonNode registered, String pattern) {
-        ObjectMapper mapper = new ObjectMapper();
+        this(registered, pattern, null);
+    }
+
+    /** 등록을 파일에 남기는 생성자. 시험이 쓰는 통로다. */
+    CandidateRegistry(String pattern, Path store) {
+        this(null, pattern, store);
+    }
+
+    private CandidateRegistry(JsonNode registered, String pattern, Path store) {
+        this.store = store;
         Resource[] found;
         try {
             found = new PathMatchingResourcePatternResolver().getResources(pattern);
@@ -81,8 +100,49 @@ public class CandidateRegistry {
             }
             fromFiles.add(serverId);
         }
+        // 남겨 둔 등록을 되살린다. 읽지 못하면 조용히 비우지 않고 멈춘다 — 비운 채 뜨면
+        // 한 번만 등록한 시뮬레이터들이 모두 사라진 줄 아무도 모른다.
+        if (store != null && Files.exists(store)) {
+            try {
+                for (JsonNode card : mapper.readTree(store.toFile())) accept(card);
+            } catch (IOException e) {
+                throw new UncheckedIOException("남겨 둔 등록을 읽지 못했습니다: " + store, e);
+            }
+        }
         if (registered != null) {
             register(registered);
+        }
+    }
+
+    /**
+     * 시뮬레이터 서버가 꺼지며 등록을 해제한다. 꺼진 서버가 남으면 그 서버로 MATCH 가 나간다.
+     *
+     * @return 지웠으면 {@code true}, 모르는 서버면 {@code false}
+     * @throws IllegalArgumentException 후보 파일의 서버일 때 — 지어낸 후보는 등록으로 들어온 것이 아니다
+     */
+    public boolean unregister(String serverId) {
+        if (fromFiles.contains(serverId)) {
+            throw new IllegalArgumentException("후보 파일의 서버는 해제할 수 없습니다: " + serverId);
+        }
+        boolean removed = byServerId.remove(serverId) != null;
+        if (removed) save();
+        return removed;
+    }
+
+    /** 등록된 카드만 파일에 쓴다. 후보 파일은 이미 클래스패스에 있다 — 저장하면 다음 기동 때 id 가 겹친다. */
+    private synchronized void save() {
+        if (store == null) return;
+        try {
+            var registered = mapper.createArrayNode();
+            byServerId.keySet().stream().filter(id -> !fromFiles.contains(id)).sorted()
+                    .forEach(id -> registered.add(byServerId.get(id)));
+            if (store.getParent() != null) Files.createDirectories(store.getParent());
+            // 쓰다가 꺼지면 반쪽 파일이 남는다 — 옆에 쓰고 한 번에 바꿔 끼운다.
+            Path tmp = store.resolveSibling(store.getFileName() + ".tmp");
+            mapper.writerWithDefaultPrettyPrinter().writeValue(tmp.toFile(), registered);
+            Files.move(tmp, store, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+        } catch (IOException e) {
+            throw new UncheckedIOException("등록을 파일에 남기지 못했습니다: " + store, e);
         }
     }
 
@@ -93,6 +153,13 @@ public class CandidateRegistry {
      * @throws IllegalArgumentException 카드에 serverId·endpoint 가 없거나, 후보 파일의 id 와 겹치거나, 거주민 유형 key 가 겹칠 때
      */
     public boolean register(JsonNode card) {
+        boolean first = accept(card);
+        save();
+        return first;
+    }
+
+    /** 검사하고 넣는다. 파일에서 되살릴 때는 다시 쓰지 않으려고 {@link #register} 와 나눴다. */
+    private boolean accept(JsonNode card) {
         String serverId = requireServerId(card, "등록 요청");
         if (card.path("endpoint").asText().isBlank()) {
             throw new IllegalArgumentException(

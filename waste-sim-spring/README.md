@@ -38,9 +38,11 @@ MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도
 | `mcp-common` | — | — | 두 서버가 함께 쓰는 도구 계약(`McpToolProvider` · `ToolResult`)뿐 |
 | `template-generator` | — | — | 서버가 아니다. 시뮬레이터 소스를 읽어 서브태스크 템플릿 초안을 만들고, 손으로 쓴 템플릿과 칸별로 대조한다([기록](docs/reports/template-generator-2026-10-05/REPORT.md)) |
 
-시뮬레이터는 뜰 때와 그 뒤 30초마다 자기 능력 카드를 브로커의 `POST /api/simulators` 로
+시뮬레이터는 뜰 때 한 번 자기 능력 카드를 브로커의 `POST /api/simulators` 로
 등록한다(0단계). 등록은 MCP 도구가 아니다 — LLM 이 카드를 지어 등록하지 못하게 문을 나눴다.
-브로커가 없어도 시뮬레이터는 뜨고, 브로커가 다시 뜨면 다음 등록 때 목록이 채워진다.
+브로커는 등록을 `broker/data/registry.json` 에 남겨 다시 떠도 기억하고, 시뮬레이터는 꺼질 때
+`DELETE /api/simulators/{serverId}` 로 등록을 해제한다. 브로커가 아직 안 떠 있으면 시뮬레이터는
+등록에 성공할 때까지만 30초마다 다시 시도한다.
 
 루트에서 둘을 각각 띄운다(창 두 개). jar 를 만들지 않고 최신 소스로 바로 뜬다.
 
@@ -100,8 +102,8 @@ LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 �
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **672건 모두 통과**
-다(브로커 85 · 시뮬레이터 547 · 템플릿 생성기 40). Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서는
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **685건 모두 통과**
+다(브로커 92 · 시뮬레이터 553 · 템플릿 생성기 40). Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서는
 그중 3건(`PythonWasteSimAdapterTest`)이 시험을 중단해 스킵으로 나온다 — 실패가 아니다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트

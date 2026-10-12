@@ -3,6 +3,10 @@ package com.wastesim.broker;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 import java.util.List;
 
@@ -117,5 +121,51 @@ class CandidateRegistryTest {
 
         var e = assertThrows(IllegalArgumentException.class, () -> registry.register(card));
         assertTrue(e.getMessage().contains("BlueCollar"), e.getMessage());
+    }
+
+    // ── 한 번 등록 — 브로커가 기억하고, 꺼질 때 해제한다 ─────────────────────────
+
+    @Test
+    void 등록하면_파일에_남아_브로커를_다시_띄워도_기억한다(@TempDir Path dir) {
+        Path store = dir.resolve("registry.json");
+        new CandidateRegistry("classpath*:/mcp/candidates/*.json", store).register(TestCards.jangnyang());
+
+        CandidateRegistry restarted = new CandidateRegistry("classpath*:/mcp/candidates/*.json", store);
+        assertTrue(restarted.byServerId("jangnyang-waste-sim").isPresent(),
+                "시뮬레이터는 한 번만 등록한다 — 브로커가 잊으면 다시 알 길이 없다");
+    }
+
+    @Test
+    void 해제하면_파일에서도_지워진다(@TempDir Path dir) {
+        Path store = dir.resolve("registry.json");
+        CandidateRegistry registry = new CandidateRegistry("classpath*:/mcp/candidates/*.json", store);
+        registry.register(TestCards.jangnyang());
+
+        assertTrue(registry.unregister("jangnyang-waste-sim"));
+        assertTrue(registry.byServerId("jangnyang-waste-sim").isEmpty());
+        assertTrue(new CandidateRegistry("classpath*:/mcp/candidates/*.json", store)
+                .byServerId("jangnyang-waste-sim").isEmpty(), "꺼진 서버가 재시작 뒤에 되살아나면 그 서버로 MATCH 가 나간다");
+    }
+
+    @Test
+    void 모르는_서버의_해제는_아무것도_지우지_않는다() {
+        CandidateRegistry registry = new CandidateRegistry(null, "classpath*:/mcp/candidates/*.json");
+        assertFalse(registry.unregister("no-such-sim"));
+    }
+
+    @Test
+    void 후보_파일의_서버는_해제할_수_없다() {
+        CandidateRegistry registry = new CandidateRegistry(null, "classpath*:/mcp/candidates/*.json");
+        assertThrows(IllegalArgumentException.class, () -> registry.unregister("district-waste-sim"));
+        assertTrue(registry.byServerId("district-waste-sim").isPresent());
+    }
+
+    @Test
+    void 저장_파일에는_등록된_서버만_남는다(@TempDir Path dir) throws Exception {
+        Path store = dir.resolve("registry.json");
+        new CandidateRegistry("classpath*:/mcp/candidates/*.json", store).register(TestCards.jangnyang());
+        String saved = Files.readString(store);
+        assertTrue(saved.contains("jangnyang-waste-sim"));
+        assertFalse(saved.contains("district-waste-sim"), "후보 파일은 이미 클래스패스에 있다 — 저장하면 다음 기동 때 id 가 겹친다");
     }
 }

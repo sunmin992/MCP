@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -25,7 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * 브로커가 별개 서버로서 두 문을 갖는가 — LLM 이 부르는 {@code /mcp} 와, 시뮬레이터가
  * 등록하는 {@code /api/simulators}.
  */
-@SpringBootTest
+@SpringBootTest(properties = "broker.registry.file=")
 @AutoConfigureMockMvc
 @ExtendWith(OutputCaptureExtension.class)
 class BrokerServerTest {
@@ -151,5 +152,22 @@ class BrokerServerTest {
                 .path("result").path("content").get(0).path("text").asText());
         assertEquals("jangnyang-waste-sim", again.path("previousMatch").path("serverId").asText(),
                 "차이가 없으면 브로커가 첫 서버로 보냈다 — MATCH 와 같이 기억해야 되풀이를 알린다");
+    }
+
+    @Test
+    void 시뮬레이터가_해제하면_목록에서_빠진다() throws Exception {
+        ObjectNode card = (ObjectNode) TestCards.jangnyang().deepCopy();
+        card.put("serverId", "leaving-sim");
+        mvc.perform(post("/api/simulators").contentType(MediaType.APPLICATION_JSON).content(card.toString()))
+                .andExpect(status().isOk());
+
+        mvc.perform(delete("/api/simulators/leaving-sim")).andExpect(status().isOk());
+
+        assertFalse(registry.serverIds().contains("leaving-sim"));
+    }
+
+    @Test
+    void 후보_파일의_서버를_해제하려_하면_400_이다() throws Exception {
+        mvc.perform(delete("/api/simulators/district-waste-sim")).andExpect(status().isBadRequest());
     }
 }

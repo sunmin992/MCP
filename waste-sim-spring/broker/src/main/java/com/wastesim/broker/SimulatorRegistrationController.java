@@ -4,7 +4,9 @@ import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -42,6 +44,18 @@ public class SimulatorRegistrationController {
             return ResponseEntity.ok(Map.of("serverId", serverId, "registered", true, "first", first));
         } catch (IllegalArgumentException e) {
             return ResponseEntity.badRequest().body(Map.of("registered", false, "reason", e.getMessage()));
+        }
+    }
+
+    /** 시뮬레이터가 꺼지며 등록을 해제한다. 모르는 서버여도 200 이다 — 이미 없는 것을 지운 것이다. */
+    @DeleteMapping("/{serverId}")
+    public ResponseEntity<Map<String, Object>> unregister(@PathVariable String serverId) {
+        try {
+            boolean removed = registry.unregister(serverId);
+            if (removed) log.info("시뮬레이터 해제: {}", serverId);
+            return ResponseEntity.ok(Map.of("serverId", serverId, "removed", removed));
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("removed", false, "reason", e.getMessage()));
         }
     }
 
