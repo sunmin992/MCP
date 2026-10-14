@@ -54,7 +54,7 @@ class ExecutionConfirmationTest {
         values.put("routeAvailableCapacityKg", 150);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(720);
-        String id = mapper.readTree(build.call(args).result().toString()).path("scenarioId").asText();
+        String id = mapper.readTree(build.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString()).path("scenarioId").asText();
 
         var confirm = new ConfirmScenarioTool(builder, store, mapper);
         return mapper.readTree(confirm.call(mapper.createObjectNode().put("scenarioId", id))

@@ -77,7 +77,7 @@ class MultiCollectionTimesTest {
 
     @Test
     void 횟수마다_시각_목록으로_시나리오를_만든다() throws Exception {
-        JsonNode s = ok(build, 횟수별_시나리오());
+        JsonNode s = ok(build, com.wastesim.TestScenarioRequests.completed(횟수별_시나리오()));
         assertTrue(s.path("valid").asBoolean(), "막힌 사유: " + s.path("blocks"));
         assertEquals(3, s.path("runCount").asInt());
         assertEquals(0, s.path("backVerificationBlocks").size(),
@@ -97,7 +97,7 @@ class MultiCollectionTimesTest {
         // 해서 USER 로 덮으면 확인 화면이 그 사실을 경고하지 못한다.
         ObjectNode args = 횟수별_시나리오();
         args.putObject("origins").put("collectionTimesMinutes", "MODEL_DEFAULT");
-        JsonNode s = ok(build, args);
+        JsonNode s = ok(build, com.wastesim.TestScenarioRequests.completed(args));
         assertEquals("[[660],[660,1380],[180,660,1140]]",
                 s.path("unapprovedDefaults").path("collectionTimesMinutes").toString(),
                 "승인하지 않은 기본값: " + s.path("unapprovedDefaults"));
@@ -160,7 +160,7 @@ class MultiCollectionTimesTest {
 
     @Test
     void 실행_결과에_어느_시각_목록으로_돌았는지_실린다() throws Exception {
-        JsonNode s = ok(build, 횟수별_시나리오());
+        JsonNode s = ok(build, com.wastesim.TestScenarioRequests.completed(횟수별_시나리오()));
         String id = s.path("scenarioId").asText();
         var confirm = new ConfirmScenarioTool(builder, store, mapper);
         // 사용자가 확인 화면에서 누른 자리. 확인 도구는 MCP 도구가 아니다.

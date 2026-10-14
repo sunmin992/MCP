@@ -56,7 +56,7 @@ class RunScenarioByTokenToolTest {
         values.put("routeAvailableCapacityKg", 150);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360).add(1080);
-        var built = mapper.readTree(buildTool.call(args).result().toString());
+        var built = mapper.readTree(buildTool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
         // 사용자가 설정을 보고 동의한 자리.
         var confirmArgs = mapper.createObjectNode();
         confirmArgs.put("scenarioId", built.path("scenarioId").asText());
@@ -79,7 +79,7 @@ class RunScenarioByTokenToolTest {
         values.put("routeAvailableCapacityKg", 150);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(540);
-        return mapper.readTree(buildTool.call(args).result().toString())
+        return mapper.readTree(buildTool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString())
                 .path("scenarioId").asText();
     }
 

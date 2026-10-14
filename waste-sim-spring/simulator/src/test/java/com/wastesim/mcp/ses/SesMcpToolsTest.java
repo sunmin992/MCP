@@ -114,7 +114,7 @@ class SesMcpToolsTest {
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360).add(720).add(1080);
 
-        var out = mapper.readTree(tool.call(args).result().toString());
+        var out = mapper.readTree(tool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
         assertTrue(out.path("valid").asBoolean(), "막힌 사유: " + out.path("blocks"));
         assertEquals(3, out.path("runCount").asInt());
         assertTrue(out.path("confirmToken").isMissingNode(),
@@ -141,7 +141,7 @@ class SesMcpToolsTest {
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(720).add(1500);
 
-        var out = mapper.readTree(buildTool().call(args).result().toString());
+        var out = mapper.readTree(buildTool().call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
         assertFalse(out.path("valid").asBoolean(), "1500분은 0~1439 범위를 벗어난다");
         assertEquals("INVALID", out.path("state").asText(), "막힌 시나리오는 보관하지 않는다");
     }
@@ -153,7 +153,7 @@ class SesMcpToolsTest {
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(720);
 
-        var result = buildTool().call(args);
+        var result = buildTool().call(com.wastesim.TestScenarioRequests.completed(args));
         assertFalse(result.ready(), "모르는 키를 조용히 무시하면 사용자 값이 실행에 안 실린다");
         assertTrue(result.toString().contains("없는키"));
     }
@@ -175,9 +175,77 @@ class SesMcpToolsTest {
         args.put("variableAnswerKey", "days");
         args.putArray("variableValues").add(30);
 
-        var out = mapper.readTree(buildTool().call(args).result().toString());
+        var out = mapper.readTree(buildTool().call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
         assertEquals(catalog.sesId(), out.path("sesId").asText(),
                 "식별자를 도구에 적어 두면 템플릿이 바뀌어도 옛 값을 주장한다");
         assertEquals(catalog.sesVersion(), out.path("sesVersion").asText());
+    }
+
+    // ── 필요한 결정이 모두 정해져야 PES 를 만든다 ───────────────────────────────
+
+    /** 장량동에서 차량 1대 · 교통 미반영 · 4동일 때 필요한 결정을 모두 채운 값. 출처는 전부 USER. */
+    private com.fasterxml.jackson.databind.node.ObjectNode 완전한_요청() {
+        var args = mapper.createObjectNode();
+        var v = args.putObject("values");
+        v.put("truckType", "LARGE_5TON");
+        v.put("truckCount", 1);
+        v.put("trafficMode", "IGNORE");
+        v.put("travelTimeMode", "LEGACY_CONSTANT");
+        v.put("numBuildings", 4);
+        v.put("residentsPerBuilding", 25);
+        v.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        v.put("days", 30);
+        v.put("seeds", 30);
+        v.put("routeAvailableCapacityKg", 150);
+        var o = args.putObject("origins");
+        v.fieldNames().forEachRemaining(k -> o.put(k, "USER"));
+        args.put("variableAnswerKey", "collectionTimeMinutes");
+        args.putArray("variableValues").add(720);
+        return args;
+    }
+
+    @Test
+    void 필요한_결정이_모두_정해지면_시나리오를_만든다() throws Exception {
+        var out = mapper.readTree(buildTool().call(완전한_요청()).result().toString());
+        assertTrue(out.path("valid").asBoolean(), out.toString());
+    }
+
+    @Test
+    void 물어야_할_결정이_남아_있으면_막힌_시나리오로_돌려준다() throws Exception {
+        var args = 완전한_요청();
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("values")).remove("residentsPerBuilding");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("origins")).remove("residentsPerBuilding");
+
+        var out = mapper.readTree(buildTool().call(args).result().toString());
+        assertFalse(out.path("valid").asBoolean(), "빠진 결정을 엔진 초기값으로 조용히 채우면 사용자가 정하지 않은 값으로 돈다");
+        assertEquals("INVALID", out.path("state").asText());
+        assertTrue(out.path("blocks").toString().contains("residentsPerBuilding"), out.toString());
+    }
+
+    @Test
+    void 실험_값마다_필요한_결정을_따로_따진다() throws Exception {
+        var args = 완전한_요청();
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("values")).put("travelTimeMode", "ZONE_PROXY_HYBRID");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("values")).remove("numBuildings");
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("origins")).remove("numBuildings");
+        args.put("variableAnswerKey", "numBuildings");
+        args.putArray("variableValues").add(4).add(26);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("values")).put("collectionTimeMinutes", 720);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("origins")).put("collectionTimeMinutes", "USER");
+
+        var out = mapper.readTree(buildTool().call(args).result().toString());
+        String blocks = out.path("blocks").toString();
+        assertFalse(out.path("valid").asBoolean(), "26동이면 구역 배정 방식을 물어야 한다 — 4동에서 필요 없다고 넘기면 안 된다");
+        assertTrue(blocks.contains("zoneAssignmentRule") && blocks.contains("26"), blocks);
+    }
+
+    @Test
+    void 출처가_빠진_값은_승인하지_않은_기본값으로_보인다() throws Exception {
+        var args = 완전한_요청();
+        ((com.fasterxml.jackson.databind.node.ObjectNode) args.path("origins")).remove("truckType");
+
+        var out = mapper.readTree(buildTool().call(args).result().toString());
+        assertTrue(out.path("unapprovedDefaults").has("truckType"),
+                "출처 없는 값을 USER 로 치면 LLM 이 정한 값이 사용자 값으로 확인 화면에 나간다: " + out);
     }
 }
