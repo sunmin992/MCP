@@ -34,7 +34,8 @@ public class PlanSubtasksTool implements McpToolProvider {
     @Override
     public String description() {
         return "현재까지 확정된 답변으로 어떤 서브태스크가 존재해야 하는지 계산한다. "
-                + "생성 조건이 거짓이면 만들지 않고, 판정할 수 없으면 보류한다.";
+                + "생성 조건이 거짓이면 만들지 않고, 판정할 수 없으면 보류한다. 보류된 결정은 waitingOn 에 "
+                + "먼저 정해야 할 답변키를 적는다 — UNFILLED 를 먼저 묻고, 보류는 그 뒤 다시 계산하면 풀린다.";
     }
 
     @Override
@@ -65,6 +66,13 @@ public class PlanSubtasksTool implements McpToolProvider {
             root.set("instances", mapper.valueToTree(plan.instances()));
             root.set("counts", mapper.valueToTree(plan.counts()));
             root.put("complete", plan.complete());
+            // 보류된 결정마다 무엇이 먼저 정해져야 하는지. 이 키들을 먼저 물으면 보류가 풀린다.
+            var waiting = root.putObject("waitingOn");
+            for (var i : plan.instances()) {
+                if (i.status() == com.wastesim.template.SubtaskStatus.DEFERRED) {
+                    waiting.set(i.answerKey(), mapper.valueToTree(planner.waitingOn(i.answerKey(), answers)));
+                }
+            }
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("answers", "서브태스크 계획에 실패했습니다: " + e.getMessage());

@@ -27,6 +27,16 @@ public class SubtaskPlanner {
     }
 
     /**
+     * 보류된 결정이 기다리는 답변키 — 생성 조건이 읽는 키 가운데 아직 답이 없는 것.
+     * "이것을 먼저 정해야 이 결정이 필요한지 알 수 있다" 를 LLM 에 알리는 데 쓴다.
+     */
+    public List<String> waitingOn(String answerKey, Map<String, Object> answers) {
+        return catalog.byAnswerKey(answerKey)
+                .map(t -> t.generateWhen().inputs().stream().filter(k -> !answers.containsKey(k)).toList())
+                .orElse(List.of());
+    }
+
+    /**
      * @param origins 답변키 → 출처. 받은 것만 그대로 싣는다. 적혀 오지 않은 값의 출처는 비워 둔다 —
      *                "사용자가 말했다" 고 넘겨짚으면 기본값으로 채운 값과 구별되지 않는다.
      */

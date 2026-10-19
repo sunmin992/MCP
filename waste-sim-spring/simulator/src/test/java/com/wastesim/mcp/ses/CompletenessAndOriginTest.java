@@ -106,6 +106,19 @@ class CompletenessAndOriginTest {
     }
 
     @Test
+    void 물어야_할_결정과_보류된_결정을_나눠_적고_보류는_무엇을_기다리는지_알린다() throws Exception {
+        ObjectNode args = complete();
+        ((ObjectNode) args.get("values")).put("numBuildings", 26);
+        ((ObjectNode) args.get("values")).remove("travelTimeMode");
+        JsonNode out = call(args);
+        String blocks = out.path("blocks").toString();
+        assertTrue(blocks.contains("물어야 할 결정 travelTimeMode"), blocks);
+        assertTrue(blocks.contains("보류된 결정 zoneAssignmentRule — travelTimeMode 이(가) 정해져야"), blocks);
+        assertTrue(blocks.indexOf("물어야 할 결정 travelTimeMode") < blocks.indexOf("보류된 결정"),
+                "물어야 할 결정을 먼저 적어야 LLM 이 그것부터 묻는다");
+    }
+
+    @Test
     void 출처를_적지_않은_값은_승인하지_않은_기본값으로_보인다() throws Exception {
         ObjectNode args = complete();
         ((ObjectNode) args.get("origins")).remove("truckType");

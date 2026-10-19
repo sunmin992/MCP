@@ -91,4 +91,24 @@ class ScenarioFlowTest {
         assertThat(built.path("valid").asBoolean()).isFalse();
         assertThat(built.path("blocks").toString()).contains("수거 요일", "적환장");
     }
+
+    @Test
+    void 수거_일정이_없으면_요일은_물어야_할_결정이_아니라_보류로_적는다() throws Exception {
+        JsonNode built = call("build_scenario", """
+            {"values":{"zoneCount":8,"householdsPerZone":600,"housingMix":["Apartment"],"truckType":"LARGE_5TON",
+                       "truckCount":1,"holidayMode":"IGNORE","transferMode":"IGNORE",
+                       "collectionStartMinutes":360,"days":7,"seeds":1},
+             "variableAnswerKey":"days","variableValues":[7]}
+            """);
+        String blocks = built.path("blocks").toString();
+        assertThat(blocks).contains("물어야 할 결정 scheduleMode", "보류된 결정 collectionDays — scheduleMode")
+                .doesNotContain("물어야 할 결정 collectionDays");
+    }
+
+    @Test
+    void plan_subtasks_는_보류된_결정이_기다리는_키를_낸다() throws Exception {
+        JsonNode plan = call("plan_subtasks", "{\"answers\":{\"holidayMode\":\"APPLY\"}}");
+        assertThat(plan.path("waitingOn").path("holidayPolicy").toString()).contains("scheduleMode");
+        assertThat(plan.path("waitingOn").path("zoneAllocation").toString()).contains("zoneCount", "truckCount");
+    }
 }

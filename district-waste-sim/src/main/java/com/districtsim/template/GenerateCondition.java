@@ -11,7 +11,7 @@ import java.util.Map;
  */
 public enum GenerateCondition {
 
-    ALWAYS {
+    ALWAYS() {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return Activation.ACTIVE;
@@ -19,7 +19,7 @@ public enum GenerateCondition {
     },
 
     /** 상가가 주거 유형 구성에 있을 때만. 상가 처리 방식이 걸리는 조건이다. */
-    COMMERCIAL_IN_MIX {
+    COMMERCIAL_IN_MIX("housingMix") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Object v = answers.get("housingMix");
@@ -36,7 +36,7 @@ public enum GenerateCondition {
      * 실제로 나가는 차량이 2대 이상일 때만. 구역 배정 방식이 걸리는 조건이다 — 실제 운행 대수는
      * {@code min(구역 수, 차량 수)} 이고, 1대면 나눌 것이 없다.
      */
-    EFFECTIVE_TRUCKS_AT_LEAST_2 {
+    EFFECTIVE_TRUCKS_AT_LEAST_2("zoneCount", "truckCount") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Integer zones = intOf(answers, "zoneCount");
@@ -47,7 +47,7 @@ public enum GenerateCondition {
     },
 
     /** 요일 지정 수거일 때만. 수거 요일 목록이 걸리는 조건이다. */
-    WEEKDAYS_SCHEDULE {
+    WEEKDAYS_SCHEDULE("scheduleMode") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return equalsOrUnknown(answers, "scheduleMode", "WEEKDAYS");
@@ -61,7 +61,7 @@ public enum GenerateCondition {
      * <p>공휴일을 반영하지 않으면 일정을 몰라도 생성하지 않는다 — 그때 정책이 없는 것은 "아직 모름" 이 아니라
      * "영영 없음" 이다.
      */
-    HOLIDAY_POLICY_NEEDED {
+    HOLIDAY_POLICY_NEEDED("holidayMode", "scheduleMode") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Activation holiday = equalsOrUnknown(answers, "holidayMode", "APPLY");
@@ -73,12 +73,23 @@ public enum GenerateCondition {
     },
 
     /** 적환장을 쓸 때만. 적환장 왕복 시간이 걸리는 조건이다. */
-    TRANSFER_APPLIED {
+    TRANSFER_APPLIED("transferMode") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return equalsOrUnknown(answers, "transferMode", "APPLY");
         }
     };
+
+    /** 이 조건이 읽는 답변키. 보류일 때 무엇을 먼저 정해야 하는지 알리는 데 쓴다 — 평가 코드와 함께 고친다. */
+    private final java.util.List<String> inputs;
+
+    GenerateCondition(String... inputs) {
+        this.inputs = java.util.List.of(inputs);
+    }
+
+    public java.util.List<String> inputs() {
+        return inputs;
+    }
 
     public abstract Activation evaluate(Map<String, Object> answers);
 

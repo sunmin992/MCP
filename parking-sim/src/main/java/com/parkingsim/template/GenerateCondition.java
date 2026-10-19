@@ -15,7 +15,7 @@ import java.util.Map;
 public enum GenerateCondition {
 
     /** 언제나 만든다. */
-    ALWAYS {
+    ALWAYS() {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return Activation.ACTIVE;
@@ -23,7 +23,7 @@ public enum GenerateCondition {
     },
 
     /** 무료가 아닐 때만. 기본 요금이 걸리는 조건이다 — 무료면 요금이 결과를 바꾸지 못한다. */
-    NOT_FREE {
+    NOT_FREE("pricingPolicy") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Object v = answers.get("pricingPolicy");
@@ -33,7 +33,7 @@ public enum GenerateCondition {
     },
 
     /** 시간대 차등 요금일 때만. 할증률이 걸리는 조건이다. */
-    TIME_OF_DAY_PRICING {
+    TIME_OF_DAY_PRICING("pricingPolicy") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return equalsOrUnknown(answers, "pricingPolicy", "TIME_OF_DAY");
@@ -44,7 +44,7 @@ public enum GenerateCondition {
      * 거주자가 이용자 구성에 있을 때만. 거주자 우선 구획 비율이 걸리는 조건이다 — 거주자가 없으면
      * 우선 구획은 아무도 쓰지 못하는 면이 된다.
      */
-    RESIDENT_IN_MIX {
+    RESIDENT_IN_MIX("userMix") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Object v = answers.get("userMix");
@@ -62,7 +62,7 @@ public enum GenerateCondition {
      * 주차장이 두 곳 이상일 때만. 안내 방식이 걸리는 조건이다 — 한 곳이면 다른 곳으로 안내할 수 없어
      * 안내 방식이 결과를 바꾸지 못한다.
      */
-    MULTIPLE_LOTS {
+    MULTIPLE_LOTS("lotCount") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Integer lots = intOf(answers, "lotCount");
@@ -78,7 +78,7 @@ public enum GenerateCondition {
      * 값이 없는 것은 "아직 모름" 이 아니라 "영영 없음" 이다 — 보류로 두면 필요한 값을 다 채워도 완결이
      * 되지 않는다.
      */
-    REALTIME_GUIDANCE {
+    REALTIME_GUIDANCE("lotCount", "guidanceMode") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             if (MULTIPLE_LOTS.evaluate(answers) == Activation.INACTIVE) return Activation.INACTIVE;
@@ -87,12 +87,23 @@ public enum GenerateCondition {
     },
 
     /** 도로 혼잡을 반영할 때만. 혼잡 프로파일이 걸리는 조건이다. */
-    CONGESTION_APPLIED {
+    CONGESTION_APPLIED("congestionMode") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return equalsOrUnknown(answers, "congestionMode", "APPLY");
         }
     };
+
+    /** 이 조건이 읽는 답변키. 보류일 때 무엇을 먼저 정해야 하는지 알리는 데 쓴다 — 평가 코드와 함께 고친다. */
+    private final java.util.List<String> inputs;
+
+    GenerateCondition(String... inputs) {
+        this.inputs = java.util.List.of(inputs);
+    }
+
+    public java.util.List<String> inputs() {
+        return inputs;
+    }
 
     public abstract Activation evaluate(Map<String, Object> answers);
 

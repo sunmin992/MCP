@@ -17,7 +17,7 @@ import java.util.Map;
 public enum GenerateCondition {
 
     /** 언제나 만든다. */
-    ALWAYS {
+    ALWAYS() {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return Activation.ACTIVE;
@@ -31,7 +31,7 @@ public enum GenerateCondition {
      * 엔진이 빈 경로의 운행을 만들지 않는다. 1대면 차량 간 시간차가 없어 배차 간격이
      * 결과를 바꾸지 못한다.
      */
-    EFFECTIVE_TRUCKS_AT_LEAST_2 {
+    EFFECTIVE_TRUCKS_AT_LEAST_2("numBuildings", "truckCount") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Integer buildings = intOf(answers, "numBuildings");
@@ -42,7 +42,7 @@ public enum GenerateCondition {
     },
 
     /** 교통을 반영할 때만. 교통 프로파일 결정이 걸리는 조건이다. */
-    TRAFFIC_APPLIED {
+    TRAFFIC_APPLIED("trafficMode") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return equalsOrUnknown(answers, "trafficMode", "APPLY");
@@ -55,7 +55,7 @@ public enum GenerateCondition {
      * <p>4동까지는 지점 id를 구역 id로 보는 폴백이 이름이 겹쳐 통한다. 5동부터는
      * {@code Node_E}라는 구역이 없어 막힌다.
      */
-    ZONE_PROXY_OVER_4_BUILDINGS {
+    ZONE_PROXY_OVER_4_BUILDINGS("travelTimeMode", "numBuildings") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             Object mode = answers.get("travelTimeMode");
@@ -77,7 +77,7 @@ public enum GenerateCondition {
      * 없는 것은 "아직 모름" 이 아니라 "영영 없음" 이다 — 보류로 두면 필요한 값을 다 채워도
      * 완결이 되지 않는다.
      */
-    CONTIGUOUS_ZONE_RULE {
+    CONTIGUOUS_ZONE_RULE("travelTimeMode", "numBuildings", "zoneAssignmentRule") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             if (ZONE_PROXY_OVER_4_BUILDINGS.evaluate(answers) == Activation.INACTIVE) {
@@ -94,7 +94,7 @@ public enum GenerateCondition {
      * 대화에 목록을 물으면 기존 흐름이 한 칸 늘어난다. 그래서 답이 들어왔을 때만 생성되고,
      * 없으면 "필요 없음" 이지 "아직 모름" 이 아니다.
      */
-    MULTI_COLLECTION_TIMES_GIVEN {
+    MULTI_COLLECTION_TIMES_GIVEN("collectionTimesMinutes") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return hasTimesList(answers) ? Activation.ACTIVE : Activation.INACTIVE;
@@ -107,12 +107,23 @@ public enum GenerateCondition {
      * <p>둘 다 받으면 엔진은 목록을 쓴다({@code SimulationConfig.resolveCollectionSlots}).
      * 그러면 사용자가 준 시각 하나는 조용히 버려지므로, 목록이 있으면 아예 묻지 않는다.
      */
-    SINGLE_COLLECTION_TIME {
+    SINGLE_COLLECTION_TIME("collectionTimesMinutes") {
         @Override
         public Activation evaluate(Map<String, Object> answers) {
             return hasTimesList(answers) ? Activation.INACTIVE : Activation.ACTIVE;
         }
     };
+
+    /** 이 조건이 읽는 답변키. 보류일 때 무엇을 먼저 정해야 하는지 알리는 데 쓴다 — 평가 코드와 함께 고친다. */
+    private final java.util.List<String> inputs;
+
+    GenerateCondition(String... inputs) {
+        this.inputs = java.util.List.of(inputs);
+    }
+
+    public java.util.List<String> inputs() {
+        return inputs;
+    }
 
     public abstract Activation evaluate(Map<String, Object> answers);
 

@@ -65,11 +65,21 @@ public class ScenarioBuilder {
             origins.putIfAbsent(frame.variableAnswerKey(), "USER");
             Pes runPes = new Pes(pes.sesId(), pes.sesVersion(), values, origins);
 
-            for (SubtaskInstance missing : planner.plan(values).instances()) {
-                if (missing.status() == SubtaskStatus.UNFILLED || missing.status() == SubtaskStatus.DEFERRED) {
-                    blocks.add(frame.variableAnswerKey() + "=" + value + ": 정해지지 않은 결정 "
-                            + missing.answerKey() + " — " + missing.question()
+            // 물어야 할 결정을 먼저, 보류된 결정을 뒤에 적는다. 보류는 다른 값이 정해져야 필요한지 알 수
+            // 있다는 뜻이라, 섞어 적으면 LLM 이 필요 없을 수도 있는 질문을 먼저 한다.
+            String run = frame.variableAnswerKey() + "=" + value + ": ";
+            List<SubtaskInstance> instances = planner.plan(values).instances();
+            for (SubtaskInstance i : instances) {
+                if (i.status() == SubtaskStatus.UNFILLED) {
+                    blocks.add(run + "물어야 할 결정 " + i.answerKey() + " — " + i.question()
                             + " (사용자가 기본값을 받아들였으면 그 값을 MODEL_DEFAULT 출처로 넣으십시오)");
+                }
+            }
+            for (SubtaskInstance i : instances) {
+                if (i.status() == SubtaskStatus.DEFERRED) {
+                    blocks.add(run + "보류된 결정 " + i.answerKey() + " — "
+                            + String.join(", ", planner.waitingOn(i.answerKey(), values))
+                            + " 이(가) 정해져야 필요한지 알 수 있습니다. 먼저 정한 뒤 plan_subtasks 로 다시 확인하십시오");
                 }
             }
 
