@@ -1,0 +1,126 @@
+{
+  "_comment": "포항 북구 행정동 생활폐기물 수거 시뮬레이터의 능력 카드. 장량동 시뮬레이터와 도메인은 같고 분석 단위(행정동 전체 · 구역 집계) · 교통(미지원) · 주민 구분(주거 유형)이 다르다.",
+  "serverId": "bukgu-district-waste-sim",
+  "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+  "endpoint": "http://localhost:8091/mcp",
+  "fictional": false,
+  "domain": ["waste-collection"],
+  "domainAliases": ["쓰레기수거", "생활쓰레기", "생활폐기물", "폐기물 수거", "쓰레기"],
+  "region": "포항시 북구 (행정동 단위)",
+  "analysisUnit": {
+    "scope": "district",
+    "label": "행정동 전체(구역 집계)",
+    "notDistrict": false,
+    "rationale": "행정동을 1~40개 구역으로 나눠 구역 합계로만 본다. 수거 지점 좌표가 없어 지점 수 상한이 없지만, 지점 하나하나의 적재 · 민원은 보지 못한다.",
+    "coherence": "기본 8구역 × 600세대(약 4.6톤/일)를 5톤 2대가 월·화·목·금 수거하면 평일은 다 싣고, 연휴 뒤에는 남는 구간이다.",
+    "matchKeys": ["행정동", "동 전체", "읍면동", "동 단위", "전체", "아파트 단지", "한 동네", "동네"]
+  },
+  "populationTypes": [
+    {"key": "Apartment", "matchKeys": ["아파트", "공동주택", "단지"], "model": "세대당 1.0kg/일, 거점 수거함이라 빨리 싣는다(60kg/분)"},
+    {"key": "Detached", "matchKeys": ["단독주택", "다가구", "주택가"], "model": "세대당 1.3kg/일, 문전 수거라 느리다(25kg/분)"},
+    {"key": "Studio", "matchKeys": ["원룸", "오피스텔", "1인 가구", "자취"], "model": "세대당 0.6kg/일(35kg/분)"},
+    {"key": "Commercial", "matchKeys": ["상가", "상업", "식당", "가게", "점포"], "model": "점포당 3.0kg/일(40kg/분), 수거에서 제외할 수 있다"}
+  ],
+  "sesDigest": {
+    "sesId": "bukgu-district-ses",
+    "sesVersion": "1.0.0",
+    "entities": ["구역 집합", "구역", "수거차량 집합", "수거 일정", "공휴일 결합", "적환장 결합", "실험 프레임"],
+    "decisionPoints": [
+      {"path": "구역집합", "kind": "MULTI_ASPECT", "field": "zoneCount", "range": {"min": 1, "max": 40}, "default": 8},
+      {"path": "구역집합/구역/세대수", "kind": "ATTRIBUTE", "field": "householdsPerZone", "range": {"min": 50, "max": 5000}, "default": 600},
+      {"path": "구역집합/구역/주거구성", "kind": "SPECIALIZATION", "field": "housingMix", "choices": ["Apartment", "Detached", "Studio", "Commercial"], "default": ["Apartment", "Detached", "Studio"]},
+      {"path": "구역집합/구역/주거구성/상가처리", "kind": "SPECIALIZATION", "field": "commercialHandling", "generateWhen": "Commercial ∈ housingMix", "default": "INCLUDED"},
+      {"path": "수거차량집합/차량/차종", "kind": "SPECIALIZATION", "field": "truckType", "choices": ["LARGE_5TON", "MEDIUM_2P5T", "SMALL_1TON"], "default": "LARGE_5TON"},
+      {"path": "수거차량집합", "kind": "MULTI_ASPECT", "field": "truckCount", "range": {"min": 1, "max": 20}, "default": 2},
+      {"path": "수거차량집합/구역배정", "kind": "ATTRIBUTE", "field": "zoneAllocation", "generateWhen": "min(zoneCount, truckCount) >= 2", "default": "EQUAL_COUNT"},
+      {"path": "수거일정/주기", "kind": "SPECIALIZATION", "field": "scheduleMode", "choices": ["POHANG_BUKGU", "DAILY", "ALTERNATE", "WEEKDAYS"], "default": "POHANG_BUKGU"},
+      {"path": "수거일정/요일목록", "kind": "ATTRIBUTE", "field": "collectionDays", "generateWhen": "scheduleMode == WEEKDAYS", "default": null},
+      {"path": "수거일정/공휴일결합", "kind": "COUPLING_CONDITION", "field": "holidayEnabled", "default": false},
+      {"path": "수거일정/공휴일결합/정책", "kind": "SPECIALIZATION", "field": "holidayPolicy", "generateWhen": "holidayEnabled && scheduleMode != DAILY", "default": null},
+      {"path": "적환장결합", "kind": "COUPLING_CONDITION", "field": "transferEnabled", "default": false},
+      {"path": "적환장결합/왕복시간", "kind": "ATTRIBUTE", "field": "transferRoundTripMinutes", "generateWhen": "transferEnabled", "default": null},
+      {"path": "실험프레임/수거시작시각", "kind": "ATTRIBUTE", "field": "collectionStartMinutes", "range": {"min": 0, "max": 1439}, "default": 360},
+      {"path": "실험프레임/기간", "kind": "ATTRIBUTE", "field": "days", "range": {"min": 7, "max": 365}, "default": 28},
+      {"path": "실험프레임/반복", "kind": "ATTRIBUTE", "field": "seeds", "range": {"min": 1, "max": 100}, "default": 30}
+    ]
+  },
+  "applicability": {
+    "spatialScale": {"zones": {"min": 1, "max": 40, "default": 8}, "householdsPerZone": {"min": 50, "max": 5000, "default": 600}},
+    "period": {"days": {"min": 7, "max": 365, "default": 28}, "startDate": "2026-09-21"},
+    "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
+    "environment": ["weekday-schedule", "holidays", "transfer-station"],
+    "answerableQuestions": ["uncollected", "wait-days", "schedule", "truck-count", "truck-type", "collection-time", "holiday-effect", "transfer-effect", "zone-allocation"],
+    "scenarioTypes": ["schedule-compare", "fleet-sweep", "holiday-week", "transfer-station", "housing-mix"],
+    "tools": [
+      {"name": "get_templates", "what": "서브태스크 템플릿", "status": "OK"},
+      {"name": "plan_subtasks", "what": "생성 조건 평가", "status": "OK"},
+      {"name": "validate_answers", "what": "답변 계약 대조", "status": "OK"},
+      {"name": "build_scenario", "what": "실행 설정 N벌 생성 · 검증", "status": "OK"},
+      {"name": "get_scenario_status", "what": "확인 상태 · 토큰 읽기", "status": "OK"},
+      {"name": "run_scenario_by_token", "what": "확인된 시나리오 실행", "status": "OK"}
+    ],
+    "environmentMatchKeys": [
+      {"key": "weekday-schedule", "matchKeys": ["요일", "수거 요일", "격일", "주말", "매일"]},
+      {"key": "holidays", "matchKeys": ["공휴일", "휴일", "명절", "추석", "설날", "연휴"]},
+      {"key": "transfer-station", "matchKeys": ["적환장", "중간 처리", "중계"]}
+    ],
+    "objectiveMatchKeys": [
+      {"key": "uncollected", "label": "수거 못 하고 남는 양", "matchKeys": ["미수거", "수거 못", "쌓이", "남는", "잔여", "밀리"]},
+      {"key": "wait-days", "label": "쓰레기가 기다린 날 수", "matchKeys": ["며칠", "기다", "지연"]},
+      {"key": "schedule", "label": "수거 요일 · 주기", "matchKeys": ["수거 요일", "격일", "매일", "주기", "요일", "몇 번"]},
+      {"key": "truck-count", "label": "차량 수", "matchKeys": ["몇 대", "차량 수", "대수"]},
+      {"key": "truck-type", "label": "차종", "matchKeys": ["차종", "톤", "차량 크기"]},
+      {"key": "collection-time", "label": "수거 시작 시각", "matchKeys": ["수거 시각", "몇 시", "시작 시각", "시각"]},
+      {"key": "holiday-effect", "label": "공휴일 · 연휴 영향", "matchKeys": ["공휴일", "명절", "연휴", "추석"]},
+      {"key": "transfer-effect", "label": "적환장 효과", "matchKeys": ["적환장"]},
+      {"key": "zone-allocation", "label": "구역 배정 방식", "matchKeys": ["구역 배정", "구역 나누", "구역을 나"]}
+    ]
+  },
+  "quality": {
+    "fidelity": "daily-aggregate-stochastic",
+    "engine": "하루 단위 구역 집계 시뮬레이션 (이산사건 · DEVS 아님)",
+    "calibration": [
+      {"what": "포항 북구 생활쓰레기 수거 요일 · 배출 창(20:00~06:00)", "source": "행정안전부 생활쓰레기 배출정보 표준데이터(2024-02-27 기준)", "measured": true, "note": "수거 요일은 배출 요일에 하루를 더한 해석이다"},
+      {"what": "주거 유형별 세대당 배출량", "source": "가정값", "measured": false},
+      {"what": "주거 유형별 싣는 속도 · 구역 간 이동 · 하차 왕복", "source": "가정값", "measured": false},
+      {"what": "2026년 공휴일 달력", "source": "관공서 공휴일 규정을 사람이 옮겨 적음", "measured": false}
+    ]
+  },
+  "resultFields": {
+    "judgement": ["leftoverKgPerCollectionDay", "stdLeftoverKgPerCollectionDay", "leftoverZoneDaysPerWeek", "maxWaitDays"],
+    "explanation": ["maxZoneBacklogKg", "preCollectionKgPerCollectionDay", "leftoverKgByHousingType", "generatedKgByWeekday", "collectedKgByWeekday", "collectionDaysRun", "skippedForHoliday"],
+    "reference": ["truckUtilization", "workMinutesPerTruckDay", "tripsPerCollectionDay"],
+    "integrity": ["seeds", "generatedKgPerDay", "excludedKgPerDay", "massBalanceErrorKgMax", "allLeftoverKgPerCollectionDay", "dataQualityFlags", "assumptionNotes"],
+    "note": "reference 항목은 싣는 속도 · 이동 · 하차 시간 가정에 크게 기대므로 판정 근거로 쓰지 않는다"
+  },
+  "cost": {"currency": "none", "perRun": 0, "compute": "local"},
+  "performance": {"model": "zoneCount × days × seeds 에 비례", "typicalSeconds": 1, "maxSeconds": 30},
+  "conditional": [
+    {"capability": "구역 배정 비교", "requires": "min(zoneCount, truckCount) >= 2", "ifUnmet": "DO_NOT_GENERATE", "message": "실제로 나가는 차가 1대면 나눌 구역이 없습니다."},
+    {"capability": "요일 지정 수거", "requires": "collectionDays 명시", "ifUnmet": "REJECT", "message": "요일을 정하지 않으면 실행하지 않습니다."},
+    {"capability": "공휴일 반영", "requires": "holidayPolicy 명시 (매일 수거가 아닐 때)", "ifUnmet": "REJECT", "message": "수거일이 공휴일일 때 건너뛸지 다음 날 할지 정해야 합니다."},
+    {"capability": "적환장", "requires": "transferRoundTripMinutes 명시", "ifUnmet": "REJECT", "message": "적환장 왕복 시간을 정하지 않으면 실행하지 않습니다."}
+  ],
+  "unsupported": [
+    {"code": "UNSUPPORTED_FEATURE", "capability": "교통량 · 도로 혼잡 반영", "matchKeys": ["교통", "교통량", "정체", "혼잡", "출퇴근 시간"], "reasonType": "NOT_IN_MODEL", "reason": "구역 사이 이동시간을 상수로만 다룬다. 시간대별 지체가 모델에 없다", "alternatives": ["구역 간 이동시간 상수"], "message": "교통량은 반영하지 않습니다. 구역 사이 이동시간은 고정값입니다."},
+    {"code": "UNSUPPORTED_METRIC", "capability": "수거장별 적재 · 민원", "matchKeys": ["민원", "악취", "넘침", "수거장별", "지점별", "배출장소별"], "reasonType": "NOT_IN_MODEL", "reason": "구역 합계만 본다 — 수거 지점 하나하나가 없다", "alternatives": ["metric:leftoverKg", "metric:waitDays"], "message": "수거장별 적재와 민원은 다루지 않습니다. 구역에 남는 양과 기다린 날 수로 비교하실 수 있습니다."},
+    {"code": "UNSUPPORTED_SCALE", "capability": "시 · 구 전체", "matchKeys": ["포항 전체", "포항시 전체", "시 전체", "구 전체", "북구 전체", "남구 전체"], "reasonType": "OUT_OF_RANGE", "reason": "행정동 하나(최대 40구역)까지만 표현한다", "alternatives": ["행정동 하나를 1~40구역으로"], "message": "시 · 구 전체는 다루지 않습니다. 행정동 하나로 실험하실 수 있습니다."},
+    {"code": "UNSUPPORTED_METRIC", "capability": "비용 · 예산", "matchKeys": ["비용", "예산", "인건비", "연료비", "돈"], "reasonType": "NOT_IN_MODEL", "reason": "연료 · 인건비 · 차량 운영비 항이 없다", "alternatives": ["metric:leftoverKg", "metric:truckUtilization"], "message": "비용은 산출하지 않습니다."},
+    {"code": "UNSUPPORTED_SCOPE", "capability": "재활용 · 음식물", "matchKeys": ["재활용", "음식물", "분리수거", "분리배출"], "reasonType": "NOT_IN_MODEL", "reason": "생활쓰레기(일반) 한 종류만 다룬다", "alternatives": [], "message": "재활용품 · 음식물은 다루지 않습니다."}
+  ],
+  "neverDo": [
+    "기본값이 없는 값(수거 요일 · 공휴일 정책 · 적환장 왕복 시간)을 대신 채워 실행한다",
+    "잘못된 선택지를 가까운 값으로 보정한다",
+    "구역 집계 결과를 수거장별 결과처럼 말한다",
+    "사용자가 승인하지 않은 설정으로 실행한다"
+  ],
+  "alwaysAttachToResult": [
+    "dataQualityFlags — GENERATION_ASSUMED · SERVICE_RATE_ASSUMED · SCHEDULE_INTERPRETED · HOLIDAY_CALENDAR_TRANSCRIBED",
+    "assumptionNotes — 기본값으로 승인된 값, PES 에 없어 초기값으로 돈 값",
+    "massBalanceErrorKgMax — 배출 = 수거 + 남은 양 인지",
+    "seeds, allLeftoverKgPerCollectionDay — 재현 정보",
+    "전제: 세대당 배출량 · 싣는 속도는 가정값이다",
+    "한계: 구역 합계만 본다 — 수거장별 적재 · 민원은 말할 수 없다",
+    "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
+  ]
+}
