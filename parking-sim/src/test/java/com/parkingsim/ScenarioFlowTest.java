@@ -117,4 +117,14 @@ class ScenarioFlowTest {
         assertThat(built.path("valid").asBoolean()).isFalse();
         assertThat(built.path("blocks").toString()).contains("탐색 포기 시간", "할증률");
     }
+
+    @Test
+    void plan_subtasks_는_비교_값마다_계산해_합치고_스키마가_올바르다() throws Exception {
+        for (var t : registry.all()) mapper.readTree(t.inputSchemaJson());   // tools/list 가 깨지지 않게
+        JsonNode plan = call("plan_subtasks", """
+            {"answers":{"lotCount":4},"variableAnswerKey":"guidanceMode","variableValues":["NONE","REALTIME_APP"]}
+            """);
+        assertThat(plan.path("onlyFor").path("guidanceRefreshMinutes").toString()).contains("REALTIME_APP");
+        assertThat(plan.path("mustAskNoDefault").toString()).contains("maxSearchMinutes");
+    }
 }

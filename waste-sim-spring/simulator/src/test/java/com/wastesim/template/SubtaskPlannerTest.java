@@ -188,6 +188,28 @@ class SubtaskPlannerTest {
     }
 
     @Test
+    void null_답변은_완료로_처리하지_않는다() {
+        Map<String, Object> answers = 완결된_답변();
+        answers.put("seeds", null);
+
+        SubtaskPlan plan = planner.plan(answers);
+
+        assertEquals(SubtaskStatus.UNFILLED, find(plan, "jn.seeds").status());
+        assertFalse(plan.complete());
+        assertFalse(plan.answeredValues().containsKey("seeds"));
+    }
+
+    @Test
+    void null_조건값은_먼저_답할_항목에_포함된다() {
+        Map<String, Object> answers = new HashMap<>();
+        answers.put("numBuildings", 4);
+        answers.put("truckCount", null);
+
+        assertEquals(SubtaskStatus.DEFERRED, find(planner.plan(answers), "jn.dispatchInterval").status());
+        assertEquals(List.of("truckCount"), planner.waitingOn("dispatchIntervalMinutes", answers));
+    }
+
+    @Test
     void 상태별_개수가_섞인_계획에서_맞게_집계된다() {
         // FILLED 4개(truckType,truckCount,numBuildings,trafficMode) · NOT_GENERATED 2개(trafficProfile,
         // collectionTimes — 다회 수거를 말하지 않았다)

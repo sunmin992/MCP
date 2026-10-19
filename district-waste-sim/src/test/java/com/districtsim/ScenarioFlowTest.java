@@ -111,4 +111,14 @@ class ScenarioFlowTest {
         assertThat(plan.path("waitingOn").path("holidayPolicy").toString()).contains("scheduleMode");
         assertThat(plan.path("waitingOn").path("zoneAllocation").toString()).contains("zoneCount", "truckCount");
     }
+
+    @Test
+    void plan_subtasks_는_비교_값마다_계산해_합치고_스키마가_올바르다() throws Exception {
+        for (var t : registry.all()) mapper.readTree(t.inputSchemaJson());   // tools/list 가 깨지지 않게
+        JsonNode plan = call("plan_subtasks", """
+            {"answers":{"zoneCount":8},"variableAnswerKey":"truckCount","variableValues":[1,3]}
+            """);
+        assertThat(plan.path("onlyFor").path("zoneAllocation").toString()).contains("3");
+        assertThat(plan.path("onlyFor").path("zoneAllocation").toString()).doesNotContain("1");
+    }
 }

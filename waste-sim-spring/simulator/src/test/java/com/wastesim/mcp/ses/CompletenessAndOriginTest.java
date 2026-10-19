@@ -148,6 +148,49 @@ class CompletenessAndOriginTest {
     }
 
     @Test
+    void 기본값이_없는_결정은_사용자에게_물으라고_하고_있는_결정은_그_기본값을_알린다() throws Exception {
+        ObjectNode args = complete();
+        ((ObjectNode) args.get("values")).remove("routeAvailableCapacityKg");
+        ((ObjectNode) args.get("values")).remove("truckType");
+        String blocks = call(args).path("blocks").toString();
+        assertTrue(blocks.contains("routeAvailableCapacityKg") && blocks.contains("기본값이 없습니다"), blocks);
+        assertTrue(blocks.contains("예시 값을 대신 넣지 마십시오"), "질문 문구의 예시를 기본값처럼 넣지 않게 한다");
+        assertTrue(blocks.contains("기본값 LARGE_5TON"), "기본값이 있으면 그 값을 알려야 한다: " + blocks);
+    }
+
+    @Test
+    void plan_subtasks_는_비교_값마다_계산해_합친다() throws Exception {
+        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper);
+        ObjectNode args = mapper.createObjectNode();
+        ObjectNode a = args.putObject("answers");
+        a.put("numBuildings", 4);
+        args.put("variableAnswerKey", "truckCount");
+        args.putArray("variableValues").add(1).add(3);
+        JsonNode out = mapper.readTree(plan.call(args).result().toString());
+
+        JsonNode dispatch = null, trucks = null;
+        for (JsonNode i : out.path("instances")) {
+            if (i.path("answerKey").asText().equals("dispatchIntervalMinutes")) dispatch = i;
+            if (i.path("answerKey").asText().equals("truckCount")) trucks = i;
+        }
+        assertEquals("UNFILLED", dispatch.path("status").asText(), "3대 실행에서 필요하면 한 번에 물어야 한다");
+        assertEquals("[3]", out.path("onlyFor").path("dispatchIntervalMinutes").toString());
+        assertEquals("FILLED", trucks.path("status").asText(), "실험 변수 자체는 비교 값으로 채워진 것이다");
+        assertTrue(out.path("mustAskNoDefault").toString().contains("routeAvailableCapacityKg"));
+        assertFalse(out.path("mustAskNoDefault").toString().contains("truckType"), "기본값이 있는 결정은 넣지 않는다");
+    }
+
+    @Test
+    void 변수_없이_부르면_예전처럼_한_번_계산한다() throws Exception {
+        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper);
+        ObjectNode args = mapper.createObjectNode();
+        args.putObject("answers").put("numBuildings", 4).put("truckCount", 1);
+        JsonNode out = mapper.readTree(plan.call(args).result().toString());
+        assertEquals(0, out.path("onlyFor").size());
+        assertTrue(mapper.readTree(plan.inputSchemaJson()).isObject(), "스키마가 올바른 JSON 이어야 tools/list 가 깨지지 않는다");
+    }
+
+    @Test
     void 설명에_출처_규칙이_있다() {
         assertTrue(build.description().contains("MODEL_DEFAULT"));
         assertTrue(build.description().contains("기본값으로"));

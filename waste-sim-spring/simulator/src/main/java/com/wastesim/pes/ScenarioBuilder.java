@@ -71,8 +71,13 @@ public class ScenarioBuilder {
             List<SubtaskInstance> instances = planner.plan(values).instances();
             for (SubtaskInstance i : instances) {
                 if (i.status() == SubtaskStatus.UNFILLED) {
-                    blocks.add(run + "물어야 할 결정 " + i.answerKey() + " — " + i.question()
-                            + " (사용자가 기본값을 받아들였으면 그 값을 MODEL_DEFAULT 출처로 넣으십시오)");
+                    // 기본값이 없는 결정에 "기본값을 받아들였으면" 이라고 쓰면, LLM 이 질문 문구의 예시 값을
+                    // 기본값처럼 넣는다(2026-10-19 재실행 R10). 없으면 없다고, 있으면 그 값을 적는다.
+                    Object dflt = planner.template(i.answerKey()).map(t -> t.defaultValue()).orElse(null);
+                    String how = dflt == null
+                            ? " (기본값이 없습니다 — 사용자에게 물어 값을 받으십시오. 질문의 예시 값을 대신 넣지 마십시오)"
+                            : " (사용자가 기본값 " + dflt + " 을(를) 받아들였으면 그 값을 MODEL_DEFAULT 출처로 넣으십시오)";
+                    blocks.add(run + "물어야 할 결정 " + i.answerKey() + " — " + i.question() + how);
                 }
             }
             for (SubtaskInstance i : instances) {
