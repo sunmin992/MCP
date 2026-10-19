@@ -192,7 +192,8 @@ public class RunScenarioByTokenTool implements McpToolProvider {
         }
         Map<String, Object> answers = new LinkedHashMap<>(pes.values());
         for (SubtaskTemplate t : catalog.all()) {
-            if (answers.containsKey(t.answerKey())) continue;
+            // 변수에 출처를 적으면 보관 PES 에 비교 값 목록이 실린다. 이미 있어도 이 실행의 값으로 덮어써야
+            // 생성 조건을 판정한다 — 목록 그대로 두면 변수에 걸린 결정이 보류되어 "빠졌다" 고 나온다.
             String getter = swept.stream().filter(g -> property(g).equals(t.configField())).findFirst().orElse(null);
             if (getter == null) continue;
             Object v = read(cfg, getter);

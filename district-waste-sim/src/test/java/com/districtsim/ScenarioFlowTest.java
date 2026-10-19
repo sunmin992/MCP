@@ -52,6 +52,27 @@ class ScenarioFlowTest {
     }
 
     @Test
+    void 실험_변수에_출처를_적어도_변수에_걸린_결정을_빠졌다고_적지_않는다() throws Exception {
+        // 변수 출처를 적으면 보관 PES 에 비교 값 목록 [2,1] 이 실린다(2026-10-19 scn-97db461b).
+        JsonNode built = call("build_scenario", """
+            {"values":{"zoneCount":8,"householdsPerZone":600,"housingMix":["Apartment","Detached","Studio"],
+                       "truckType":"LARGE_5TON","zoneAllocation":"EQUAL_COUNT","scheduleMode":"POHANG_BUKGU",
+                       "holidayMode":"IGNORE","transferMode":"IGNORE","collectionStartMinutes":360,"days":7,"seeds":1},
+             "origins":{"truckCount":"USER"},
+             "variableAnswerKey":"truckCount","variableValues":[2,1]}
+            """);
+        assertThat(built.path("valid").asBoolean()).as(built.toString()).isTrue();
+        String id = built.path("scenarioId").asText();
+        confirm.call(mapper.createObjectNode().put("scenarioId", id));
+        String token = call("get_scenario_status", "{\"scenarioId\":\"" + id + "\"}").path("confirmToken").asText();
+        JsonNode run = call("run_scenario_by_token", "{\"scenarioId\":\"" + id + "\",\"confirmToken\":\"" + token + "\"}");
+
+        for (JsonNode r : run.path("runs")) {
+            assertThat(r.path("integrity").path("assumptionNotes").toString()).doesNotContain("PES 에 없어");
+        }
+    }
+
+    @Test
     void 결합_조건_둘을_참거짓으로_옮기고_확인하면_한_번_실행한다() throws Exception {
         JsonNode built = call("build_scenario", """
             {"values":{"zoneCount":8,"householdsPerZone":600,"housingMix":["Apartment","Detached","Studio"],
