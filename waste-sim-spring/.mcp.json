@@ -7,6 +7,14 @@
     "jangnyang-simulator": {
       "type": "http",
       "url": "http://127.0.0.1:8090/mcp"
+    },
+    "district-waste-simulator": {
+      "type": "http",
+      "url": "http://127.0.0.1:8091/mcp"
+    },
+    "parking-simulator": {
+      "type": "http",
+      "url": "http://127.0.0.1:8092/mcp"
     }
   }
 }

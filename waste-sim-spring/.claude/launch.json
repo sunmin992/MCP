@@ -12,6 +12,18 @@
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", ".\\mvnw.cmd", "-q", "-pl", "simulator", "-am", "spring-boot:run"],
       "port": 8090
+    },
+    {
+      "name": "parking-sim",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "..\\parking-sim\\mvnw.cmd", "-q", "-f", "..\\parking-sim\\pom.xml", "spring-boot:run"],
+      "port": 8092
+    },
+    {
+      "name": "district-waste-sim",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "..\\district-waste-sim\\mvnw.cmd", "-q", "-f", "..\\district-waste-sim\\pom.xml", "spring-boot:run"],
+      "port": 8091
     }
   ]
 }
