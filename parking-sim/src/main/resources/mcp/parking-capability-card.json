@@ -47,7 +47,7 @@
     "spatialScale": {"lots": {"min": 1, "max": 12, "default": 4}, "spacesPerLot": {"min": 10, "max": 1000, "default": 80}},
     "period": {"days": {"min": 1, "max": 90, "default": 14}},
     "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
-    "environment": ["road-congestion", "guidance", "pricing", "resident-priority"],
+    "environment": ["road-congestion", "time-of-day-demand", "guidance", "pricing", "resident-priority"],
     "answerableQuestions": ["search-time", "give-up", "occupancy", "pricing-effect", "guidance-effect", "resident-priority", "lot-count", "congestion-effect"],
     "scenarioTypes": ["guidance-compare", "pricing-compare", "capacity-sweep", "demand-sweep", "user-mix"],
     "tools": [
@@ -60,6 +60,8 @@
     ],
     "environmentMatchKeys": [
       {"key": "road-congestion", "matchKeys": ["혼잡", "교통", "도로 혼잡", "정체"]},
+      {"key": "time-of-day-demand", "matchKeys": ["주말", "평일", "오전", "오후", "저녁", "야간", "점심", "출근", "퇴근", "시간대", "피크", "첨두"],
+       "model": "이용자 유형별 도착 시각 분포(userMix)로 시간대 수요를 만들고 hourlyOccupancy 로 시간대별 점유를 본다. 평일 · 주말 수요를 따로 두지 않으므로 주말은 이용자 구성 · 하루 도착 대수로 표현한다"},
       {"key": "guidance", "matchKeys": ["실시간", "안내판", "주차 안내", "앱"]},
       {"key": "pricing", "matchKeys": ["요금", "유료", "무료", "할증", "차등"]},
       {"key": "resident-priority", "matchKeys": ["거주자 우선", "거주자 구획", "거주자 전용"]}
