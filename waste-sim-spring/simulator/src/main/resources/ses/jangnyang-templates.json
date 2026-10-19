@@ -246,8 +246,8 @@
       "defaultBasis": null,
       "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다)",
       "configField": "routeAvailableCapacityKg",
-      "sesPath": "jangnyang/truck/routeAvailableCapacity",
-      "nodeKind": "attribute"
+      "sesPath": "수거차량집합/경로적재몫",
+      "nodeKind": "ATTRIBUTE"
     }
   ]
 }

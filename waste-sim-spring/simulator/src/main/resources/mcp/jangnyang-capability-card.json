@@ -302,8 +302,8 @@
         "semantics": "배출 시점에 적재율이 이 값 이상이면 민원"
       },
       {
-        "path": "jangnyang/truck/routeAvailableCapacity",
-        "kind": "attribute",
+        "path": "수거차량집합/경로적재몫",
+        "kind": "ATTRIBUTE",
         "field": "routeAvailableCapacityKg",
         "range": {
           "min": null,
