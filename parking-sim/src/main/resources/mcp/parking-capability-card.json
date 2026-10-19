@@ -1,0 +1,126 @@
+{
+  "_comment": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터의 능력 카드. 브로커가 이 카드로 요청과 대조한다. 거주민(이용자) 유형 key 는 한 카드 안에서 겹치면 안 된다.",
+  "serverId": "pohang-parking-sim",
+  "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+  "endpoint": "http://localhost:8092/mcp",
+  "fictional": false,
+  "domain": ["public-parking"],
+  "domainAliases": ["공영주차장", "주차장", "주차", "주차난", "주차 공간", "주차면"],
+  "region": "포항시 도심 (가정 배치)",
+  "analysisUnit": {
+    "scope": "area",
+    "label": "도심 한 구역의 공영주차장 묶음",
+    "notDistrict": true,
+    "rationale": "주차장 1~12곳을 한 줄로 늘어선 것으로 본다. 도로망 · 실제 좌표가 없어 도시 전체나 노상 주차는 표현하지 못한다.",
+    "coherence": "기본 4곳 × 80면 = 320면에 하루 900대(평균 체류 약 4시간)면 수요가 공급의 약 80% 로, 출근 · 점심 시간대에 만차가 생기는 구간이다.",
+    "matchKeys": ["도심", "시내", "한 구역", "상업지역", "번화가", "구도심", "역 주변", "동네", "상가 주변"]
+  },
+  "populationTypes": [
+    {"key": "Commuter", "matchKeys": ["출퇴근", "직장인", "통근", "출근"], "model": "08:15 ± 30분 도착, 약 9시간 체류, 요금 민감도 낮음"},
+    {"key": "Shopper", "matchKeys": ["쇼핑", "장보기", "상가 이용", "쇼핑객"], "model": "11~19시 고르게 도착, 약 1.5시간 체류, 요금 민감도 높음"},
+    {"key": "Visitor", "matchKeys": ["방문객", "방문", "관광객", "민원인"], "model": "10~17시 고르게 도착, 약 2시간 체류"},
+    {"key": "Resident", "matchKeys": ["거주자", "주민", "야간 주차", "입주민"], "model": "19:00 ± 45분 도착, 다음날 07:30 무렵 출차"}
+  ],
+  "sesDigest": {
+    "sesId": "pohang-parking-ses",
+    "sesVersion": "1.0.0",
+    "entities": ["주차장 집합", "주차장", "이용자 집합", "안내 체계", "도로 혼잡 결합", "실험 프레임"],
+    "decisionPoints": [
+      {"path": "주차장집합", "kind": "MULTI_ASPECT", "field": "lotCount", "range": {"min": 1, "max": 12}, "default": 4},
+      {"path": "주차장집합/주차장/면수", "kind": "ATTRIBUTE", "field": "spacesPerLot", "range": {"min": 10, "max": 1000}, "default": 80},
+      {"path": "주차장집합/주차장/요금정책", "kind": "SPECIALIZATION", "field": "pricingPolicy", "choices": ["FLAT", "TIME_OF_DAY", "FREE"], "default": "FLAT"},
+      {"path": "주차장집합/주차장/요금정책/기본요금", "kind": "ATTRIBUTE", "field": "baseFeePer30Min", "generateWhen": "pricingPolicy != FREE", "default": 500},
+      {"path": "주차장집합/주차장/요금정책/시간대할증", "kind": "ATTRIBUTE", "field": "peakSurchargeRate", "generateWhen": "pricingPolicy == TIME_OF_DAY", "default": null},
+      {"path": "이용자집합/이용자구성", "kind": "SPECIALIZATION", "field": "userMix", "choices": ["Commuter", "Shopper", "Visitor", "Resident"], "default": ["Commuter", "Shopper", "Visitor"]},
+      {"path": "주차장집합/주차장/거주자우선구획", "kind": "ATTRIBUTE", "field": "residentPriorityShare", "generateWhen": "Resident ∈ userMix", "default": null},
+      {"path": "이용자집합", "kind": "MULTI_ASPECT", "field": "dailyArrivals", "range": {"min": 1, "max": 20000}, "default": 900},
+      {"path": "안내체계/안내방식", "kind": "SPECIALIZATION", "field": "guidanceMode", "choices": ["NONE", "STATIC_SIGN", "REALTIME_APP"], "generateWhen": "lotCount >= 2", "default": "NONE"},
+      {"path": "안내체계/갱신주기", "kind": "ATTRIBUTE", "field": "guidanceRefreshMinutes", "generateWhen": "lotCount >= 2 && guidanceMode == REALTIME_APP", "default": 5},
+      {"path": "도로혼잡결합", "kind": "COUPLING_CONDITION", "field": "congestionEnabled", "default": false},
+      {"path": "도로혼잡결합/프로파일", "kind": "ATTRIBUTE", "field": "congestionProfileId", "generateWhen": "congestionEnabled", "default": "weekday-downtown"},
+      {"path": "이용자집합/이용자/탐색포기시간", "kind": "ATTRIBUTE", "field": "maxSearchMinutes", "range": {"min": 1, "max": 60}, "default": null},
+      {"path": "실험프레임/기간", "kind": "ATTRIBUTE", "field": "days", "range": {"min": 1, "max": 90}, "default": 14},
+      {"path": "실험프레임/반복", "kind": "ATTRIBUTE", "field": "seeds", "range": {"min": 1, "max": 100}, "default": 30}
+    ]
+  },
+  "applicability": {
+    "spatialScale": {"lots": {"min": 1, "max": 12, "default": 4}, "spacesPerLot": {"min": 10, "max": 1000, "default": 80}},
+    "period": {"days": {"min": 1, "max": 90, "default": 14}},
+    "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
+    "environment": ["road-congestion", "guidance", "pricing", "resident-priority"],
+    "answerableQuestions": ["search-time", "give-up", "occupancy", "pricing-effect", "guidance-effect", "resident-priority", "lot-count", "congestion-effect"],
+    "scenarioTypes": ["guidance-compare", "pricing-compare", "capacity-sweep", "demand-sweep", "user-mix"],
+    "tools": [
+      {"name": "get_templates", "what": "서브태스크 템플릿", "status": "OK"},
+      {"name": "plan_subtasks", "what": "생성 조건 평가", "status": "OK"},
+      {"name": "validate_answers", "what": "답변 계약 대조", "status": "OK"},
+      {"name": "build_scenario", "what": "실행 설정 N벌 생성 · 검증", "status": "OK"},
+      {"name": "get_scenario_status", "what": "확인 상태 · 토큰 읽기", "status": "OK"},
+      {"name": "run_scenario_by_token", "what": "확인된 시나리오 실행", "status": "OK"}
+    ],
+    "environmentMatchKeys": [
+      {"key": "road-congestion", "matchKeys": ["혼잡", "교통", "도로 혼잡", "정체", "퇴근길", "출근길", "평일", "주말"]},
+      {"key": "guidance", "matchKeys": ["실시간", "안내판", "주차 안내", "앱"]},
+      {"key": "pricing", "matchKeys": ["요금", "유료", "무료", "할증", "차등"]},
+      {"key": "resident-priority", "matchKeys": ["거주자 우선", "거주자 구획", "거주자 전용"]}
+    ],
+    "objectiveMatchKeys": [
+      {"key": "search-time", "label": "주차 탐색 시간", "matchKeys": ["찾는 시간", "탐색", "배회", "주차 찾", "주차장 찾", "자리 찾"]},
+      {"key": "give-up", "label": "주차 포기 차량", "matchKeys": ["포기", "못 대", "주차 못", "돌아가"]},
+      {"key": "occupancy", "label": "주차장 혼잡도 · 점유율", "matchKeys": ["혼잡도", "점유율", "만차", "빈자리", "얼마나 차"]},
+      {"key": "pricing-effect", "label": "요금 정책 효과", "matchKeys": ["요금", "할증", "차등", "유료화", "무료"]},
+      {"key": "guidance-effect", "label": "안내 방식 효과", "matchKeys": ["안내", "실시간 앱", "안내판", "앱"]},
+      {"key": "resident-priority", "label": "거주자 우선 구획 효과", "matchKeys": ["거주자 우선", "거주자 구획"]},
+      {"key": "lot-count", "label": "주차장 수 · 면수", "matchKeys": ["몇 곳", "주차장 수", "면수", "증설", "더 지으"]}
+    ]
+  },
+  "quality": {
+    "fidelity": "event-driven-stochastic",
+    "engine": "우선순위 큐 기반 이산사건 시뮬레이션 (DEVS 형식 모델 아님)",
+    "calibration": [
+      {"what": "이용자 유형별 도착 시각 · 체류 시간", "source": "가정값", "measured": false},
+      {"what": "요금 민감도", "source": "가정값", "measured": false},
+      {"what": "주차장 배치 · 주차장 사이 이동시간(3분 간격)", "source": "가정값 — 한 줄 배치", "measured": false},
+      {"what": "목적지 분포 · 실시간 앱 우회 거리", "source": "가정값 — 1번(중심 상권) 쪽 가중 1/(i+1), 앱 이용자는 첫 우회 거리의 절반", "measured": false},
+      {"what": "도로 혼잡 배수", "source": "가정값 프로파일 2종", "measured": false}
+    ]
+  },
+  "resultFields": {
+    "judgement": ["meanSearchMinutesAll", "stdSearchMinutesAll", "meanSearchMinutesParked", "stdSearchMinutesParked", "giveUpsPerDay", "stdGiveUpsPerDay", "giveUpRate", "byUserType"],
+    "judgementNote": "탐색 시간은 meanSearchMinutesAll(주차 + 포기)로 비교한다. Parked 는 포기가 많을수록 오래 찾던 차가 빠져 낮게 나온다",
+    "explanation": ["peakOccupancyRatio", "lotPeakOccupancy", "hourlyOccupancy", "fullMinutesPerLotPerDay", "priceAvoidedPerDay"],
+    "reference": ["revenuePerDay", "interLotMovesPerDay"],
+    "integrity": ["seeds", "vehicleBalanceErrorMax", "allGiveUps", "dataQualityFlags", "assumptionNotes"],
+    "note": "reference 항목은 요금 민감도 · 주차장 배치 가정에 크게 기대므로 판정 근거로 쓰지 않는다"
+  },
+  "cost": {"currency": "none", "perRun": 0, "compute": "local"},
+  "performance": {"model": "lotCount × dailyArrivals × days × seeds 에 비례", "typicalSeconds": 2, "maxSeconds": 120},
+  "conditional": [
+    {"capability": "안내 방식 비교", "requires": "lotCount >= 2", "ifUnmet": "DO_NOT_GENERATE", "message": "주차장이 한 곳이면 다른 곳으로 안내할 수 없어 안내 방식이 결과를 바꾸지 않습니다."},
+    {"capability": "시간대 차등 요금", "requires": "peakSurchargeRate 명시", "ifUnmet": "REJECT", "message": "할증률을 정하지 않으면 실행하지 않습니다 — 0% 로 조용히 돌리지 않습니다."},
+    {"capability": "거주자 이용", "requires": "residentPriorityShare 명시", "ifUnmet": "REJECT", "message": "거주자가 있으면 우선 구획 비율(0 포함)을 정해야 합니다."},
+    {"capability": "탐색 포기", "requires": "maxSearchMinutes 명시", "ifUnmet": "REJECT", "message": "운전자가 언제 포기하는지는 결과를 크게 바꾸므로 기본값을 두지 않습니다."}
+  ],
+  "unsupported": [
+    {"code": "UNSUPPORTED_METRIC", "capability": "비용편익 · 건설비 산출", "matchKeys": ["건설비", "공사비", "비용편익", "예산", "투자"], "reasonType": "NOT_IN_MODEL", "reason": "주차장 건설 · 운영 비용 항이 모델에 없다", "alternatives": ["metric:giveUps", "metric:searchTime", "metric:revenue"], "message": "건설비 · 비용편익은 산출하지 않습니다. 포기 차량 · 탐색 시간 · 요금 수입(참고)으로 비교하실 수 있습니다."},
+    {"code": "UNSUPPORTED_SCOPE", "capability": "노상 · 불법 주차", "matchKeys": ["노상", "불법 주차", "불법주차", "갓길", "단속"], "reasonType": "NOT_IN_MODEL", "reason": "노외 공영주차장만 표현한다", "alternatives": ["공영주차장 면수 · 요금 변경"], "message": "노상 · 불법 주차는 다루지 않습니다. 공영주차장 면수와 요금을 바꿔 보는 실험은 할 수 있습니다."},
+    {"code": "UNSUPPORTED_SCALE", "capability": "도시 전체 · 실제 지도", "matchKeys": ["도시 전체", "포항 전체", "시 전체", "지도", "길안내", "실제 위치"], "reasonType": "NO_DATA", "reason": "실제 주차장 좌표와 도로망이 없다 — 주차장을 한 줄로 늘어선 것으로 가정한다", "alternatives": ["도심 한 구역 1~12곳"], "message": "도시 전체나 실제 지도 위 길안내는 할 수 없습니다. 도심 한 구역의 주차장 1~12곳으로 실험하실 수 있습니다."},
+    {"code": "UNSUPPORTED_FEATURE", "capability": "전기차 충전", "matchKeys": ["전기차", "충전"], "reasonType": "NOT_IN_MODEL", "reason": "충전면 · 충전 시간 항이 없다", "alternatives": [], "message": "전기차 충전은 모델에 없습니다."},
+    {"code": "UNSUPPORTED_METRIC", "capability": "실시간 운영 예측", "matchKeys": ["지금 빈자리", "실시간 예측", "오늘 몇 시"], "reasonType": "OUT_OF_SCOPE", "reason": "실측 입력이 없는 설정 비교 실험이다", "alternatives": ["설정 간 비교"], "message": "실제 지금의 빈자리를 예측하지 않습니다. 설정을 바꿔 가며 비교하는 실험입니다."}
+  ],
+  "neverDo": [
+    "기본값이 없는 값(할증률 · 거주자 우선 비율 · 탐색 포기 시간)을 대신 채워 실행한다",
+    "혼잡을 반영하라고 했는데 프로파일이 없을 때 조용히 끈다",
+    "잘못된 선택지를 가까운 값으로 보정한다",
+    "사용자가 승인하지 않은 설정으로 실행한다"
+  ],
+  "alwaysAttachToResult": [
+    "dataQualityFlags — DEMAND_ASSUMED · LOT_LAYOUT_ASSUMED · CONGESTION_ASSUMED",
+    "assumptionNotes — 기본값으로 승인된 값, PES 에 없어 초기값으로 돈 값",
+    "vehicleBalanceErrorMax — 도착 = 주차 + 포기 + 요금 회피 + 탐색 중 인지",
+    "seeds, allGiveUps — 재현 정보",
+    "전제: 이용자 도착 분포 · 체류 · 요금 민감도는 가정값이다",
+    "한계: 주차장은 한 줄로 늘어선 것으로 가정하며 실제 좌표 · 도로망이 아니다",
+    "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
+  ]
+}
