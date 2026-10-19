@@ -112,7 +112,10 @@ public class BrokerMcpController {
             callLog.info("[브로커] 알 수 없는 도구: {}", name);
             return textResult("알 수 없는 도구: " + name, true);
         }
-        ToolResult tr = tool.call(params.path("arguments"));
+        JsonNode arguments = params.path("arguments");
+        // 다른 병렬 호출이 실행 도중 만든 연결을 이 요청의 과거 이력으로 보이면 안 된다.
+        var previous = sessions.handedOff(session, arguments);
+        ToolResult tr = tool.call(arguments);
         if (!tr.ready()) {
             callLog.info("[브로커] {} → 거절: {}", name, tr.errors());
             return textResult("검증 실패: " + mapper.writeValueAsString(tr.errors()), true);
@@ -123,36 +126,37 @@ public class BrokerMcpController {
         // 문자열이 되어 클라이언트가 두 번 풀어야 한다.
         Object result = tr.result();
         String text = result instanceof String s ? s : mapper.writeValueAsString(result);
-        if ("find_simulators".equals(name)) text = rememberHandOff(text, session);
+        if ("find_simulators".equals(name)) text = rememberHandOff(text, session, arguments, previous);
         return textResult(text, false);
     }
 
     /**
-     * 이 대화가 이미 어느 시뮬레이터로 넘어갔는지 알리고, 이번에 넘겨주면 기억한다.
+     * 같은 세션의 같은 조회 조건으로 연결한 이력을 알리고, 이번 연결도 기억한다.
      *
      * <p>다시 조회해도 막지 않는다 — 같은 대화에서 전혀 다른 시뮬레이션을 새로 물을 수도 있다.
      * 알려 주면 LLM 이 되풀이인지 새 요청인지 가를 수 있고, 로그에 남으면 사람이 볼 수 있다.
      */
-    private String rememberHandOff(String text, String session) throws Exception {
+    private String rememberHandOff(String text, String session, JsonNode arguments,
+                                   java.util.Optional<String[]> previous) throws Exception {
         if (session == null || session.isBlank()) return text;
         ObjectNode body = (ObjectNode) mapper.readTree(text);
-        sessions.handedOff(session).ifPresent(prev -> {
+        previous.ifPresent(prev -> {
             callLog.info("[브로커] 이미 {} 로 연결된 대화에서 다시 조회했습니다 — 이번 판정 {}",
                     prev[0], body.path("verdict").asText());
             ObjectNode p = body.putObject("previousMatch");
             p.put("serverId", prev[0]);
             p.put("endpoint", prev[1]);
-            p.put("note", "이 대화는 이미 이 서버로 넘어갔습니다. 같은 시뮬레이션이면 브로커를 다시 부르지 말고 "
-                    + "이 서버를 계속 쓰십시오. 전혀 다른 시뮬레이션이면 이번 판정을 따르십시오.");
+            p.put("note", "이 세션에서 같은 조회 조건으로 이미 이 서버를 안내했습니다. "
+                    + "같은 시뮬레이션을 계속하는 경우 이 서버를 쓰십시오. 새 실험이면 이번 판정을 따르십시오.");
         });
         String verdict = body.path("verdict").asText();
         if ("MATCH".equals(verdict)) {
             JsonNode rec = body.path("recommended");
-            sessions.handOff(session, rec.path("serverId").asText(), rec.path("endpoint").asText());
+            sessions.handOff(session, arguments, rec.path("serverId").asText(), rec.path("endpoint").asText());
         } else if ("CHOOSE".equals(verdict) && body.path("differences").isEmpty()) {
             // 차이가 없으면 브로커가 첫 서버로 보냈다. 차이가 있으면 사용자가 고르므로 어디로 갔는지 모른다.
             JsonNode first = body.path("candidates").path(0);
-            sessions.handOff(session, first.path("serverId").asText(), first.path("endpoint").asText());
+            sessions.handOff(session, arguments, first.path("serverId").asText(), first.path("endpoint").asText());
         }
         return mapper.writeValueAsString(body);
     }
