@@ -30,7 +30,8 @@ class RunScenarioByTokenToolTest {
     private final ScenarioStore store = new ScenarioStore();
     private final ScenarioBuilder builder = new ScenarioBuilder(
             new PesFlattener(catalog), new PesBackVerifier(catalog),
-            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
+            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
+            new com.wastesim.template.SubtaskPlanner(catalog));
     private final BuildScenarioTool buildTool =
             new BuildScenarioTool(builder, store, catalog, mapper);
     private final ConfirmScenarioTool confirmTool =
@@ -50,6 +51,9 @@ class RunScenarioByTokenToolTest {
         values.put("days", 10);
         values.put("seeds", 3);
         values.put("trafficMode", "IGNORE");
+        values.put("travelTimeMode", "LEGACY_CONSTANT");
+        values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        values.put("routeAvailableCapacityKg", 150);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360).add(1080);
         var built = mapper.readTree(buildTool.call(args).result().toString());
@@ -67,6 +71,12 @@ class RunScenarioByTokenToolTest {
         values.put("numBuildings", 4);
         values.put("days", 7);
         values.put("seeds", 2);
+        values.put("truckType", "SMALL_1TON");
+        values.put("residentsPerBuilding", 25);
+        values.put("trafficMode", "IGNORE");
+        values.put("travelTimeMode", "LEGACY_CONSTANT");
+        values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        values.put("routeAvailableCapacityKg", 150);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(540);
         return mapper.readTree(buildTool.call(args).result().toString())

@@ -33,7 +33,8 @@ class ExecutionConfirmationTest {
     private final ScenarioStore store = new ScenarioStore();
     private final ScenarioBuilder builder = new ScenarioBuilder(
             new PesFlattener(catalog), new PesBackVerifier(catalog),
-            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
+            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
+            new com.wastesim.template.SubtaskPlanner(catalog));
     private final ExecutionConfirmation gate = new ExecutionConfirmation(store, builder);
 
     /** 시나리오를 하나 만들고 확인까지 마친 뒤 토큰을 돌려준다. */
@@ -45,6 +46,12 @@ class ExecutionConfirmationTest {
         values.put("numBuildings", 4);
         values.put("days", 7);
         values.put("seeds", 2);
+        values.put("truckType", "SMALL_1TON");
+        values.put("residentsPerBuilding", 25);
+        values.put("trafficMode", "IGNORE");
+        values.put("travelTimeMode", "LEGACY_CONSTANT");
+        values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        values.put("routeAvailableCapacityKg", 150);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(720);
         String id = mapper.readTree(build.call(args).result().toString()).path("scenarioId").asText();
@@ -62,6 +69,12 @@ class ExecutionConfirmationTest {
         args.put("days", 7);
         args.put("seeds", 2);
         args.put("collectionTime", "12:00");
+        // 확인한 PES 에는 물어야 할 결정이 모두 들어 있다 — 기존 도구 인자도 같은 값이어야 같은 설정이다.
+        args.put("truckType", "SMALL_1TON");
+        args.put("residentsPerBuilding", 25);
+        args.put("travelTimeMode", "LEGACY_CONSTANT");
+        args.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        args.put("routeAvailableCapacityKg", 150);
         return args;
     }
 

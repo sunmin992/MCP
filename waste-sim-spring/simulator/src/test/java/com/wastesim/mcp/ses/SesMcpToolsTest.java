@@ -28,7 +28,8 @@ class SesMcpToolsTest {
     private BuildScenarioTool buildTool() {
         ScenarioBuilder builder = new ScenarioBuilder(
                 new PesFlattener(catalog), new PesBackVerifier(catalog),
-                new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
+                new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
+            new com.wastesim.template.SubtaskPlanner(catalog));
         return new BuildScenarioTool(builder, new ScenarioStore(), catalog, mapper);
     }
 
@@ -94,7 +95,8 @@ class SesMcpToolsTest {
         ScenarioStore store = new ScenarioStore();
         ScenarioBuilder builder = new ScenarioBuilder(
                 new PesFlattener(catalog), new PesBackVerifier(catalog),
-                new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
+                new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
+            new com.wastesim.template.SubtaskPlanner(catalog));
         var tool = new BuildScenarioTool(builder, store, catalog, mapper);
 
         var args = mapper.createObjectNode();
@@ -105,6 +107,10 @@ class SesMcpToolsTest {
         values.put("days", 30);
         values.put("seeds", 30);
         values.put("trafficMode", "IGNORE");
+        values.put("residentsPerBuilding", 25);
+        values.put("travelTimeMode", "LEGACY_CONSTANT");
+        values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        values.put("routeAvailableCapacityKg", 150);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360).add(720).add(1080);
 
@@ -126,6 +132,12 @@ class SesMcpToolsTest {
         values.put("truckCount", 1);
         values.put("numBuildings", 4);
         values.put("trafficMode", "IGNORE");
+        values.put("residentsPerBuilding", 25);
+        values.put("travelTimeMode", "LEGACY_CONSTANT");
+        values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        values.put("routeAvailableCapacityKg", 150);
+        values.put("days", 7);
+        values.put("seeds", 2);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(720).add(1500);
 
@@ -152,6 +164,14 @@ class SesMcpToolsTest {
         var values = args.putObject("values");
         values.put("truckCount", 1);
         values.put("numBuildings", 4);
+        values.put("truckType", "SMALL_1TON");
+        values.put("residentsPerBuilding", 25);
+        values.put("trafficMode", "IGNORE");
+        values.put("travelTimeMode", "LEGACY_CONSTANT");
+        values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
+        values.put("routeAvailableCapacityKg", 150);
+        values.put("days", 7);
+        values.put("seeds", 2);
         args.put("variableAnswerKey", "days");
         args.putArray("variableValues").add(30);
 

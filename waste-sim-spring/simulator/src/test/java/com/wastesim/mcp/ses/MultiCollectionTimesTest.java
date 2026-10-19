@@ -34,7 +34,8 @@ class MultiCollectionTimesTest {
     private final ScenarioStore store = new ScenarioStore();
     private final ScenarioBuilder builder = new ScenarioBuilder(
             new PesFlattener(catalog), new PesBackVerifier(catalog),
-            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
+            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
+            new com.wastesim.template.SubtaskPlanner(catalog));
     private final BuildScenarioTool build = new BuildScenarioTool(builder, store, catalog, mapper);
     private final PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper);
     private final ValidateAnswersTool validate =

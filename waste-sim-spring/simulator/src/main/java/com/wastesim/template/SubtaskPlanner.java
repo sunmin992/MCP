@@ -23,6 +23,14 @@ public class SubtaskPlanner {
     }
 
     public SubtaskPlan plan(Map<String, Object> answers) {
+        return plan(answers, Map.of());
+    }
+
+    /**
+     * @param origins 답변키 → 출처. 받은 것만 그대로 싣는다. 적혀 오지 않은 값의 출처는 비워 둔다 —
+     *                "사용자가 말했다" 고 넘겨짚으면 기본값으로 채운 값과 구별되지 않는다.
+     */
+    public SubtaskPlan plan(Map<String, Object> answers, Map<String, String> origins) {
         List<SubtaskInstance> out = new ArrayList<>();
         for (SubtaskTemplate t : catalog.all()) {
             Activation activation = t.generateWhen().evaluate(answers);
@@ -33,7 +41,7 @@ public class SubtaskPlanner {
                         ? SubtaskStatus.FILLED : SubtaskStatus.UNFILLED;
             };
             Object value = status == SubtaskStatus.FILLED ? answers.get(t.answerKey()) : null;
-            String origin = status == SubtaskStatus.FILLED ? "USER" : null;
+            String origin = status == SubtaskStatus.FILLED ? origins.get(t.answerKey()) : null;
             out.add(new SubtaskInstance(
                     t.templateId(), t.answerKey(), status, value, origin, t.question()));
         }

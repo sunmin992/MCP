@@ -24,7 +24,8 @@ class ScenarioBuilderTest {
     private final ScenarioBuilder builder = new ScenarioBuilder(
             new PesFlattener(catalog),
             new PesBackVerifier(catalog),
-            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
+            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
+            new com.wastesim.template.SubtaskPlanner(catalog));
 
     private Pes basePes() {
         Map<String, Object> v = new LinkedHashMap<>();
@@ -37,6 +38,8 @@ class ScenarioBuilderTest {
         v.put("trafficMode", "IGNORE");
         v.put("travelTimeMode", "LEGACY_CONSTANT");
         v.put("dispatchIntervalMinutes", 15);
+        v.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
+        v.put("routeAvailableCapacityKg", 150);
         Map<String, String> origins = new LinkedHashMap<>();
         v.keySet().forEach(k -> origins.put(k, "USER"));
         return new Pes("jangnyang-ses", "1.0.0", v, origins);

@@ -1,6 +1,9 @@
 package com.wastesim.pes;
 
 import com.wastesim.model.SimulationConfig;
+import com.wastesim.template.SubtaskInstance;
+import com.wastesim.template.SubtaskPlanner;
+import com.wastesim.template.SubtaskStatus;
 import com.wastesim.tool.SimulationConfigValidator;
 import com.wastesim.tool.ValidationError;
 import com.wastesim.tool.ValidationResult;
@@ -23,6 +26,11 @@ import java.util.Objects;
  *
  * <p>범위 검증은 {@link SimulationConfigValidator}에 위임한다. 새 검증기가 범위를 다시
  * 정의하면 두 곳이 갈라지고, 갈라진 뒤에는 어느 쪽이 정본인지 알 수 없다.
+ *
+ * <p><b>서브태스크 완결은 서버가 다시 센다.</b> 실행 설정마다(실험 변수 값을 넣은 PES 로) 생성 조건을
+ * 평가해, 물어야 할 결정이 비어 있거나 판정이 보류된 채면 막는다. LLM 이 {@code plan_subtasks} 의
+ * {@code complete} 를 건너뛰고 불러도 빠진 값이 실행 설정의 초기값으로 조용히 돌지 않게 하기 위해서다.
+ * 실행 설정마다 따로 세는 이유는, 실험 변수에 따라 생기는 결정이 다르기 때문이다(차량 1대와 3대).
  */
 @Component
 public class ScenarioBuilder {
@@ -30,13 +38,16 @@ public class ScenarioBuilder {
     private final PesFlattener flattener;
     private final PesBackVerifier backVerifier;
     private final SimulationConfigValidator validator;
+    private final SubtaskPlanner planner;
 
     public ScenarioBuilder(PesFlattener flattener,
                            PesBackVerifier backVerifier,
-                           SimulationConfigValidator validator) {
+                           SimulationConfigValidator validator,
+                           SubtaskPlanner planner) {
         this.flattener = flattener;
         this.backVerifier = backVerifier;
         this.validator = validator;
+        this.planner = planner;
     }
 
     public Scenario build(Pes pes, ExperimentFrame frame) {
@@ -53,6 +64,14 @@ public class ScenarioBuilder {
             Map<String, String> origins = new LinkedHashMap<>(pes.origins());
             origins.putIfAbsent(frame.variableAnswerKey(), "USER");
             Pes runPes = new Pes(pes.sesId(), pes.sesVersion(), values, origins);
+
+            for (SubtaskInstance missing : planner.plan(values).instances()) {
+                if (missing.status() == SubtaskStatus.UNFILLED || missing.status() == SubtaskStatus.DEFERRED) {
+                    blocks.add(frame.variableAnswerKey() + "=" + value + ": 정해지지 않은 결정 "
+                            + missing.answerKey() + " — " + missing.question()
+                            + " (사용자가 기본값을 받아들였으면 그 값을 MODEL_DEFAULT 출처로 넣으십시오)");
+                }
+            }
 
             SimulationConfig cfg = flattener.flatten(runPes);
             runs.add(cfg);

@@ -43,7 +43,9 @@ public class PlanSubtasksTool implements McpToolProvider {
             {"type":"object",
              "properties":{
                "answers":{"type":"object",
-                 "description":"답변키 → 확정값. 예: {\\"numBuildings\\":4,\\"truckCount\\":3}"}},
+                 "description":"답변키 → 확정값. 예: {\\"numBuildings\\":4,\\"truckCount\\":3}"},
+               "origins":{"type":"object",
+                 "description":"(선택) 답변키 → USER / MODEL_DEFAULT / DERIVED. 주면 인스턴스에 그대로 싣고, 주지 않으면 출처를 비워 둔다. 규칙은 build_scenario 설명을 따른다"}},
              "required":["answers"]}
             """;
     }
@@ -54,7 +56,10 @@ public class PlanSubtasksTool implements McpToolProvider {
             Map<String, Object> answers = new LinkedHashMap<>();
             args.path("answers").fields().forEachRemaining(
                     e -> answers.put(e.getKey(), JsonValues.plain(e.getValue())));
-            SubtaskPlan plan = planner.plan(answers);
+            Map<String, String> origins = new LinkedHashMap<>();
+            args.path("origins").fields().forEachRemaining(
+                    e -> origins.put(e.getKey(), e.getValue().asText().trim().toUpperCase(java.util.Locale.ROOT)));
+            SubtaskPlan plan = planner.plan(answers, origins);
 
             var root = mapper.createObjectNode();
             root.set("instances", mapper.valueToTree(plan.instances()));

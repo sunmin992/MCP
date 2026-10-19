@@ -43,7 +43,8 @@ class EndToEndSubtaskFlowTest {
     private final PesBackVerifier backVerifier = new PesBackVerifier(catalog);
     private final ScenarioBuilder builder = new ScenarioBuilder(
             flattener, backVerifier,
-            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()));
+            new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
+            new com.wastesim.template.SubtaskPlanner(catalog));
 
     /** 사용자가 "1톤 3대, 주택 4동 25세대, 30일" 이라고 답한 상태. */
     private Map<String, Object> answersFromUser() {

@@ -35,7 +35,8 @@ class McpControllerTest {
                         new com.wastesim.pes.ScenarioBuilder(
                                 new com.wastesim.pes.PesFlattener(new com.wastesim.template.TemplateCatalog()),
                                 new com.wastesim.pes.PesBackVerifier(new com.wastesim.template.TemplateCatalog()),
-                                new SimulationConfigValidator(new TrafficDataService()))),
+                                new SimulationConfigValidator(new TrafficDataService()),
+                                new com.wastesim.template.SubtaskPlanner(new com.wastesim.template.TemplateCatalog()))),
                 new McpCallLog(new com.fasterxml.jackson.databind.ObjectMapper()));
     }
 
