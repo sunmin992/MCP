@@ -1,0 +1,46 @@
+{
+  "id": "R05-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "동네", "objective": "적당한 수거차 대수", "comparisonAxes": ["수거차 대수"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional=true, example.invalid)도 있었으나 candidates 에서는 빠짐. differences: region / unit(행정동 전체 구역 집계 vs 원룸촌 한 블록) / calibration"
+    }
+  ],
+  "userChoice": "bukgu-district-waste-sim (행정동 전체로 볼게)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_capability",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "어느 시뮬레이터를 쓸까요? 포항 북구 행정동 전체(구역 집계, 수거 요일·배출 창 보정) vs 장량동 원룸촌 한 블록(교통 지체·실측 교통량 보정)",
+    "시나리오 설정 묶음: 비교할 수거차 대수(1~20)는? 구역 수(1~40, 기본 8)·구역당 세대수(50~5000, 기본 600)·주거 유형 구성(기본 아파트/단독/원룸)·차종(기본 5톤)·수거 일정(기본 포항 북구 월화목금)·공휴일 반영 여부(기본 안 함)·적환장 사용 여부(기본 안 씀)·수거 시작 시각(기본 06:00)·기간(7~365일, 기본 28)·반복 횟수(1~100, 기본 30)는?",
+    "차량이 2대 이상인 설정에서 구역을 차량에 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게)"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-17dc8f34",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "housingMix": ["Apartment", "Detached", "Studio"],
+    "truckType": "LARGE_5TON",
+    "scheduleMode": "POHANG_BUKGU",
+    "zoneCount": 8,
+    "collectionStartMinutes": 360,
+    "zoneAllocation": "EQUAL_COUNT",
+    "householdsPerZone": 600
+  },
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED, 실행 설정 3벌: truckCount 1/2/3). get_scenario_status 로 확인 화면 주소(http://localhost:8091/confirm.html)를 얻었고, 확인은 사람만 하므로 멈춤",
+  "difficulties": "1) zoneAllocation 은 min(zoneCount, truckCount)>=2 일 때만 생기는데, 비교 변수 truckCount 가 1/2/3 이라 설정마다 생성 여부가 다르다. plan_subtasks 는 truckCount 한 값만 받으므로 2로 넣어 계산했고, 그래서 구역 배정 질문이 별도 3번째 질문으로 늦게 나왔다(변수값 전체를 보고 한 번에 물을 방법이 안내되지 않음). 2) 브로커 응답에서 candidates(2개)와 matches(3개, 가상 서버 포함)가 달라 어느 쪽을 사용자에게 보여야 하는지 잠시 헷갈렸다 — candidates 기준으로 함. 3) confirmUrl 에 scenarioId 가 들어 있지 않아 사람이 어느 시나리오를 확인하는지 화면에서 고르는지 불분명. 4) 사용자가 '기간·반복'을 말했으므로 days/seeds 는 USER, 공휴일·적환장 IGNORE 도 USER 로 적었다."
+}

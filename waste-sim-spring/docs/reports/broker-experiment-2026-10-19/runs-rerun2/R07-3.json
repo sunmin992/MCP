@@ -1,0 +1,35 @@
+{
+  "id": "R07-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "spatialScale": "도심 공영주차장 4곳", "objective": "실시간 안내 앱 도입 시 주차장 찾느라 배회하는 것이 줄어드는지", "comparisonAxes": ["실시간 안내 앱 도입 여부"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "matchCount 1, mismatches/requestAdjustments 없음. endpoint http://localhost:8092/mcp"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "endpointCalled": "http://localhost:8092/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    "묶음 1: 비교할 것이 '안내 없음 vs 실시간 앱'이 맞나요? / 주차장 한 곳의 면수는? / 요금 방식(균일·시간대 차등·무료)과 30분당 기본요금은? / 이용자 구성(출퇴근·쇼핑·방문·거주자)은? / 하루 도착 차량 수는? / 실시간 앱 갱신 주기(분)는? / 주변 도로 혼잡을 이동시간에 반영할까요? / 운전자는 몇 분까지 찾다가 포기하나요?(기본값 없음) / 며칠치를 몇 번 반복할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-8d334653",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {"dailyArrivals": 900, "userMix": ["Commuter", "Shopper", "Visitor"]},
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED, runCount 2). get_scenario_status 로 확인 화면 주소 http://localhost:8092/confirm.html 를 얻었고, 승인은 사람만 할 수 있어 멈춤.",
+  "difficulties": "lotCount=4 는 사용자 요청 문장에서 나왔으므로 USER 로 표시했다. baseFeePer30Min 은 첫 계획에서 DEFERRED(pricingPolicy 대기)였으나 같은 질문 묶음에서 요금 방식과 함께 물어 추가 질문 없이 풀었다 — 보류 항목을 같은 묶음에 넣어도 되는지 안내가 명확하지 않았다. 실험 변수 guidanceMode 의 origin 을 build_scenario origins 에 적어야 하는지(plan_subtasks 에서는 origin null 로 나옴) 설명이 없었다. validate_answers 는 실험 변수 값을 하나만 넣어 검증했다."
+}

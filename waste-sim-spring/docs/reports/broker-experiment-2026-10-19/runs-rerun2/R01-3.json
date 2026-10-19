@@ -1,0 +1,40 @@
+{
+  "id": "R01-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["평일 교통량"], "objective": "민원이 가장 적은 쓰레기 수거 시각", "comparisonAxes": ["수거 시각"], "population": ["학생이 많음"]},
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "jangnyang-waste-sim 이 mismatch 없이 추천됨(endpoint http://localhost:8090/mcp). 나머지 둘은 공간 규모·거주민·교통·목적 불일치, district-waste-sim 은 가상(fictional) 서버."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": [
+    "broker:find_simulators",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "비교할 수거 시각은 언제들인가요? 건물 동 수와 동당 세대 수는? 수거차량 크기와 대수는? 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg)은(기본값 없음)? 거주민 직업 구성은? 며칠치를 몇 번 반복할까요? 교통 프로파일(평일 실측/통행량 기반)과 이동시간 계산 방식(구간 상수/교통구역 근사)은?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-661afff6",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "truckCount": 1,
+    "numBuildings": 4,
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "truckType": "LARGE_5TON",
+    "trafficProfileId": "jangryang-weekday",
+    "residentsPerBuilding": 25
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 3: 09:00/12:00/15:00). get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 를 얻었고, 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "plan_subtasks 에 origins 를 주지 않으면 인스턴스 origin 이 null 로 나와 출처가 확인되지 않음(두 번째 호출에서 origins 를 생략함). 실험 변수(collectionTimeMinutes)의 출처를 build_scenario origins 에 넣어야 하는지 설명에 명시가 없어 USER 로 함께 넣었음. trafficMode=APPLY 는 '평일 교통량'에서 DERIVED 로 처리. validate_answers 는 원문 문자열을 받는다고 해서 occupationMix 를 쉼표 구분 문자열로 넣었는데 통과함 — 리스트 표기 형식이 설명에 없음."
+}

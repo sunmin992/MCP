@@ -1,0 +1,41 @@
+{
+  "id": "R02-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "장량동 전체 아파트 단지", "objective": "격일 수거와 매일 수거 비교", "comparisonAxes": ["수거 주기(격일 vs 매일)"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3. district-waste-sim 은 fictional(example.invalid). jangnyang-waste-sim 은 분석 단위(원룸촌 한 블록, 수거 지점 26개 상한) 불일치로 ADJUST 제안. nextStep 에 따라 브로커 재호출 없이 8091 로 이동."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "[묶음1] 구역 수(1~40)와 구역당 세대수(50~5000)는? / 주거 유형 구성(아파트·단독·원룸·상가)은? / 수거차량 크기(5톤·2.5톤·1톤)와 대수(1~20)는? / 공휴일(추석 연휴 포함) 수거 휴무를 반영할까요? / 적환장을 쓸까요? / 수거 시작 시각은? / 기간(7~365일)과 반복 횟수(1~100회)는?",
+    "[묶음2] 차량 2대에 구역을 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게)"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-490d77bb",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "householdsPerZone": 600,
+    "zoneAllocation": "EQUAL_COUNT",
+    "collectionStartMinutes": 360,
+    "zoneCount": 8
+  },
+  "stoppedBecause": "build_scenario 가 UNCONFIRMED 로 통과했고 get_scenario_status 로 확인 화면 주소(http://localhost:8091/confirm.html)를 얻었다. 승인은 사람만 하므로 여기서 멈춘다.",
+  "difficulties": "실험 변수 scheduleMode 는 ALTERNATE(격일 월·수·금)와 DAILY(매일, 일요일 제외)로 정했다. '아파트가 대부분, 단독주택 조금'을 housingMix [Apartment x3, Detached] (8구역 중 아파트 6, 단독 2)로 옮기고 출처를 DERIVED 로 적었는데, 비율을 LLM 이 정한 것이라 USER/DERIVED 중 무엇이 맞는지 애매했다. zoneAllocation 은 truckCount 가 정해진 뒤에야 생성돼 질문이 한 번 더 필요했다. 사용자 요청의 '장량동 전체 아파트 단지'는 이 서버의 구역 수·세대수 기본값(8x600=4,800세대)과 실제 장량동 규모가 다를 수 있으나 사용자가 기본값을 택했다."
+}

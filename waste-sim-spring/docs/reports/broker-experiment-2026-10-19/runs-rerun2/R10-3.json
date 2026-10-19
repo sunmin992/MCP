@@ -1,0 +1,35 @@
+{
+  "id": "R10-3",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["공영주차장 주변 골목에 수거차가 못 들어감"], "objective": "수거가 늦어지는 문제 보기"}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "어느 서버도 골목 진입 조건과 '수거 지연' 목적을 다루지 않음. 쓰레기 서버는 조건 삭제·목적 변경(changesPurpose=false), 주차 서버는 도메인 변경(changesPurpose=true)을 제안. matches 에는 가상 서버 district-waste-sim 도 있었음"},
+    {"profileSent": {"domain": "쓰레기수거"}, "verdict": "CHOOSE", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "differences: 행정동 전체(구역 집계) vs 원룸촌 한 블록, 보정 근거 차이"}
+  ],
+  "userChoice": "ADJUST_REQUEST: 쓰레기 수거 쪽으로 볼게 (조건·목적 제거) / CHOOSE: 원룸촌 한 블록으로 → jangnyang-waste-sim",
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": ["broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:get_capability", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    "어떤 서버도 '공영주차장 주변 골목에 수거차가 못 들어감' 조건과 '수거 지연 보기' 목적을 그대로 다루지 못합니다. 쓰레기 수거 시뮬레이터로 조건을 빼고 수거 쪽 질문으로 바꾸거나, 주차장 시뮬레이터로 주차 문제를 보는 것(목적이 바뀜) 중 어떻게 고칠까요? → 쓰레기 수거 쪽으로 볼게",
+    "북구 행정동 시뮬레이터(행정동 전체 구역 집계) vs 장량동 시뮬레이터(원룸촌 한 블록, 교통 지체 실측 보정) 중 어느 쪽을 쓸까요? → 원룸촌 한 블록으로",
+    "(골목 진입 가능 여부는 수거 지점 미등록으로 판정 불가하다는 안내와 함께) 무엇을 바꿔 비교할지, 차종·차량 수·수거 시각·교통 반영·이동시간 방식·건물 수·동당 세대수·직업 구성·기간·반복 횟수, 블록 적재 몫(kg)을 어떻게 할까요? → 기본값으로 해줘",
+    "블록 적재 몫(routeAvailableCapacityKg)은 기본값이 없어 직접 정해야 합니다. 몇 kg으로 할까요? (150kg=가동률 60%, 100kg=90%) → 기본값으로 해줘"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-8efddc27",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "occupationMix": ["BlueCollar", "Student", "Housewife"],
+    "seeds": 30,
+    "routeAvailableCapacityKg": 150,
+    "truckCount": 1,
+    "trafficMode": "IGNORE",
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "collectionTimeMinutes": 720,
+    "days": 30,
+    "residentsPerBuilding": 25,
+    "numBuildings": 4,
+    "truckType": ["LARGE_5TON", "MEDIUM_2P5T", "SMALL_1TON"]
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 http://localhost:8090/confirm.html 을 얻음. 승인은 사람만 하므로 멈춤",
+  "difficulties": "1) 첫 브로커 호출의 suggestions 에는 가상 서버가 빠졌으나 matches 에는 들어 있어 두 목록이 달랐다. 2) 사용자의 핵심 관심사(골목 진입 불가)는 브로커에서 '카드에 적혀 있지 않음'으로만 나왔고, 실제로는 능력 카드 unsupported 에 '골목 진입 가능 여부 판정 — DATA_UNAVAILABLE'로 명시돼 있었다. 브로커가 이 unsupported 항목을 매칭에 쓰지 않아 사용자는 조건을 빼라는 안내만 받았다. 3) 실험 변수(variableAnswerKey)를 무엇으로 할지에 대한 템플릿·기본값이 없어, 사용자가 '기본값'이라 답했을 때 LLM 이 truckType(alleyAccess 속성과 가장 가까움)을 임의로 골랐다. 4) routeAvailableCapacityKg 는 mustAskNoDefault 인데 사용자가 '기본값으로'라고 답하면 쓸 값이 없다 — 도구 안내의 예시값 150kg 을 MODEL_DEFAULT 로 넣었다. 이 경우 어떻게 할지 안내가 없었다. 5) truckType 처럼 실험 변수로 준 키에 origins 를 적어야 하는지 불분명했다(적었고 unapprovedDefaults 에 포함됨)."
+}

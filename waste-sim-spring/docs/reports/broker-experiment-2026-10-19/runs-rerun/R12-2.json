@@ -1,0 +1,25 @@
+{
+  "id": "R12-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "쓰레기 수거 비용 최소화"},
+      "verdict": "ADJUST_REQUEST",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"],
+      "note": "비용 항(연료·인건비·차량 운영비)을 가진 서버가 없음. 수거 서버 두 곳은 목적을 metric:leftoverKg/truckUtilization(북구) 또는 complaints/truckUtilization/completionTime/peakFill(장량동)로 바꾸면 쓸 수 있다고 제안(changesPurpose=false). 주차 서버는 도메인 변경 필요(changesPurpose=true). matches 에는 가상 서버 district-waste-sim(fictional=true)도 있었으나 suggestions 에서는 빠짐."
+    }
+  ],
+  "userChoice": "요청을 고치지 않음 (\"그럼 안 할게\")",
+  "serverCalled": null,
+  "endpointCalled": null,
+  "toolSequence": ["waste-broker:tools/list", "waste-broker:find_simulators"],
+  "questions": [
+    "지금 시뮬레이터들은 연료·인건비·차량 운영비 같은 비용 항이 없어 '비용 최소화'를 직접 계산할 수 없습니다. 대신 목적을 바꾸면 쓸 수 있습니다 — 포항 북구 행정동 시뮬레이터: 수거 못 하고 남은 쓰레기량(leftoverKg)·수거차 활용률(truckUtilization) / 장량동 시뮬레이터: 민원 수(complaints)·수거차 활용률·수거 완료 시각(completionTime)·최대 적재율(peakFill). (주차장 시뮬레이터는 전혀 다른 질문이 됩니다.) 요청을 이 중 하나로 고칠까요?"
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "unapprovedDefaults": {},
+  "stoppedBecause": "브로커가 ADJUST_REQUEST(비용 목적 미지원)를 돌려줘 요청 수정 여부를 물었고, 사용자가 '그럼 안 할게'라고 답해 요청을 그만둠.",
+  "difficulties": "requestAdjustments 의 suggestion 이 'metric:leftoverKg' 같은 내부 지표 id 와 '카드가 적은 대안' 같은 내부 용어로 되어 있어 사용자에게 전할 때 풀어 써야 했음. 비용 최소화 → 잔류량/활용률로 바꾸는 것은 사실상 목적이 바뀌는데 changesPurpose=false 로 표시돼 의미가 헷갈림. matchCount=3 인데 matches 와 suggestions 의 목록이 서로 다름(가상 서버 포함 여부)."
+}

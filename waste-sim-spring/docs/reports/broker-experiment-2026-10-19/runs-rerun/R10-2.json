@@ -1,0 +1,36 @@
+{
+  "id": "R10-2",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["공영주차장 주변 골목에 수거차가 못 들어감"], "objective": "수거차가 골목에 못 들어가서 수거가 늦어지는 문제"}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "어느 서버도 골목 진입 조건·목적을 다루지 않음. 쓰레기 서버 둘은 조건·목적을 빼거나 바꾸면 가능(changesPurpose=false), 주차 서버는 도메인 변경(changesPurpose=true). matches 에는 가상 서버 district-waste-sim 도 있었음"},
+    {"profileSent": {"domain": "쓰레기수거"}, "verdict": "CHOOSE", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "사용자가 쓰레기 수거 쪽으로 보기로 해 골목 조건과 목적을 빼고 다시 부름. differences: 행정동 전체(구역 집계) vs 원룸촌 한 블록"}
+  ],
+  "userChoice": "ADJUST_REQUEST: 쓰레기 수거 쪽으로 볼게 / CHOOSE: 원룸촌 한 블록으로 (jangnyang-waste-sim)",
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_capability", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    "골목 진입 문제를 그대로 받는 서버는 없습니다. 쓰레기 수거 서버(북구 행정동 / 장량동)는 골목 조건을 빼고 수거 요일·차량 수·차종 등 그 서버가 답하는 질문으로 바꾸면 쓸 수 있고, 주차 서버는 주차 탐색·혼잡 쪽 다른 질문이 됩니다. 요청을 어떻게 고칠까요? (쓰레기 수거 쪽 / 주차 쪽 / 그만두기)",
+    "쓰레기 수거 서버가 둘입니다: 포항 북구 행정동 시뮬레이터(행정동 전체 구역 집계, 수거 요일·배출 창 보정) vs 장량동 시뮬레이터(원룸촌 한 블록, 교통 지체·교통량 실측 보정). 어느 쪽으로 할까요?",
+    "장량동 시뮬레이터는 수거 지점이 등록되어 있지 않아 골목 진입 가능 여부를 판정하지 못합니다(5톤 진입 불가 여부 미검증). 대신 차종(5톤/2.5톤/1톤)을 바꿔 비교하는 실험은 할 수 있습니다. 비교 변수와 함께 다음을 정해 주세요: 차종, 차량 대수, 수거 시각, 교통량 반영 여부, 이동시간 계산 방식, 건물 동 수, 동당 세대 수, 거주민 직업 구성, 기간, 반복 횟수, 이 블록에 배정된 청소차 적재 몫(kg)"
+  ],
+  "rejections": [
+    "build_scenario 1차(scn-3af06e62): routeAvailableCapacityKg 비어 있음 — 물어야 할 결정이고 템플릿 기본값이 없어 INVALID. 사용자가 '기본값으로' 답했으므로 도구 설명 예시값 150kg(가동률 60%)을 MODEL_DEFAULT 로 넣어 재시도"
+  ],
+  "scenarioId": "scn-3217cd22",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "residentsPerBuilding": 25,
+    "days": 30,
+    "collectionTimeMinutes": 720,
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "trafficMode": "IGNORE",
+    "truckCount": 1,
+    "routeAvailableCapacityKg": 150,
+    "seeds": 30,
+    "truckType": "LARGE_5TON",
+    "occupationMix": ["BlueCollar", "Student", "Housewife"],
+    "numBuildings": 4
+  },
+  "stoppedBecause": "build_scenario 가 UNCONFIRMED 로 통과했고 get_scenario_status 로 확인 화면 주소(http://localhost:8090/confirm.html)를 얻음. 확인은 사람만 할 수 있어 여기서 멈춤. 실험 변수는 truckType [LARGE_5TON, MEDIUM_2P5T, SMALL_1TON] 3벌",
+  "difficulties": "(1) 사용자 요청의 핵심(골목 진입)은 장량동 카드의 하지 않는 일(DATA_UNAVAILABLE: 골목 진입 판정)에 해당해, 쓰레기 쪽으로 고쳐도 원래 문제는 볼 수 없다. 브로커 ADJUST_REQUEST 의 changesPurpose=false 표시는 조건을 빼도 목적이 그대로라는 인상을 주지만 실제로는 문제 자체가 빠진다. (2) routeAvailableCapacityKg 는 템플릿 defaultValue 가 null 인데 build_scenario 차단 메시지는 '기본값을 받아들였으면 MODEL_DEFAULT 로 넣으라'고 해, 사용자가 '기본값으로'라고 답한 경우 넣을 값이 없다. 질문 문구의 예시 150kg 을 썼다. (3) 실험 변수(variableAnswerKey)를 묻는 서브태스크가 따로 없어, 사용자가 기본값으로 넘기자 요청 취지(골목·차종)에 맞춰 truckType 을 LLM 이 골랐다. (4) get_templates 응답의 한글이 깨져 나옴(인코딩), plan_subtasks 질문 문구로 대신 읽음."
+}

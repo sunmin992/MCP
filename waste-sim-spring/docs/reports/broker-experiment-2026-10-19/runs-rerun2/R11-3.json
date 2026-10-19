@@ -1,0 +1,25 @@
+{
+  "id": "R11-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "수도관 누수 탐지", "objective": "누수 위치를 빨리 찾는 방법"},
+      "verdict": "ADJUST_REQUEST",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"],
+      "note": "요청을 그대로 받을 서버 없음. 세 후보 모두 domain 축 조정이 changesPurpose=true(다른 질문이 됨). matches 에 water-leak-sim(가상, fictional=true, endpoint http://example.invalid/mcp)이 맞는 것으로 나왔으나 부를 수 없는 가상 서버라 suggestions 에서 빠짐."
+    }
+  ],
+  "userChoice": "요청을 고치지 않음(그럼 안 할게)",
+  "serverCalled": null,
+  "endpointCalled": null,
+  "toolSequence": ["broker:tools/list", "broker:find_simulators"],
+  "questions": [
+    "수도관 누수를 다루는 실제 시뮬레이터는 없습니다(맞는 것은 평가용 가상 서버뿐). 지금 쓸 수 있는 서버는 쓰레기 수거(포항 북구 행정동 / 장량동)와 공영주차장 시뮬레이터인데, 이쪽으로 바꾸면 질문 자체가 달라집니다. 요청을 이 중 하나로 고치시겠습니까?"
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "unapprovedDefaults": {},
+  "stoppedBecause": "ADJUST_REQUEST 에서 요청 수정을 물었고 사용자가 '그럼 안 할게'라고 답해 요청을 그만둠",
+  "difficulties": "응답의 matches 에 fictional=true 인 water-leak-sim 이 도메인·목적 모두 맞는 서버로 나오는데 verdict 는 ADJUST_REQUEST 라서, 가상 서버가 왜 matches 에 남는지 처음엔 헷갈렸다. note 와 suggestions 만 보면 판단엔 문제없었다."
+}

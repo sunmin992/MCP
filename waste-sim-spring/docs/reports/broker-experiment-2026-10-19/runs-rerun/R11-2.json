@@ -1,0 +1,25 @@
+{
+  "id": "R11-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "수도관 누수", "objective": "누수 위치를 빨리 찾는 방법"},
+      "verdict": "ADJUST_REQUEST",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim", "water-leak-sim(matches, fictional, endpoint example.invalid)"],
+      "note": "그대로 맞는 서버는 가상 서버 water-leak-sim 하나뿐(fictional, 호출 불가). 실제 서버 3개는 모두 도메인 불일치로 changesPurpose=true 인 도메인 변경만 제안함."
+    }
+  ],
+  "userChoice": "요청을 고치지 않음 (그럼 안 할게)",
+  "serverCalled": null,
+  "endpointCalled": null,
+  "toolSequence": ["broker:tools/list", "broker:find_simulators"],
+  "questions": [
+    "수도관 누수를 다루는 실제 시뮬레이터는 없습니다(맞는 것은 가상 서버뿐). 대신 쓰레기 수거(포항 북구 행정동 / 장량동) 또는 포항 도심 공영주차장 시뮬레이터로 요청을 바꾸면 쓸 수 있지만, 이는 질문 자체가 달라집니다. 요청을 고칠까요?"
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "unapprovedDefaults": {},
+  "stoppedBecause": "브로커가 ADJUST_REQUEST(목적이 바뀌는 도메인 변경만 가능)를 냈고, 사용자가 요청을 고치지 않겠다고 답해 중단함.",
+  "difficulties": "matches 에 가상 서버(water-leak-sim, fictional=true, endpoint example.invalid)가 나왔는데 verdict 는 ADJUST_REQUEST 라서, 가상 서버가 매칭 판정에서 제외되었다는 점이 note 에 명시되어 있지 않아 잠시 헷갈렸음. fictional 플래그로 호출 불가로 판단함."
+}

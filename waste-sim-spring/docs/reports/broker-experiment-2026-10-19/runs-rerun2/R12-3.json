@@ -1,0 +1,25 @@
+{
+  "id": "R12-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "쓰레기 수거 비용 최소화"},
+      "verdict": "ADJUST_REQUEST",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim", "district-waste-sim(fictional)"],
+      "note": "도메인이 맞는 서버(bukgu-district-waste-sim, jangnyang-waste-sim)는 있으나 모두 연료·인건비·차량 운영비 항이 없어 비용 목적을 지원하지 않음. 목적을 leftoverKg, truckUtilization, complaints, completionTime, peakFill 등으로 바꾸라는 제안(changesPurpose=false). 주차 서버는 도메인 변경(changesPurpose=true)."
+    }
+  ],
+  "userChoice": "요청을 고치지 않음 (그럼 안 할게)",
+  "serverCalled": null,
+  "endpointCalled": null,
+  "toolSequence": ["broker:tools/list", "broker:find_simulators"],
+  "questions": [
+    "요청하신 '수거 비용 최소화'는 비용(연료·인건비·차량 운영비) 항목을 가진 시뮬레이터가 없어 그대로는 할 수 없습니다. 포항 북구 행정동 시뮬레이터(남은 쓰레기량·트럭 활용률) 또는 장량동 시뮬레이터(민원·트럭 활용률·완료 시간·최대 적재율)로 목적을 바꿔 요청을 고칠까요?"
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "unapprovedDefaults": {},
+  "stoppedBecause": "브로커가 ADJUST_REQUEST(비용 목적 미지원)를 냈고, 목적을 바꿀지 묻자 사용자가 '그럼 안 할게'라고 답해 요청을 그만둠",
+  "difficulties": "응답의 suggestions 와 matches 목록이 서로 달랐다(suggestions 에는 가상 서버 district-waste-sim 대신 도메인이 다른 pohang-parking-sim 이 들어 있음). changesPurpose=false 인 목적 변경도 사실상 질문의 성격(비용→다른 지표)을 바꾸는데 false 로 표시되어 다소 헷갈림."
+}

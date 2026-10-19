@@ -1,0 +1,45 @@
+{
+  "id": "R09-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "objective": "시간대별 차등 요금으로 공영주차장 만차 완화", "comparisonAxes": ["시간대별 차등 요금"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "후보 1개, mismatches · requestAdjustments 없음. nextStep 에 따라 브로커는 다시 부르지 않음"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "endpointCalled": "http://localhost:8092/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    "비교는 균일 요금과 시간대 차등(08~10시·17~19시 할증)으로 할까요? 혼잡 시간대 할증률은 얼마로 할까요(기본값 없음)? 운전자는 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 공영주차장 수(기본 4곳)와 한 곳당 면수(기본 80면)는? 며칠치를 몇 번 반복할까요(기본 14일·30회)? 그 밖에 30분당 기본 요금(기본 500원), 이용자 구성(기본 출퇴근·쇼핑·방문), 하루 도착 차량(기본 900대), 주변 도로 혼잡 반영(기본 반영 안 함)은 어떻게 할까요?",
+    "주차 안내는 어떻게 하나요? (없음 — 들어가 봐야 앎 / 입구 안내판 / 실시간 앱)"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-ff759d1c",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "guidanceMode": "NONE",
+    "lotCount": 4,
+    "baseFeePer30Min": 500,
+    "congestionMode": "IGNORE",
+    "dailyArrivals": 900,
+    "userMix": ["Commuter", "Shopper", "Visitor"],
+    "spacesPerLot": 80
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 2벌). get_scenario_status 로 확인 화면 주소 http://localhost:8092/confirm.html 를 얻음 — 승인은 사람만 하므로 여기서 멈춤",
+  "difficulties": "guidanceMode 가 첫 계획에서 lotCount 에 걸려 DEFERRED 로 나와, 주차장 수를 정한 뒤에야 물어야 할 질문으로 드러나 질문이 한 번 더 생김(기본값이 있는 결정인데도 별도 질문 필요). 첫 plan_subtasks 에서 pricingPolicy 인스턴스의 origin 이 null 로 표시됨(origins 를 안 줬기 때문). 그 밖에 안내는 명확했음."
+}

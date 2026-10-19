@@ -1,0 +1,43 @@
+{
+  "id": "R04-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "candidates 는 실존 서버 2개(행정동 전체 집계 vs 원룸촌 한 블록). matches 에는 가상 서버 district-waste-sim(fictional, example.invalid)도 있었으나 candidates 에서는 빠짐. differences(region/unit/calibration)를 사용자에게 보여 주고 고르게 함."
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록 단위로 볼게)",
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "두 서버 중 어느 것을 쓸까요? 포항 북구 행정동 전체 집계(bukgu-district-waste-sim, 배출 창 표준데이터 보정) / 장량동 원룸촌 한 블록(jangnyang-waste-sim, 교통·수거 일정 실측 보정)",
+    "비교할 수거 시각은 몇 시들인가요? 이 블록에 배정된 청소차 적재 몫은 몇 kg인가요(기본값 없음)? 기간(일)과 반복 횟수는? 그 밖에 차량 크기·대수, 교통 반영 여부, 이동시간 계산 방식, 건물 수, 동당 세대 수, 거주민 직업 구성은 어떻게 할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1110007d",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "truckType": "LARGE_5TON",
+    "truckCount": 1,
+    "trafficMode": "IGNORE",
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "residentsPerBuilding": 25,
+    "numBuildings": 4,
+    "occupationMix": ["BlueCollar", "Student", "Housewife"]
+  },
+  "stoppedBecause": "build_scenario 성공(valid, runCount 3: 06:00/12:00/18:00 = 360/720/1080분), state UNCONFIRMED. get_scenario_status 로 확인 화면 http://localhost:8090/confirm.html 을 얻음 — 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "브로커 응답에 candidates(2개)와 matches(3개, 가상 서버 포함)가 함께 있어 어느 목록을 보여 줄지 잠깐 헷갈림 — fictional 서버는 부를 수 없으므로 candidates 기준으로 물음. 실험 변수 답변키가 collectionTimeMinutes(분 단위 정수)라 06/12/18시를 360/720/1080 으로 바꿔야 했음. plan_subtasks 결과에서 실험 변수 인스턴스의 origin 이 null 로 나와, build_scenario 에는 collectionTimeMinutes 출처를 USER 로 따로 적음. 사용자의 '우리 동네'를 spatialScale 로 그대로 보냈는데 브로커가 행정동/블록 둘 다로 해석함."
+}

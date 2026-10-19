@@ -1,0 +1,42 @@
+{
+  "id": "R01-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["평일 교통량"], "objective": "민원이 가장 적은 쓰레기 수거 시각", "comparisonAxes": ["수거 시각"], "population": ["학생이 많음"]},
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "jangnyang-waste-sim 만 mismatch 없음(endpoint http://localhost:8090/mcp). 나머지 둘은 공간 규모·거주민·교통·목적 불일치로 requestAdjustments 제시. nextStep 에 따라 브로커 재호출 안 함."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "(묶음 1회) 비교할 수거 시각은 언제들인가요? / 건물은 몇 동, 한 동에 몇 세대인가요? / 수거차량 크기와 대수는? / 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? / 거주민 직업 구성은(학생 비중)? / 며칠치를 몇 번 반복할까요? / 교통 프로파일(평일 실측/통행량 기반)과 이동시간 계산 방식(구간 상수/교통구역 근사)은?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-661afff6",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "trafficProfileId": "jangryang-weekday",
+    "truckType": "LARGE_5TON",
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "numBuildings": 4,
+    "truckCount": 1,
+    "residentsPerBuilding": 25
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 3벌: 수거 시각 540/720/900분). get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 를 얻음. 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "(1) trafficMode 를 '평일 교통량'에서 DERIVED 로 APPLY 했으나, 교통을 반영해도 travelTimeMode 기본값이 LEGACY_CONSTANT 라 교통이 실제로 이동시간에 어떻게 반영되는지 도구 설명만으로는 불분명했음. (2) 비교 변수 collectionTimeMinutes 를 values 에 넣지 않고 variableAnswerKey/variableValues 로만 넘겼는데 이것이 맞는지 설명에 명시돼 있지 않았음(결과적으로 통과). origins 에는 USER 로 적음. (3) occupationMix '학생 2 : 주부 1' 을 [Student, Student, Housewife] 로 옮긴 것은 템플릿 설명(같은 직업을 여러 번 적으면 비중 증가)을 근거로 함."
+}

@@ -1,0 +1,36 @@
+{
+  "id": "R07-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "spatialScale": "도심 공영주차장 4곳", "objective": "주차장 찾느라 배회하는 것이 줄어드는지", "comparisonAxes": ["실시간 안내 앱 도입 여부"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "matchCount 1, mismatches 없음. nextStep 에 따라 브로커는 다시 부르지 않음"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "endpointCalled": "http://localhost:8092/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    "1) 무엇과 무엇을 비교할까요(안내 없음 / 입구 안내판 / 실시간 앱)? 주차장 한 곳당 면수는? 요금은 균일·시간대 차등·무료 중 어떻게, 얼마? 이용자 구성은? 하루 도착 차량 수는? 주변 도로 혼잡을 반영할까요? 운전자는 몇 분까지 찾다가 포기하나요(기본값 없음)? 며칠치를 몇 번 반복할까요? -> 답: 안내 없음과 실시간 앱 / 80면 / 균일 500원 / 혼잡 반영 안 함 / 15분 / 14일 10회 / 그 밖(이용자 구성, 도착 차량 수)은 기본값",
+    "2) 실시간 앱은 빈자리 정보를 몇 분마다 갱신하나요(1~60분)? -> 답: 5분"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-babc4109",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {"dailyArrivals": 900, "userMix": ["Commuter", "Shopper", "Visitor"]},
+  "stoppedBecause": "build_scenario 가 UNCONFIRMED 로 통과해 get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻음. 확인은 사람만 하므로 여기서 멈춤",
+  "difficulties": "lotCount 4 는 사용자 요청 문장('4곳')에서 바로 얻어 USER 로 적음(DERIVED 와 경계가 모호). 요금 대본 답 '균일 500원'이 DEFERRED 상태인 baseFeePer30Min 까지 함께 채워 두 번째 질문이 필요 없었음. guidanceMode 는 실험 변수지만 plan_subtasks 가 단일 값을 요구해 REALTIME_APP 로 넣어 갱신 주기 질문을 끌어냈음 — 변수로 비교할 결정이 다른 결정의 생성 조건일 때 어느 값으로 계획해야 하는지 안내가 없었음."
+}

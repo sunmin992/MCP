@@ -1,0 +1,43 @@
+{
+  "id": "R09-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "objective": "공영주차장 만차 완화", "comparisonAxes": ["시간대별 차등 주차 요금"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "matchCount 1, mismatches/requestAdjustments 없음. 공간 규모·환경 조건·거주민은 요청에 없어 비워 보냄"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "endpointCalled": "http://localhost:8092/mcp",
+  "toolSequence": [
+    "broker:find_simulators",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    "무엇을 비교할까요(요금 방식: 균일 / 시간대 차등 / 무료)? 그리고 공영주차장 수·주차면 수, 이용자 구성, 하루 도착 차량 수, 주변 도로 혼잡 반영 여부, 운전자가 주차장을 찾다 포기하는 시간(기본값 없음), 볼 기간(일)과 반복 횟수를 알려 주세요.",
+    "시간대 차등 요금의 혼잡 시간대(08~10시, 17~19시) 할증률은 얼마로 할까요? 30분당 기본 요금과 주차 안내 방식(없음 / 입구 안내판 / 실시간 앱)은 어떻게 할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-eec697fa",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "baseFeePer30Min": 500,
+    "congestionMode": "IGNORE",
+    "dailyArrivals": 900,
+    "userMix": ["Commuter", "Shopper", "Visitor"],
+    "spacesPerLot": 80,
+    "guidanceMode": "NONE",
+    "lotCount": 4
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2: pricingPolicy FLAT vs TIME_OF_DAY). get_scenario_status 로 확인 화면 주소 http://localhost:8092/confirm.html 을 얻었고, 확인은 사람만 할 수 있어 멈춤",
+  "difficulties": "할증률(peakSurchargeRate)은 pricingPolicy 가 정해지기 전에는 DEFERRED 라 첫 질문 묶음에 넣지 못해 질문이 두 번으로 나뉨. 실험 변수가 pricingPolicy 일 때 values 의 pricingPolicy 에 어느 값을 넣어야 하는지(조건부 결정 peakSurchargeRate 를 생성시키려면 TIME_OF_DAY 를 넣어야 하는지) 설명이 없어 TIME_OF_DAY 로 넣음. 사용자가 '주차장: 기본값으로'라고 한 lotCount·spacesPerLot 는 MODEL_DEFAULT 로 표기함."
+}

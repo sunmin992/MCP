@@ -1,0 +1,41 @@
+{
+  "id": "R03-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동 단위", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "쓰레기가 얼마나 쌓이는지", "comparisonAxes": ["수거 요일"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3 이지만 mismatch 없는 서버는 bukgu-district-waste-sim 하나(district-waste-sim 은 가상, jangnyang 은 원룸촌 블록 단위). nextStep 대로 브로커를 다시 부르지 않음."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": [
+    "waste-broker:find_simulators",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "묶음1: (1) 어떤 수거 일정끼리 비교할까요? (포항 북구 현행 월·화·목·금 / 매일(일요일 제외) / 격일 월·수·금 / 요일 직접 지정) (2) 수거일이 공휴일이면 건너뛸까요, 다음 날 대신 수거할까요? (3) 수거차량 크기(5톤/2.5톤/1톤)와 대수(1~20), 구역을 차량에 나누는 방식(같은 구역 수/작업 시간 균등)은? (4) 적환장을 쓸까요? (5) 며칠치(7~365일, 2026-09-21부터)를 몇 번(1~100회) 반복할까요? (6) 행정동 구역 수(1~40), 구역당 세대수(50~5000), 주거 유형 구성, 수거 시작 시각은? — 답: 현행 월화목금 vs 매일 / 공휴일엔 건너뜀 / 차량 기본값 / 적환장 안 씀 / 28일·10회 / 그 밖 기본값"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-f459298c",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "truckCount": 2,
+    "truckType": "LARGE_5TON",
+    "zoneCount": 8,
+    "householdsPerZone": 600,
+    "housingMix": ["Apartment", "Detached", "Studio"],
+    "zoneAllocation": "EQUAL_COUNT",
+    "collectionStartMinutes": 360
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2: POHANG_BUKGU vs DAILY). get_scenario_status 로 확인 화면 주소 http://localhost:8091/confirm.html 을 얻음. 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "holidayMode 는 사용자가 '추석 연휴가 낀 주'라 말한 데서 APPLY 로 DERIVED 처리했다(템플릿 기본값은 IGNORE 라 놓치기 쉬움). plan_subtasks 가 holidayPolicy·zoneAllocation 을 DEFERRED 로 두어 정석대로라면 질문을 두 번 나눠야 하지만, waitingOn 이 무엇에 달렸는지 알려 줘서 미리 한 묶음에 포함했다. 사용자가 '매일 수거'라 했는데 DAILY 는 '매일(일요일 제외)'이라 의미 차이가 있음 — 확인 화면에서 짚을 만하다. 브로커가 verdict MATCH 인데 matchCount 3 이라 후보 비교가 필요한지 잠깐 헷갈렸다. confirmUrl 에 scenarioId 가 들어 있지 않아 사람이 어느 시나리오를 확인하는지 화면에서 골라야 할 수 있다."
+}

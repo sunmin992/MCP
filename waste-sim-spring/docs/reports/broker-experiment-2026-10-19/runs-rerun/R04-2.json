@@ -1,0 +1,43 @@
+{
+  "id": "R04-2",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional, example.invalid)도 있었으나 candidates 에서는 빠짐. differences(region/unit/calibration)를 보여 주고 사용자에게 고르게 함."
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록 단위)",
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "두 서버 중 어느 것을 쓸까요? 포항 북구 행정동 전체(구역 집계, 배출정보 표준데이터 보정) / 장량동 원룸촌 한 블록(교통·수거 일정 보정)",
+    "다음을 정해 주세요: 비교할 수거 시각들, 수거차량 크기·대수, 교통량 반영 여부, 이동시간 계산 방식, 건물 수·동당 세대 수, 거주민 직업 구성, 기간(일), 반복 횟수, 이 블록에 배정된 청소차 적재 몫(kg)"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1110007d",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "residentsPerBuilding": 25,
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "trafficMode": "IGNORE",
+    "truckCount": 1,
+    "truckType": "LARGE_5TON",
+    "occupationMix": ["BlueCollar", "Student", "Housewife"],
+    "numBuildings": 4
+  },
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED, runCount=3: 06:00/12:00/18:00). get_scenario_status 로 확인 화면 http://localhost:8090/confirm.html 을 얻었고, 승인은 사람만 하므로 멈춤.",
+  "difficulties": "실험 변수(collectionTimeMinutes)를 values 에 넣지 않고 variableAnswerKey/variableValues 로만 줘도 되는지 설명이 명확하지 않았음 — plan_subtasks 는 단일 값(360)을 넣어 완결 여부를 확인했고 build_scenario 는 values 에서 빼고 보냈는데 통과함. 수거 시각이 답변키에서는 분 단위 정수(360 등)라 사용자 표현 '06시'를 변환해야 했음. 브로커 응답에서 candidates 와 matches 가 다르게(가상 서버 포함 여부) 나와 잠깐 헷갈림."
+}

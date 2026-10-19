@@ -1,0 +1,43 @@
+{
+  "id": "R03-3",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동 단위", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "쓰레기가 얼마나 쌓이는지", "comparisonAxes": ["수거 요일"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3 이지만 mismatch 없는 서버는 bukgu-district-waste-sim 하나라 MATCH. district-waste-sim 은 가상(fictional), jangnyang-waste-sim 은 공간 규모 불일치."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "(묶음 1) 어떤 수거 요일 일정들을 비교할까요(포항 북구 현행 월·화·목·금 / 매일(일요일 제외) / 격일 월·수·금 / 요일 직접 지정)? 수거일이 공휴일이면 건너뛸까요, 다음 날 대신 수거할까요? 수거차량 크기·대수·구역 배정은? 적환장을 쓸까요? 며칠치를, 몇 번 반복해 볼까요? 구역 수·구역당 세대수·주거 유형 구성·수거 시작 시각은 어떻게 할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-7493136a",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "truckType": "LARGE_5TON",
+    "truckCount": 2,
+    "collectionStartMinutes": 360,
+    "zoneAllocation": "EQUAL_COUNT",
+    "housingMix": ["Apartment", "Detached", "Studio"],
+    "householdsPerZone": 600,
+    "zoneCount": 8
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2: POHANG_BUKGU vs DAILY). get_scenario_status 로 확인 화면 주소 http://localhost:8091/confirm.html 을 얻었고, 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "holidayMode 는 사용자가 '추석 연휴가 낀 주'라고 말한 데서 APPLY(DERIVED)로 정했다 — 별도로 묻지 않아도 되는지 도구 설명에 명시는 없었다. plan_subtasks 의 waitingOn 덕에 holidayPolicy 가 scheduleMode 에 막혀 있음을 알 수 있었고, 변수(scheduleMode)를 variableValues 로 넘기니 보류가 풀려 complete 가 됐다. scheduleMode 는 실험 변수라 values 에 넣지 않았는데, origins 에 USER 로 적어도 되는지는 불분명했다."
+}

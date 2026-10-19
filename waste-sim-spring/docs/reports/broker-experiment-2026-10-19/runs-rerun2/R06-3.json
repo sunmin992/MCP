@@ -1,0 +1,21 @@
+{
+  "id": "R06-3",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "장량동 전체", "environmentConditions": ["평일 교통량"], "objective": "쓰레기 수거 시각 정하기"}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "bukgu: 평일 교통량 빼면 됨(changesPurpose=false) / jangnyang: 공간을 원룸촌 한 블록으로 줄이면 됨 / parking: 도메인 다름(changesPurpose=true). matches 에는 가상 서버 district-waste-sim 도 있었음"},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "장량동 전체", "objective": "쓰레기 수거 시각 정하기"}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "교통 조건을 뺀 요청으로 재조회 — 북구 행정동 시뮬레이터 추천"}
+  ],
+  "userChoice": "ADJUST_REQUEST: 교통 조건은 빼고 장량동 전체로 (bukgu-district-waste-sim)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    "그대로 받을 서버가 없습니다. (a) 평일 교통량 조건을 빼고 장량동 전체로(북구 행정동 시뮬레이터, 교통량은 상수 이동시간), (b) 교통량은 유지하고 공간을 원룸촌 한 블록으로 줄이기(장량동 시뮬레이터) 중 어떻게 고칠까요?",
+    "비교할 수거 시작 시각은? 공휴일 휴무를 반영할까요? 적환장을 쓸까요? 기간(일)과 반복 횟수는? 그 밖에 구역 수·구역당 세대수·주거 구성·차종·차량 수·구역 배정·수거 일정은 어떻게 할까요(기본값 가능)?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-621c5fd2",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {"zoneCount": 8, "scheduleMode": "POHANG_BUKGU", "truckType": "LARGE_5TON", "housingMix": ["Apartment", "Detached", "Studio"], "householdsPerZone": 600, "zoneAllocation": "EQUAL_COUNT", "truckCount": 2},
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소(http://localhost:8091/confirm.html) 확보 — 승인은 사람만 하므로 멈춤",
+  "difficulties": "큰 어려움 없음. plan_subtasks 응답에서 실험 변수 collectionStartMinutes 의 origin 이 null 로 나와(variableValues 로 준 값은 origins 가 반영되지 않는 듯) build_scenario 에는 origins 에 USER 로 따로 적었다. ADJUST_REQUEST 의 note 가 '가상 서버'를 matches 에만 넣고 suggestions 에서 빼는 이유는 응답에 설명이 없었다."
+}
