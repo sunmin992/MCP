@@ -1,0 +1,42 @@
+{
+  "id": "R09",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "objective": "공영주차장 만차 완화", "comparisonAxes": ["시간대별 차등 주차 요금"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "matchCount 1, endpoint http://localhost:8092/mcp, mismatches/requestAdjustments 없음. spatialScale·environmentConditions·population 은 요청에 없어 비워 둠."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "endpointCalled": "http://localhost:8092/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    "(묶음 1회) ① 무엇과 무엇을 비교할까요(균일/시간대 차등/무료)? ② 혼잡 시간대(08~10시, 17~19시) 할증률은? (기본값 없음) ③ 운전자는 몇 분까지 찾다가 포기하나요? (1~60분, 기본값 없음) ④ 주차장 수·면수는? (기본 4곳×80면) ⑤ 며칠치를 몇 번 반복할까요? (기본 14일·30회) ⑥ 그 밖(기본요금, 하루 도착 차량, 이용자 구성, 안내 방식, 도로 혼잡 반영)은 기본값으로 둘까요? → 답: 균일 vs 시간대 차등 / 50% / 15분 / 주차장 기본값 / 14일·10회 / 그 밖 기본값"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-eec697fa",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "baseFeePer30Min": 500,
+    "congestionMode": "IGNORE",
+    "dailyArrivals": 900,
+    "userMix": ["Commuter", "Shopper", "Visitor"],
+    "spacesPerLot": 80,
+    "guidanceMode": "NONE",
+    "lotCount": 4
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2) 후 get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻음. 확인은 사람만 할 수 있어 여기서 멈춤.",
+  "difficulties": "실험 변수가 pricingPolicy(FLAT vs TIME_OF_DAY)일 때 values 에 pricingPolicy 를 무엇으로 넣어야 하는지, 그리고 FLAT 실행에도 peakSurchargeRate 를 넣어도 되는지 도구 설명에 없었음 — TIME_OF_DAY 와 0.5 를 넣었고 거절되지 않음. 사용자가 '주차장: 기본값으로'라고 답한 lotCount·spacesPerLot 을 MODEL_DEFAULT 로 보냈더니 unapprovedDefaults 에 포함됨(사용자가 기본값을 명시적으로 승인한 경우 origin 을 USER 로 둘지 애매함). plan_subtasks 는 answers 에 넣지 않은 기본값 항목을 UNFILLED 로 보여 줘 기본값이 자동 적용되는지 헷갈렸음."
+}

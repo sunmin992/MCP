@@ -1,0 +1,43 @@
+{
+  "id": "R04",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동네", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "candidates 는 실제 서버 2개, matches 에는 가상 서버 district-waste-sim(fictional, example.invalid) 포함 3개. differences(region/unit/calibration)를 보여 주고 사용자가 원룸촌 한 블록(jangnyang-waste-sim)을 고름"
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록 단위)",
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "두 서버 중 어느 쪽으로 볼까요? 포항 북구 행정동 전체(구역 집계, 배출 창 표준데이터 보정) / 장량동 원룸촌 한 블록(교통 지체·실측 교통량·북구 수거 일정 보정)",
+    "비교할 수거 시각은 언제들로 할까요? 이 블록에 배정된 청소차 적재 몫은 몇 kg인가요? 며칠치를 몇 번 반복할까요? 차량 크기·대수·교통 반영·이동시간 방식·건물 수·세대 수·직업 구성 등 나머지는 어떻게 할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1110007d",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "truckType": "LARGE_5TON",
+    "occupationMix": ["BlueCollar", "Student", "Housewife"],
+    "numBuildings": 4,
+    "residentsPerBuilding": 25,
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "trafficMode": "IGNORE",
+    "truckCount": 1
+  },
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED, runCount=3: 06:00/12:00/18:00), get_scenario_status 로 확인 화면 http://localhost:8090/confirm.html 을 얻음. 확인은 사람만 하므로 여기서 멈춤",
+  "difficulties": "CHOOSE 응답에서 candidates(2개)와 matches(3개, 가상 서버 포함)가 달라 어느 목록을 보여 줄지 잠시 헷갈림. 시뮬레이터 tools/list 에는 run_waste_simulation 등 직접 실행 도구와 템플릿 흐름(get_templates→plan_subtasks→build_scenario) 도구가 섞여 있고 어느 것을 먼저 쓰라는 nextStep 이 없어 흐름을 추론해야 했음. 템플릿의 수거 시각 answerKey 가 분 단위 정수(collectionTimeMinutes)인 반면 run_waste_simulation 은 HH:MM 문자열이라 단위가 다름. build_scenario 의 values 에 기본값을 MODEL_DEFAULT 로 넣었는데 그대로 unapprovedDefaults 로 표시됨(의도된 동작으로 보임). origins 에 변수 키를 넣어도 되는지 설명이 없었음."
+}

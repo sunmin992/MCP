@@ -1,0 +1,35 @@
+{
+  "id": "R02",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "장량동 전체 아파트 단지", "comparisonAxes": ["격일 수거", "매일 수거"], "objective": "격일 수거와 매일 수거 비교"},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim (fictional)", "jangnyang-waste-sim (mismatch: 분석 단위 원룸촌 한 블록)"],
+      "note": "population 은 요청에 거주민 구절이 없어 비움. MATCH 라 브로커 재호출 없이 http://localhost:8091/mcp 로 이동"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "[묶음 1] 주거 유형 구성(아파트/단독/원룸/상가 비중)? 구역 수(1~40, 기본 8)와 구역당 세대 수(50~5000, 기본 600)? 수거차량 크기(5톤/2.5톤/1톤)와 대수(1~20, 2대 이상이면 구역 배분: 같은 구역 수/작업시간 균등)? 공휴일 휴무 반영 여부? 적환장 사용 여부? 수거 시작 시각(기본 06:00)? 기간(7~365일)과 반복 횟수(1~100회)? -> 답: 아파트 대부분+단독 조금 / 구역·세대 기본값 / 5톤 2대 / 공휴일 반영 안 함 / 적환장 안 씀 / 28일, 10회 / 그 밖 기본값"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-2b55a43b",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {},
+  "stoppedBecause": "build_scenario 가 UNCONFIRMED 로 성공했고 get_scenario_status 로 확인 화면 주소(http://localhost:8091/confirm.html)를 얻음. 확인은 사람만 하므로 여기서 멈춤",
+  "difficulties": "housingMix 는 '아파트 대부분, 단독 조금'을 구역 순환 배정 리스트로 옮겨야 해서 [Apartment x3, Detached] 로 해석함(8구역이면 아파트 6, 단독 2). 사용자가 '기본값으로' 답한 항목(zoneCount, householdsPerZone, zoneAllocation, collectionStartMinutes)의 origin 을 USER 로 볼지 MODEL_DEFAULT 로 볼지 도구 설명에 기준이 없어 USER 로 보냄. 브로커 spatialScale 에 '장량동 전체 아파트 단지'를 그대로 넣었는데, 이것이 공간 규모인지 거주 구성(population)인지 헷갈렸음."
+}

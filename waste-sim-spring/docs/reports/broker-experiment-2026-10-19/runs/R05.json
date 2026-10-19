@@ -1,0 +1,44 @@
+{
+  "id": "R05",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "동네", "objective": "적당한 수거차 대수", "comparisonAxes": ["수거차 대수"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional, example.invalid)도 있었으나 candidates 에서는 빠져 있었다. differences(region/unit/calibration)를 보여 주고 사용자에게 고르게 했다."
+    }
+  ],
+  "userChoice": "bukgu-district-waste-sim (행정동 전체로 볼게)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_capability",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "Q1: 그대로 맞는 서버가 둘입니다 — 포항 북구 행정동 시뮬레이터(행정동 전체, 구역 집계, 수거 요일·배출 창 보정)와 장량동 시뮬레이터(원룸촌 한 블록, 교통 지체 보정). 어느 쪽으로 볼까요?",
+    "Q2: (묶음) 비교할 수거차 대수는 몇 대들인가요(1~20)? 공휴일(추석 연휴 포함) 수거 휴무를 반영할까요? 적환장을 쓸까요? 기간(7~365일)과 반복 횟수(1~100회)는? 그 밖의 설정(구역 수 8, 구역당 600세대, 주거 구성 아파트·단독·원룸, 차종 5톤, 수거 일정 포항 북구 월·화·목·금, 시작 06:00, 구역 배정 같은 구역 수)은 어떻게 할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-17dc8f34",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "householdsPerZone": 600,
+    "housingMix": ["Apartment", "Detached", "Studio"],
+    "truckType": "LARGE_5TON",
+    "scheduleMode": "POHANG_BUKGU",
+    "zoneCount": 8,
+    "collectionStartMinutes": 360,
+    "zoneAllocation": "EQUAL_COUNT"
+  },
+  "stoppedBecause": "build_scenario 가 성공해 state 가 UNCONFIRMED 가 됐고, get_scenario_status 로 확인 화면 주소(http://localhost:8091/confirm.html)를 얻었다. 확인은 사람만 한다.",
+  "difficulties": "1) find_simulators 응답에서 candidates(2개)와 matches(3개, 가상 서버 포함)가 달라 어느 목록을 사용자에게 보여야 하는지 잠깐 헷갈렸다 — fictional 이 아닌 candidates 만 보였다. 2) zoneAllocation 은 truckCount 가 2 이상일 때만 생기는데, 실험 변수 truckCount 가 1·2·3 이라 설정마다 생성 여부가 달라진다; plan_subtasks 는 한 값만 받아 truckCount=2 로 계산했고 EQUAL_COUNT 를 넣었다(1대 설정에서 어떻게 처리되는지는 안내가 없었다). 3) 사용자가 '그 밖: 기본값으로 해줘'라고 답했음에도 그 값들이 unapprovedDefaults 로 남는다 — origins 를 MODEL_DEFAULT 로 보낸 탓으로 보이며, 사용자가 기본값을 승인한 경우 origin 을 USER 로 써야 하는지 도구 설명에 없었다. 4) validate_answers 는 '원문 문자열'을, build_scenario 는 '확정값'을 받아 타입 형식이 달랐다."
+}

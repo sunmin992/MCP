@@ -1,0 +1,39 @@
+{
+  "id": "R08",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "spatialScale": "시내", "environmentConditions": ["평일 퇴근길 도로 혼잡"], "objective": "주차장 찾는 데 걸리는 시간"},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "matchCount 1, mismatches/requestAdjustments 없음. comparisonAxes·population 은 요청에 없어 비워 보냄."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "endpointCalled": "http://localhost:8092/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    "(묶음 1) 무엇과 무엇을 비교할까요(예: 도로 혼잡 반영 안 함 vs 평일 도심 혼잡 반영)? 공영주차장은 몇 곳·곳당 몇 면인가요? 운전자는 몇 분까지 찾다가 포기하나요(기본값 없음)? 이용자 구성은 어떻게 할까요(출퇴근/쇼핑/방문/거주자)? 며칠치를 몇 번 반복할까요? 요금 방식·30분 요금, 하루 도착 차량 수, 주차 안내 방식은 어떻게 할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-348d2105",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "pricingPolicy": "FLAT",
+    "baseFeePer30Min": 500,
+    "dailyArrivals": 900,
+    "guidanceMode": "NONE"
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2: congestionMode IGNORE vs APPLY). get_scenario_status 로 확인 화면 주소 http://localhost:8092/confirm.html 를 얻었고, 확인은 사람만 하므로 멈춤.",
+  "difficulties": "'직장인 위주'를 userMix 로 옮기는 규칙이 없어 Commuter 3 : Shopper 1 : Visitor 1 로 해석(origin DERIVED). plan_subtasks 는 origins 를 받지 않아 기본값으로 채운 항목도 모두 origin USER 로 표시됨. 비교 변수(congestionMode)를 values 에도 넣어야 하는지 build_scenario 설명에 없어 APPLY 로 넣었고, IGNORE 실행에서 congestionProfileId 가 어떻게 처리되는지는 응답에 나오지 않음."
+}

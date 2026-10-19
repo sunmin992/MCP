@@ -1,0 +1,25 @@
+{
+  "id": "R11",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "수도관 누수", "objective": "누수 위치를 빨리 찾는 방법"},
+      "verdict": "ADJUST_REQUEST",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"],
+      "note": "matches 에는 water-leak-sim(가상, fictional=true, endpoint http://example.invalid/mcp) 하나만 있었다. suggestions 세 서버는 모두 도메인이 달라 requestAdjustments 의 changesPurpose=true(요청을 고치는 게 아니라 다른 질문이 됨)."
+    }
+  ],
+  "userChoice": "요청을 고치지 않음 (그럼 안 할게)",
+  "serverCalled": null,
+  "endpointCalled": null,
+  "toolSequence": ["broker:tools/list", "broker:find_simulators"],
+  "questions": [
+    "수도관 누수를 다루는 서버는 매칭 평가용 가상 서버뿐이라 부를 수 없습니다. 쓰레기 수거(북구 행정동 / 장량동) 또는 포항 도심 공영주차장 시뮬레이터로 질문 자체를 바꾸면 쓸 수 있는데, 요청을 고치시겠어요?"
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "unapprovedDefaults": {},
+  "stoppedBecause": "그대로 받을 실제 서버가 없어(ADJUST_REQUEST, 유일한 매치는 가상 서버) 요청 변경을 물었고, 사용자가 '그럼 안 할게'라고 답해 중단했다.",
+  "difficulties": "verdict 가 ADJUST_REQUEST 인데 matches 에 fictional=true 인 water-leak-sim 이 들어 있어, matchCount=1 과 '그대로 받을 서버가 없다'는 note 가 처음엔 엇갈려 보였다. 가상 서버는 부를 수 없다는 뜻으로 해석했다. 또 suggestions 가 모두 changesPurpose=true 라 '요청 조정'이라기보다 사실상 다른 주제 제안이었다."
+}

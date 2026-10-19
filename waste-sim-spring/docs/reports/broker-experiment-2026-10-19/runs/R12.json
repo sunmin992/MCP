@@ -1,0 +1,25 @@
+{
+  "id": "R12",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "수거 비용 최소화"},
+      "verdict": "ADJUST_REQUEST",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"],
+      "note": "비용 항(연료·인건비·차량 운영비)을 가진 서버가 없음. 쓰레기 서버 둘은 목적만 바꾸면 쓸 수 있다고 제안(bukgu: leftoverKg/truckUtilization, jangnyang: complaints/truckUtilization/completionTime/peakFill, changesPurpose=false). 주차 서버는 도메인 변경 필요(changesPurpose=true). matches 에는 가상 서버 district-waste-sim 도 있었으나 suggestions 에는 빠짐."
+    }
+  ],
+  "userChoice": "요청을 고치지 않음 (\"그럼 안 할게\")",
+  "serverCalled": null,
+  "endpointCalled": null,
+  "toolSequence": ["broker:tools/list", "broker:find_simulators"],
+  "questions": [
+    "지금 연결된 시뮬레이터에는 연료·인건비·차량 운영비 같은 비용 항이 없어 '수거 비용 최소화'는 그대로 계산할 수 없습니다. 목적을 바꾸면 쓸 수 있습니다 — (1) 포항 북구 행정동 시뮬레이터: 수거 못 하고 남은 쓰레기량(leftoverKg) 또는 수거차 적재 활용도(truckUtilization) 최소화/최적화, (2) 장량동 시뮬레이터: 민원 수, 수거차 활용도, 수거 완료 시간, 최고 적재율. (3) 주차장 시뮬레이터는 도메인 자체가 달라 다른 질문이 됩니다. 이 중 하나로 요청을 고치시겠어요?"
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "unapprovedDefaults": {},
+  "stoppedBecause": "브로커가 ADJUST_REQUEST(비용 목적을 지원하는 서버 없음)를 냈고, 요청을 고칠지 묻자 사용자가 '그럼 안 할게'라고 답해 요청을 그만둠",
+  "difficulties": "requestAdjustments 의 대안이 'metric:leftoverKg' 같은 내부 식별자로만 와서 사용자 말로 옮길 때 의미를 추정해야 했다. '카드가 적은 대안'이라는 표현의 뜻이 불분명했다. suggestions 에는 도메인이 다른 주차 서버가 들어가고 matches 에 있던 가상 서버(district-waste-sim)는 빠져 두 목록의 관계가 헷갈렸다. 비용 대신 쓸 수 있는 대리 지표(예: 차량 활용도·완료 시간이 비용과 연관됨)에 대한 안내는 없었다."
+}

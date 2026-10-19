@@ -1,0 +1,42 @@
+{
+  "id": "R03",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "쓰레기가 얼마나 쌓이는지", "comparisonAxes": ["수거 요일"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3. 추천 서버는 mismatch 없음. district-waste-sim(가상, fictional)은 환경조건·목적 불일치, jangnyang-waste-sim은 공간 규모·환경조건·목적 불일치."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "endpointCalled": "http://localhost:8091/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "비교할 수거 일정은 무엇인가요(포항 북구 현행 월·화·목·금 / 매일 / 격일 / 요일 지정)? 공휴일(추석 연휴) 수거 휴무를 반영할까요, 반영한다면 건너뜀/다음 날 대신 수거 중 무엇인가요? 차량 크기·대수·구역 배정은? 적환장을 쓸까요? 기간(일)과 반복 횟수는? 구역 수·구역당 세대수·주거 구성·수거 시작 시각은?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-f459298c",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "householdsPerZone": 600,
+    "zoneAllocation": "EQUAL_COUNT",
+    "housingMix": ["Apartment", "Detached", "Studio"],
+    "collectionStartMinutes": 360,
+    "truckCount": 2,
+    "truckType": "LARGE_5TON",
+    "zoneCount": 8
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2: POHANG_BUKGU vs DAILY). get_scenario_status 로 확인 화면 http://localhost:8091/confirm.html 을 얻음. 확인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "plan_subtasks 는 사용자가 '기본값'이라 답한 값도 answers 에 넣으면 origin 을 USER 로 표시해, 기본값 적용분과 사용자 명시값의 구분은 build_scenario 의 origins 로만 할 수 있었다. 또 zoneAllocation 은 truckCount>=2 일 때만 생기는 조건부 항목이라 첫 plan_subtasks 에서야 UNFILLED 로 드러났다(사용자가 '그 밖 기본값'이라 해서 추가 질문 없이 EQUAL_COUNT 기본값 사용). validate_answers 는 원문 문자열을 받는다고 되어 있어 ENUM_LIST 를 JSON 문자열로 넣었는데 통과했다."
+}

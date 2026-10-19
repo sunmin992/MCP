@@ -1,0 +1,48 @@
+{
+  "id": "R01",
+  "brokerCalls": [
+    {
+      "profileSent": {
+        "domain": "쓰레기수거",
+        "spatialScale": "원룸촌 한 블록",
+        "environmentConditions": ["평일 교통량"],
+        "objective": "민원이 가장 적은 쓰레기 수거 시각",
+        "comparisonAxes": ["수거 시각"],
+        "population": ["학생이 많음"]
+      },
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3. jangnyang-waste-sim 만 mismatch 없음. bukgu-district-waste-sim 은 공간 규모·거주민·교통·목적 불일치, district-waste-sim 은 fictional(가상) 서버이며 공간 규모·거주민·교통 불일치."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "endpointCalled": "http://localhost:8090/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    "비교할 수거 시각, 건물 수·동당 세대 수, 수거차량(크기·대수), 이 블록에 배정된 청소차 적재 몫(kg), 거주민 직업 구성, 기간(일)·반복 횟수, 교통 프로파일·이동시간 계산 방식을 어떻게 할까요?"
+  ],
+  "rejections": [],
+  "scenarioId": "scn-a03427fa",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {
+    "residentsPerBuilding": 25,
+    "trafficProfileId": "jangryang-weekday",
+    "truckType": "LARGE_5TON",
+    "travelTimeMode": "LEGACY_CONSTANT",
+    "numBuildings": 4,
+    "truckCount": 1
+  },
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 3벌: 09:00/12:00/15:00). get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 를 얻었고, 확인은 사람만 하므로 멈춤.",
+  "difficulties": "1) plan_subtasks 는 answers 에 넣은 값을 모두 origin USER 로 표시해, 기본값으로 채운 항목을 구분하지 못한다(build_scenario 의 origins 로만 구분). 2) 수거 시각을 비교 변수로 쓸 때 collectionTimeMinutes(단일)에 대표값을 넣고 variableValues 로 [540,720,900] 을 주는 방식인지, collectionTimesMinutes(하루 여러 번)와 어떻게 다른지 템플릿 설명만으로는 다소 헷갈렸다. 3) trafficMode 는 요청의 '평일 교통량' 에서 APPLY 로 유도했으나 origins 에 USER 와 DERIVED 중 무엇이 맞는지 안내가 없어 USER 로 적었다."
+}

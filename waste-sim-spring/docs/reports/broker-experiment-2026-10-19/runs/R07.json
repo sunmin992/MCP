@@ -1,0 +1,35 @@
+{
+  "id": "R07",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "spatialScale": "도심 공영주차장 4곳", "objective": "주차장 찾느라 배회하는 것이 줄어드는지", "comparisonAxes": ["실시간 안내 앱 도입 여부"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "matchCount 1, mismatches/requestAdjustments 없음. nextStep 에 따라 브로커를 다시 부르지 않음."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "endpointCalled": "http://localhost:8092/mcp",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    "비교할 안내 방식(없음/입구 안내판/실시간 앱), 주차장당 면수, 요금 방식과 30분 기본요금, 이용자 구성, 하루 도착 차량 수, 실시간 앱 갱신 주기, 도로 혼잡 반영 여부, 탐색 포기 시간(기본값 없음), 기간(일), 반복 횟수를 알려 주세요."
+  ],
+  "rejections": [],
+  "scenarioId": "scn-babc4109",
+  "scenarioState": "UNCONFIRMED",
+  "unapprovedDefaults": {"dailyArrivals": 900, "userMix": ["Commuter", "Shopper", "Visitor"]},
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2: guidanceMode NONE vs REALTIME_APP). get_scenario_status 로 확인 화면 주소 http://localhost:8092/confirm.html 을 얻었고, 확인은 사람만 하므로 멈춤.",
+  "difficulties": "build_scenario 의 values 에 실험 변수(guidanceMode)를 어떤 값으로 넣어야 하는지 설명이 없어 REALTIME_APP 으로 넣었다(갱신 주기 서브태스크를 살리기 위해). validate_answers 에서 ENUM_LIST(userMix) 원문 문자열 형식이 명시되지 않아 쉼표 구분으로 넣었는데 통과했다. 사용자의 '기본값으로 해줘' 답을 origins 에서 MODEL_DEFAULT 로 표시했으나 서버가 이를 unapprovedDefaults 로 남겼다(확인 화면에서 승인 필요)."
+}
