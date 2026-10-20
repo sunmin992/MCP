@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "district-waste-sim",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d district-waste-sim && chcp 65001 >nul && .\\mvnw.cmd -q spring-boot:run"],
+      "port": 8091
+    },
+    {
       "name": "waste-sim",
       "runtimeExecutable": "mvn",
       "runtimeArgs": ["-f", "waste-sim-spring/pom.xml", "spring-boot:run"],
