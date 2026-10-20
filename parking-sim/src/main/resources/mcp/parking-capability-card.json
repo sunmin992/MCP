@@ -26,21 +26,21 @@
     "sesVersion": "1.0.0",
     "entities": ["주차장 집합", "주차장", "이용자 집합", "안내 체계", "도로 혼잡 결합", "실험 프레임"],
     "decisionPoints": [
-      {"path": "주차장집합", "kind": "MULTI_ASPECT", "field": "lotCount", "range": {"min": 1, "max": 12}, "default": 4},
-      {"path": "주차장집합/주차장/면수", "kind": "ATTRIBUTE", "field": "spacesPerLot", "range": {"min": 10, "max": 1000}, "default": 80},
-      {"path": "주차장집합/주차장/요금정책", "kind": "SPECIALIZATION", "field": "pricingPolicy", "choices": ["FLAT", "TIME_OF_DAY", "FREE"], "default": "FLAT"},
-      {"path": "주차장집합/주차장/요금정책/기본요금", "kind": "ATTRIBUTE", "field": "baseFeePer30Min", "generateWhen": "pricingPolicy != FREE", "default": 500},
-      {"path": "주차장집합/주차장/요금정책/시간대할증", "kind": "ATTRIBUTE", "field": "peakSurchargeRate", "generateWhen": "pricingPolicy == TIME_OF_DAY", "default": null},
-      {"path": "이용자집합/이용자구성", "kind": "SPECIALIZATION", "field": "userMix", "choices": ["Commuter", "Shopper", "Visitor", "Resident"], "default": ["Commuter", "Shopper", "Visitor"]},
-      {"path": "주차장집합/주차장/거주자우선구획", "kind": "ATTRIBUTE", "field": "residentPriorityShare", "generateWhen": "Resident ∈ userMix", "default": null},
-      {"path": "이용자집합", "kind": "MULTI_ASPECT", "field": "dailyArrivals", "range": {"min": 1, "max": 20000}, "default": 900},
-      {"path": "안내체계/안내방식", "kind": "SPECIALIZATION", "field": "guidanceMode", "choices": ["NONE", "STATIC_SIGN", "REALTIME_APP"], "generateWhen": "lotCount >= 2", "default": "NONE"},
-      {"path": "안내체계/갱신주기", "kind": "ATTRIBUTE", "field": "guidanceRefreshMinutes", "generateWhen": "lotCount >= 2 && guidanceMode == REALTIME_APP", "default": 5},
-      {"path": "도로혼잡결합", "kind": "COUPLING_CONDITION", "field": "congestionEnabled", "default": false},
-      {"path": "도로혼잡결합/프로파일", "kind": "ATTRIBUTE", "field": "congestionProfileId", "generateWhen": "congestionEnabled", "default": "weekday-downtown"},
-      {"path": "이용자집합/이용자/탐색포기시간", "kind": "ATTRIBUTE", "field": "maxSearchMinutes", "range": {"min": 1, "max": 60}, "default": null},
-      {"path": "실험프레임/기간", "kind": "ATTRIBUTE", "field": "days", "range": {"min": 1, "max": 90}, "default": 14},
-      {"path": "실험프레임/반복", "kind": "ATTRIBUTE", "field": "seeds", "range": {"min": 1, "max": 100}, "default": 30}
+      {"path": "주차장집합", "kind": "MULTI_ASPECT", "field": "lotCount", "matchKeys": ["주차장 수", "주차장 개수", "몇 곳"], "range": {"min": 1, "max": 12}, "default": 4},
+      {"path": "주차장집합/주차장/면수", "kind": "ATTRIBUTE", "field": "spacesPerLot", "matchKeys": ["면수", "주차면", "주차 공간 수"], "range": {"min": 10, "max": 1000}, "default": 80},
+      {"path": "주차장집합/주차장/요금정책", "kind": "SPECIALIZATION", "field": "pricingPolicy", "matchKeys": ["요금 정책", "요금 방식", "유료", "무료"], "choices": ["FLAT", "TIME_OF_DAY", "FREE"], "default": "FLAT"},
+      {"path": "주차장집합/주차장/요금정책/기본요금", "kind": "ATTRIBUTE", "field": "baseFeePer30Min", "matchKeys": ["기본 요금", "주차 요금"], "generateWhen": "pricingPolicy != FREE", "default": 500},
+      {"path": "주차장집합/주차장/요금정책/시간대할증", "kind": "ATTRIBUTE", "field": "peakSurchargeRate", "matchKeys": ["할증률", "할증"], "generateWhen": "pricingPolicy == TIME_OF_DAY", "default": null},
+      {"path": "이용자집합/이용자구성", "kind": "SPECIALIZATION", "field": "userMix", "matchKeys": ["이용자 구성", "이용자 유형"], "choices": ["Commuter", "Shopper", "Visitor", "Resident"], "default": ["Commuter", "Shopper", "Visitor"]},
+      {"path": "주차장집합/주차장/거주자우선구획", "kind": "ATTRIBUTE", "field": "residentPriorityShare", "matchKeys": ["거주자 우선", "거주자 구획"], "generateWhen": "Resident ∈ userMix", "default": null},
+      {"path": "이용자집합", "kind": "MULTI_ASPECT", "field": "dailyArrivals", "matchKeys": ["도착 차량", "도착 대수", "하루 차량", "이용 차량", "수요"], "range": {"min": 1, "max": 20000}, "default": 900},
+      {"path": "안내체계/안내방식", "kind": "SPECIALIZATION", "field": "guidanceMode", "matchKeys": ["안내 방식", "안내판", "실시간 앱"], "choices": ["NONE", "STATIC_SIGN", "REALTIME_APP"], "generateWhen": "lotCount >= 2", "default": "NONE"},
+      {"path": "안내체계/갱신주기", "kind": "ATTRIBUTE", "field": "guidanceRefreshMinutes", "matchKeys": ["갱신 주기"], "generateWhen": "lotCount >= 2 && guidanceMode == REALTIME_APP", "default": 5},
+      {"path": "도로혼잡결합", "kind": "COUPLING_CONDITION", "field": "congestionEnabled", "matchKeys": ["도로 혼잡", "혼잡 반영"], "default": false},
+      {"path": "도로혼잡결합/프로파일", "kind": "ATTRIBUTE", "field": "congestionProfileId", "matchKeys": ["혼잡 프로파일"], "generateWhen": "congestionEnabled", "default": "weekday-downtown"},
+      {"path": "이용자집합/이용자/탐색포기시간", "kind": "ATTRIBUTE", "field": "maxSearchMinutes", "matchKeys": ["탐색 포기 시간", "포기 시간", "찾다가 포기"], "range": {"min": 1, "max": 60}, "default": null},
+      {"path": "실험프레임/기간", "kind": "ATTRIBUTE", "field": "days", "matchKeys": ["기간", "며칠"], "range": {"min": 1, "max": 90}, "default": 14},
+      {"path": "실험프레임/반복", "kind": "ATTRIBUTE", "field": "seeds", "matchKeys": ["반복 횟수"], "range": {"min": 1, "max": 100}, "default": 30}
     ]
   },
   "applicability": {
@@ -73,7 +73,7 @@
       {"key": "pricing-effect", "label": "요금 정책 효과", "matchKeys": ["요금", "할증", "차등", "유료화", "무료"]},
       {"key": "guidance-effect", "label": "안내 방식 효과", "matchKeys": ["안내", "실시간 앱", "안내판", "앱"]},
       {"key": "resident-priority", "label": "거주자 우선 구획 효과", "matchKeys": ["거주자 우선", "거주자 구획"]},
-      {"key": "lot-count", "label": "주차장 수 · 면수", "matchKeys": ["몇 곳", "주차장 수", "면수", "증설", "더 지으"]}
+      {"key": "lot-count", "label": "주차장 수 · 면수", "matchKeys": ["몇 곳", "주차장 수", "면수", "증설", "더 지으", "한 곳 더"]}
     ]
   },
   "quality": {

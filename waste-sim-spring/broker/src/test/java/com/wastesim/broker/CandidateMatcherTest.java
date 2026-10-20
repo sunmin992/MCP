@@ -199,4 +199,48 @@ class CandidateMatcherTest {
         assertFalse(r.fitsAsIs(), "음식물을 다루지 않는 서버가 '쓰레기' 별칭으로 그대로 맞으면 안 된다");
         assertTrue(r.requestAdjustments().get(0).changesPurpose(), "음식물을 빼면 다른 질문이 된다");
     }
+
+    private static CandidateMatcher 쓰레기와_주차() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        var waste = mapper.readTree("""
+                {"serverId":"waste","endpoint":"http://localhost:1/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"],
+                 "applicability":{"objectiveMatchKeys":[{"label":"수거 시각","matchKeys":["수거 시각"]}]}}""");
+        var parking = mapper.readTree("""
+                {"serverId":"parking","endpoint":"http://localhost:2/mcp","domain":["public-parking"],"domainAliases":["주차장"],
+                 "applicability":{"objectiveMatchKeys":[{"label":"요금 정책 효과","matchKeys":["요금"]}]}}""");
+        var registry = new CandidateRegistry(waste, "classpath*:/none/*.json");
+        registry.register(parking);
+        return new CandidateMatcher(registry);
+    }
+
+    @Test
+    void 도메인이_둘_섞이면_어느_서버도_그대로_맞지_않는다() throws Exception {
+        List<MatchResult> r = 쓰레기와_주차().match(new RequestProfile("주차장 쓰레기 수거", null, null, null, null));
+        assertEquals(2, r.size());
+        r.forEach(m -> {
+            assertFalse(m.fitsAsIs(), "주차 서버와 쓰레기 서버가 한 CHOOSE 에 섞이면 안 된다: " + m.serverId());
+            assertTrue(m.requestAdjustments().stream().anyMatch(a -> a.axis().equals("domain")), m.toString());
+        });
+    }
+
+    @Test
+    void 비교_축이_카드에_없으면_어긋난다() throws Exception {
+        MatchResult p = 쓰레기와_주차().match(new RequestProfile("주차장", null, null, null, List.of("수거 시각"))).get(0);
+        assertFalse(p.fitsAsIs(), "주차 서버는 수거 시각을 바꿔 볼 수 없다");
+        MatchResult w = 쓰레기와_주차().match(new RequestProfile("쓰레기", null, null, null, List.of("수거 시각"))).get(0);
+        assertTrue(w.fitsAsIs(), w.mismatches().toString());
+        assertTrue(String.join(" | ", w.reasons()).contains("비교 축"), w.reasons().toString());
+    }
+
+    @Test
+    void 비교_축은_결정_지점의_말과도_맞는다() throws Exception {
+        var card = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
+                {"serverId":"parking","endpoint":"http://localhost:2/mcp","domain":["public-parking"],"domainAliases":["주차장"],
+                 "applicability":{"objectiveMatchKeys":[{"label":"요금 정책 효과","matchKeys":["요금"]}]},
+                 "sesDigest":{"decisionPoints":[{"path":"이용자집합","field":"dailyArrivals","matchKeys":["도착 차량"]}]}}""");
+        var m = new CandidateMatcher(new CandidateRegistry(card, "classpath*:/none/*.json"));
+        MatchResult r = m.match(new RequestProfile("주차장", null, null, null, List.of("하루 도착 차량"))).get(0);
+        assertTrue(r.fitsAsIs(), "답할 수 있는 질문에 없어도 결정 지점이면 바꿔 볼 수 있다: " + r.mismatches());
+        assertTrue(String.join(" | ", r.reasons()).contains("이용자집합"), r.reasons().toString());
+    }
 }

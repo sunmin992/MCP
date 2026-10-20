@@ -55,6 +55,7 @@
         "kind": "SPECIALIZATION",
         "level": "SET",
         "field": "truckType",
+        "matchKeys": ["차종", "차량 크기", "톤 차", "몇 톤"],
         "choices": [
           {
             "value": "LARGE_5TON",
@@ -86,6 +87,7 @@
         "path": "수거차량집합",
         "kind": "MULTI_ASPECT",
         "field": "numTrucks",
+        "matchKeys": ["차량 수", "차량 대수", "수거차 수", "몇 대"],
         "range": {
           "min": 1
         },
@@ -97,6 +99,7 @@
         "path": "수거차량집합/배차간격",
         "kind": "ATTRIBUTE",
         "field": "dispatchIntervalMinutes",
+        "matchKeys": ["배차 간격", "배차", "출발 간격"],
         "range": {
           "min": 0,
           "max": 1439,
@@ -111,6 +114,7 @@
         "path": "실험프레임/수거시각",
         "kind": "ATTRIBUTE",
         "field": "collectionTimeMinutes",
+        "matchKeys": ["수거 시각", "수거 시간", "몇 시"],
         "range": {
           "min": 0,
           "max": 1439,
@@ -124,6 +128,7 @@
         "path": "경로교통/교통결합",
         "kind": "COUPLING_CONDITION",
         "field": "trafficEnabled",
+        "matchKeys": ["교통 반영", "교통량", "교통 영향"],
         "choices": [
           "APPLY",
           "IGNORE"
@@ -136,6 +141,7 @@
         "path": "경로교통/교통구역집합/프로파일",
         "kind": "ATTRIBUTE",
         "field": "trafficProfileId",
+        "matchKeys": ["교통 프로파일", "교통 자료"],
         "choices": [
           {
             "value": "jangryang-weekday",
@@ -158,6 +164,7 @@
         "path": "경로교통/이동시간",
         "kind": "SPECIALIZATION",
         "field": "travelTimeMode",
+        "matchKeys": ["이동시간 계산", "이동 시간 계산", "이동시간 방식"],
         "choices": [
           {
             "value": "LEGACY_CONSTANT",
@@ -185,6 +192,7 @@
         "path": "건물집합",
         "kind": "MULTI_ASPECT",
         "field": "numBuildings",
+        "matchKeys": ["건물 수", "동 수", "몇 동", "건물 개수"],
         "range": {
           "min": 1,
           "max": 26
@@ -197,6 +205,7 @@
         "path": "건물/거주민집합",
         "kind": "MULTI_ASPECT",
         "field": "residentsPerBuilding",
+        "matchKeys": ["세대 수", "거주민 수", "입주 세대"],
         "range": {
           "min": 1
         },
@@ -207,6 +216,7 @@
         "path": "거주민/직업유형",
         "kind": "SPECIALIZATION",
         "field": "occupationMix",
+        "matchKeys": ["직업 구성", "거주민 구성", "직업"],
         "choices": [
           {
             "value": "BlueCollar",
@@ -262,6 +272,7 @@
         "path": "거주민/배출시각모델",
         "kind": "SPECIALIZATION",
         "field": "dischargeTimeMode",
+        "matchKeys": ["배출 시각", "배출 시간", "내놓는 시간"],
         "choices": [
           {
             "value": "PAPER_BASELINE",
@@ -282,6 +293,7 @@
         "path": "수거장/용량",
         "kind": "ATTRIBUTE",
         "field": "capacity",
+        "matchKeys": ["수거장 용량", "쓰레기장 용량", "쓰레기장 크기", "수거함 용량"],
         "range": {
           "min": 0,
           "exclusiveMin": true,
@@ -294,6 +306,7 @@
         "path": "민원감시/임계",
         "kind": "ATTRIBUTE",
         "field": "threshold",
+        "matchKeys": ["민원 임계", "민원 기준"],
         "range": {
           "min": 0,
           "max": 1
@@ -305,6 +318,7 @@
         "path": "수거차량집합/경로적재몫",
         "kind": "ATTRIBUTE",
         "field": "routeAvailableCapacityKg",
+        "matchKeys": ["적재 몫", "경로 가용 용량", "적재 용량"],
         "range": {
           "min": null,
           "max": null,

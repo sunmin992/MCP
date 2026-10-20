@@ -92,16 +92,26 @@ public class CandidateMatcher {
     }
 
     private List<MatchResult> evaluateAll(RequestProfile profile, boolean domainMatched) {
-        List<MatchResult> out = new ArrayList<>();
+        List<JsonNode> cards = new ArrayList<>();
         for (JsonNode card : registry.cards()) {
-            if (domainMatches(card, profile.domain()) != domainMatched) continue;
-            out.add(evaluate(card, profile, domainMatched));
+            if (domainMatches(card, profile.domain()) == domainMatched) cards.add(card);
+        }
+        // 도메인 구절 하나가 서로 다른 도메인의 별칭에 함께 걸릴 수 있다("주차장 쓰레기 수거").
+        // 그대로 두면 주차 서버와 쓰레기 서버가 한 CHOOSE 에 섞이고, 사용자는 지역 · 단위 차이만 보고
+        // 엉뚱한 도메인을 고른다. 브로커가 고르지 않고 도메인을 하나로 정하게 한다.
+        List<String> domains = domainMatched
+                ? cards.stream().map(c -> text(c.path("domain"))).distinct().sorted().toList()
+                : List.of();
+        List<MatchResult> out = new ArrayList<>();
+        for (JsonNode card : cards) {
+            out.add(evaluate(card, profile, domainMatched, domains));
         }
         out.sort(Comparator.comparing(MatchResult::serverId));
         return List.copyOf(out);
     }
 
-    private MatchResult evaluate(JsonNode card, RequestProfile profile, boolean domainMatched) {
+    private MatchResult evaluate(JsonNode card, RequestProfile profile, boolean domainMatched,
+                                 List<String> matchedDomains) {
         List<String> reasons = new ArrayList<>();
         List<String> mismatches = new ArrayList<>();
         List<RequestAdjustment> adjustments = new ArrayList<>();
@@ -118,6 +128,14 @@ public class CandidateMatcher {
                         "이 서버는 " + blocked.path("capability").asText() + " 을(를) 다루지 않습니다"
                                 + alternativesSuffix(blocked),
                         blocked.path("reason").asText(), true));
+            }
+            if (matchedDomains.size() > 1) {
+                mismatches.add("도메인: " + profile.domain() + " — 서로 다른 도메인(" + String.join(", ", matchedDomains)
+                        + ")의 말이 함께 들어 있습니다");
+                adjustments.add(new RequestAdjustment("domain", profile.domain(),
+                        "도메인을 '" + card.path("domainAliases").path(0).asText(text(card.path("domain")))
+                                + "' 하나로 정하면 이 서버를 쓸 수 있습니다",
+                        "도메인이 둘 이상이면 브로커가 어느 시뮬레이션인지 정할 수 없습니다", false));
             }
         } else {
             mismatches.add("도메인: " + profile.domain() + " 는 이 서버의 도메인("
@@ -236,6 +254,43 @@ public class CandidateMatcher {
             }
         }
 
+        // 비교 축 — 바꿔 볼 것이 카드의 답할 수 있는 질문 · 환경 조건 · 거주민 가운데 하나에 닿는가.
+        // 목적과 같은 이유로 그 표가 없는 카드는 판단하지 않는다.
+        if (profile.comparisonAxes() != null) {
+            JsonNode objectives = card.path("applicability").path("objectiveMatchKeys");
+            for (String axis : profile.comparisonAxes()) {
+                JsonNode blocked = findUnsupported(card, axis);
+                if (blocked != null) {
+                    mismatches.add("비교 축: " + axis + " — " + blocked.path("capability").asText()
+                            + " 미지원. " + blocked.path("reason").asText());
+                    adjustments.add(new RequestAdjustment("comparisonAxes", axis,
+                            "'" + axis + "' 대신 다른 것을 바꿔 보면 됩니다" + alternativesSuffix(blocked),
+                            blocked.path("reason").asText(), false));
+                    continue;
+                }
+                List<String> hits = new ArrayList<>();
+                for (JsonNode q : objectives) {
+                    if (anyKeyMatches(q.path("matchKeys"), axis)) hits.add(q.path("label").asText());
+                }
+                JsonNode env = findEnvironment(card, axis);
+                if (env != null) hits.add(env.path("key").asText());
+                findPopulations(card, axis).forEach(t -> hits.add(t.path("key").asText()));
+                // 바꿔 볼 것은 대개 결정 지점 하나다("하루 도착 차량" → 이용자집합). 답할 수 있는
+                // 질문에 없는 결정도 바꿔 볼 수 있으므로 결정 지점이 선언한 말과도 대조한다.
+                for (JsonNode dp : decisionPoints(card)) {
+                    if (anyKeyMatches(dp.path("matchKeys"), axis)) hits.add(dp.path("path").asText());
+                }
+                if (!hits.isEmpty()) {
+                    reasons.add("비교 축: " + axis + " → " + String.join(", ", hits));
+                } else if (objectives.isArray() && !objectives.isEmpty()) {
+                    mismatches.add("비교 축: " + axis + " — 이 서버가 바꿔 볼 수 있는 것에 없습니다");
+                    adjustments.add(new RequestAdjustment("comparisonAxes", axis,
+                            "이 서버가 바꿔 볼 수 있는 것 가운데 하나로 바꾸면 됩니다: " + decisionLabels(card),
+                            "비교 축이 카드의 결정 지점 · 답할 수 있는 질문 · 환경 조건과 닿지 않습니다", false));
+                }
+            }
+        }
+
         return new MatchResult(card.path("serverId").asText(), card.path("name").asText(),
                 card.path("endpoint").asText(), card.path("fictional").asBoolean(false),
                 reasons, mismatches, adjustments);
@@ -302,6 +357,20 @@ public class CandidateMatcher {
         List<String> out = new ArrayList<>();
         card.path("applicability").path("objectiveMatchKeys").forEach(q -> out.add(q.path("label").asText()));
         return out.isEmpty() ? text(card.path("applicability").path("answerableQuestions")) : String.join(", ", out);
+    }
+
+    private static JsonNode decisionPoints(JsonNode card) {
+        return card.path("sesDigest").path("decisionPoints");
+    }
+
+    /** 조정 제안에 보일 바꿔 볼 수 있는 결정. 사람 말(첫 matchKey)을 적는다. 키가 없는 카드는 답할 수 있는 질문으로. */
+    private String decisionLabels(JsonNode card) {
+        List<String> out = new ArrayList<>();
+        decisionPoints(card).forEach(dp -> {
+            String word = dp.path("matchKeys").path(0).asText();
+            if (!word.isBlank()) out.add(word);
+        });
+        return out.isEmpty() ? answerableLabels(card) : String.join(", ", out);
     }
 
     private String environmentKeys(JsonNode card) {
