@@ -67,7 +67,7 @@
       {"key": "resident-priority", "matchKeys": ["거주자 우선", "거주자 구획", "거주자 전용"]}
     ],
     "objectiveMatchKeys": [
-      {"key": "search-time", "label": "주차 탐색 시간", "matchKeys": ["찾는 시간", "탐색", "배회", "주차 찾", "주차장 찾", "자리 찾"]},
+      {"key": "search-time", "label": "주차 탐색 시간", "matchKeys": ["찾는 시간", "탐색", "배회", "주차 찾", "주차장 찾", "자리 찾", "세울", "세우", "대는 데", "댈 수", "주차하는 데"]},
       {"key": "give-up", "label": "주차 포기 차량", "matchKeys": ["포기", "못 대", "주차 못", "돌아가"]},
       {"key": "occupancy", "label": "주차장 혼잡도 · 점유율", "matchKeys": ["혼잡도", "점유율", "만차", "빈자리", "얼마나 차"]},
       {"key": "pricing-effect", "label": "요금 정책 효과", "matchKeys": ["요금", "할증", "차등", "유료화", "무료"]},
