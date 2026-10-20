@@ -8,6 +8,12 @@
       "port": 8091
     },
     {
+      "name": "parking-sim",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d parking-sim && chcp 65001 >nul && .\\mvnw.cmd -q spring-boot:run"],
+      "port": 8092
+    },
+    {
       "name": "waste-sim",
       "runtimeExecutable": "mvn",
       "runtimeArgs": ["-f", "waste-sim-spring/pom.xml", "spring-boot:run"],
