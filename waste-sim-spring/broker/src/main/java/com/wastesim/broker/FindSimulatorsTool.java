@@ -59,7 +59,7 @@ public class FindSimulatorsTool implements McpToolProvider {
                  "description":"환경 조건. 예: [\\"평일 교통량\\"]"},
                "objective":{"type":"string","description":"목적. 예: \\"민원이 가장 적은 수거 시각\\""},
                "comparisonAxes":{"type":"array","items":{"type":"string"},
-                 "description":"무엇을 바꿔 가며 비교할 것인가"},
+                 "description":"무엇을 바꿔 가며 비교할 것인가 — 비교할 값이 아니라 바꾸는 항목의 이름을 적는다. 예: [\\"수거차 대수\\"] (\\"수거차 3대\\", \\"수거차 2대\\" 가 아니다), [\\"수거 시각\\"] (\\"밤 10시 수거\\" 가 아니다)"},
                "population":{"type":"array","items":{"type":"string"},
                  "description":"거주민에 관한 구절. 구절 하나에 거주민 하나로 나눠 사용자 말 그대로 적는다. 예: [\\"학생이 많음\\",\\"주부가 많음\\"]"}},
              "required":["domain"]}

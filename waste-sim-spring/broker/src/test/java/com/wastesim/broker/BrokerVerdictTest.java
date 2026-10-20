@@ -324,4 +324,12 @@ class BrokerVerdictTest {
         assertTrue(find.inputSchemaJson().contains("구절 하나에 거주민 하나"),
                 "브로커는 구절을 해석하지 않는다 — '학생과 노인' 을 한 구절로 받으면 노인을 못 다뤄도 통과한다");
     }
+
+    @Test
+    void 비교_축은_값이_아니라_바꾸는_항목_이름으로_받는다고_안내한다() throws Exception {
+        String axes = new com.fasterxml.jackson.databind.ObjectMapper().readTree(find.inputSchemaJson())
+                .path("properties").path("comparisonAxes").path("description").asText();
+        // 값("수거차 3대")은 카드의 결정 지점과 닿지 않아 ADJUST_REQUEST 가 된다(2026-10-20).
+        assertTrue(axes.contains("수거차 대수") && axes.contains("수거차 3대"), axes);
+    }
 }
