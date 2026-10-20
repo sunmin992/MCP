@@ -91,6 +91,61 @@ class RunScenarioByTokenToolTest {
     }
 
     @Test
+    void concurrentExecutionAndConfirmationAreRejected() throws Exception {
+        var b = built();
+        String id = b.path("scenarioId").asText();
+        var args = runArgs(id, b.path("confirmToken").asText());
+        var entered = new java.util.concurrent.CountDownLatch(1);
+        var release = new java.util.concurrent.CountDownLatch(1);
+        var service = new SimulationService(new SimulationEngine(new TrafficDataService())) {
+            @Override
+            public com.wastesim.model.SimulationResult runExperiment(com.wastesim.model.SimulationConfig cfg) {
+                entered.countDown();
+                try {
+                    if (!release.await(10, java.util.concurrent.TimeUnit.SECONDS)) {
+                        throw new IllegalStateException("Timed out waiting for test release");
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                    throw new IllegalStateException(e);
+                }
+                return super.runExperiment(cfg);
+            }
+        };
+        var tool = new RunScenarioByTokenTool(builder, store, service, mapper);
+        try (var executor = java.util.concurrent.Executors.newSingleThreadExecutor()) {
+            var first = executor.submit(() -> tool.call(args));
+            try {
+                assertTrue(entered.await(5, java.util.concurrent.TimeUnit.SECONDS));
+                // A separate tool instance must share the same execution guard.
+                assertFalse(runTool.call(args).ready(), "Concurrent duplicate must not run");
+                assertFalse(confirmTool.call(mapper.createObjectNode().put("scenarioId", id)).ready(),
+                        "Confirmation must not reset an in-flight execution");
+            } finally {
+                release.countDown();
+            }
+            assertTrue(first.get(10, java.util.concurrent.TimeUnit.SECONDS).ready());
+            assertEquals("EXECUTED", store.entry(id).orElseThrow().state());
+        }
+    }
+
+    @Test
+    void failedExecutionCanBeRetried() throws Exception {
+        var b = built();
+        String id = b.path("scenarioId").asText();
+        var args = runArgs(id, b.path("confirmToken").asText());
+        var service = new SimulationService(new SimulationEngine(new TrafficDataService())) {
+            @Override
+            public com.wastesim.model.SimulationResult runExperiment(com.wastesim.model.SimulationConfig cfg) {
+                throw new IllegalStateException("test failure");
+            }
+        };
+        assertFalse(new RunScenarioByTokenTool(builder, store, service, mapper).call(args).ready());
+        assertEquals("CONFIRMED", store.entry(id).orElseThrow().state());
+        assertTrue(runTool.call(args).ready());
+    }
+
+    @Test
     void 토큰이_맞으면_실행하고_조건마다_결과를_낸다() throws Exception {
         var b = built();
         var out = mapper.readTree(runTool.call(

@@ -102,6 +102,10 @@ public class RunScenarioByTokenTool implements McpToolProvider {
                             + "발급 이후 설정이 바뀌었거나 다른 시나리오의 토큰입니다.");
         }
 
+        if (!store.beginExecution(scenarioId, found.get())) {
+            return ToolFailure.of("confirmToken",
+                    "이미 실행 중이거나 시나리오 상태가 바뀌었습니다. 상태를 다시 확인하십시오.");
+        }
         try {
             var runs = mapper.createArrayNode();
             for (SimulationConfig cfg : scenario.runs()) {
@@ -171,6 +175,8 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("scenario", "실행에 실패했습니다: " + e.getMessage());
+        } finally {
+            store.endExecution(scenarioId);
         }
     }
 }
