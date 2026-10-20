@@ -108,6 +108,17 @@ public class CandidateMatcher {
 
         if (domainMatched) {
             reasons.add("도메인: " + profile.domain() + " → " + text(card.path("domain")));
+            // 도메인 구절에도 못 한다는 선언을 본다. "음식물 쓰레기 수거" 는 '쓰레기' 별칭에 걸려
+            // 도메인이 맞지만, 음식물을 다루지 않는 서버는 그 요청에 답할 수 없다.
+            JsonNode blocked = findUnsupported(card, profile.domain());
+            if (blocked != null) {
+                mismatches.add("도메인: " + profile.domain() + " — " + blocked.path("capability").asText()
+                        + " 미지원. " + blocked.path("reason").asText());
+                adjustments.add(new RequestAdjustment("domain", profile.domain(),
+                        "이 서버는 " + blocked.path("capability").asText() + " 을(를) 다루지 않습니다"
+                                + alternativesSuffix(blocked),
+                        blocked.path("reason").asText(), true));
+            }
         } else {
             mismatches.add("도메인: " + profile.domain() + " 는 이 서버의 도메인("
                     + text(card.path("domain")) + ")이 아닙니다");

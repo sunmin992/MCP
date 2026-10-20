@@ -180,4 +180,23 @@ class CandidateMatcherTest {
         assertTrue(근거.contains("OfficeWorker"), 근거);
         assertFalse(근거.contains("Student"), 근거);
     }
+
+    @Test
+    void 넘치는_일은_최대_적재량으로_읽는다() {
+        MatchResult j = byId(matcher.match(new RequestProfile("쓰레기수거", "주택가 한 블록", null,
+                "쓰레기장이 넘치는 일", List.of("차종"))), "jangnyang-waste-sim");
+        assertTrue(j.fitsAsIs(), j.mismatches().toString());
+        assertTrue(String.join(" | ", j.reasons()).contains("최대 적재량"), j.reasons().toString());
+    }
+
+    @Test
+    void 도메인_구절이_미지원에_걸리면_어긋난다() throws Exception {
+        var card = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
+                {"serverId":"food-less","endpoint":"http://localhost:1/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"],
+                 "unsupported":[{"capability":"재활용 · 음식물","matchKeys":["음식물"],"reason":"일반 쓰레기만 다룬다"}]}""");
+        var m = new CandidateMatcher(new CandidateRegistry(card, "classpath*:/none/*.json"));
+        MatchResult r = m.match(new RequestProfile("음식물 쓰레기 수거", null, null, null, null)).get(0);
+        assertFalse(r.fitsAsIs(), "음식물을 다루지 않는 서버가 '쓰레기' 별칭으로 그대로 맞으면 안 된다");
+        assertTrue(r.requestAdjustments().get(0).changesPurpose(), "음식물을 빼면 다른 질문이 된다");
+    }
 }
