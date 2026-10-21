@@ -1,6 +1,8 @@
 package com.wastesim.pes;
 
 import com.wastesim.model.SimulationConfig;
+import com.wastesim.model.TravelTimeMode;
+import com.wastesim.simulation.TravelTimeCalculator;
 import com.wastesim.template.SubtaskTemplate;
 import com.wastesim.template.TemplateCatalog;
 import org.springframework.stereotype.Component;
@@ -33,6 +35,13 @@ public class PesFlattener {
                             "템플릿에 없는 답변키입니다: " + answerKey
                                     + " — 실행 대응이 선언되지 않은 값은 싣지 않습니다"));
             applyOne(cfg, t, e.getValue());
+        }
+        // 구간 상수 모드의 건물 간 이동시간은 템플릿에 없는 결정이다. 실행 설정 초기값 0 은 엔진에서
+        // "이동을 계산하지 않음" 이라, 그대로 두면 교통을 반영해도 곱할 이동시간이 없어 결과가 같다.
+        // 능력 카드가 적은 기본값(15분)을 쓴다 — 교통 반영 여부와 상관없이 넣어야 반영/미반영 비교에서
+        // 두 실행의 이동시간 조건이 같다. 옛 직접 실행 도구 · 엔진의 0 의미는 건드리지 않는다.
+        if (cfg.resolveTravelTimeMode() == TravelTimeMode.LEGACY_CONSTANT && cfg.getRouteTravelMinutes() == 0) {
+            cfg.setRouteTravelMinutes(TravelTimeCalculator.DEFAULT_ROUTE_TRAVEL_MINUTES);
         }
         return cfg;
     }

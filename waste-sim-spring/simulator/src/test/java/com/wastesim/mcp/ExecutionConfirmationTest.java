@@ -73,6 +73,8 @@ class ExecutionConfirmationTest {
         args.put("truckType", "SMALL_1TON");
         args.put("residentsPerBuilding", 25);
         args.put("travelTimeMode", "LEGACY_CONSTANT");
+        // 서브태스크 흐름은 구간 상수 모드에 카드의 기본 이동시간(15분)을 넣는다 — 같은 설정이려면 기존 도구도 같은 값이어야 한다.
+        args.put("routeTravelMinutes", 15);
         args.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         args.put("routeAvailableCapacityKg", 150);
         return args;

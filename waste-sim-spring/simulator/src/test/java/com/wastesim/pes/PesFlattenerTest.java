@@ -46,6 +46,18 @@ class PesFlattenerTest {
     }
 
     @Test
+    void 구간_상수_모드에는_카드의_기본_이동시간이_들어간다() {
+        // 0 이면 엔진이 이동을 계산하지 않아 교통 반영이 결과에 닿지 않는다(2026-10-21 M2).
+        for (String traffic : List.of("APPLY", "IGNORE")) {
+            SimulationConfig cfg = flattener.flatten(pes(Map.of("trafficMode", traffic, "travelTimeMode", "LEGACY_CONSTANT")));
+            assertEquals(com.wastesim.simulation.TravelTimeCalculator.DEFAULT_ROUTE_TRAVEL_MINUTES, cfg.getRouteTravelMinutes(),
+                    "교통 반영과 미반영의 이동시간 조건이 같아야 비교가 된다: " + traffic);
+        }
+        SimulationConfig zone = flattener.flatten(pes(Map.of("travelTimeMode", "ZONE_PROXY_HYBRID")));
+        assertEquals(0, zone.getRouteTravelMinutes(), "교통구역 근사는 구역 간 자유주행시간을 쓴다");
+    }
+
+    @Test
     void 수거시각과_기간이_실린다() {
         Map<String, Object> v = new LinkedHashMap<>();
         v.put("collectionTimeMinutes", 900);

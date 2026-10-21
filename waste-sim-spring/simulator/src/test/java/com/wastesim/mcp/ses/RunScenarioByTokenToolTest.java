@@ -367,17 +367,17 @@ class RunScenarioByTokenToolTest {
     }
 
     @Test
-    void 이동시간을_계산하지_않는_설정에서는_운행_소요_시간을_0_으로_내지_않는다() throws Exception {
-        // 구간 상수 모드에 건물 간 이동시간 0분(기본값)이면 엔진은 이동을 계산하지 않는다.
-        // 그때 0 을 내보내면 "0분 만에 다 돌았다" 로 읽힌다.
+    void 구간_상수_모드도_이동시간을_계산해_운행_소요_시간을_낸다() throws Exception {
+        // 서브태스크 흐름은 구간 상수 모드에 카드의 기본 이동시간(15분)을 넣는다. 예전에는 0분이라 엔진이
+        // 이동을 계산하지 않았고, 교통을 반영해도 결과가 같았다(2026-10-21 M2).
         var b = built();
         var out = mapper.readTree(runTool.call(
                 runArgs(b.path("scenarioId").asText(), b.path("confirmToken").asText()))
                 .result().toString());
 
         for (var run : out.path("runs")) {
-            assertTrue(run.path("avgRouteDurationMinutes").isNull(), run.toString());
-            assertTrue(run.path("routeDurationNote").asText().contains("계산하지 않는"), run.toString());
+            assertTrue(run.path("avgRouteDurationMinutes").asDouble() > 0, run.toString());
+            assertTrue(run.path("routeDurationNote").isMissingNode(), run.toString());
         }
     }
 }
