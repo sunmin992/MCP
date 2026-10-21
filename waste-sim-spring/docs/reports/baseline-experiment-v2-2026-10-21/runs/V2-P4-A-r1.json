@@ -1,0 +1,25 @@
+{
+  "id": "V2-P4-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "주차", "spatialScale": "도심", "environmentConditions": ["주말 교통 혼잡"], "objective": "주차장 찾는 데 걸리는 시간", "population": []}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "mismatches 없음, requestAdjustments 없음. 브로커는 15곳·3만 대 범위 초과를 알려 주지 않았다(프로파일에 그 수치를 넣을 칸이 없음)."}
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "questions": [
+    {"text": "이 시뮬레이터는 주차장 12곳, 하루 도착 2만 대까지만 받습니다(15곳·3만 대는 범위 초과). 어떻게 할까요? 그리고 다음도 정해 주세요: 운전자가 주차장을 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 며칠치를 몇 번 반복할까요? 주차장 한 곳 면수(기본 80면), 요금 방식(기본 균일), 이용자 구성(기본 출퇴근·쇼핑·방문), 주차 안내 방식(기본 없음)은 어떻게 할까요? 따로 비교하고 싶은 항목이 있나요?", "keys": ["lotCount", "dailyArrivals", "maxSearchMinutes", "days", "seeds", "spacesPerLot", "pricingPolicy", "userMix", "guidanceMode"], "answer": "그럼 되는 만큼 최대로 해줘 / 탐색 포기 시간 20분 / 14일, 10회 / 그 밖은 기본값으로 해줘"},
+    {"text": "요금을 균일로 하면 30분당 기본 요금을 정해야 합니다. 얼마로 할까요? (기본 500원)", "keys": ["baseFeePer30Min"], "answer": "기본값으로 해줘"},
+    {"text": "12곳 × 80면으로는 하루 2만 대 수요가 면수의 362% 라 거의 모든 차가 포기하는 실험이 되어 서버가 막았습니다. 도착 차량을 줄일까요, 주차장 면수를 늘릴까요?", "keys": ["spacesPerLot", "dailyArrivals"], "answer": "그럼 되는 만큼 최대로 해줘"}
+  ],
+  "rejections": [
+    "validate_answers: lotCount=15 OUT_OF_RANGE (12 이하) → 12 로 고침",
+    "validate_answers: dailyArrivals=30000 OUT_OF_RANGE (20000 이하) → 20000 으로 고침",
+    "build_scenario scn-147cf4d4 INVALID: spacesPerLot=80 에서 하루 수요가 면수 감당량의 362% → 차량 2만 대 유지, spacesPerLot 300 으로 늘려 재시도"
+  ],
+  "scenarioId": "scn-1478acb0",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "요청한 15곳·3만 대는 서버 상한 초과라 12곳·2만 대로 낮췄다. 2만 대를 받기 위해 주차장 한 곳 면수를 기본 80면이 아니라 300면으로 가정했다(사용자가 말한 값 아님). 요금 균일·30분 500원, 이용자 구성 출퇴근·쇼핑·방문, 안내 없음은 기본값. '주말에 길이 막힐 때'는 도로 혼잡 반영(APPLY)·주말 도심 프로파일로 해석했고 이 프로파일은 가정값이다. 비교 축이 없어 탐색 포기 20분 한 가지 설정만 돌린다. 확인 화면 http://localhost:8092/confirm.html 에서 직접 승인해야 실행된다.",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음. 승인은 사람만 한다.",
+  "difficulties": "브로커 MATCH 에 수량 상한 경고가 없어 서버에서야 15곳·3만 대 초과를 알았다. pricingPolicy 기본값(FLAT)을 넣은 뒤에야 baseFeePer30Min 이 생겨 질문이 하나 더 늘었다. 수요/면수 비율 차단 기준(몇 % 까지 허용인지)이 안내되지 않아 spacesPerLot 값을 어림으로 정했다. 실험 변수가 필수인데 비교 의도가 없는 요청이라 maxSearchMinutes 한 값을 변수로 넣었다."
+}

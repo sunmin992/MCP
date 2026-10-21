@@ -1,0 +1,29 @@
+{
+  "id": "V2-J1-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["평일 교통량"], "objective": "민원이 가장 적은 쓰레기 수거 시각", "comparisonAxes": ["수거 시각"], "population": ["학생이 많음"]},
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "jangnyang-waste-sim 이 모든 축에서 mismatch 없이 맞음. 나머지 둘은 공간 규모·거주민·교통·목적 불일치(district-waste-sim 은 가상 서버)."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {
+      "text": "비교할 수거 시각(여러 개), 건물 동 수·동당 세대 수, 수거차량 크기·대수, 청소차의 이 블록 적재 몫(kg, 기본값 없음), 거주민 직업 구성, 기간(일)·반복 횟수, 교통 프로파일(평일 실측/통행량 기반), 이동시간 계산 방식(구간 상수/교통구역 근사)을 알려 주세요.",
+      "keys": ["collectionTimeMinutes", "numBuildings", "residentsPerBuilding", "truckType", "truckCount", "routeAvailableCapacityKg", "occupationMix", "days", "seeds", "trafficProfileId", "travelTimeMode"],
+      "answer": "비교할 수거 시각: 09시, 12시, 15시 / 건물·세대: 기본값으로 / 차량: 기본값으로 / 적재 몫: 150kg / 직업 구성: 학생 위주로 학생 2 : 주부 1 / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-661afff6",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값(MODEL_DEFAULT)으로 넣음: 차량 LARGE_5TON 1대, 건물 4동·동당 25세대, 교통 프로파일 jangryang-weekday, 이동시간 LEGACY_CONSTANT. '평일 교통량' 에서 trafficMode=APPLY 를 유도(DERIVED). 직업 구성은 [Student, Student, Housewife] 로 2:1 표현. 확인 화면 http://localhost:8090/confirm.html 에서 승인 필요.",
+  "stoppedBecause": "build_scenario 성공으로 UNCONFIRMED 상태가 되어 get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 할 수 있어 멈춤.",
+  "difficulties": "comparisonAxes 에 이름('수거 시각')을 적으라는 안내는 브로커 설명만으로는 다소 모호했음. get_templates 응답이 이중 JSON 문자열로 감싸져 읽기 번거로움. 실험 변수 answerKey 가 collectionTimeMinutes 인지(collectionTimesMinutes 와 혼동 가능) 판단이 필요했음. build_scenario origins 에 실험 변수 키(collectionTimeMinutes)를 넣어도 되는지 설명이 없음. plan_subtasks 에 origins 를 안 주면 origin 이 null 로 나옴."
+}

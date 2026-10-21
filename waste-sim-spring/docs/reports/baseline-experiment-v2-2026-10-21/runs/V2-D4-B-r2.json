@@ -1,0 +1,33 @@
+{
+  "id": "V2-D4-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "적환장 효과를 보려면 두 경우를 나란히 돌려 비교하겠습니다. (1) 비교는 '적환장 안 씀 vs 씀'으로 하면 될까요? (2) 적환장 왕복 시간은 몇 분으로 둘까요? (기본값이 없어 정해 주셔야 합니다. 안 쓸 때 소각장 왕복은 기본 90분) (3) 기간과 반복 횟수는요? (기본 28일, 30회)",
+      "keys": ["transferEnabled", "transferRoundTripMinutes", "days", "seeds"],
+      "answer": "적환장 안 쓸 때와 쓸 때 / 적환장 왕복 시간: 40분 / 28일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "transferEnabled": false,
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "transferEnabled": true,
+        "transferRoundTripMinutes": 40,
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "적환장 사용 여부와 적환장 왕복 시간(40분)만 바꾸고, 나머지(구역 8개, 구역당 600세대, 주거 구성, 5톤 차량 2대, EQUAL_COUNT 배정, 포항 북구 일정, 공휴일 미반영, 소각장 왕복 90분, 06:00 시작, 근무 480분, 2026-09-21 시작 등)는 기본값으로 두었다고 알렸다. '수거가 빨리 끝나는가'는 결과의 수거 지연 · 잔여량 통계로 판단한다고 알렸다.",
+  "stoppedBecause": "비교할 두 호출의 인자를 확정했고, 실행은 사람이 설정을 확인한 뒤 하므로 여기서 멈췄다.",
+  "difficulties": "스키마에 '수거 종료 시각'을 직접 반환한다는 말이 없어, '빨리 끝나는가'를 잔여량 · 수거 지연 통계로 대신 보아야 한다는 점이 애매했다. transferRoundTripMinutes 는 기본값이 없어 반드시 물어야 했다."
+}

@@ -2,6 +2,18 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "broker",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d waste-sim-spring && chcp 65001 >nul && .\\mvnw.cmd -q -pl broker -am spring-boot:run"],
+      "port": 8089
+    },
+    {
+      "name": "simulator",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d waste-sim-spring && chcp 65001 >nul && .\\mvnw.cmd -q -pl simulator -am spring-boot:run"],
+      "port": 8090
+    },
+    {
       "name": "district-waste-sim",
       "runtimeExecutable": "cmd",
       "runtimeArgs": ["/c", "cd /d district-waste-sim && chcp 65001 >nul && .\\mvnw.cmd -q spring-boot:run"],
@@ -16,7 +28,47 @@
     {
       "name": "waste-sim",
       "runtimeExecutable": "mvn",
-      "runtimeArgs": ["-f", "waste-sim-spring/pom.xml", "spring-boot:run"],
+      "runtimeArgs": [
+        "-f",
+        "waste-sim-spring/pom.xml",
+        "spring-boot:run",
+        "-Dspring-boot.run.profiles=ollama"
+      ],
+      "port": 8090
+    },
+    {
+      "name": "waste-sim-osrm",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": [
+        "-f",
+        "waste-sim-spring/pom.xml",
+        "spring-boot:run",
+        "-Dspring-boot.run.profiles=ollama",
+        "-Dspring-boot.run.arguments=--osrm.enabled=true"
+      ],
+      "port": 8090
+    },
+    {
+      "name": "waste-sim-traffic",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": [
+        "-f",
+        "waste-sim-spring/pom.xml",
+        "spring-boot:run",
+        "-Dspring-boot.run.profiles=ollama",
+        "-Dspring-boot.run.arguments=--osrm.enabled=true --tmap.enabled=true"
+      ],
+      "port": 8090
+    },
+    {
+      "name": "waste-sim-openai",
+      "runtimeExecutable": "mvn",
+      "runtimeArgs": [
+        "-f",
+        "waste-sim-spring/pom.xml",
+        "spring-boot:run",
+        "-Dspring-boot.run.profiles=openai"
+      ],
       "port": 8090
     }
   ]

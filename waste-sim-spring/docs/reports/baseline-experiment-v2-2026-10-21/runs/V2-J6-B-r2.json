@@ -1,0 +1,12 @@
+{
+  "id": "V2-J6-B-r2",
+  "method": "B",
+  "questions": [],
+  "plannedCalls": [
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "06:00", "dischargeTimeMode": "POHANG_ACTUAL", "dischargeWindowStartMinutes": 1200, "dischargeWindowEndMinutes": 360}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "09:00", "dischargeTimeMode": "POHANG_ACTUAL", "dischargeWindowStartMinutes": 1200, "dischargeWindowEndMinutes": 360}}
+  ],
+  "toldUser": "수거 시각(06:00, 09:00)만 다르게 두고 두 번 돌린다. 배출 시각은 POHANG_ACTUAL 모드에 20:00~06:00 창(1200~360분)을 명시했다. 나머지(30일, 반복 30회, 4동 x 25명, 수거장 용량 30kg, 민원 임계 0.8, 매일 수거, 5톤 차 1대, 교통 레이어 끔 등)는 모두 기본값이다.",
+  "stoppedBecause": "요청이 '공식 배출 창을 지킨다는 가정에서 수거 시각 06:00 vs 09:00 비교'로 분명하고 스키마의 POHANG_ACTUAL과 배출 창 기본값(20:00~06:00)이 그 가정과 정확히 맞아서 물을 것이 없었다. 비교용 호출 두 개를 확정하고 멈췄다.",
+  "difficulties": "06:00 수거는 배출 창 종료 시각과 겹친다. 창 끝에 맞춰 내놓은 쓰레기가 그 수거에 들어가는지는 엔진의 경계 처리에 달려 있는데, 스키마만으로는 알 수 없다. 교통을 켤지도 고민했지만 사용자가 교통을 언급하지 않았고 기본값이 꺼짐이라 그대로 뒀다."
+}

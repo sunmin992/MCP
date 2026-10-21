@@ -1,0 +1,28 @@
+{
+  "id": "V2-P4-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "설정 전에 몇 가지 여쭙겠습니다. (1) 주차장을 찾다가 몇 분 안에 못 찾으면 포기하는 것으로 볼까요? (2) 시뮬레이션 기간(일)과 반복 횟수는 어떻게 할까요? (기본 14일, 30회) (3) 주말 도로 혼잡을 반영하려 하는데, 도구에 알려진 혼잡 프로파일은 기본값 'weekday-downtown'(평일 도심) 하나뿐입니다. 쓰실 주말 프로파일 id 가 따로 있나요, 아니면 기본값으로 할까요?",
+      "keys": ["maxSearchMinutes", "days", "seeds", "congestionProfileId"],
+      "answer": "탐색 포기 시간: 20분 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "lotCount": 15,
+        "dailyArrivals": 30000,
+        "congestionEnabled": true,
+        "congestionProfileId": "weekday-downtown",
+        "maxSearchMinutes": 20,
+        "days": 14,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "혼잡 프로파일은 주말용 id 를 몰라 기본값 'weekday-downtown'(평일 도심)으로 넣었으므로 '주말' 혼잡과 다를 수 있다. 주차장당 면수 80(총 1,200면), 요금 FLAT 30분당 500원, 이용자 구성 Commuter·Shopper·Visitor, 안내 없음(NONE), 주차장 간 3분, 만차 한 바퀴 2분은 기본값이다. 1,200면에 하루 3만 대라 대부분 만차·포기로 나올 가능성이 크다.",
+  "stoppedBecause": "필요한 값을 모두 받아 인자를 확정했고, 실행은 사람이 설정을 확인한 뒤에 하라는 규칙에 따라 호출 전에 멈췄다.",
+  "difficulties": "스키마에 주말 혼잡 프로파일이 없어 '주말에 길이 막힐 때'를 정확히 표현할 수 없었다(기본값은 평일 도심). 주차장 수·차량 수 상한이 스키마에 없어 15곳·3만 대가 허용되는지 알 수 없었고, 그대로 넣었다."
+}

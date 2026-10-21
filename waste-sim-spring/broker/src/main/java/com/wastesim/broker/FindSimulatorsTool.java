@@ -7,10 +7,15 @@ import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.Predicate;
 
 /**
  * 요청 프로필로 시뮬레이터 후보를 찾는다 — 명세 3·4단계.
@@ -29,9 +34,19 @@ public class FindSimulatorsTool implements McpToolProvider {
     /** 제안은 몇 개까지. 많이 내면 LLM 이 사용자에게 고를 수 없는 목록을 넘긴다. */
     private static final int MAX_SUGGESTIONS = 3;
 
-    public FindSimulatorsTool(CandidateMatcher matcher, ObjectMapper mapper) {
+    /** 서버 주소 → 지금 응답하는가. 추천 · 제안에는 응답하는 서버만 싣는다. */
+    private final Predicate<String> reachable;
+
+    @Autowired
+    public FindSimulatorsTool(CandidateMatcher matcher, ObjectMapper mapper, Predicate<String> reachable) {
         this.matcher = matcher;
         this.mapper = mapper;
+        this.reachable = reachable;
+    }
+
+    /** 모든 서버가 응답한다고 보는 시험용 생성자. */
+    FindSimulatorsTool(CandidateMatcher matcher, ObjectMapper mapper) {
+        this(matcher, mapper, endpoint -> true);
     }
 
     @Override public String toolName() { return "find_simulators"; }
@@ -94,8 +109,18 @@ public class FindSimulatorsTool implements McpToolProvider {
 
             // 추천은 부를 수 있는 서버 가운데 요청을 그대로 받는 것만. 지어낸 후보는 맞아도
             // 추천하지 않는다 — example.invalid 로 LLM 을 보내면 부를 수 없는 서버를 부른다.
+            // 응답하지 않는 서버도 뺀다. 강제 종료된 서버는 등록이 남아 있어, 보지 않으면 부를 수
+            // 없는 주소로 MATCH 가 나간다. 주소마다 한 번만 본다.
+            Map<String, Boolean> alive = new HashMap<>();
+            Map<String, String> down = new LinkedHashMap<>();
+            Predicate<MatchResult> callable = m -> {
+                if (m.fictional()) return false;
+                boolean up = alive.computeIfAbsent(m.endpoint(), reachable::test);
+                if (!up) down.put(m.serverId(), m.endpoint());
+                return up;
+            };
             List<MatchResult> fits = matches.stream()
-                    .filter(m -> !m.fictional() && m.fitsAsIs()).toList();
+                    .filter(m -> m.fitsAsIs() && callable.test(m)).toList();
             if (fits.size() == 1) {
                 MatchResult fit = fits.get(0);
                 root.put("verdict", "MATCH");
@@ -127,8 +152,8 @@ public class FindSimulatorsTool implements McpToolProvider {
                 // 그대로 받을 서버가 없다. 도메인이 맞는 쪽을 먼저, 다른 쪽을 뒤에 두고 각각
                 // 요청을 어떻게 고치면 되는지 싣는다.
                 List<MatchResult> suggestions = new ArrayList<>();
-                matches.stream().filter(m -> !m.fictional()).forEach(suggestions::add);
-                matcher.outsideDomain(profile).stream().filter(m -> !m.fictional()).forEach(suggestions::add);
+                matches.stream().filter(callable).forEach(suggestions::add);
+                matcher.outsideDomain(profile).stream().filter(callable).forEach(suggestions::add);
                 if (suggestions.isEmpty()) {
                     root.put("verdict", "NONE");
                     root.put("nextStep", "사용자에게 지금 쓸 수 있는 시뮬레이터가 없다고 전하십시오.");
@@ -154,6 +179,14 @@ public class FindSimulatorsTool implements McpToolProvider {
                             + "suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — "
                             + "사용자에게 전하고 고칠지 물으십시오.");
                 }
+            }
+            if (!down.isEmpty()) {
+                // 사용자에게 "그 서버는 지금 꺼져 있다" 고 말할 수 있게 남긴다 — 조용히 빼면 왜 다른
+                // 서버로 갔는지, 왜 맞는 서버가 없다는지 알 수 없다.
+                root.set("unreachable", mapper.valueToTree(down));
+                root.put("unreachableNote", "등록돼 있지만 지금 응답하지 않아 추천 · 제안에서 뺀 서버입니다. "
+                        + "그 서버가 다시 켜지면 같은 요청으로 다시 조회할 수 있습니다.");
+                callLog.info("[4 매칭] 응답 없음 → 추천에서 뺌: {}", down);
             }
             root.set("matches", mapper.valueToTree(matches));
             return ToolResult.ok(mapper.writeValueAsString(root));

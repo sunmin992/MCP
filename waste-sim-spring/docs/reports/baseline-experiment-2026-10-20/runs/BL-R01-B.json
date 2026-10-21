@@ -1,0 +1,64 @@
+{
+  "id": "BL-R01-B",
+  "method": "B",
+  "questions": [
+    {
+      "text": "설정 전에 몇 가지 확인할게요. (1) 비교해 볼 수거 시각 후보는 언제인가요? (2) 한 블록의 건물 수와 건물당 거주 인원은요? (3) 수거 차량(차종·대수)은 어떻게 할까요? (4) 이 경로에 배정된 차량 적재 몫(kg)이 따로 있나요? (5) '학생이 많다'는 직업 구성을 어떤 비율로 넣을까요? (6) 시뮬레이션 기간과 반복 횟수는요? (7) 그 밖에 교통 프로필(평일)이나 이동시간 방식 등 따로 원하시는 게 있나요?",
+      "keys": [
+        "collectionTime",
+        "numBuildings",
+        "residentsPerBuilding",
+        "truckType",
+        "truckCount",
+        "routeAvailableCapacityKg",
+        "occupationMix",
+        "days",
+        "seeds",
+        "trafficProfileId",
+        "travelTimeMode"
+      ],
+      "answer": "비교할 수거 시각: 09시, 12시, 15시 / 건물·세대: 기본값으로 / 차량: 기본값으로 / 적재 몫(경로 가용 용량): 150kg / 직업 구성: 학생 위주로 학생 2 : 주부 1 / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "09:00",
+        "days": 10,
+        "seeds": 5,
+        "occupationMix": ["Student", "Student", "Housewife"],
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "routeAvailableCapacityKg": 150
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "12:00",
+        "days": 10,
+        "seeds": 5,
+        "occupationMix": ["Student", "Student", "Housewife"],
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "routeAvailableCapacityKg": 150
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "15:00",
+        "days": 10,
+        "seeds": 5,
+        "occupationMix": ["Student", "Student", "Housewife"],
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "routeAvailableCapacityKg": 150
+      }
+    }
+  ],
+  "toldUser": "한 블록은 기본값 4동 x 동당 25명, 차량은 기본값(LARGE_5TON 1대, 시차 0분)으로 두었습니다. 평일 교통량은 trafficEnabled=true, trafficProfileId='jangryang-weekday'(스키마 예시값)로 가정했습니다. 학생 2 : 주부 1 은 occupationMix 배열 [Student, Student, Housewife] 로 표현했는데, 배열이 비율로 해석된다는 것은 스키마에 명시되지 않은 가정입니다. 수거는 기본값대로 매일(10일 중 주말 포함) 진행되며 평일 교통 프로필이 주말에도 쓰입니다. 이동시간 방식(LEGACY_CONSTANT)·배출 시각 모델(PAPER_BASELINE)·용량 30kg·임계 0.8 등 나머지는 모두 기본값입니다. 민원이 가장 적은 시각은 세 결과의 월간 민원 통계를 비교해 고릅니다.",
+  "stoppedBecause": "사용자 답으로 인자를 모두 확정했고, 지시대로 도구를 실제로 부르지 않고 사람이 설정을 확인하도록 plannedCalls 를 적고 멈춤.",
+  "difficulties": "(1) occupationMix 가 문자열 배열일 뿐 비율 표기법이 정의되지 않아 '학생 2 : 주부 1'을 원소 반복으로 넣었다. (2) trafficProfileId 의 허용 값 목록이 없어 설명의 예시 'jangryang-weekday'를 그대로 썼다. (3) trafficEnabled 만 켜고 travelTimeMode 를 LEGACY_CONSTANT 로 두면 교통이 실제 이동시간에 반영되는지 스키마만으로는 불분명했다. (4) '평일'을 수거 요일(collectionDaysOfWeek 0~4)로도 해석할 수 있었으나 사용자가 말한 것은 교통량이므로 수거 요일은 기본값으로 두었다. (5) '한 블록'이 건물 몇 동인지 스키마로 알 수 없어 기본값 4동을 썼다."
+}

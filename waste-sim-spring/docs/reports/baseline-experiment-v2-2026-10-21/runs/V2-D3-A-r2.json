@@ -1,0 +1,22 @@
+{
+  "id": "V2-D3-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거를 화·목·토 주 3회로 바꿨을 때 지금 일정과 비교", "comparisonAxes": ["수거 요일·횟수"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "bukgu-district-waste-sim 은 목적만 안 맞음(답할 수 있는 질문 중 하나로 바꾸라, changesPurpose=false). jangnyang 은 공간 규모+목적, parking 은 도메인 불일치(changesPurpose=true)."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거 요일 · 주기", "comparisonAxes": ["수거 요일·횟수"]}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "목적을 카드의 질문 '수거 요일 · 주기'로 고치자 MATCH. district-waste-sim 은 가상(fictional) 서버."}
+  ],
+  "userChoice": "행정동 전체(구역 단위)로 볼게 — bukgu-district-waste-sim, 목적을 '수거 요일 · 주기'로 고침",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "그대로 받을 서버가 없어 요청을 조금 고쳐야 합니다. (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체를 구역 단위로 집계, 목적을 '수거 요일 · 주기' 비교로 바꾸면 쓸 수 있음. (2) 장량동 생활쓰레기 수거 시뮬레이터 — 공간 규모를 '원룸촌 한 블록'으로 줄여야 함. (3) 포항 도심 공영주차장 시뮬레이터 — 주차 도메인이라 다른 질문이 됨. 어느 쪽으로 고칠까요?", "keys": ["serverId", "objective"], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "현행(월·화·목·금)과 화·목·토 주 3회를 비교합니다. 다음을 정해 주세요: 구역 수(1~40, 기본 8) / 구역당 세대 수(기본 600) / 주거 유형 구성(기본 아파트·단독·원룸) / 차량 크기(기본 5톤) / 차량 대수(기본 2대) / 공휴일 휴무 반영(기본 반영 안 함) / 적환장 사용(기본 안 씀) / 수거 시작 시각(기본 06:00) / 기간(7~365일, 기본 28일) / 반복 횟수(1~100, 기본 30회)", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "28일, 10회 (나머지는 기본값으로 해줘)"},
+    {"text": "차량이 2대라 구역을 차량에 나누는 방식을 정해야 합니다: 같은 구역 수(기본) / 예상 작업 시간이 같게 — 어떻게 할까요?", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-64342138",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "구역 8개, 구역당 600세대, 주거 구성 아파트·단독·원룸, 5톤 차량 2대, 구역 배정 같은 구역 수, 공휴일 반영 안 함, 적환장 안 씀, 06:00 수거 시작은 기본값으로 넣었다(확인 화면에 승인하지 않은 기본값 9개로 표시됨). 비교는 현행 POHANG_BUKGU(월·화·목·금) 대 WEEKDAYS [TUE,THU,SAT] 두 벌. 확인 화면 http://localhost:8091/confirm.html 에서 직접 확인해 달라고 안내.",
+  "stoppedBecause": "build_scenario 성공으로 state=UNCONFIRMED. get_scenario_status 로 확인 화면 주소를 얻었고, 확인과 실행은 사람만 하므로 멈춤.",
+  "difficulties": "첫 브로커 호출에서 목적을 사용자 말 그대로('화·목·토로 바꾸면 비교') 넣자 ADJUST_REQUEST 가 나왔다 — 목적을 카드의 '답할 수 있는 질문' 어휘로 바꿔야 MATCH 가 되는 점이 다소 기계적이다. 또 실험 변수를 scheduleMode 로 두면 현행 값(POHANG_BUKGU)에는 collectionDays 가 쓰이지 않는데 values 에 함께 넣어도 되는지 설명이 없었다(build 는 통과). 브로커 MATCH 응답의 nextStep 이 run_scenario_by_token 까지 안내하지만 규칙상 실행하지 않았다."
+}

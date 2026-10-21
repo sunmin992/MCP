@@ -1,0 +1,160 @@
+{
+ "name": "run_district_simulation",
+ "description": "포항 북구 행정동 생활폐기물 수거 시뮬레이션을 실행하고 구역별 잔여량 · 수거 지연 통계를 반환한다.",
+ "inputSchema": {
+  "type": "object",
+  "properties": {
+   "zoneCount": {
+    "type": "integer",
+    "description": "집계 구역 수. 구역은 번호 순으로 이어져 있고 차량은 이웃 구역 묶음을 맡는다.",
+    "default": 8
+   },
+   "householdsPerZone": {
+    "type": "integer",
+    "description": "구역당 세대 수(상가 구역이면 점포 수).",
+    "default": 600
+   },
+   "housingMix": {
+    "type": "array",
+    "description": "주거 유형 구성. 구역 번호 순서대로 돌아가며 배정하고, 같은 유형을 여러 번 적으면 비중이 커진다.",
+    "default": [
+     "Apartment",
+     "Detached",
+     "Studio"
+    ],
+    "items": {
+     "type": "string",
+     "enum": [
+      "Apartment",
+      "Detached",
+      "Studio",
+      "Commercial"
+     ]
+    }
+   },
+   "commercialHandling": {
+    "type": "string",
+    "description": "상가 쓰레기를 이 수거에 포함하는가. INCLUDED / EXCLUDED(사업장 자체 처리).",
+    "default": "INCLUDED",
+    "enum": [
+     "INCLUDED",
+     "EXCLUDED"
+    ]
+   },
+   "truckType": {
+    "type": "string",
+    "default": "LARGE_5TON",
+    "enum": [
+     "LARGE_5TON",
+     "MEDIUM_2P5T",
+     "SMALL_1TON"
+    ]
+   },
+   "truckCount": {
+    "type": "integer",
+    "default": 2
+   },
+   "zoneAllocation": {
+    "type": "string",
+    "description": "구역을 차량에 나누는 방식. EQUAL_COUNT(같은 구역 수) / BALANCED_LOAD(예상 작업 시간이 같게).",
+    "default": "EQUAL_COUNT",
+    "enum": [
+     "EQUAL_COUNT",
+     "BALANCED_LOAD"
+    ]
+   },
+   "scheduleMode": {
+    "type": "string",
+    "description": "수거 일정. POHANG_BUKGU(월·화·목·금) / DAILY(일요일 뺀 매일) / ALTERNATE(월·수·금) / WEEKDAYS(사용자가 고른 요일).",
+    "default": "POHANG_BUKGU",
+    "enum": [
+     "POHANG_BUKGU",
+     "DAILY",
+     "ALTERNATE",
+     "WEEKDAYS"
+    ]
+   },
+   "collectionDays": {
+    "type": "array",
+    "description": "사용자가 고른 수거 요일(MON…SUN). WEEKDAYS 일 때만 쓴다. 기본값 없음.",
+    "items": {
+     "type": "string",
+     "enum": [
+      "MON",
+      "TUE",
+      "WED",
+      "THU",
+      "FRI",
+      "SAT",
+      "SUN"
+     ]
+    }
+   },
+   "holidayEnabled": {
+    "type": "boolean",
+    "description": "공휴일을 반영하는가.",
+    "default": false
+   },
+   "holidayPolicy": {
+    "type": "string",
+    "description": "수거일이 공휴일일 때. 기본값 없음.",
+    "enum": [
+     "SKIP",
+     "NEXT_DAY"
+    ]
+   },
+   "transferEnabled": {
+    "type": "boolean",
+    "description": "적환장을 쓰는가. 쓰지 않으면 차가 찰 때마다 소각장까지 왕복한다.",
+    "default": false
+   },
+   "transferRoundTripMinutes": {
+    "type": "integer",
+    "description": "적환장 왕복 시간(분). 기본값 없음."
+   },
+   "collectionStartMinutes": {
+    "type": "integer",
+    "description": "하루 수거 시작 시각(자정 기준 분).",
+    "default": 360
+   },
+   "days": {
+    "type": "integer",
+    "default": 28
+   },
+   "seeds": {
+    "type": "integer",
+    "default": 30
+   },
+   "startDate": {
+    "type": "string",
+    "description": "시뮬레이션 0일차 날짜. 추석 연휴(2026-09-24~26)가 기간에 들도록 정했다.",
+    "default": "2026-09-21"
+   },
+   "shiftMinutes": {
+    "type": "integer",
+    "description": "차량 한 대의 하루 근무 시간(분).",
+    "default": 480
+   },
+   "disposalRoundTripMinutes": {
+    "type": "integer",
+    "description": "적환장이 없을 때 소각장 왕복 시간(분).",
+    "default": 90
+   },
+   "zoneTravelMinutes": {
+    "type": "number",
+    "description": "이웃 구역 사이 이동시간(분, 5톤 기준).",
+    "default": 8.0
+   },
+   "depotTravelMinutes": {
+    "type": "number",
+    "description": "차고지 → 첫 구역 이동시간(분, 5톤 기준).",
+    "default": 15.0
+   },
+   "generationCv": {
+    "type": "number",
+    "description": "구역 하루 배출량의 변동계수.",
+    "default": 0.15
+   }
+  }
+ }
+}

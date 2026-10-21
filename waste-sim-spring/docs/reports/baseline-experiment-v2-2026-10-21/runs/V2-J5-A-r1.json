@@ -1,0 +1,21 @@
+{
+  "id": "V2-J5-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동에 40세대씩 6동인 원룸 블록", "objective": "아침 9시에 한 번 걷으면 감당이 되는지"}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "장량동은 공간 규모는 맞고 목적만 답할 수 있는 질문(최대 적재량 등)으로 바꾸라 함. 북구는 공간 규모·목적 둘 다, 주차는 도메인이 다름(changesPurpose=true)."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동에 40세대씩 6동인 원룸 블록", "objective": "최대 적재량"}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "목적을 '감당이 되는지'에 가장 가까운 '최대 적재량'으로 고쳐 재조회 → 장량동 MATCH"}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록, 제안대로 목적을 '최대 적재량'으로 고침)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청을 그대로 받을 서버가 없습니다. 원룸촌 한 블록(장량동) 시뮬레이터는 목적만 '최대 적재량' 같은 답할 수 있는 질문으로 바꾸면 쓸 수 있고, 북구 행정동 시뮬레이터는 공간 규모까지 행정동 전체로 바꿔야 합니다. 어느 쪽으로, 어떻게 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 쪽으로, 그쪽 제안대로 고쳐 줘"},
+    {"text": "1) 반복 횟수는 최대 100회라 200회는 안 됩니다. 몇 회로 할까요? 2) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까?(기본값 없음) 3) 며칠치를 볼까요? 4) 수거차량 크기·대수, 교통량 반영 여부, 이동시간 계산 방식, 거주민 직업 구성은 어떻게 할까요?", "keys": ["seeds", "routeAvailableCapacityKg", "days", "truckType", "truckCount", "trafficMode", "travelTimeMode", "occupationMix"], "answer": "그럼 되는 만큼 최대로 해줘 / 200kg / 30일 / 기본값으로 해줘"}
+  ],
+  "rejections": ["seeds=200 → OUT_OF_RANGE (seeds 는 100 이하여야 함) → 사용자 답에 따라 100으로 고침"],
+  "scenarioId": "scn-1109d503",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "차량 5톤 1대, 교통 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 직업 구성 BlueCollar/Student/Housewife 는 사용자가 값을 말하지 않아 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 미승인 기본값 5개로 표시됨. 반복은 상한 때문에 200→100회. 비교 변수가 따로 없어 수거 시각 540분(09:00) 하나를 실험 변수로 둠.",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소(http://localhost:8090/confirm.html)를 얻음 — 확인은 사람만 한다.",
+  "difficulties": "'감당이 될까'라는 목적이 서버의 답할 수 있는 질문 목록에 직접 없어 '최대 적재량'으로 옮겨야 했음. build_scenario 가 variableAnswerKey·variableValues 를 필수로 요구해 비교가 없는 단일 설정 요청에서도 수거 시각을 값 하나짜리 변수로 넣었음. get_templates 응답이 이중 인코딩된 JSON 문자열이라 읽기 번거로웠음."
+}

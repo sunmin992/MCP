@@ -1,0 +1,103 @@
+{
+ "scenarioId": "scn-1109d503",
+ "state": "UNCONFIRMED",
+ "sesId": "jangnyang-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "collectionTimeMinutes": [
+   540
+  ],
+  "trafficMode": "IGNORE",
+  "truckCount": 1,
+  "routeAvailableCapacityKg": 200,
+  "seeds": 100,
+  "truckType": "LARGE_5TON",
+  "occupationMix": [
+   "BlueCollar",
+   "Student",
+   "Housewife"
+  ],
+  "numBuildings": 6,
+  "residentsPerBuilding": 40,
+  "days": 30,
+  "travelTimeMode": "LEGACY_CONSTANT"
+ },
+ "origins": {
+  "travelTimeMode": "MODEL_DEFAULT",
+  "trafficMode": "MODEL_DEFAULT",
+  "truckCount": "MODEL_DEFAULT",
+  "routeAvailableCapacityKg": "USER",
+  "seeds": "USER",
+  "truckType": "MODEL_DEFAULT",
+  "occupationMix": "MODEL_DEFAULT",
+  "numBuildings": "USER",
+  "residentsPerBuilding": "USER",
+  "days": "USER",
+  "collectionTimeMinutes": "USER"
+ },
+ "unapprovedDefaults": {
+  "trafficMode": "IGNORE",
+  "truckCount": 1,
+  "truckType": "LARGE_5TON",
+  "occupationMix": [
+   "BlueCollar",
+   "Student",
+   "Housewife"
+  ],
+  "travelTimeMode": "LEGACY_CONSTANT"
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "collectionTimeMinutes": 540,
+   "days": 30,
+   "seeds": 100,
+   "leaveSigma": 30.0,
+   "wasteSigma": 0.3,
+   "wasteMeanKg": 0.9,
+   "capacity": 30.0,
+   "threshold": 0.8,
+   "scenarioScale": null,
+   "zoneAssignmentRule": null,
+   "numBuildings": 6,
+   "residentsPerBuilding": 40,
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "collectionTimesMinutes": null,
+   "collectionIntervalDays": 1,
+   "collectionDaysOfWeek": null,
+   "dischargeTimeMode": "PAPER_BASELINE",
+   "intraZoneTravelMinutes": null,
+   "dischargeWindowStartMinutes": 1200,
+   "dischargeWindowEndMinutes": 360,
+   "skipWeekends": false,
+   "weekendCollectionTimeMinutes": null,
+   "holidays": null,
+   "numTrucks": 1,
+   "routeTravelMinutes": 15,
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "serviceMinutesPerSite": 0,
+   "wasteTypes": null,
+   "returnDischarge": false,
+   "returnFraction": 0.4,
+   "landlordEnabled": false,
+   "landlordInspectMinutes": 1200,
+   "landlordThreshold": 0.6,
+   "monthlyWasteFactor": null,
+   "trafficEnabled": false,
+   "trafficProfileId": null,
+   "truckType": "LARGE_5TON",
+   "routeAvailableCapacityKg": 200.0,
+   "initialTruckLoadKg": 0.0,
+   "dispatchIntervalMinutes": 0,
+   "routeSequence": null,
+   "trafficComplaintWeight": 1.0,
+   "collectionTimeLabel": "09:00",
+   "truckCount": 1
+  }
+ ],
+ "confirmToken": null
+}

@@ -1,0 +1,39 @@
+{
+  "id": "BL-N3-A",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸 블록", "objective": "민원이 적은 수거 시각", "comparisonAxes": ["수거 시각: 새벽 5시 vs 오전 10시"], "population": ["야간 교대 근무자가 많음"]},
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"],
+      "note": "jangnyang-waste-sim 은 불일치 없음(NightShift, 원룸촌 한 블록, 실험프레임/수거시각). 나머지 둘은 행정동 단위라 공간 규모·거주민·목적 불일치."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "새벽 5시(300분)와 오전 10시(600분) 수거를 비교하는 시나리오를 만들기 위해 몇 가지 여쭙니다. ① 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (기본값 없음, 꼭 필요) ② 거주민 직업 구성은 어떻게 할까요? (예: 야간 교대 NightShift 와 다른 직업의 비율) ③ 며칠치를, 몇 번 반복해 볼까요? (기본 30일·30회) ④ 수거차량 크기(5톤/2.5톤/1톤)와 대수, 교통량 반영 여부, 이동시간 계산 방식(구간 상수/교통구역 근사), 건물 동 수(1~26)와 동당 세대 수는 어떻게 할까요? (기본: 5톤 1대, 교통 미반영, 구간 상수, 4동×25세대)",
+      "keys": ["routeAvailableCapacityKg", "occupationMix", "days", "seeds", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding"],
+      "answer": "직업 구성: 야간 교대 2 : 학생 1 / 적재 몫: 150kg / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-804cb229",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것(MODEL_DEFAULT, 확인 화면에 미승인 기본값 6개로 표시): 수거차량 5톤(LARGE_5TON) 1대, 교통량 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 4동 × 동당 25세대. 직업 구성 2:1 은 [NightShift, NightShift, Student] 순환 배정으로 옮겼다. 수거 시각은 새벽 5시=300분, 오전 10시=600분으로 환산했다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED). get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 을 얻었고, 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "브로커 nextStep 이 run_scenario_by_token 까지 이어지는 순서를 안내하지만 이번 실험 지시상 실행은 금지라 get_scenario_status 에서 멈췄다. 비교 축 수거 시각의 answerKey 가 collectionTimeMinutes(분 단위 정수)라 시각을 분으로 환산해야 했다. build_scenario origins 에 실험 변수 키(collectionTimeMinutes)를 넣어도 되는지 설명이 없어 USER 로 넣었다."
+}

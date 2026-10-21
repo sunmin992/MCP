@@ -1,0 +1,20 @@
+{
+  "id": "V2-J2-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "comparisonAxes": ["수거 시각"]}, "verdict": "CHOOSE", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "matches 에는 가상 서버 district-waste-sim(fictional=true, example.invalid)도 있었으나 candidates 에서는 빠짐. differences: region/unit/calibration"}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 단위로 볼게)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "맞는 서버가 두 개 있습니다: (1) 포항 북구 행정동 전체(구역 집계, 배출 창 표준데이터 보정) (2) 장량동 원룸촌 한 블록(TMAP·실측 교통량·북구 수거 일정 보정). 어느 쪽으로 볼까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 단위로 볼게"},
+    {"text": "비교할 수거 시각을 몇 시로 할까요? 그리고 청소차 한 대가 이 블록에 쓸 적재 몫(kg)은? 며칠치를 볼까요(1~365일)? 몇 번 반복할까요(1~100회)? 수거차량 크기(5톤/2.5톤/1톤)? 차량 대수? 교통량 반영 여부? 이동시간 계산(구간 상수/교통구역 근사)? 건물 동 수(1~26)? 동당 세대 수? 거주민 직업 구성은?", "keys": ["collectionTimeMinutes", "routeAvailableCapacityKg", "days", "seeds", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix"], "answer": "06시, 12시, 18시 / 150kg / 10일, 5회 / 그 밖은 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1110007d",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것: 차량 LARGE_5TON 1대, 교통 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 4동×25세대, 직업 구성 BlueCollar/Student/Housewife — 확인 화면에 승인 안 된 기본값 7개로 표시됨. 확인 화면 http://localhost:8090/confirm.html 에서 직접 승인해 달라고 안내.",
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음. 승인은 사람만 하므로 멈춤.",
+  "difficulties": "첫 plan_subtasks 를 사용자에게 수거 시각을 묻기 전에 요청 문구에서 예상한 값(360/720/1080)으로 불러 순서가 약간 어긋남. collectionTimeMinutes 가 실험 변수일 때 origins 에 넣어도 되는지 설명이 없었음. variableValues 단위(분)를 템플릿 unit 에서 추론해야 했음."
+}

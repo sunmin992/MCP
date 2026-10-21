@@ -1,0 +1,21 @@
+{
+  "id": "V2-J6-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"], "comparisonAxes": ["수거 시각"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "배출 시간 조건을 다루는 카드가 없어 두 쓰레기 서버 모두 그 조건을 빼라고 제안(changesPurpose=false). 주차 서버는 도메인이 달라 changesPurpose=true."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록(장량동)", "comparisonAxes": ["수거 시각"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "사용자 선택에 따라 배출 시간 조건을 빼고 공간 규모를 넣어 다시 조회 → MATCH."}
+  ],
+  "userChoice": "원룸촌 한 블록(장량동) 단위 — jangnyang-waste-sim, 배출 시간 조건 제거",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. 배출 시간 조건(저녁 8시~새벽 6시 준수)은 어느 서버도 다룬다고 적혀 있지 않아 이 조건을 빼야 합니다. 후보: (1) 장량동 생활쓰레기 수거 시뮬레이터 (2) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 (3) 주차 시뮬레이터(질문이 바뀜). 어느 쪽으로 요청을 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 단위로 볼게"},
+    {"text": "이 서버의 시나리오 항목에는 배출 시간(저녁 8시~새벽 6시) 설정이 없어 배출 시간을 반영할 수 없습니다 — 기본(논문) 배출 모델로 진행해도 될까요? 그리고 다음을 정해 주세요: 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg, 기본값 없음), 수거차량 크기, 대수, 교통량 반영 여부, 이동시간 계산 방식, 건물 수, 한 동 세대 수, 직업 구성, 기간, 반복 횟수.", "keys": ["routeAvailableCapacityKg", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds"], "answer": "그럼 기본 배출 모델로 해줘 / 적재 몫 150kg / 나머지는 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-110a1e84",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "배출 시간(20:00~06:00) 준수 조건은 시나리오에 반영되지 않고 기본(논문) 배출 모델을 썼다고 알림(observations 에도 기록). 적재 몫 150kg 과 비교 시각 06:00·09:00 외의 9개 값(5톤 1대, 교통 미반영, 구간 상수 이동시간, 4동×25세대, 생산직/학생/전업주부, 30일, 30회)은 기본값(MODEL_DEFAULT)으로 넣었으며 확인 화면 http://localhost:8090/confirm.html 에서 승인해야 한다고 안내.",
+  "stoppedBecause": "build_scenario 성공으로 UNCONFIRMED 상태가 되어 get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 할 수 있어 멈춤.",
+  "difficulties": "run_waste_simulation 도구에는 dischargeTimeMode=POHANG_ACTUAL(배출 창 20:00~06:00)이 있는데 브로커 카드에는 그 환경 조건이 없다고 나오고, get_templates 에도 배출 시각 템플릿이 없어 시나리오 경로로는 반영할 수 없었다. 브로커의 ADJUST_REQUEST 가 이 조건을 '빼라'고만 해 사용자 질문의 핵심 전제가 사라진다."
+}

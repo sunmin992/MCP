@@ -1,0 +1,19 @@
+{
+  "id": "V2-J2-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "장량동 원룸촌 시뮬레이터로 수거 시각만 바꿔 비교해 볼게요. (1) 비교할 수거 시각은 언제언제인가요? (2) 이 경로에 배정된 트럭 적재 몫(경로 가용 용량, kg)이 정해져 있나요? 없으면 차종 정격용량을 씁니다. (3) 기간(일)과 반복 횟수는 어떻게 할까요? 기본은 30일 x 30회입니다. 나머지(건물 4동 x 25명, 수거장 30kg, 매일 수거, 교통 끔 등)는 기본값으로 둘까요?",
+      "keys": ["collectionTime", "routeAvailableCapacityKg", "days", "seeds"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 적재 몫(경로 가용 용량): 150kg / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "06:00", "days": 10, "seeds": 5, "routeAvailableCapacityKg": 150}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "12:00", "days": 10, "seeds": 5, "routeAvailableCapacityKg": 150}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "18:00", "days": 10, "seeds": 5, "routeAvailableCapacityKg": 150}}
+  ],
+  "toldUser": "수거 시각 외 나머지는 기본값(4동 x 25명, 1인 0.9kg/일, 수거장 30kg, 임계 0.8, 매일 수거, 배출 시각 PAPER_BASELINE, 교통 끔, LEGACY_CONSTANT 이동 8분, 5톤 트럭 1대, 초기 적재 0)으로 넣었다. '우리 동네'는 이 시뮬레이터가 다루는 장량동 원룸촌으로 가정했다. 10일 x 5회는 표본이 작아 시각 간 차이가 작으면 우연일 수 있다.",
+  "stoppedBecause": "필요한 값을 한 번의 질문으로 모두 받았고, 비교할 세 호출의 인자를 확정했다. 실행은 사람이 설정을 확인한 뒤 한다.",
+  "difficulties": "'우리 동네'가 장량동인지 불확실했지만 도구가 장량동 전용이라 질문 없이 가정했다. 150kg 적재 몫이 하루 배출량(100명 x 0.9kg = 약 90kg)보다 커서 결과에 영향이 없을 수 있다. 06시 수거는 POHANG_ACTUAL 배출 창(20:00~06:00) 끝과 겹치지만 사용자가 기본값을 원해 PAPER_BASELINE을 유지했다."
+}

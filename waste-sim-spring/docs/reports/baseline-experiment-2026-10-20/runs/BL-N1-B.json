@@ -1,0 +1,86 @@
+{
+  "id": "BL-N1-B",
+  "method": "B",
+  "questions": [
+    {
+      "text": "몇 가지만 정해 주세요. (1) 수거 시각은 몇 시로 볼까요? (2) 한 동에 몇 세대(명)가 사나요? (3) 이동시간은 어떤 방식으로 계산할까요 — 고정값 / OSRM 혼합 / 교통구역 근사? (4) 교통구역 근사라면 10개 동을 구역 A~D에 어떻게 배정할까요(이웃끼리 덩어리로 / 번갈아)? 같은 구역 안 지점 간 이동시간은 몇 분으로 둘까요? (5) 두 대로 돌릴 때 차량 간 출발 간격은요? (6) 이 경로에 차 한 대가 실을 수 있는 적재 몫(kg)이 정해져 있나요? (7) 시뮬레이션 기간과 반복 횟수는요?",
+      "keys": ["collectionTime", "residentsPerBuilding", "travelTimeMode", "zoneAssignmentRule", "intraZoneTravelMinutes", "dispatchIntervalMinutes", "routeAvailableCapacityKg", "days", "seeds"],
+      "answer": "수거 시각: 오전 8시 / 한 동 세대 수: 25세대 / 이동시간 계산 방식: 교통구역 근사로 / 건물의 교통 구역 배정: 덩어리로 묶어서 / 같은 구역 안 이동시간: 2분 / 차량 간 배차 간격: 10분 / 적재 몫(경로 가용 용량): 300kg / 기간·반복: 10일, 5회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "CONTIGUOUS",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 1
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "CONTIGUOUS",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 2,
+        "dispatchIntervalMinutes": 10
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "ROUND_ROBIN",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 1
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "ROUND_ROBIN",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 2,
+        "dispatchIntervalMinutes": 10
+      }
+    }
+  ],
+  "toldUser": "교통 프로필은 스키마 예시인 'jangryang-weekday'(평일)를 아침 출근길 교통으로 가정해 넣었다. 건물의 구역 배정은 실제 위치 조사가 아닌 가정이라 결과는 운영 예측이 아닌 가정 비교 실험이다 — 요청하신 '덩어리(CONTIGUOUS)' 외에 도구 설명 권고대로 ROUND_ROBIN 도 함께 돌려 범위로 보고한다. 적재 몫 300kg 은 차 한 대당 값으로 두 대 모두에 적용했다. 그 밖(배출량 0.9kg, 수거장 용량 30kg, 임계 0.8, 매일 수거, 배출 시각 PAPER_BASELINE, 차종 LARGE_5TON, 정차 시간 0분, 방문 순서 미지정)은 기본값이다.",
+  "stoppedBecause": "필요한 값을 한 번의 질문 묶음으로 모두 확정했고, 1대/2대 × 구역 배정 2가지 비교 호출 4개의 인자를 적었다. 실행은 사람이 확인한 뒤에 하므로 여기서 멈춘다.",
+  "difficulties": "'아침 출근길 교통'을 고를 trafficProfileId 목록이 스키마에 없어 예시값 jangryang-weekday 를 썼다. 사용자는 CONTIGUOUS 만 골랐지만 스키마 설명은 두 규칙을 함께 돌리라고 해 둘 다 넣었다(사용자 지시와 도구 권고 사이의 판단). routeAvailableCapacityKg 이 트럭별인지 경로 전체 몫인지 모호해 운행 1회(트럭 1대)당 값으로 해석했다. 10동×25명×0.9kg ≈ 225kg/일이라 300kg 이면 1대로도 적재는 넘치지 않을 것으로 보여, 차이는 주로 이동시간·교통 민원에서 날 것 같다. 1대 호출에서는 dispatchIntervalMinutes 가 의미 없어 뺐다."
+}

@@ -1,0 +1,45 @@
+{
+  "id": "V2-P1-B-r1",
+  "method": "B",
+  "questions": [
+    {
+      "text": "1) 비교는 '안내 없음(NONE)' 대 '실시간 앱(REALTIME_APP)' 두 경우로 하면 될까요? 2) 몇 분 안에 못 찾으면 포기한 것으로 볼까요(탐색 포기 시간, 기본값이 없어 꼭 정해야 합니다)? 3) 나머지는 기본값으로 넣으려 합니다: 주차장마다 80면, 균일 요금 30분 500원, 앱 갱신 5분, 도로 혼잡 미반영, 14일 · 30회 반복. 바꿀 것이 있나요?",
+      "keys": ["guidanceMode", "maxSearchMinutes", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "guidanceRefreshMinutes", "congestionEnabled", "days", "seeds"],
+      "answer": "비교: 안내 없음과 실시간 앱 / 탐색 포기 시간: 15분 / 면수: 주차장마다 80면 / 요금: 균일 500원 / 앱 갱신 주기: 5분 / 도로 혼잡: 반영 안 해 / 기간·반복: 14일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "lotCount": 4,
+        "spacesPerLot": 80,
+        "pricingPolicy": "FLAT",
+        "baseFeePer30Min": 500,
+        "guidanceMode": "NONE",
+        "congestionEnabled": false,
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "lotCount": 4,
+        "spacesPerLot": 80,
+        "pricingPolicy": "FLAT",
+        "baseFeePer30Min": 500,
+        "guidanceMode": "REALTIME_APP",
+        "guidanceRefreshMinutes": 5,
+        "congestionEnabled": false,
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "이용자 구성(Commuter·Shopper·Visitor), 하루 도착 900대, 주차장 간 3분, 만차 한 바퀴 2분은 기본값으로 넣었다. 두 호출은 안내 방식만 다르고 시드(1..10)가 같아 짝지어 비교할 수 있다.",
+  "stoppedBecause": "필요한 값(비교 축, 기본값 없는 탐색 포기 시간)을 확정했고 호출 인자를 다 정했다. 실행은 사람이 확인한 뒤에 한다.",
+  "difficulties": "질문 묶음에 기본값 확인(면수·요금·기간 등)까지 넣을지 망설였다 — 넣은 덕에 반복 횟수 10회가 드러났다. peakSurchargeRate·residentPriorityShare 는 기본값이 없지만 균일 요금·거주자 없음이라 쓰지 않으므로 묻지 않았다. '배회'를 탐색 시간·포기 통계로 읽었다."
+}

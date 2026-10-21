@@ -1,0 +1,38 @@
+{
+  "id": "V2-D2-B-r1",
+  "method": "B",
+  "questions": [
+    {
+      "text": "추석 연휴(2026-09-24~26)가 들도록 2026-09-21부터 돌리려 합니다. 세 가지만 알려 주세요. (1) 어떤 수거 요일들을 비교할까요? 지금 포항 북구 일정(월·화·목·금), 매일(일요일 제외), 격일(월·수·금), 또는 직접 고른 요일 중에서요. (2) 수거일이 공휴일이면 건너뛸까요, 다음 날로 미룰까요? (3) 기간(기본 28일)과 반복 횟수(기본 30회)는 어떻게 할까요?",
+      "keys": ["scheduleMode", "collectionDays", "holidayEnabled", "holidayPolicy", "days", "seeds"],
+      "answer": "비교할 수거 요일: 지금 포항 북구 일정(월화목금)과 매일 수거 / 공휴일엔 건너뛰어 / 28일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "POHANG_BUKGU",
+        "holidayEnabled": true,
+        "holidayPolicy": "SKIP",
+        "startDate": "2026-09-21",
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "DAILY",
+        "holidayEnabled": true,
+        "holidayPolicy": "SKIP",
+        "startDate": "2026-09-21",
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "구역 수(8)·세대 수(600)·주거 구성·상가 포함·차량(5톤 2대)·구역 배분·적환장 미사용·근무시간 등 나머지는 모두 기본값으로 두었고, 시작일은 추석 연휴가 들어가는 기본값 2026-09-21을 그대로 썼다. 두 호출은 수거 일정만 다르다.",
+  "stoppedBecause": "비교할 두 일정과 공휴일 처리·기간·반복이 정해져 호출 인자를 확정했고, 실행은 사람이 확인한 뒤에 하므로 여기서 멈췄다.",
+  "difficulties": "'쓰레기가 얼마나 쌓일까'는 반환값(구역별 잔여량)으로 바로 볼 수 있어 따로 묻지 않았다. 공휴일을 반영하려면 holidayEnabled=true와 holidayPolicy를 함께 줘야 해서 둘 다 넣었다. startDate를 바꿀지 물을까 했지만 기본값이 이미 추석 연휴를 포함하도록 정해져 있어 묻지 않았다."
+}

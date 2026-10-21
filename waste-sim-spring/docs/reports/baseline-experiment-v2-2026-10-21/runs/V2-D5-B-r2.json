@@ -1,0 +1,28 @@
+{
+  "id": "V2-D5-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "몇 가지만 정해 주세요. (1) 주거 구성: 상가가 많다고 하셨는데 아파트·단독·원룸·상가 비율을 어떻게 둘까요? (예: 아파트 1 : 상가 1) (2) 상가 쓰레기도 이 수거에 포함할까요, 사업장 자체 처리로 뺄까요? (3) 구역을 3대에 나눌 때 같은 구역 수로 나눌까요, 예상 작업 시간이 같게 나눌까요? (4) 기간·반복 횟수는 기본(28일, 30회)으로 할까요? (5) 차종(기본 5톤)·구역당 세대 수(기본 600)·수거 일정(포항 북구 월·화·목·금) 등 나머지는 기본값으로 둘까요?",
+      "keys": ["housingMix", "commercialHandling", "zoneAllocation", "days", "seeds", "truckType", "householdsPerZone", "scheduleMode"],
+      "answer": "아파트 1 : 상가 1 / 이 수거에 포함해 / 작업 시간이 같게 / 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "zoneCount": 50,
+        "housingMix": ["Apartment", "Commercial"],
+        "commercialHandling": "INCLUDED",
+        "truckCount": 3,
+        "zoneAllocation": "BALANCED_LOAD",
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "나머지는 기본값으로 넣었다: 차종 LARGE_5TON, 구역당 세대(점포) 수 600, 수거 일정 POHANG_BUKGU(월·화·목·금), 공휴일 미반영, 적환장 미사용(소각장 왕복 90분), 근무 480분, 시작 06:00, 시작일 2026-09-21. 주거 구성은 구역 번호 순으로 아파트·상가가 번갈아 배정된다.",
+  "stoppedBecause": "필요한 값을 모두 정해 호출 인자를 확정했다. 실행은 사람이 설정을 확인한 뒤에 한다.",
+  "difficulties": "스키마에 zoneCount 상한이 없어 50개 구역이 허용되는지 알 수 없었다. 구역당 세대 수 600을 50구역에 그대로 쓰면 3만 세대(점포)로 행정동 하나치고 클 수 있으나 사용자가 기본값을 택했다."
+}

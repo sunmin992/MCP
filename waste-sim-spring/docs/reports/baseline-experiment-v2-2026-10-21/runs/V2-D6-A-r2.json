@@ -1,0 +1,22 @@
+{
+  "id": "V2-D6-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지", "comparisonAxes": ["근무 시간"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim", "district-waste-sim"], "note": "그대로 받을 서버 없음. bukgu-district-waste-sim 은 도메인·공간 규모가 맞지만 목적(근무 시간 6시간으로 다 끝나는지)과 비교 축(근무 시간)이 카드에 없음 — 목적을 '수거 못 하고 남는 양' 등으로, 비교 축을 차량 수 등으로 고치라고 제안. jangnyang 은 공간 규모(원룸촌 한 블록)도 고쳐야 함, parking 은 도메인이 달라 changesPurpose=true."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거 못 하고 남는 양"}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "사용자가 행정동 전체(구역 단위)를 골라 목적을 '수거 못 하고 남는 양'으로 고치고 비교 축(근무 시간)은 뺀 뒤 재조회 — MATCH."}
+  ],
+  "userChoice": "ADJUST_REQUEST 에서 bukgu-district-waste-sim (행정동 전체 · 구역 단위, 목적을 '수거 못 하고 남는 양'으로 고침)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청을 그대로 받을 서버가 없습니다. 근무 시간을 바꿔 보는 서버는 없고, 이렇게 고치면 쓸 수 있습니다: (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체를 구역 단위로 집계, 목적을 '수거 못 하고 남는 양' 같은 질문으로 바꾸고 비교 축을 차량 수 · 차종 · 수거 시작 시각 등으로 바꿔야 함 (2) 장량동 생활쓰레기 수거 시뮬레이터 — 공간 규모를 '원룸촌 한 블록'으로 줄여야 함 (3) 주차 시뮬레이터 — 다른 질문이 됨. 어느 쪽으로 고칠까요?", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "이 서버에서는 근무 시간(하루 6시간)을 바꿀 수 없습니다. 대신 무엇을 비교할지(예: 차량 수), 그리고 구역 수(기본 8) · 구역당 세대 수(600) · 주거 구성(아파트·단독·원룸) · 차종(5톤) · 차량 수(2대) · 수거 일정(북구 현행 월·화·목·금) · 공휴일 반영(안 함) · 적환장(안 씀) · 수거 시작 시각(06:00) · 기간(28일) · 반복 횟수(30회)는 어떻게 할까요?", "keys": ["truckCount", "zoneCount", "householdsPerZone", "housingMix", "truckType", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "그럼 기본으로 해줘"},
+    {"text": "차량이 2대라 구역을 차량에 어떻게 나눌지 정해야 합니다. 같은 구역 수로 나눌까요, 예상 작업 시간이 같게 나눌까요? (기본: 같은 구역 수)", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-4a108e96",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "근무 시간(하루 6시간)은 이 시뮬레이터에서 바꿀 수 없어 반영하지 못했고, 대신 현행 기본 설정(차량 2대 단일 실행)으로 '수거 못 하고 남는 양'을 보도록 했다고 알림. 12개 값 전부(zoneCount 8, householdsPerZone 600, housingMix 아파트·단독·원룸, truckType 5톤, truckCount 2, zoneAllocation EQUAL_COUNT, scheduleMode POHANG_BUKGU, holidayMode IGNORE, transferMode IGNORE, collectionStartMinutes 360, days 28, seeds 30)를 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면 http://localhost:8091/confirm.html 에서 승인해야 한다고 안내. 결과의 '근무 시간'은 참고 지표로만 나온다고 알림.",
+  "stoppedBecause": "build_scenario 가 성공해 UNCONFIRMED 가 되었고 get_scenario_status 로 확인 화면 주소를 얻음 — 확인은 사람만 한다.",
+  "difficulties": "핵심 질문(근무 시간 6시간 상한)을 바꿀 수 있는 결정 지점이 없어, 근무 시간은 실행 결과의 참고 지표로만 볼 수 있음. build_scenario 가 variableAnswerKey · variableValues 를 필수로 요구해, 비교할 것이 없는 기본 실행도 실험 변수를 하나 골라야 했음(truckCount=[2] 한 값으로 둠). zoneAllocation 은 차량 수가 정해진 뒤에야 생성돼 질문을 한 번 더 해야 했음."
+}

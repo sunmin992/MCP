@@ -1,0 +1,35 @@
+{
+  "id": "V2-P2-B-r1",
+  "method": "B",
+  "questions": [
+    {
+      "text": "시뮬레이션 설정 전에 몇 가지 확인할게요. (1) 무엇과 비교할까요? 지금처럼 균일 요금(FLAT)과 시간대 차등(TIME_OF_DAY)을 나란히 돌리는 걸로 생각하고 있어요. (2) 혼잡 시간대 할증률은 얼마로 할까요? (예: 50%) (3) 운전자가 몇 분 안에 자리를 못 찾으면 포기한다고 볼까요? (4) 주차장 수·면수는 기본값(4곳, 곳당 80면)으로 둘까요? (5) 기간과 반복 횟수는요? (기본 14일, 30회)",
+      "keys": ["pricingPolicy", "peakSurchargeRate", "maxSearchMinutes", "lotCount", "spacesPerLot", "days", "seeds"],
+      "answer": "균일 요금과 시간대 차등 / 할증률 50% / 탐색 포기 시간 15분 / 주차장은 기본값으로 / 14일, 10회 / 그 밖은 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "pricingPolicy": "FLAT",
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "pricingPolicy": "TIME_OF_DAY",
+        "peakSurchargeRate": 0.5,
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "두 호출 모두 나머지는 기본값: 주차장 4곳·곳당 80면·간격 3분, 기본 요금 30분당 500원, 이용자 구성 Commuter/Shopper/Visitor, 하루 도착 900대, 안내 없음(NONE), 도로 혼잡 미반영, 만차 한 바퀴 2분. 두 호출은 요금 정책과 할증률만 다르다.",
+  "stoppedBecause": "필요한 값을 모두 받아 비교용 호출 2개의 인자를 확정했고, 도구 실행은 사람이 설정을 확인한 뒤 하기로 되어 있어 여기서 멈춘다.",
+  "difficulties": "기본값이 없는 peakSurchargeRate·maxSearchMinutes 는 꼭 물어야 했다. 혼잡 시간대가 언제인지는 스키마로 정할 수 없어 시뮬레이터 내부 정의에 맡겼다. dailyArrivals 설명의 '요금 회피 전' 으로 보아 요금에 따른 수요 이탈은 모델이 처리하는 것으로 짐작했다."
+}

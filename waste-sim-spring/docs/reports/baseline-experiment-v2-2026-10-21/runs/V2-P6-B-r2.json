@@ -1,0 +1,20 @@
+{
+  "id": "V2-P6-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "두 가지만 여쭙겠습니다. (1) 주차 자리를 찾다가 포기하는 시간(분)을 몇 분으로 할까요? 이 값은 기본값이 없습니다. (2) 비교는 '안내 없음 vs 실시간 앱'을 주차장 간격 3분(기본)과 10분 두 경우에서 돌려, 간격이 멀 때 앱 효과가 더 커지는지 보려 합니다. 이렇게 비교하면 될까요?",
+      "keys": ["maxSearchMinutes", "guidanceMode", "lotSpacingMinutes"],
+      "answer": "탐색 포기 시간: 15분 / 비교: 안내 없음과 실시간 앱"
+    }
+  ],
+  "plannedCalls": [
+    {"name": "run_parking_simulation", "arguments": {"guidanceMode": "NONE", "lotSpacingMinutes": 3.0, "maxSearchMinutes": 15}},
+    {"name": "run_parking_simulation", "arguments": {"guidanceMode": "REALTIME_APP", "guidanceRefreshMinutes": 5, "lotSpacingMinutes": 3.0, "maxSearchMinutes": 15}},
+    {"name": "run_parking_simulation", "arguments": {"guidanceMode": "NONE", "lotSpacingMinutes": 10.0, "maxSearchMinutes": 15}},
+    {"name": "run_parking_simulation", "arguments": {"guidanceMode": "REALTIME_APP", "guidanceRefreshMinutes": 5, "lotSpacingMinutes": 10.0, "maxSearchMinutes": 15}}
+  ],
+  "toldUser": "주차장 수 4곳, 면수 80, 요금 FLAT 500원, 이용자 구성 기본, 하루 도착 900대, 도로 혼잡 미반영, 14일 · 시드 30회, 만차 회전 2분은 기본값으로 둡니다. 앱 갱신 주기는 기본값 5분입니다. '10분씩 걸린다'는 이웃한 주차장 사이 자유주행 이동시간(lotSpacingMinutes)=10으로 넣었고, 앱 효과가 '더 큰지' 보려고 기본 간격 3분에서의 같은 비교를 기준선으로 함께 돌립니다.",
+  "stoppedBecause": "사용자 답으로 인자를 모두 확정했고, 실행은 사람이 설정을 확인한 뒤에 하므로 호출 4개를 적고 멈춘다.",
+  "difficulties": "'10분씩'이 이웃한 주차장 사이 간격인지 한 번 옮길 때 드는 전체 시간인지 모호했으나 스키마의 lotSpacingMinutes(이웃 간 이동시간)로 읽었다. '더 클까'의 비교 기준이 명시되지 않아 기본 간격 3분을 기준선으로 잡았다. maxSearchMinutes는 기본값이 없어 물었다."
+}

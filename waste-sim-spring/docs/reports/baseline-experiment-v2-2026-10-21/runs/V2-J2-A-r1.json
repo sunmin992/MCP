@@ -1,0 +1,43 @@
+{
+  "id": "V2-J2-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "candidates 2개(실제 서버). matches 에는 가상 서버 district-waste-sim(fictional=true, example.invalid)도 있었으나 candidates 에서 빠져 있어 사용자에게 보이지 않음. differences: region/unit/calibration."
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록, 장량동)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "요청에 맞는 서버가 둘입니다. (1) 포항 북구 행정동 전체(구역 집계) — 북구 수거 요일·배출 창(20:00~06:00) 표준데이터로 보정 (2) 장량동 원룸촌 한 블록 — 교통 지체(TMAP)·실측 교통량·포항시 수거 일정으로 보정. 어느 단위로 볼까요?",
+      "keys": [],
+      "answer": "원룸촌 한 블록(장량동) 단위로 볼게"
+    },
+    {
+      "text": "시나리오를 만들려면 몇 가지가 필요합니다. ① 비교할 수거 시각들은? ② 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까?(기본값 없음) ③ 며칠치를, 몇 번 반복해 볼까요? ④ 그 밖에 차량 크기(5톤/2.5톤/1톤)·대수, 교통량 반영 여부, 이동시간 계산 방식, 건물 동 수, 동당 세대 수, 거주민 직업 구성은 어떻게 할까요? (말씀 없으면 기본값)",
+      "keys": ["collectionTimeMinutes", "routeAvailableCapacityKg", "days", "seeds", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 적재 몫: 150kg / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1110007d",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것(확인 화면에서 승인 안 된 기본값으로 표시됨): 차량 LARGE_5TON 1대, 교통량 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 건물 4동, 동당 25세대, 직업 구성 BlueCollar/Student/Housewife. 사용자 값: 수거 시각 06:00/12:00/18:00(360/720/1080분) 비교, 적재 몫 150kg, 10일, 5회 반복. 확인 화면 http://localhost:8090/confirm.html 에서 사람이 승인해야 실행 가능.",
+  "stoppedBecause": "build_scenario 성공(valid, runCount 3, state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 멈춤.",
+  "difficulties": "get_templates/plan_subtasks 응답이 이중 JSON 문자열로 감싸 나와 읽기 번거로움. 실험 변수 collectionTimeMinutes 는 plan_subtasks 에서 origin 이 null 로 나와 build_scenario 의 origins 에 USER 로 따로 넣었는데, 실험 변수의 출처를 origins 에 넣는 게 맞는지 안내가 없었음. 브로커 find_simulators 는 'spatialScale: 우리 동네' 를 district 와 block 양쪽에 매칭해 CHOOSE 가 나옴(자연스러움). 사용자 요청에 목적이 없어 objective 는 비워 둠."
+}

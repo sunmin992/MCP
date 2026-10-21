@@ -1,0 +1,21 @@
+{
+  "id": "V2-J4-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거가 다 안 끝나는 날이 생기는지", "comparisonAxes": ["수거차 크기"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "목적·비교 축이 어느 서버 카드와도 닿지 않음. 장량동 서버 제안: 목적을 '최대 적재량/수거 완료 시각' 등으로, 비교 축을 '차종'으로 바꾸면 됨(changesPurpose=false)"},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록(장량동)", "objective": "최대 적재량", "comparisonAxes": ["차종"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "사용자가 장량동 쪽 제안대로 고치기로 해서 재조회, MATCH"}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동), 제안대로 목적=최대 적재량, 비교 축=차종)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청 그대로 받을 서버가 없습니다. (1) 장량동 원룸촌 한 블록 시뮬레이터: 목적을 '최대 적재량/수거 완료 시각' 등으로, 비교 축을 '차종'으로 바꾸면 쓸 수 있음 (2) 포항 북구 행정동 시뮬레이터: 목적을 '수거 못 하고 남는 양' 등으로, 비교 축을 '차종'으로 바꾸면 쓸 수 있음 (3) 주차장 시뮬레이터는 다른 질문이 됨. 어느 쪽으로 요청을 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 쪽으로 볼게 — 그쪽 제안대로 고쳐 줘"},
+    {"text": "5톤과 1톤을 비교합니다. 다음을 알려 주세요: 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg, 기본값 없음), 수거 시각, 차량 대수, 교통량 반영 여부, 이동시간 계산 방식, 건물 동 수, 동당 세대 수, 거주민 직업 구성, 기간(일), 반복 횟수", "keys": ["routeAvailableCapacityKg", "collectionTimeMinutes", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds"], "answer": "적재 몫 120kg, 수거 시각 12시, 30일, 10회, 그 밖은 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-df5cad66",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것: 차량 1대, 교통량 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 건물 4동, 동당 25세대, 직업 구성 BlueCollar/Student/Housewife — 확인 화면에 승인 안 된 기본값 6개로 표시됨. 비교 변수 truckType = LARGE_5TON vs SMALL_1TON",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 를 얻음 — 확인은 사람만 함",
+  "difficulties": "원래 목적 '수거가 다 안 끝나는 날'은 장량동 카드 질문 목록에 그대로 없어 '최대 적재량'으로 바꿨는데, '수거 완료 시각'·(북구의) '수거 못 하고 남는 양'도 가까워 어느 것을 고를지 애매했다. 또 적재 몫(routeAvailableCapacityKg=120kg)이 두 차종 모두에 똑같이 걸려, 미입력 시 쓰인다는 차종 정격용량 차이가 결과에 드러나지 않을 수 있다 — 5톤/1톤 비교가 실질적으로 같은 설정이 될 위험이 있으나 도구 설명이 이를 경고하지 않았다."
+}

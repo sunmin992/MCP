@@ -1,0 +1,114 @@
+{
+ "name": "run_parking_simulation",
+ "description": "포항 도심 공영주차장 시뮬레이션을 실행하고 주차 탐색 시간 · 만차 · 포기 통계를 반환한다.",
+ "inputSchema": {
+  "type": "object",
+  "properties": {
+   "lotCount": {
+    "type": "integer",
+    "description": "주차장 수. 주차장은 한 줄로 늘어서 있고 이웃한 두 곳 사이를 lotSpacingMinutes 에 간다.",
+    "default": 4
+   },
+   "spacesPerLot": {
+    "type": "integer",
+    "description": "주차장 한 곳의 면수. 모든 주차장이 같다.",
+    "default": 80
+   },
+   "pricingPolicy": {
+    "type": "string",
+    "description": "요금 정책.",
+    "default": "FLAT",
+    "enum": [
+     "FLAT",
+     "TIME_OF_DAY",
+     "FREE"
+    ]
+   },
+   "baseFeePer30Min": {
+    "type": "integer",
+    "description": "30분당 기본 요금(원).",
+    "default": 500
+   },
+   "peakSurchargeRate": {
+    "type": "number",
+    "description": "혼잡 시간대 할증률(0.5 = 50% 더). 시간대 차등일 때만 쓴다. 기본값 없음."
+   },
+   "userMix": {
+    "type": "array",
+    "description": "이용자 구성. 목록 순서대로 차량에 돌아가며 배정하고, 같은 유형을 여러 번 적으면 비중이 커진다.",
+    "default": [
+     "Commuter",
+     "Shopper",
+     "Visitor"
+    ],
+    "items": {
+     "type": "string",
+     "enum": [
+      "Commuter",
+      "Shopper",
+      "Visitor",
+      "Resident"
+     ]
+    }
+   },
+   "residentPriorityShare": {
+    "type": "number",
+    "description": "각 주차장에서 거주자만 쓸 수 있는 면의 비율. 거주자가 구성에 있을 때만 쓴다. 기본값 없음."
+   },
+   "dailyArrivals": {
+    "type": "integer",
+    "description": "하루 도착 차량 수(요금 회피 전).",
+    "default": 900
+   },
+   "guidanceMode": {
+    "type": "string",
+    "description": "안내 방식.",
+    "default": "NONE",
+    "enum": [
+     "NONE",
+     "STATIC_SIGN",
+     "REALTIME_APP"
+    ]
+   },
+   "guidanceRefreshMinutes": {
+    "type": "integer",
+    "description": "실시간 앱의 빈자리 갱신 주기(분).",
+    "default": 5
+   },
+   "congestionEnabled": {
+    "type": "boolean",
+    "description": "도로 혼잡을 주차장 간 이동시간에 반영하는가.",
+    "default": false
+   },
+   "congestionProfileId": {
+    "type": "string",
+    "description": "혼잡 프로파일 id. 혼잡을 반영할 때만 쓴다.",
+    "default": "weekday-downtown"
+   },
+   "maxSearchMinutes": {
+    "type": "integer",
+    "description": "이 시간 안에 못 찾으면 포기한다(분). 기본값 없음."
+   },
+   "days": {
+    "type": "integer",
+    "description": "기간(일).",
+    "default": 14
+   },
+   "seeds": {
+    "type": "integer",
+    "description": "반복 횟수. 시드는 1..seeds 로 고정이다.",
+    "default": 30
+   },
+   "lotSpacingMinutes": {
+    "type": "number",
+    "description": "이웃한 주차장 사이 자유주행 이동시간(분).",
+    "default": 3.0
+   },
+   "fullLotCircleMinutes": {
+    "type": "number",
+    "description": "안내 없이 만차 주차장에 들어가 한 바퀴 도는 시간(분).",
+    "default": 2.0
+   }
+  }
+ }
+}

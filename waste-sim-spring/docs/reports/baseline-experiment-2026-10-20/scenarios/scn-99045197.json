@@ -1,0 +1,152 @@
+{
+ "scenarioId": "scn-99045197",
+ "state": "UNCONFIRMED",
+ "sesId": "bukgu-district-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "collectionStartMinutes": 360,
+  "zoneCount": 8,
+  "scheduleMode": "POHANG_BUKGU",
+  "truckType": [
+   "LARGE_5TON",
+   "MEDIUM_2P5T",
+   "SMALL_1TON"
+  ],
+  "housingMix": [
+   "Apartment",
+   "Detached",
+   "Studio"
+  ],
+  "transferMode": "IGNORE",
+  "seeds": 30,
+  "days": 28,
+  "householdsPerZone": 600,
+  "zoneAllocation": "EQUAL_COUNT",
+  "holidayMode": "IGNORE",
+  "truckCount": 2
+ },
+ "origins": {
+  "collectionStartMinutes": "MODEL_DEFAULT",
+  "zoneCount": "MODEL_DEFAULT",
+  "scheduleMode": "MODEL_DEFAULT",
+  "truckType": "MODEL_DEFAULT",
+  "housingMix": "MODEL_DEFAULT",
+  "transferMode": "MODEL_DEFAULT",
+  "seeds": "MODEL_DEFAULT",
+  "days": "MODEL_DEFAULT",
+  "householdsPerZone": "MODEL_DEFAULT",
+  "zoneAllocation": "MODEL_DEFAULT",
+  "holidayMode": "MODEL_DEFAULT",
+  "truckCount": "MODEL_DEFAULT"
+ },
+ "unapprovedDefaults": {
+  "collectionStartMinutes": 360,
+  "zoneCount": 8,
+  "scheduleMode": "POHANG_BUKGU",
+  "truckType": [
+   "LARGE_5TON",
+   "MEDIUM_2P5T",
+   "SMALL_1TON"
+  ],
+  "housingMix": [
+   "Apartment",
+   "Detached",
+   "Studio"
+  ],
+  "transferMode": "IGNORE",
+  "seeds": 30,
+  "days": 28,
+  "householdsPerZone": 600,
+  "zoneAllocation": "EQUAL_COUNT",
+  "holidayMode": "IGNORE",
+  "truckCount": 2
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Detached",
+    "Studio"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "LARGE_5TON",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "POHANG_BUKGU",
+   "collectionDays": null,
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 30,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  },
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Detached",
+    "Studio"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "MEDIUM_2P5T",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "POHANG_BUKGU",
+   "collectionDays": null,
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 30,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  },
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Detached",
+    "Studio"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "SMALL_1TON",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "POHANG_BUKGU",
+   "collectionDays": null,
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 30,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  }
+ ],
+ "confirmToken": null
+}

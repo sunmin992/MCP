@@ -1,0 +1,23 @@
+{
+  "id": "BL-N1-A",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸 건물 10동", "environmentConditions": ["아침 출근길 교통"], "objective": "수거차 한 대로 버틸 수 있는지, 두 대가 필요한지", "comparisonAxes": ["수거차 대수(1대 vs 2대)"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "그대로 받을 서버 없음. jangnyang: 공간 규모 '원룸촌 한 블록', 목적을 답할 수 있는 질문(차량 수)으로 바꾸면 됨(교통 지원). bukgu: 행정동 집계로 바꾸고 교통 조건 빼야 함. parking: 도메인 다름(changesPurpose=true)."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["아침 출근길 교통"], "objective": "차량 수", "comparisonAxes": ["수거차 대수(1대 vs 2대)"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "jangnyang mismatches 0. nextStep: 브로커 다시 부르지 말고 8090 도구만 사용."}
+  ],
+  "userChoice": "기본값으로 해줘 → 바꿀 것이 가장 적고 교통 조건을 지키는 jangnyang-waste-sim 조정안(공간 규모 '원룸촌 한 블록', 목적 '차량 수')으로 해석",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청 그대로 받는 서버가 없습니다. (1) 장량동 시뮬레이터: 공간 규모를 '원룸촌 한 블록'(최대 26동)으로 보고 목적을 '차량 수' 비교로 바꾸면 쓸 수 있고, 출근길 교통도 반영됩니다. (2) 북구 행정동 시뮬레이터: 행정동 전체 구역 집계로 바꾸고 출근길 교통 조건을 빼야 합니다. (3) 주차 시뮬레이터: 도메인이 달라 다른 질문이 됩니다. 어떻게 고칠까요?", "keys": ["spatialScale", "objective", "environmentConditions"], "answer": "기본값으로 해줘"},
+    {"text": "몇 가지 정해 주세요: 한 동 세대 수? 이동시간 계산 방식(구간 상수 / 교통구역 근사)? 차량 간 배차 간격(2대일 때)? 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg, 기본값 없음)? 수거 시각? 기간(일)·반복 횟수? 차량 크기(5톤/2.5톤/1톤)? 교통 프로파일(평일 실측/통행량 기반)? 거주민 직업 구성?", "keys": ["residentsPerBuilding", "travelTimeMode", "dispatchIntervalMinutes", "routeAvailableCapacityKg", "collectionTimeMinutes", "days", "seeds", "truckType", "trafficProfileId", "occupationMix"], "answer": "25세대 / 교통구역 근사로 / 10분 / 300kg / 오전 8시 / 10일, 5회 / 그 밖: 기본값으로 해줘"},
+    {"text": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정입니다", "keys": ["zoneAssignmentRule"], "answer": "덩어리로 묶어서"},
+    {"text": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요?", "keys": ["intraZoneTravelMinutes"], "answer": "2분"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-f7a5ce16",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "차량 크기 LARGE_5TON, 교통 프로파일 jangryang-weekday, 직업 구성 [BlueCollar, Student, Housewife] 는 '기본값으로' 답에 따라 템플릿 기본값으로 넣음(MODEL_DEFAULT, 확인 화면에 미승인 기본값 3개로 표시). trafficMode=APPLY 는 '출근길 교통 반영' 에서 도출(DERIVED). 공간 규모를 '원룸촌 한 블록'으로, 목적을 '차량 수' 비교로 바꿈. 구역 배정(CONTIGUOUS)은 실측이 아닌 가정이라 결과는 가정 비교 실험임.",
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED). get_scenario_status 로 확인 화면 http://localhost:8090/confirm.html 을 받았고, 확인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "ADJUST_REQUEST 질문에 대본 답이 없어 '기본값으로 해줘'를 어느 조정안으로 받을지 모호했음 — 조정이 가장 적고 교통을 지키는 jangnyang 으로 해석. 원래 목적 '1대로 버틸 수 있나'가 카드 질문에 안 닿는다고 나왔으나 비교 축 '차량 수'는 맞아서, 목적을 '차량 수'로 바꾸는 것이 사실상 같은 질문이었음. zoneAssignmentRule→intraZoneTravelMinutes 가 연쇄 보류라 질문을 두 번 나눠야 했음. 템플릿 설명은 CONTIGUOUS/ROUND_ROBIN 둘 다 돌려 범위로 보라 권하지만 사용자는 덩어리만 골라 하나만 넣음."
+}

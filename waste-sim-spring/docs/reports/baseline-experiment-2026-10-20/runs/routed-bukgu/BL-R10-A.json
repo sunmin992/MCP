@@ -1,0 +1,22 @@
+{
+  "id": "BL-R10-A",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "공영주차장 주변 골목", "environmentConditions": ["수거차가 골목에 못 들어감"], "objective": "수거 지연 문제 파악"}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "그대로 받을 서버 없음. bukgu: 공간 규모를 '행정동 전체(구역 집계)'로, 골목 진입 조건 제외. jangnyang: 공간 규모 '원룸촌 한 블록', 조건 제외, 목적 변경. parking: 도메인 바꿈(changesPurpose=true)."},
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거 지연 문제 파악"}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "공간 규모 · 골목 조건을 빼고 다시 부름. 목적 '수거 지연 → 쓰레기가 기다린 날 수'로 bukgu 만 mismatch 없음. 브로커 재호출 금지 안내."}
+  ],
+  "userChoice": "ADJUST_REQUEST: 쓰레기 수거 쪽으로 (골목 진입 조건 · 공영주차장 주변 골목 공간 규모를 빼고 다시 조회)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청 그대로 받을 서버가 없습니다. 어느 서버도 '수거차가 골목에 못 들어감' 조건을 다루지 않습니다. (1) 쓰레기 수거 쪽으로 고치기: 골목 진입 조건을 빼고 공간 규모를 북구 행정동 전체(구역 집계) 또는 장량동 원룸촌 한 블록으로 바꾸면 됩니다. (2) 주차 쪽으로 가기: 공영주차장 시뮬레이터는 주차 탐색 시간 · 혼잡도 등을 보며, 질문 자체가 바뀝니다. 요청을 어떻게 고칠까요?", "keys": [], "answer": "쓰레기 수거 쪽으로 볼게"},
+    {"text": "북구 행정동 수거 시뮬레이터로 갑니다. 무엇을 바꿔 가며 비교할까요(예: 수거차 크기 5톤/2.5톤/1톤)? 그리고 구역 수(1~40), 구역당 세대 수, 주거 유형 구성, 차량 대수, 수거 일정, 공휴일 반영, 적환장 사용, 수거 시작 시각, 기간(일), 반복 횟수는 어떻게 할까요?", "keys": ["variableAnswerKey", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "기본값으로 해줘"},
+    {"text": "차량이 2대라 구역을 차량에 어떻게 나눌지 정해야 합니다. 같은 구역 수로 나눌까요, 예상 작업 시간이 같게 나눌까요?", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-99045197",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "모든 값(12개)을 템플릿 기본값(MODEL_DEFAULT)으로 넣었다: 8구역 × 600세대, 아파트/단독/원룸, 2대, EQUAL_COUNT, 포항 북구 월·화·목·금, 공휴일 무시, 적환장 미사용, 06:00 시작, 28일, 30회. 비교 변수는 기본값이 없어 원래 요청(수거차가 골목에 못 들어감)에 가장 가까운 '수거차 크기 5톤/2.5톤/1톤'으로 가정했다. 또 이 서버는 골목 진입 자체를 모델링하지 않고 구역 집계만 보므로, 골목 문제는 차 크기 비교로 간접적으로만 보인다고 알렸다. 확인 화면 http://localhost:8091/confirm.html 에서 사람이 승인해야 한다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음 — 확인은 사람만 한다.",
+  "difficulties": "요청의 핵심 조건(수거차 골목 진입 불가)을 다루는 서버가 없어, 고친 요청은 원래 문제를 직접 보지 못한다. 대본의 '원룸촌 한 블록' 답은 CHOOSE 가 나오지 않아 쓰이지 않았다 — 두 번째 조회에서 목적 '수거 지연'이 bukgu 에만 맞아 바로 MATCH 가 됐다(공간 규모를 비워 둔 탓에 장량동 원룸촌 블록과의 차이를 사용자에게 보여 줄 기회가 없었다). 비교 변수(variableAnswerKey)는 템플릿에 기본값이 없어 '기본값으로' 답을 어떻게 처리할지 모호했다. zoneAllocation 은 truckCount 가 정해진 뒤에야 생겨 질문 하나가 더 늘었다."
+}

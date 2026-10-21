@@ -1,0 +1,22 @@
+{
+  "id": "BL-R10-A2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "공영주차장 주변 골목", "environmentConditions": ["수거차가 골목에 못 들어감"], "objective": "수거가 늦어지는 문제 확인"}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "그대로 받을 서버가 없다. 쓰레기 서버 두 곳은 공간 규모를 바꾸고, 골목 진입 조건을 빼고, 목적을 바꾸라고 했다. 주차 서버는 도메인을 바꾸라고 했다(changesPurpose=true)."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록"}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "사용자 답에 따라 요청을 고쳐 다시 불렀다. 골목 진입 조건은 뺐고 목적은 비워 두었다."}
+  ],
+  "userChoice": "ADJUST_REQUEST: 쓰레기 수거 쪽으로, 원룸촌 한 블록(장량동) 단위로 볼게",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario"],
+  "questions": [
+    {"text": "어느 서버도 요청 그대로는 받지 못합니다. 고치는 방법은 이렇습니다. (1) 쓰레기 수거로 보되 공간을 '원룸촌 한 블록(장량동)' 또는 '행정동 전체(구역 집계)'로 바꾸고, '수거차가 골목에 못 들어감' 조건은 뺍니다. 목적도 서버가 답할 수 있는 질문으로 바꿔야 합니다. (2) 주차 쪽 질문(주차 탐색 시간, 혼잡도 등)으로 바꿉니다. 이렇게 하면 다른 질문이 됩니다. 요청을 어떻게 고칠까요?", "keys": ["domain", "spatialScale", "environmentConditions", "objective"], "answer": "쓰레기 수거 쪽으로, 원룸촌 한 블록(장량동) 단위로 볼게"},
+    {"text": "장량동 원룸촌 한 블록 시뮬레이터로 갑니다. 다음 값을 정해 주세요. 수거차 크기(5톤/2.5톤/1톤), 수거차 대수, 수거 시각, 교통량 반영 여부, 이동시간 계산 방식(구간 상수/교통구역 근사), 건물 동수(1~26), 동당 세대수, 거주민 직업 구성, 기간(일), 반복 횟수, 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg, 기본값 없음). 그리고 무엇을 바꿔 가며 비교할까요? (예: 골목 진입 문제와 가까운 수거차 크기 5톤/2.5톤/1톤)", "keys": ["truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds", "routeAvailableCapacityKg", "variableAnswerKey"], "answer": "기본값으로 해줘"},
+    {"text": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 기본값이 없어 숫자가 꼭 필요합니다. 몇 kg 으로 할까요? (예: 하루 90kg 블록에서 150kg 이면 가동률 60%)", "keys": ["routeAvailableCapacityKg"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": ["build_scenario: routeAvailableCapacityKg 가 비어 있어 비교한 세 값(LARGE_5TON, MEDIUM_2P5T, SMALL_1TON) 모두 막혔다. 기본값이 없으니 사용자에게 물어 값을 받으라고 했고, 질문의 예시 값을 대신 넣지 말라고 했다."],
+  "scenarioId": "scn-97d67d67",
+  "scenarioState": "INVALID",
+  "toldUser": "truckCount=1, collectionTimeMinutes=720, trafficMode=IGNORE, travelTimeMode=LEGACY_CONSTANT, numBuildings=4, residentsPerBuilding=25, occupationMix=[BlueCollar,Student,Housewife], days=30, seeds=30 은 템플릿 기본값으로 넣었다(MODEL_DEFAULT). 비교 변수는 truckType 세 값으로 정했다. 사용자가 고른 것이 아니라 원래 문제(큰 차가 골목에 못 들어감)와 가장 가까워서 고른 가정이다. 골목 진입 조건과 '수거 지연' 목적은 이 서버가 다루지 않아서 빠졌다.",
+  "stoppedBecause": "routeAvailableCapacityKg 는 기본값이 없어 반드시 물어야 하는 값이다. 두 번 물었지만 사용자는 두 번 다 '기본값으로 해줘'라고만 답했다. 서버가 예시 값을 넣지 말라고 했으므로 시나리오가 INVALID 로 남았고, 사용자가 숫자를 줄 때까지 더 진행할 수 없다.",
+  "difficulties": "원래 요청의 핵심(공영주차장 주변 골목에 수거차가 못 들어가서 수거가 늦어짐)을 어느 서버도 다루지 않는다. 고친 요청은 원래 질문과 꽤 다르다. 사용자가 비교 변수를 정하지 않아 truckType 을 가정으로 골랐다. routeAvailableCapacityKg 는 템플릿에서 generateWhen=ALWAYS 이고 기본값도 없어서, '기본값으로 해줘'라는 답으로는 시나리오를 만들 수 없다."
+}

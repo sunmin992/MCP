@@ -1,0 +1,19 @@
+{
+  "id": "BL-R04-B",
+  "method": "B",
+  "questions": [
+    {
+      "text": "어떤 수거 시각들을 비교해 볼까요? (예: 06:00, 12:00, 18:00) 그리고 시뮬레이션 기간과 반복 횟수는 기본값(30일, 30회)으로 할까요, 따로 정하실까요?",
+      "keys": ["collectionTime", "days", "seeds"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 기간·반복: 10일, 5회"
+    }
+  ],
+  "plannedCalls": [
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "06:00", "days": 10, "seeds": 5}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "12:00", "days": 10, "seeds": 5}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "18:00", "days": 10, "seeds": 5}}
+  ],
+  "toldUser": "수거 시각·기간·반복 외의 모든 값(4동 x 25명, 수거장 용량 30kg, 민원 임계 0.8, 1인 0.9kg, 매일 수거, 배출 시각 PAPER_BASELINE, 교통 레이어 꺼짐, 5톤 트럭 1대, 경로 적재용량은 차종 정격)은 스키마 기본값으로 넣었다. '우리 동네'는 이 도구가 다루는 장량동 원룸촌 모델로 가정했다.",
+  "stoppedBecause": "비교할 세 시각과 기간·반복이 정해져 호출 인자를 확정할 수 있어서, 실제 실행 없이 plannedCalls 를 적고 멈췄다.",
+  "difficulties": "'우리 동네'가 장량동 원룸촌과 같은지 확인할 수단이 없어 도구가 하나뿐인 점을 근거로 그대로 가정했다. 수거 시각 비교에 경로 적재용량·교통 설정이 영향을 줄지 불확실했지만 사용자가 언급하지 않아 묻지 않고 기본값을 썼다."
+}

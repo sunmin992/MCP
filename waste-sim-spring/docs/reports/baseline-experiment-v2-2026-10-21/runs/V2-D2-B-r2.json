@@ -1,0 +1,38 @@
+{
+  "id": "V2-D2-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "추석 연휴(2026-09-24~26)가 들어가는 기본 시작일(2026-09-21)로 돌리겠습니다. 몇 가지만 정해 주세요. (1) 어떤 수거 요일끼리 비교할까요? 지금 포항 북구 일정(월·화·목·금), 매일(일요일 제외), 격일(월·수·금), 또는 직접 고른 요일 중에서 골라 주세요. (2) 수거일이 공휴일이면 그날은 건너뛸까요, 다음 날로 미룰까요? (3) 시뮬레이션 기간과 반복 횟수는 기본값(28일, 30회)으로 할까요?",
+      "keys": ["scheduleMode", "collectionDays", "holidayEnabled", "holidayPolicy", "days", "seeds"],
+      "answer": "비교할 수거 요일: 지금 포항 북구 일정(월화목금)과 매일 수거 / 공휴일엔 건너뛰어 / 28일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "POHANG_BUKGU",
+        "holidayEnabled": true,
+        "holidayPolicy": "SKIP",
+        "startDate": "2026-09-21",
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "DAILY",
+        "holidayEnabled": true,
+        "holidayPolicy": "SKIP",
+        "startDate": "2026-09-21",
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "구역 수(8), 구역당 세대 수(600), 주거 구성, 상가 포함, 5톤 차 2대, 구역 배분, 적환장 미사용, 근무시간 등 나머지는 모두 기본값으로 넣었다. 시작일은 추석 연휴가 들도록 정해진 기본값 2026-09-21을 그대로 쓴다고 알렸다. 공휴일 반영은 공휴일 처리를 정하기 위해 켰다(holidayEnabled=true).",
+  "stoppedBecause": "비교할 두 일정(포항 북구 월화목금 vs 매일)과 공휴일 처리, 기간·반복을 확정해 호출 2개의 인자를 적었다. 실행은 사람이 확인한 뒤 하므로 여기서 멈춘다.",
+  "difficulties": "'수거 요일을 바꾸면'이 어떤 요일끼리 비교인지 요청만으로는 알 수 없어 물었다. holidayPolicy는 holidayEnabled가 false면 의미가 없어 보여 둘 다 켰다. 추석이 포함되도록 startDate 기본값을 명시적으로 넣었다. 대본의 '어느 서버·요청' 답은 도구가 하나뿐이라 묻지 않았다."
+}

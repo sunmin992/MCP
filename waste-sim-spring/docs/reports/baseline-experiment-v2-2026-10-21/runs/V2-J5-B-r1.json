@@ -1,0 +1,28 @@
+{
+  "id": "V2-J5-B-r1",
+  "method": "B",
+  "questions": [
+    {
+      "text": "'감당'을 수거 트럭 쪽에서도 보려면 이 블록 운행 1회에 트럭 적재 용량을 얼마나 배정하는지 알아야 합니다(모르면 차종 정격용량 5톤으로 둡니다). 그리고 기간은 30일로 보면 될까요?",
+      "keys": ["routeAvailableCapacityKg", "days"],
+      "answer": "적재 몫은 200kg, 기간은 30일"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "09:00",
+        "numBuildings": 6,
+        "residentsPerBuilding": 40,
+        "seeds": 200,
+        "days": 30,
+        "collectionIntervalDays": 1,
+        "routeAvailableCapacityKg": 200
+      }
+    }
+  ],
+  "toldUser": "수거장 용량 30kg·민원 임계 0.8·1인 0.9kg 배출(논문 가정치)·차종 LARGE_5TON·트럭 1대·이동시간 LEGACY_CONSTANT(8분)·교통 레이어 끔은 기본값으로 넣었다. 매일 1회(수거 주기 1일) 09:00 수거로 해석했다. 참고로 하루 배출 추정치는 240명 x 0.9kg = 약 216kg로 배정 적재 몫 200kg를 넘고, 동당 약 36kg로 수거장 기본 용량 30kg도 넘는다.",
+  "stoppedBecause": "필요한 값을 모두 확정해 호출 인자를 plannedCalls에 적었고, 실행은 사람이 설정을 확인한 뒤에 하므로 여기서 멈췄다.",
+  "difficulties": "'감당'이 수거장 용량(capacity)인지 트럭 적재량인지 모호했다. seeds 200에 상한이 스키마에 없어 그대로 넣었다(서버가 거부하면 '되는 만큼 최대'로 낮출 것). 6동이지만 LEGACY_CONSTANT라 zoneAssignmentRule은 필요 없다고 판단했다. '한 번 걷으면'을 하루 1회 매일 수거로 읽었다."
+}

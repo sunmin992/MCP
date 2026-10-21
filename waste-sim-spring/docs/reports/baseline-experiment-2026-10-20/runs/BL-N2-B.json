@@ -1,0 +1,35 @@
+{
+  "id": "BL-N2-B",
+  "method": "B",
+  "questions": [
+    {
+      "text": "5톤과 1톤 소형을 같은 조건으로 나란히 돌려 비교하려고 합니다. 세 가지만 알려주세요. (1) 수거 시각은 몇 시인가요? (2) 1톤 차가 이 경로에 실제로 쓸 수 있는 적재 몫(경로 가용 용량, kg)이 정격(1톤)보다 작다면 얼마인가요? (3) 기간과 반복 횟수는 기본(30일, 30회)으로 할까요?",
+      "keys": ["collectionTime", "routeAvailableCapacityKg", "days", "seeds"],
+      "answer": "적재 몫(경로 가용 용량): 120kg / 수거 시각: 12시 / 기간·반복: 30일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "12:00",
+        "days": 30,
+        "seeds": 10,
+        "truckType": "LARGE_5TON"
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "12:00",
+        "days": 30,
+        "seeds": 10,
+        "truckType": "SMALL_1TON",
+        "routeAvailableCapacityKg": 120
+      }
+    }
+  ],
+  "toldUser": "기준선은 5톤(정격 용량, 경로 몫 미지정), 비교안은 1톤 소형에 경로 몫 120kg을 넣었습니다. 나머지(건물 4동 x 25명, 1인 0.9kg/일, 매일 수거, 트럭 1대, 초기 적재 0, 교통 레이어 끔, 배출 모델 PAPER_BASELINE 등)는 모두 기본값입니다. 기본값 기준 하루 배출 약 90kg이라 120kg 몫이면 평균적으로는 버티지만 편차가 큰 날 초과 여부가 관건입니다.",
+  "stoppedBecause": "사용자 답으로 인자가 모두 확정되어, 실제 호출 없이 비교용 호출 2개를 plannedCalls에 적고 멈춤(실행은 사람 확인 후).",
+  "difficulties": "120kg 적재 몫이 1톤 차에만 해당하는지 5톤에도 같이 걸어야 하는지 모호했다. 양쪽에 같은 몫을 걸면 차종 차이가 결과에 드러나지 않을 것 같아 1톤 쪽에만 적용했다. 또 스키마 출력이 '월간 민원 통계'라고만 되어 있어 '수거가 다 안 끝나는 날'(적재 초과·미수거) 지표가 결과에 나오는지 확인할 수 없었다."
+}

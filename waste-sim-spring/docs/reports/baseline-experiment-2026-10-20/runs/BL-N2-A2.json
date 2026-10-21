@@ -1,0 +1,21 @@
+{
+  "id": "BL-N2-A2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거가 다 안 끝나는 날이 생기는지", "comparisonAxes": ["수거차 크기(5톤 vs 1톤 소형)"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "목적이 어느 서버의 답할 수 있는 질문과도 닿지 않음. 북구 행정동 서버는 비교 축(차종)만 맞고, 장량동 서버는 목적·비교 축 둘 다 고치라고 제안(수거 완료 시각 / 차종 등). 주차 서버는 changesPurpose=true."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "objective": "수거 완료 시각", "comparisonAxes": ["차종"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "장량동 제안대로 목적을 '수거 완료 시각', 비교 축을 '차종'으로 고치고 공간 규모를 사용자 답(원룸촌 한 블록)으로 넣어 다시 조회 → 장량동 서버 MATCH. 나머지는 공간 규모 불일치."}
+  ],
+  "userChoice": "ADJUST_REQUEST: 원룸촌 한 블록(장량동) 쪽 제안대로 요청 수정",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "말씀하신 '수거가 다 안 끝나는 날이 생기는지'를 그대로 받는 서버는 없습니다. 고쳐서 쓸 수 있는 곳: (1) 장량동 원룸촌 한 블록 서버 — 목적을 '수거 완료 시각'(또는 잔여량·차량 가동률 등)으로, 비교 축을 '차종'으로 바꾸면 됩니다. (2) 포항 북구 행정동 서버 — 차종 비교는 되지만 목적을 '수거 못 하고 남는 양' 등으로 바꿔야 합니다. 어느 쪽으로 고칠까요?", "keys": ["objective", "comparisonAxes", "spatialScale"], "answer": "원룸촌 한 블록(장량동) 쪽으로 볼게 — 그쪽 제안대로 고쳐 줘"},
+    {"text": "5톤과 1톤을 비교하는 설정을 만들려면 다음을 정해야 합니다: 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg, 기본값 없음), 수거 시각, 며칠치를 몇 번 반복할지, 수거차량 대수, 교통량 반영 여부, 이동시간 계산 방식, 건물 동수, 동당 세대 수, 거주민 직업 구성.", "keys": ["routeAvailableCapacityKg", "collectionTimeMinutes", "days", "seeds", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix"], "answer": "적재 몫 120kg, 수거 시각 12시, 30일 10회, 그 밖은 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-df5cad66",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것: 수거차량 1대, 교통량 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 건물 4동, 동당 25세대, 직업 구성 BlueCollar/Student/Housewife — 확인 화면에서 미승인 기본값 6개로 따로 표시됨. 비교 변수 truckType = LARGE_5TON vs SMALL_1TON. 확인 화면: http://localhost:8090/confirm.html",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음. 승인은 사람만 할 수 있어 멈춤.",
+  "difficulties": "원래 목적('다 안 끝나는 날')이 장량동 카드의 답할 수 있는 질문 목록에 없어 '수거 완료 시각'으로 바꿨지만, 실제 관심사는 잔여량·차량 가동률에 더 가깝다 — 어느 항목으로 고칠지 제안 목록에서 골라야 해 다소 애매했다. 적재 몫 120kg 은 1톤·5톤 양쪽 실행에 같이 들어가므로, 적재 몫이 차종 정격용량보다 우선하면 차종 비교의 차이가 줄어들 수 있다(도구 설명상 '미입력 시 차종 정격용량'). get_templates 응답이 이중 JSON 문자열로 감싸져 있음."
+}

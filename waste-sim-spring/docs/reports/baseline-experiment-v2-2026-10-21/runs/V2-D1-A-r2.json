@@ -1,0 +1,44 @@
+{
+  "id": "V2-D1-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "장량동 전체 아파트 단지", "comparisonAxes": ["수거 주기"], "objective": "격일 수거와 매일 수거 비교"},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim (fictional)", "jangnyang-waste-sim (공간 규모 불일치, ADJUST 제안: 원룸촌 한 블록)"],
+      "note": "MATCH 이므로 선택지를 묻지 않고 추천 서버 http://localhost:8091/mcp 로 갔다. population 은 사용자가 거주민 구절을 말하지 않아 비웠다."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "장량동을 격일(월·수·금)과 매일(일요일 제외) 수거로 비교하겠습니다. 몇 가지 정해 주세요. 1) 행정동을 몇 개 구역으로 나눌까요?(1~40, 기본 8) 2) 구역마다 몇 세대인가요?(50~5000, 기본 600) 3) 구역의 주거 유형 구성은?(아파트/단독주택/원룸/상가, 기본 아파트·단독·원룸) 4) 수거차량 크기는?(5톤/2.5톤/1톤, 기본 5톤) 5) 차량은 몇 대?(1~20, 기본 2) 6) 공휴일(추석 연휴 포함) 수거 휴무를 반영할까요?(기본 반영 안 함) 7) 적환장을 쓸까요?(기본 안 씀, 소각장 왕복) 8) 몇 시에 수거를 시작할까요?(기본 06:00) 9) 며칠치를 볼까요?(7~365, 기본 28일) 10) 몇 번 반복할까요?(1~100, 기본 30회)",
+      "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"],
+      "answer": "주거 구성: 아파트 3 : 단독주택 1 / 구역·세대: 기본값으로 / 차량: 5톤 2대 / 공휴일: 반영 안 해도 돼 / 적환장: 안 써 / 기간·반복: 28일, 10회 / 그 밖(수거 시작 시각): 기본값으로 해줘"
+    },
+    {
+      "text": "차량이 2대이니 구역을 차량에 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게, 기본 같은 구역 수)",
+      "keys": ["zoneAllocation"],
+      "answer": "같은 구역 수로"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-490d77bb",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "구역 수 8, 구역당 600세대, 수거 시작 06:00(360분)은 사용자가 '기본값으로'라고 넘겨 템플릿 기본값을 넣었다(MODEL_DEFAULT, 확인 화면에 승인 안 된 기본값 3개로 표시됨). 격일은 서버의 ALTERNATE(월·수·금), 매일은 DAILY(일요일 제외)로 대응시켰다. 주거 구성 '아파트 3 : 단독 1'은 housingMix [Apartment, Apartment, Apartment, Detached]로 넣었다. 확인 화면: http://localhost:8091/confirm.html",
+  "stoppedBecause": "build_scenario 가 성공해 state 가 UNCONFIRMED 가 되었고, get_scenario_status 로 확인 화면 주소를 얻었다. 승인과 실행은 사람만 한다.",
+  "difficulties": "요청의 '전체 아파트 단지'가 housingMix 를 아파트만으로 정하는 말인지 헷갈렸으나, 추정하지 않고 물었다. zoneAllocation 은 차량 수가 정해진 뒤에야 생겨서 질문이 두 번으로 나뉘었다. 서버에 '장량동' 지역 설정 항목이 없어 행정동 이름이 시나리오에 반영되는지 알 수 없었다."
+}

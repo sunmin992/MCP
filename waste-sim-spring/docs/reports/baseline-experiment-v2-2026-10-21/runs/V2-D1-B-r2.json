@@ -1,0 +1,48 @@
+{
+  "id": "V2-D1-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "격일(월·수·금) 수거와 매일(일요일 제외) 수거를 아파트만으로 구성해 비교하려 합니다. 몇 가지 확인할게요. (1) 장량동을 몇 개 구역으로, 구역당 몇 세대로 볼까요? (기본 8구역 × 600세대) (2) 차량 종류와 대수는요? (기본 5톤 2대) (3) 구역을 차량에 나누는 방식은 같은 구역 수인가요, 예상 작업 시간을 맞추는 방식인가요? (4) 공휴일(추석 연휴)을 반영할까요? (5) 적환장을 쓰나요? (6) 기간과 반복 횟수는요? (기본 28일, 30회)",
+      "keys": ["zoneCount", "householdsPerZone", "truckType", "truckCount", "zoneAllocation", "holidayEnabled", "transferEnabled", "days", "seeds"],
+      "answer": "구역·세대: 기본값으로 / 차량: 5톤 2대 / 구역을 차량에 나누는 방식: 같은 구역 수로 / 공휴일: 반영 안 해도 돼 / 적환장: 안 써 / 기간·반복: 28일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "zoneCount": 8,
+        "householdsPerZone": 600,
+        "housingMix": ["Apartment"],
+        "truckType": "LARGE_5TON",
+        "truckCount": 2,
+        "zoneAllocation": "EQUAL_COUNT",
+        "scheduleMode": "ALTERNATE",
+        "holidayEnabled": false,
+        "transferEnabled": false,
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "zoneCount": 8,
+        "householdsPerZone": 600,
+        "housingMix": ["Apartment"],
+        "truckType": "LARGE_5TON",
+        "truckCount": 2,
+        "zoneAllocation": "EQUAL_COUNT",
+        "scheduleMode": "DAILY",
+        "holidayEnabled": false,
+        "transferEnabled": false,
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "'전체 아파트 단지'라는 요청에 따라 주거 구성을 아파트만(housingMix=[Apartment])으로 넣었다. 격일은 ALTERNATE(월·수·금), 매일은 DAILY(일요일 제외)로 해석했다. 장량동 실제 구역 수·세대 수는 알 수 없어 기본값 8구역 × 600세대를 썼다. 그 밖의 값(시작일 2026-09-21, 수거 시작 06:00, 근무 480분, 소각장 왕복 90분, 이동시간, 변동계수 등)은 기본값이다.",
+  "stoppedBecause": "필요한 값을 모두 확정했고, 도구는 사람이 설정을 확인한 뒤 실행하므로 두 호출(ALTERNATE vs DAILY)의 인자를 적고 멈췄다.",
+  "difficulties": "스키마에 장량동 같은 행정동 선택 매개변수가 없어 동 이름을 반영할 방법이 없었고, 실제 구역·세대 수도 알 수 없어 기본값에 기댔다. '전체 아파트 단지'를 주거 구성 아파트 100%로 읽었으므로 주거 구성은 묻지 않았다(대본의 '아파트 3 : 단독주택 1'은 묻지 않아서 쓰지 않음)."
+}

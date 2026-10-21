@@ -1,0 +1,33 @@
+{
+  "id": "V2-D3-B-r1",
+  "method": "B",
+  "questions": [
+    {
+      "text": "현재 일정(월·화·목·금)과 화·목·토 주 3회를 같은 조건으로 두 번 돌려 비교하려 합니다. 시뮬레이션 기간과 반복 횟수는 얼마로 할까요(기본 28일, 30회)? 그리고 기간에 추석 연휴(9/24~26)가 들어가는데, 공휴일을 반영할까요? 반영한다면 공휴일 수거일은 건너뛸까요(SKIP), 다음 날로 미룰까요(NEXT_DAY)?",
+      "keys": ["days", "seeds", "holidayEnabled", "holidayPolicy"],
+      "answer": "28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "POHANG_BUKGU",
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "WEEKDAYS",
+        "collectionDays": ["TUE", "THU", "SAT"],
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "'지금 일정'은 기본 일정인 POHANG_BUKGU(월·화·목·금)로 가정했다. 공휴일은 기본값대로 반영하지 않으므로(holidayEnabled=false) holidayPolicy는 넣지 않았다. 구역 수·세대 수·차량·적환장 등 나머지는 모두 스키마 기본값으로 두 호출에 똑같이 둔다.",
+  "stoppedBecause": "비교할 두 호출(현행 POHANG_BUKGU vs WEEKDAYS 화·목·토)의 인자를 확정했고, 실행은 사람이 설정을 확인한 뒤에 하기로 되어 있어 여기서 멈췄다.",
+  "difficulties": "'지금 일정'이 사용자의 실제 현행 설정인지 스키마 기본값(POHANG_BUKGU)인지 스키마만으로는 확정할 수 없어 기본값으로 가정했다. 기간에 추석이 걸려 있어 공휴일 반영 여부가 비교 결과(특히 목·금 vs 토 수거)에 영향을 줄 수 있는데, 사용자가 기본값(미반영)을 골랐다."
+}

@@ -1,0 +1,35 @@
+{
+  "id": "V2-P2-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "몇 가지만 정해 주세요. (1) 무엇과 무엇을 비교할까요? 예: 균일 요금(FLAT) vs 시간대 차등(TIME_OF_DAY) (2) 시간대 차등일 때 혼잡 시간대 할증률은 얼마로 할까요? (예: 0.5 = 50% 더) (3) 몇 분 안에 자리를 못 찾으면 포기하는 것으로 볼까요? (4) 주차장 수·면수는 기본값(4곳, 곳당 80면)으로 둘까요? (5) 기간과 반복 횟수는? (기본 14일, 30회)",
+      "keys": ["pricingPolicy", "peakSurchargeRate", "maxSearchMinutes", "lotCount", "spacesPerLot", "days", "seeds"],
+      "answer": "비교: 균일 요금과 시간대 차등 / 할증률: 50% / 탐색 포기 시간: 15분 / 주차장: 기본값으로 / 기간·반복: 14일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "pricingPolicy": "FLAT",
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "pricingPolicy": "TIME_OF_DAY",
+        "peakSurchargeRate": 0.5,
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "주차장 4곳·곳당 80면, 기본 요금 30분당 500원, 이용자 구성(Commuter·Shopper·Visitor), 하루 도착 900대, 안내 없음(NONE), 도로 혼잡 미반영, 주차장 간격 3분·만차 순회 2분은 모두 기본값으로 넣었다. 두 호출은 요금 정책(과 할증률)만 다르고 나머지는 같다.",
+  "stoppedBecause": "필요한 값을 모두 받아 균일 요금과 시간대 차등 두 호출의 인자를 확정했고, 실행은 사람이 설정을 확인한 뒤에 하므로 여기서 멈췄다.",
+  "difficulties": "스키마에 혼잡 시간대가 언제인지 정하는 매개변수가 없어 할증이 적용되는 시간대는 시뮬레이터 내부 정의에 맡겨야 한다. maxSearchMinutes 는 기본값이 없어 반드시 물어야 했고, peakSurchargeRate 는 FLAT 호출에서는 빼야 한다고 판단했다."
+}

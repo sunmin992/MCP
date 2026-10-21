@@ -1,0 +1,32 @@
+{
+  "_comment": "기준선 실험 요청 8개(장량동 쪽). R01 · R04 · R10 은 2026-10-19 브로커 실험에서 그대로 가져왔고 N1~N5 는 새로 썼다. stated 는 요청 문장과 대본에 사용자가 값으로 말한 것을 템플릿 answerKey 로 적은 채점 기준이며, 에이전트에게 주지 않는다. inUtterance 는 그 가운데 요청 문장 자체에 값이 있어 묻지 않아도 되는 키다. 값이 목록이면 비교(실험 변수)다. userScriptA2 는 첫 A 실행이 행정동 서버로 간 세 요청의 재실행 대본이다(서버 선택 답만 더함). userScript 는 에이전트가 질문을 기록한 뒤에만 꺼내 쓰는 답변 대본이고, 두 방식에 똑같이 준다.",
+  "requests": [
+    {"id": "R01", "inUtterance": ["trafficMode"], "utterance": "학생이 많은 원룸촌 한 블록에서 평일 교통량을 반영해서 민원이 가장 적은 쓰레기 수거 시각을 찾고 싶어.",
+     "stated": {"collectionTimeMinutes": [540, 720, 900], "trafficMode": "APPLY", "routeAvailableCapacityKg": 150, "occupationMix": ["Student", "Student", "Housewife"], "days": 10, "seeds": 5},
+     "userScript": {"비교할 수거 시각": "09시, 12시, 15시", "건물·세대": "기본값으로", "차량": "기본값으로", "적재 몫(경로 가용 용량)": "150kg", "직업 구성": "학생 위주로 학생 2 : 주부 1", "기간·반복": "10일, 5회", "그 밖": "기본값으로 해줘"}},
+    {"id": "R04", "inUtterance": [], "utterance": "우리 동네 쓰레기 수거 시각을 바꾸면 어떻게 될까?",
+     "stated": {"collectionTimeMinutes": [360, 720, 1080], "routeAvailableCapacityKg": 150, "days": 10, "seeds": 5},
+     "userScript": {"어느 서버(차이를 보여 줄 때)": "원룸촌 한 블록 단위로 볼게", "비교할 수거 시각": "06시, 12시, 18시", "적재 몫(경로 가용 용량)": "150kg", "기간·반복": "10일, 5회", "그 밖": "기본값으로 해줘"}},
+    {"id": "R10", "inUtterance": [], "utterance": "쓰레기 수거차가 공영주차장 주변 골목에 못 들어가서 수거가 늦어지는 문제를 보고 싶어.",
+     "stated": {},
+     "userScript": {"요청을 고칠지": "쓰레기 수거 쪽으로 볼게", "어느 서버(차이를 보여 줄 때)": "원룸촌 한 블록으로", "그 밖": "기본값으로 해줘"},
+     "userScriptA2": {"요청을 고칠지": "쓰레기 수거 쪽으로, 원룸촌 한 블록(장량동) 단위로 볼게", "어느 서버(차이를 보여 줄 때)": "원룸촌 한 블록으로", "그 밖": "기본값으로 해줘"}},
+    {"id": "N1", "inUtterance": ["numBuildings", "truckCount", "trafficMode"], "utterance": "원룸 건물이 10동으로 늘면 수거차 한 대로 버틸 수 있을까, 두 대가 필요할까? 아침 출근길 교통도 반영해서 봐 줘.",
+     "stated": {"numBuildings": 10, "truckCount": [1, 2], "trafficMode": "APPLY", "residentsPerBuilding": 25, "travelTimeMode": "ZONE_PROXY_HYBRID", "zoneAssignmentRule": "CONTIGUOUS", "intraZoneTravelMinutes": 2, "dispatchIntervalMinutes": 10, "routeAvailableCapacityKg": 300, "collectionTimeMinutes": 480, "days": 10, "seeds": 5},
+     "userScript": {"한 동 세대 수": "25세대", "이동시간 계산 방식": "교통구역 근사로", "건물의 교통 구역 배정": "덩어리로 묶어서", "같은 구역 안 이동시간": "2분", "차량 간 배차 간격": "10분", "적재 몫(경로 가용 용량)": "300kg", "수거 시각": "오전 8시", "기간·반복": "10일, 5회", "그 밖": "기본값으로 해줘"}},
+    {"id": "N2", "inUtterance": ["truckType"], "utterance": "수거차를 5톤에서 1톤 소형으로 바꾸면 수거가 다 안 끝나는 날이 생길까?",
+     "stated": {"truckType": ["LARGE_5TON", "SMALL_1TON"], "routeAvailableCapacityKg": 120, "collectionTimeMinutes": 720, "days": 30, "seeds": 10},
+     "userScript": {"적재 몫(경로 가용 용량)": "120kg", "수거 시각": "12시", "기간·반복": "30일, 10회", "그 밖": "기본값으로 해줘"},
+     "userScriptA2": {"요청을 고칠지(수정 제안을 보여 줄 때)": "원룸촌 한 블록(장량동) 쪽으로 볼게 — 그쪽 제안대로 고쳐 줘", "어느 서버(차이를 보여 줄 때)": "원룸촌 한 블록 단위로 볼게", "적재 몫(경로 가용 용량)": "120kg", "수거 시각": "12시", "기간·반복": "30일, 10회", "그 밖": "기본값으로 해줘"}},
+    {"id": "N3", "inUtterance": ["collectionTimeMinutes"], "utterance": "야간 교대 근무자가 많은 원룸 블록에서 새벽 5시에 걷는 것과 오전 10시에 걷는 것 중 어느 쪽이 민원이 적을까?",
+     "stated": {"collectionTimeMinutes": [300, 600], "occupationMix": ["NightShift", "NightShift", "Student"], "routeAvailableCapacityKg": 150, "days": 10, "seeds": 5},
+     "userScript": {"직업 구성": "야간 교대 2 : 학생 1", "적재 몫(경로 가용 용량)": "150kg", "기간·반복": "10일, 5회", "그 밖": "기본값으로 해줘"}},
+    {"id": "N4", "inUtterance": ["numBuildings", "residentsPerBuilding", "collectionTimeMinutes", "seeds"], "utterance": "한 동에 40세대씩 6동인 원룸 블록을 아침 9시에 한 번 걷으면 감당이 될까? 결과가 믿을 만하게 200번 반복해 줘.",
+     "stated": {"numBuildings": 6, "residentsPerBuilding": 40, "collectionTimeMinutes": 540, "seeds": 200, "routeAvailableCapacityKg": 200, "days": 30},
+     "userScript": {"적재 몫(경로 가용 용량)": "200kg", "기간": "30일", "반복 횟수가 너무 많다고 할 때": "그럼 되는 만큼 최대로 해줘", "그 밖": "기본값으로 해줘"}},
+    {"id": "N5", "inUtterance": ["collectionTimeMinutes"], "utterance": "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다고 치면, 수거를 새벽 6시에 하는 게 낫나 오전 9시에 하는 게 낫나?",
+     "stated": {"collectionTimeMinutes": [360, 540], "routeAvailableCapacityKg": 150, "_outsideTemplates": {"dischargeTimeMode": "POHANG_ACTUAL", "dischargeWindowStartMinutes": 1200, "dischargeWindowEndMinutes": 360}},
+     "userScript": {"적재 몫(경로 가용 용량)": "150kg", "배출 시간을 반영할 수 없다고 할 때": "그럼 기본 배출 모델로 해줘", "그 밖": "기본값으로 해줘"},
+     "userScriptA2": {"적재 몫(경로 가용 용량)": "150kg", "배출 시간을 반영할 수 없다고 할 때": "그럼 기본 배출 모델로 해줘", "어느 서버(차이를 보여 줄 때)": "원룸촌 한 블록 단위로 볼게", "그 밖": "기본값으로 해줘"}}
+  ]
+}

@@ -1,0 +1,33 @@
+{
+  "id": "V2-D3-B-r2",
+  "method": "B",
+  "questions": [
+    {
+      "text": "화·목·토(WEEKDAYS) 일정과 지금 일정(POHANG_BUKGU, 월·화·목·금)을 같은 조건으로 두 번 돌려 비교하려고 합니다. (1) 기간과 반복 횟수는 어떻게 할까요? 기본값은 28일, 30회입니다. (2) 기간에 추석 연휴가 들어 있는데, 공휴일을 반영할까요? 반영한다면 공휴일 수거일은 건너뛸까요(SKIP), 다음 날로 미룰까요(NEXT_DAY)? 기본값은 공휴일을 반영하지 않는 것입니다.",
+      "keys": ["days", "seeds", "holidayEnabled", "holidayPolicy"],
+      "answer": "28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "POHANG_BUKGU",
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "WEEKDAYS",
+        "collectionDays": ["TUE", "THU", "SAT"],
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "비교 기준인 '지금 일정'은 POHANG_BUKGU(월·화·목·금)로 가정했다. 공휴일은 반영하지 않았다(holidayEnabled 기본값 false) — 기간에 추석 연휴가 있지만 두 일정 모두 연휴를 무시한다. 구역 수·세대 수·차량(5톤 2대)·적환장 미사용 등 나머지는 모두 기본값으로 두 호출에 똑같이 넣었다.",
+  "stoppedBecause": "기간·반복과 공휴일 여부를 확인해 두 호출(현재 일정 / 화·목·토)의 인자를 확정했다. 실행은 사람이 설정을 확인한 뒤에 하므로 여기서 멈춘다.",
+  "difficulties": "'지금 일정'이 무엇인지 스키마 기본값(POHANG_BUKGU)으로 추정했다. 주 4회에서 주 3회로 줄면 수거 1회당 쌓인 양이 늘어 차량 용량·근무 시간 한계가 드러날 수 있으나, 사용자가 차량 조건 변경을 말하지 않아 그대로 두었다. 추석 연휴가 기간에 있는데 공휴일 반영 기본값이 꺼져 있어 물어볼 가치가 있다고 판단했다."
+}

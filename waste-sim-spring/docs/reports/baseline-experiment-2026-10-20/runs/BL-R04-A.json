@@ -1,0 +1,43 @@
+{
+  "id": "BL-R04-A",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional, example.invalid)도 있었으나 candidates 에서는 빠져 있음. differences 는 region/unit/calibration."
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록 단위)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "맞는 서버가 두 개입니다. 포항 북구 행정동 전체(구역 집계, 행정안전부 배출정보로 보정) 단위로 볼까요, 장량동 원룸촌 한 블록(교통·수거 일정 실측 보정) 단위로 볼까요?",
+      "keys": ["serverChoice"],
+      "answer": "원룸촌 한 블록 단위로 볼게"
+    },
+    {
+      "text": "시나리오를 만들려면 다음을 정해야 합니다: (1) 비교할 수거 시각들은? (2) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg)은? (기본값 없음) (3) 며칠치를 몇 번 반복할까요? (기본 30일·30회) (4) 수거차량 크기(5톤/2.5톤/1톤)와 대수, (5) 교통량 반영 여부, (6) 이동시간 계산 방식(구간 상수/교통구역 근사), (7) 건물 동 수와 동당 세대 수, (8) 거주민 직업 구성 — 정하지 않은 것은 기본값으로 둘까요?",
+      "keys": ["collectionTimeMinutes", "routeAvailableCapacityKg", "days", "seeds", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 적재 몫: 150kg / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1110007d",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "수거시각 06:00/12:00/18:00(360/720/1080분), 적재 몫 150kg, 10일·5회는 사용자 값(USER). 나머지 7개는 기본값(MODEL_DEFAULT)으로 넣었다: 차량 5톤 1대, 교통량 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 4동 x 25세대, 직업 구성 BlueCollar/Student/Housewife. 확인 화면 http://localhost:8090/confirm.html 에서 승인하지 않은 기본값 7개로 따로 표시된다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음. 확인·실행은 사람만 하므로 멈춤.",
+  "difficulties": "find_simulators 응답의 candidates(2개)와 matches(3개, 가상 서버 포함)가 달라 어느 쪽을 보여 줘야 할지 잠시 헷갈림 — candidates 를 따름. 수거 시각 템플릿이 단일(collectionTimeMinutes)이라 비교 변수로 variableValues 에 넣는 방식은 plan_subtasks 설명으로 짐작함. 도구 응답 JSON 이 문자열로 이중 인코딩되어 읽기 불편함."
+}

@@ -1,0 +1,33 @@
+{
+  "id": "BL-N2-A",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거가 다 안 끝나는 날이 생기는지", "comparisonAxes": ["수거차 크기 (5톤 vs 1톤 소형)"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "그대로 받을 서버 없음. bukgu 는 차종 축은 맞고 목적만 '수거 못 하고 남는 양' 등으로 바꾸라 제안(changesPurpose=false). jangnyang 은 목적·축 둘 다 조정 필요, parking 은 도메인 다름(changesPurpose=true)."},
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거 못 하고 남는 양", "comparisonAxes": ["차종 (5톤 vs 1톤 소형)"]}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "목적을 bukgu 제안대로 고쳐 다시 부름. district-waste-sim 은 fictional."}
+  ],
+  "userChoice": "기본값으로 해줘 → 첫 제안(포항 북구 행정동 서버, 목적을 '수거 못 하고 남는 양'으로 조정)으로 해석",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {"text": "요청 그대로 받을 서버가 없습니다. 포항 북구 행정동 수거 시뮬레이터(8091)는 차종(5톤 vs 1톤) 비교는 되지만, '수거가 다 안 끝나는 날'이라는 목적은 '수거 못 하고 남는 양' 또는 '쓰레기가 기다린 날 수' 같은 질문으로 바꿔야 합니다. 장량동 서버(8090)는 목적과 비교 축 모두 바꿔야 하고, 주차 서버는 다른 질문이 됩니다. 요청을 북구 서버에 맞게 고칠까요, 다른 쪽으로 할까요?", "keys": ["objective", "server"], "answer": "기본값으로 해줘"},
+    {"text": "북구 서버로 5톤 vs 1톤 비교 시나리오를 만듭니다. 다음을 알려 주세요: 구역 수(1~40, 기본 8), 구역당 세대 수(기본 600), 주거 유형 구성(기본 아파트·단독·원룸), 차량 대수(1~20, 기본 2), 수거 일정(기본 북구 현행 월·화·목·금), 공휴일 반영 여부(기본 미반영), 적환장 사용 여부(기본 미사용), 수거 시작 시각(기본 06:00), 기간(7~365일, 기본 28일), 반복 횟수(1~100, 기본 30회).", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckCount", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "수거 시각: 12시 / 기간·반복: 30일, 10회 / 그 밖: 기본값으로 해줘 (적재 몫 120kg 은 이 서버에 해당 키가 없어 쓰지 않음)"},
+    {"text": "차량이 2대라서 구역을 차량에 어떻게 나눌지 정해야 합니다. 같은 구역 수로 나눌까요, 예상 작업 시간이 같게 나눌까요?", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-e95f07be",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "목적을 '수거 못 하고 남는 양'으로 바꿔 북구 서버로 갔다. 구역 8·세대 600·주거 구성 아파트/단독/원룸·차량 2대·구역 배정 EQUAL_COUNT·북구 현행 일정·공휴일 미반영·적환장 미사용은 기본값(MODEL_DEFAULT, 미승인 기본값 8개)으로 넣었다. 수거 시작 12:00(720분)·30일·10회·차종 5톤/1톤 비교는 사용자 값. 확인 화면 http://localhost:8091/confirm.html 에서 사람이 승인해야 실행된다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 멈춤",
+  "difficulties": "첫 ADJUST_REQUEST 에서 사용자 답이 '기본값으로 해줘'라 어느 조정안을 고를지 모호했다 — 비교 축이 이미 맞는 첫 제안(bukgu)으로 해석. 원래 목적 '다 안 끝나는 날'은 '남은 구역-일 · 가장 오래 기다린 날 수'와도 가까워 objective 후보가 여럿이었다. 대본의 '적재 몫 120kg'은 북구 서버 템플릿에 없는 키(장량동 서버의 축)라 쓸 곳이 없었다. zoneAllocation 은 truckCount 가 정해진 뒤에야 생겨 질문이 한 번 더 늘었다."
+}

@@ -1,0 +1,50 @@
+{
+  "id": "V2-D1-B-r1",
+  "method": "B",
+  "questions": [
+    {
+      "text": "장량동 아파트 단지 격일·매일 수거 비교를 준비하려고 몇 가지 여쭙니다. (1) 장량동을 몇 개 구역으로 나누고 구역당 세대 수는 얼마로 볼까요? (기본: 8구역 × 600세대) (2) 수거 차량 종류와 대수는요? (기본: 5톤 2대) (3) 구역을 차량에 나누는 방식은 같은 구역 수로 할까요, 예상 작업 시간이 같게 할까요? (4) 공휴일(추석 연휴 포함)을 반영할까요? 반영하면 공휴일 수거는 건너뛸까요, 다음 날로 미룰까요? (5) 적환장을 쓰나요? 쓰면 왕복 시간은요? (6) 시뮬레이션 기간과 반복 횟수는요? (기본: 28일, 30회)",
+      "keys": ["zoneCount", "householdsPerZone", "truckType", "truckCount", "zoneAllocation", "holidayEnabled", "holidayPolicy", "transferEnabled", "transferRoundTripMinutes", "days", "seeds"],
+      "answer": "구역·세대: 기본값으로 / 차량: 5톤 2대 / 같은 구역 수로 / 공휴일: 반영 안 해도 돼 / 적환장: 안 써 / 28일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "zoneCount": 8,
+        "householdsPerZone": 600,
+        "housingMix": ["Apartment"],
+        "commercialHandling": "INCLUDED",
+        "truckType": "LARGE_5TON",
+        "truckCount": 2,
+        "zoneAllocation": "EQUAL_COUNT",
+        "scheduleMode": "ALTERNATE",
+        "holidayEnabled": false,
+        "transferEnabled": false,
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "zoneCount": 8,
+        "householdsPerZone": 600,
+        "housingMix": ["Apartment"],
+        "commercialHandling": "INCLUDED",
+        "truckType": "LARGE_5TON",
+        "truckCount": 2,
+        "zoneAllocation": "EQUAL_COUNT",
+        "scheduleMode": "DAILY",
+        "holidayEnabled": false,
+        "transferEnabled": false,
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "격일 수거는 스키마의 ALTERNATE(월·수·금)로, 매일 수거는 DAILY(일요일 뺀 매일)로 넣었다 — 엄밀한 '하루 걸러'가 아니라 주 3회 고정 요일이다. '전체 아파트 단지'라 하셔서 주거 구성은 아파트만(housingMix=[Apartment])으로 가정했다. 구역 8개 × 600세대는 기본값이며 장량동 실제 단지 규모가 아니다. 그 밖(수거 시작 06:00, 근무 480분, 소각장 왕복 90분, 이동시간, 배출 변동계수 0.15, 시작일 2026-09-21)은 기본값이다. 두 호출은 수거 일정만 다르다.",
+  "stoppedBecause": "질문 묶음 1회로 필요한 값을 받았고 비교할 두 호출(ALTERNATE vs DAILY)의 인자를 확정했다. 실행은 사람이 설정을 확인한 뒤에 하므로 여기서 멈춘다.",
+  "difficulties": "'격일'이 스키마에 정확히 없어 ALTERNATE(월·수·금)로 대응했다. '장량동 전체 아파트 단지'를 구역 수·세대 수로 옮길 근거가 스키마에 없어 물었고 기본값으로 답받았다. 주거 구성은 요청 문구로 아파트만이라 판단해 묻지 않았다(대본엔 아파트 3:단독 1 답이 있었을 수 있으나 질문하지 않았으므로 쓰지 않음)."
+}

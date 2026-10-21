@@ -1,0 +1,182 @@
+{
+ "V2-D1-A-r1": {
+  "modelCalls": 11,
+  "inputNew": 79231,
+  "inputCacheRead": 675273,
+  "outputTokens": 276,
+  "mcpCalls": 8,
+  "seconds": 66.1,
+  "start": "2026-10-21T08:53:34.763000+00:00",
+  "transcript": "agent-aa1f42358d210a00a.jsonl"
+ },
+ "V2-D1-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 63432,
+  "inputCacheRead": 116580,
+  "outputTokens": 145,
+  "mcpCalls": 0,
+  "seconds": 37.4,
+  "start": "2026-10-21T08:53:34.768000+00:00",
+  "transcript": "agent-a8c06aca3d0f0c23d.jsonl"
+ },
+ "V2-D2-A-r1": {
+  "modelCalls": 11,
+  "inputNew": 80250,
+  "inputCacheRead": 680923,
+  "outputTokens": 274,
+  "mcpCalls": 8,
+  "seconds": 71.2,
+  "start": "2026-10-21T08:53:34.774000+00:00",
+  "transcript": "agent-a08c3b153e1b1c77d.jsonl"
+ },
+ "V2-D2-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 62516,
+  "inputCacheRead": 116531,
+  "outputTokens": 43,
+  "mcpCalls": 0,
+  "seconds": 25.4,
+  "start": "2026-10-21T08:53:34.779000+00:00",
+  "transcript": "agent-a52561c21e648ed2d.jsonl"
+ },
+ "V2-D3-A-r1": {
+  "modelCalls": 13,
+  "inputNew": 85325,
+  "inputCacheRead": 856778,
+  "outputTokens": 300,
+  "mcpCalls": 10,
+  "seconds": 82.3,
+  "start": "2026-10-21T08:53:34.783000+00:00",
+  "transcript": "agent-a1fe0d8680951542a.jsonl"
+ },
+ "V2-D3-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 62505,
+  "inputCacheRead": 116462,
+  "outputTokens": 161,
+  "mcpCalls": 0,
+  "seconds": 25.9,
+  "start": "2026-10-21T08:53:34.789000+00:00",
+  "transcript": "agent-ab3d0fdf0d212b653.jsonl"
+ },
+ "V2-J1-A-r1": {
+  "modelCalls": 11,
+  "inputNew": 87284,
+  "inputCacheRead": 719717,
+  "outputTokens": 275,
+  "mcpCalls": 8,
+  "seconds": 66.2,
+  "start": "2026-10-21T08:53:34.690000+00:00",
+  "transcript": "agent-ac4032b542e4adc63.jsonl"
+ },
+ "V2-J1-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 63860,
+  "inputCacheRead": 117244,
+  "outputTokens": 162,
+  "mcpCalls": 0,
+  "seconds": 31.7,
+  "start": "2026-10-21T08:53:34.698000+00:00",
+  "transcript": "agent-adf1122e8402bcbd4.jsonl"
+ },
+ "V2-J2-A-r1": {
+  "modelCalls": 10,
+  "inputNew": 85898,
+  "inputCacheRead": 634885,
+  "outputTokens": 402,
+  "mcpCalls": 7,
+  "seconds": 63.2,
+  "start": "2026-10-21T08:53:34.704000+00:00",
+  "transcript": "agent-ac1bcb0da48ced125.jsonl"
+ },
+ "V2-J2-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 63051,
+  "inputCacheRead": 117153,
+  "outputTokens": 167,
+  "mcpCalls": 0,
+  "seconds": 23.2,
+  "start": "2026-10-21T08:53:34.711000+00:00",
+  "transcript": "agent-a1ef08ecb7ee253f7.jsonl"
+ },
+ "V2-J3-A-r1": {
+  "modelCalls": 12,
+  "inputNew": 91417,
+  "inputCacheRead": 822912,
+  "outputTokens": 358,
+  "mcpCalls": 10,
+  "seconds": 79.1,
+  "start": "2026-10-21T08:53:34.716000+00:00",
+  "transcript": "agent-af3c42b4f312442d2.jsonl"
+ },
+ "V2-J3-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 64434,
+  "inputCacheRead": 117310,
+  "outputTokens": 161,
+  "mcpCalls": 0,
+  "seconds": 40.4,
+  "start": "2026-10-21T08:53:34.722000+00:00",
+  "transcript": "agent-ab1c5f1a33a92627c.jsonl"
+ },
+ "V2-J4-A-r1": {
+  "modelCalls": 12,
+  "inputNew": 91853,
+  "inputCacheRead": 815250,
+  "outputTokens": 270,
+  "mcpCalls": 9,
+  "seconds": 76.1,
+  "start": "2026-10-21T08:53:34.728000+00:00",
+  "transcript": "agent-a7033e8c09bde6d7a.jsonl"
+ },
+ "V2-J4-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 63741,
+  "inputCacheRead": 117176,
+  "outputTokens": 46,
+  "mcpCalls": 0,
+  "seconds": 33.9,
+  "start": "2026-10-21T08:53:34.734000+00:00",
+  "transcript": "agent-a1f34ef53a78a6b85.jsonl"
+ },
+ "V2-J5-A-r1": {
+  "modelCalls": 12,
+  "inputNew": 88086,
+  "inputCacheRead": 798639,
+  "outputTokens": 190,
+  "mcpCalls": 9,
+  "seconds": 73.3,
+  "start": "2026-10-21T08:53:34.740000+00:00",
+  "transcript": "agent-a4dd5217d48085468.jsonl"
+ },
+ "V2-J5-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 63313,
+  "inputCacheRead": 117215,
+  "outputTokens": 167,
+  "mcpCalls": 0,
+  "seconds": 26.9,
+  "start": "2026-10-21T08:53:34.746000+00:00",
+  "transcript": "agent-abcdc878caae6e982.jsonl"
+ },
+ "V2-J6-A-r1": {
+  "modelCalls": 12,
+  "inputNew": 90317,
+  "inputCacheRead": 818825,
+  "outputTokens": 268,
+  "mcpCalls": 9,
+  "seconds": 77.5,
+  "start": "2026-10-21T08:53:34.751000+00:00",
+  "transcript": "agent-af7e05bc7541e4763.jsonl"
+ },
+ "V2-J6-B-r1": {
+  "modelCalls": 3,
+  "inputNew": 62880,
+  "inputCacheRead": 117199,
+  "outputTokens": 167,
+  "mcpCalls": 0,
+  "seconds": 21.5,
+  "start": "2026-10-21T08:53:34.758000+00:00",
+  "transcript": "agent-a44376283f1606f51.jsonl"
+ }
+}

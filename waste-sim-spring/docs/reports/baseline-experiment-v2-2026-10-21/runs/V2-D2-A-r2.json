@@ -1,0 +1,21 @@
+{
+  "id": "V2-D2-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "쓰레기가 얼마나 쌓일까", "comparisonAxes": ["수거 요일"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "bukgu-district 는 목적만 '수거 못 하고 남는 양' 등으로 바꾸면 됨(changesPurpose=false). jangnyang 은 추석 조건 빼기 + 목적 변경 필요. parking 은 도메인이 달라 changesPurpose=true."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동 전체", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "수거 못 하고 남는 양", "comparisonAxes": ["수거 요일"]}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "사용자가 행정동 전체(구역 단위)를 골라 목적을 카드의 '수거 못 하고 남는 양'으로 고치고 공간 규모를 넣어 재조회. mismatches 없음."}
+  ],
+  "userChoice": "ADJUST_REQUEST: 행정동 전체(구역 단위) — bukgu-district-waste-sim, 목적을 '수거 못 하고 남는 양'으로 고침",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청을 그대로 받을 서버가 없습니다. (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터: 목적을 '수거 못 하고 남는 양' 같은 이 서버가 답하는 질문으로 바꾸면 됩니다. (2) 장량동 시뮬레이터(원룸촌 한 블록): '추석 연휴' 조건을 빼고 목적도 바꿔야 합니다. (3) 주차 시뮬레이터는 다른 질문이 됩니다. 어느 쪽으로 고칠까요?", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "어떤 수거 일정들을 비교할까요(포항 북구 현행 월·화·목·금 / 매일 / 격일 월·수·금 / 요일 직접 지정)? 수거일이 공휴일이면 건너뛸까요, 다음 날 대신 수거할까요? 며칠치를 몇 번 반복할까요? 구역 수·세대 수·주거 구성·차량 종류·대수·구역 배정·적환장·수거 시작 시각은 어떻게 할까요?", "keys": ["scheduleMode", "holidayPolicy", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "zoneAllocation", "transferMode", "collectionStartMinutes"], "answer": "지금 포항 북구 일정(월화목금)과 매일 수거 / 공휴일엔 건너뛰어 / 28일, 10회 / 그 밖: 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-7493136a",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "구역 8개 · 구역당 600세대 · 주거 구성 아파트/단독/원룸 · 5톤 차량 2대 · 같은 구역 수 배정 · 적환장 안 씀 · 06:00 시작은 사용자가 '기본값으로 해줘'라 템플릿 기본값(MODEL_DEFAULT)으로 넣었다. 공휴일 반영(holidayMode=APPLY)은 추석 연휴 요청과 '공휴일엔 건너뛰어'에서 도출(DERIVED). '매일'은 일요일 제외. 기간은 2026-09-21 월요일부터 28일(추석·개천절·한글날 포함). 확인 화면 http://localhost:8091/confirm.html 에서 사람이 승인해야 한다.",
+  "stoppedBecause": "build_scenario 성공으로 state 가 UNCONFIRMED 가 되어 get_scenario_status 로 확인 화면 주소(http://localhost:8091/confirm.html)를 얻고 멈춤. 승인·실행은 사람 몫.",
+  "difficulties": "첫 조회에서 '쓰레기가 얼마나 쌓일까'가 어느 서버의 답할 수 있는 질문과도 닿지 않아 ADJUST_REQUEST 가 나왔다 — 사실상 '수거 못 하고 남는 양'과 같은 뜻인데 동의어로 잡히지 않았다. 또 MATCH 의 nextStep 에 run_scenario_by_token 이 나열돼 있어 실행 금지 규칙과 구분이 필요했다. holidayMode 출처를 USER 로 볼지 DERIVED 로 볼지 애매했다."
+}

@@ -1,0 +1,793 @@
+[
+ {
+  "id": "BL-N1-A",
+  "req": "N1",
+  "method": "A",
+  "questions": 4,
+  "toolCalls": 11,
+  "rejections": 0,
+  "config": {
+   "truckCount": [
+    1,
+    2
+   ],
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "zoneAssignmentRule": "CONTIGUOUS",
+   "trafficProfileId": "jangryang-weekday",
+   "truckType": "LARGE_5TON",
+   "dispatchIntervalMinutes": 10,
+   "days": 10,
+   "intraZoneTravelMinutes": 2,
+   "trafficMode": "APPLY",
+   "collectionTimeMinutes": 480,
+   "seeds": 5,
+   "numBuildings": 10,
+   "travelTimeMode": "ZONE_PROXY_HYBRID",
+   "routeAvailableCapacityKg": 300,
+   "residentsPerBuilding": 25
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "USER",
+   "trafficMode": "USER",
+   "travelTimeMode": "USER",
+   "numBuildings": "USER",
+   "residentsPerBuilding": "USER",
+   "occupationMix": "ASKED_DEF",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER",
+   "dispatchIntervalMinutes": "USER",
+   "trafficProfileId": "ASKED_DEF",
+   "zoneAssignmentRule": "USER",
+   "intraZoneTravelMinutes": "USER"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N1-B",
+  "req": "N1",
+  "method": "B",
+  "questions": 1,
+  "toolCalls": 0,
+  "plannedRuns": 4,
+  "schemaViolations": [],
+  "domainViolations": [],
+  "invented": [],
+  "outsideGuess": [],
+  "config": {
+   "truckType": "LARGE_5TON",
+   "truckCount": [
+    1,
+    2
+   ],
+   "dispatchIntervalMinutes": 10,
+   "collectionTimeMinutes": 480,
+   "trafficMode": "APPLY",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "ZONE_PROXY_HYBRID",
+   "zoneAssignmentRule": [
+    "CONTIGUOUS",
+    "ROUND_ROBIN"
+   ],
+   "intraZoneTravelMinutes": 2,
+   "numBuildings": 10,
+   "residentsPerBuilding": 25,
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "days": 10,
+   "seeds": 5,
+   "routeAvailableCapacityKg": 300
+  },
+  "classes": {
+   "truckType": "SILENT_DEFAULT",
+   "truckCount": "USER",
+   "trafficMode": "USER",
+   "travelTimeMode": "USER",
+   "numBuildings": "USER",
+   "residentsPerBuilding": "USER",
+   "occupationMix": "SILENT_DEFAULT",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER",
+   "dispatchIntervalMinutes": "USER",
+   "trafficProfileId": "SILENT_DEFAULT",
+   "zoneAssignmentRule": "MISREAD",
+   "intraZoneTravelMinutes": "USER"
+  },
+  "silentDefault": 3,
+  "silentGuess": 0,
+  "misread": 1,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N2-A2",
+  "req": "N2",
+  "method": "A",
+  "questions": 2,
+  "toolCalls": 10,
+  "rejections": 0,
+  "config": {
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "truckType": [
+    "LARGE_5TON",
+    "SMALL_1TON"
+   ],
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "days": 30,
+   "collectionTimeMinutes": 720,
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "trafficMode": "IGNORE",
+   "truckCount": 1,
+   "routeAvailableCapacityKg": 120,
+   "seeds": 10
+  },
+  "classes": {
+   "truckType": "USER",
+   "truckCount": "ASKED_DEF",
+   "trafficMode": "ASKED_DEF",
+   "travelTimeMode": "ASKED_DEF",
+   "numBuildings": "ASKED_DEF",
+   "residentsPerBuilding": "ASKED_DEF",
+   "occupationMix": "ASKED_DEF",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N2-B",
+  "req": "N2",
+  "method": "B",
+  "questions": 1,
+  "toolCalls": 0,
+  "plannedRuns": 2,
+  "schemaViolations": [],
+  "domainViolations": [],
+  "invented": [],
+  "outsideGuess": [],
+  "config": {
+   "truckType": [
+    "LARGE_5TON",
+    "SMALL_1TON"
+   ],
+   "truckCount": 1,
+   "dispatchIntervalMinutes": 0,
+   "collectionTimeMinutes": 720,
+   "trafficMode": "IGNORE",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "zoneAssignmentRule": "NONE",
+   "intraZoneTravelMinutes": null,
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "days": 30,
+   "seeds": 10,
+   "routeAvailableCapacityKg": [
+    null,
+    120
+   ]
+  },
+  "classes": {
+   "truckType": "USER",
+   "truckCount": "SILENT_DEFAULT",
+   "trafficMode": "SILENT_DEFAULT",
+   "travelTimeMode": "SILENT_DEFAULT",
+   "numBuildings": "SILENT_DEFAULT",
+   "residentsPerBuilding": "SILENT_DEFAULT",
+   "occupationMix": "SILENT_DEFAULT",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "MISREAD",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 6,
+  "silentGuess": 0,
+  "misread": 1,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N3-A",
+  "req": "N3",
+  "method": "A",
+  "questions": 1,
+  "toolCalls": 9,
+  "rejections": 0,
+  "config": {
+   "truckType": "LARGE_5TON",
+   "occupationMix": [
+    "NightShift",
+    "NightShift",
+    "Student"
+   ],
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "days": 10,
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "collectionTimeMinutes": [
+    300,
+    600
+   ],
+   "trafficMode": "IGNORE",
+   "truckCount": 1,
+   "routeAvailableCapacityKg": 150,
+   "seeds": 5
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "ASKED_DEF",
+   "trafficMode": "ASKED_DEF",
+   "travelTimeMode": "ASKED_DEF",
+   "numBuildings": "ASKED_DEF",
+   "residentsPerBuilding": "ASKED_DEF",
+   "occupationMix": "USER",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N3-B",
+  "req": "N3",
+  "method": "B",
+  "questions": 1,
+  "toolCalls": 0,
+  "plannedRuns": 2,
+  "schemaViolations": [],
+  "domainViolations": [],
+  "invented": [],
+  "outsideGuess": [],
+  "config": {
+   "truckType": "LARGE_5TON",
+   "truckCount": 1,
+   "dispatchIntervalMinutes": 0,
+   "collectionTimeMinutes": [
+    300,
+    600
+   ],
+   "trafficMode": "IGNORE",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "zoneAssignmentRule": "NONE",
+   "intraZoneTravelMinutes": null,
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "occupationMix": [
+    "NightShift",
+    "NightShift",
+    "Student"
+   ],
+   "days": 10,
+   "seeds": 5,
+   "routeAvailableCapacityKg": 150
+  },
+  "classes": {
+   "truckType": "SILENT_DEFAULT",
+   "truckCount": "SILENT_DEFAULT",
+   "trafficMode": "SILENT_DEFAULT",
+   "travelTimeMode": "SILENT_DEFAULT",
+   "numBuildings": "SILENT_DEFAULT",
+   "residentsPerBuilding": "SILENT_DEFAULT",
+   "occupationMix": "USER",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 6,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N4-A",
+  "req": "N4",
+  "method": "A",
+  "questions": 2,
+  "toolCalls": 9,
+  "rejections": 1,
+  "config": {
+   "truckType": "LARGE_5TON",
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "numBuildings": 6,
+   "residentsPerBuilding": 40,
+   "days": 30,
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "collectionTimeMinutes": [
+    540
+   ],
+   "trafficMode": "IGNORE",
+   "truckCount": 1,
+   "routeAvailableCapacityKg": 200,
+   "seeds": 100
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "ASKED_DEF",
+   "trafficMode": "ASKED_DEF",
+   "travelTimeMode": "ASKED_DEF",
+   "numBuildings": "USER",
+   "residentsPerBuilding": "USER",
+   "occupationMix": "ASKED_DEF",
+   "days": "USER",
+   "seeds": "USER_CAPPED",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N4-B",
+  "req": "N4",
+  "method": "B",
+  "questions": 1,
+  "toolCalls": 0,
+  "plannedRuns": 1,
+  "schemaViolations": [],
+  "domainViolations": [
+   "seeds=200"
+  ],
+  "invented": [],
+  "outsideGuess": [],
+  "config": {
+   "truckType": "LARGE_5TON",
+   "truckCount": 1,
+   "dispatchIntervalMinutes": 0,
+   "collectionTimeMinutes": 540,
+   "trafficMode": "IGNORE",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "zoneAssignmentRule": "NONE",
+   "intraZoneTravelMinutes": null,
+   "numBuildings": 6,
+   "residentsPerBuilding": 40,
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "days": 30,
+   "seeds": 200,
+   "routeAvailableCapacityKg": 200
+  },
+  "classes": {
+   "truckType": "SILENT_DEFAULT",
+   "truckCount": "SILENT_DEFAULT",
+   "trafficMode": "SILENT_DEFAULT",
+   "travelTimeMode": "SILENT_DEFAULT",
+   "numBuildings": "USER",
+   "residentsPerBuilding": "USER",
+   "occupationMix": "SILENT_DEFAULT",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 5,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N5-A2",
+  "req": "N5",
+  "method": "A",
+  "questions": 2,
+  "toolCalls": 10,
+  "rejections": 0,
+  "config": {
+   "truckType": "LARGE_5TON",
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "days": 30,
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "collectionTimeMinutes": [
+    360,
+    540
+   ],
+   "trafficMode": "IGNORE",
+   "truckCount": 1,
+   "routeAvailableCapacityKg": 150,
+   "seeds": 30
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "ASKED_DEF",
+   "trafficMode": "ASKED_DEF",
+   "travelTimeMode": "ASKED_DEF",
+   "numBuildings": "ASKED_DEF",
+   "residentsPerBuilding": "ASKED_DEF",
+   "occupationMix": "ASKED_DEF",
+   "days": "ASKED_DEF",
+   "seeds": "ASKED_DEF",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-N5-B",
+  "req": "N5",
+  "method": "B",
+  "questions": 0,
+  "toolCalls": 0,
+  "plannedRuns": 2,
+  "schemaViolations": [],
+  "domainViolations": [],
+  "invented": [],
+  "outsideGuess": [],
+  "config": {
+   "truckType": "LARGE_5TON",
+   "truckCount": 1,
+   "dispatchIntervalMinutes": 0,
+   "collectionTimeMinutes": [
+    360,
+    540
+   ],
+   "trafficMode": "IGNORE",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "zoneAssignmentRule": "NONE",
+   "intraZoneTravelMinutes": null,
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "days": 30,
+   "seeds": 30,
+   "routeAvailableCapacityKg": null
+  },
+  "classes": {
+   "truckType": "SILENT_DEFAULT",
+   "truckCount": "SILENT_DEFAULT",
+   "trafficMode": "SILENT_DEFAULT",
+   "travelTimeMode": "SILENT_DEFAULT",
+   "numBuildings": "SILENT_DEFAULT",
+   "residentsPerBuilding": "SILENT_DEFAULT",
+   "occupationMix": "SILENT_DEFAULT",
+   "days": "SILENT_DEFAULT",
+   "seeds": "SILENT_DEFAULT",
+   "routeAvailableCapacityKg": "SILENT_DEFAULT",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 10,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [
+   "routeAvailableCapacityKg"
+  ],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-R01-A",
+  "req": "R01",
+  "method": "A",
+  "questions": 1,
+  "toolCalls": 9,
+  "rejections": 0,
+  "config": {
+   "residentsPerBuilding": 25,
+   "days": 10,
+   "seeds": 5,
+   "routeAvailableCapacityKg": 150,
+   "trafficProfileId": "jangryang-weekday",
+   "trafficMode": "APPLY",
+   "truckType": "LARGE_5TON",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "numBuildings": 4,
+   "occupationMix": [
+    "Student",
+    "Student",
+    "Housewife"
+   ],
+   "collectionTimeMinutes": [
+    540,
+    720,
+    900
+   ],
+   "truckCount": 1
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "ASKED_DEF",
+   "trafficMode": "USER",
+   "travelTimeMode": "ASKED_DEF",
+   "numBuildings": "ASKED_DEF",
+   "residentsPerBuilding": "ASKED_DEF",
+   "occupationMix": "USER",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER",
+   "trafficProfileId": "ASKED_DEF"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-R01-B",
+  "req": "R01",
+  "method": "B",
+  "questions": 1,
+  "toolCalls": 0,
+  "plannedRuns": 3,
+  "schemaViolations": [],
+  "domainViolations": [],
+  "invented": [],
+  "outsideGuess": [],
+  "config": {
+   "truckType": "LARGE_5TON",
+   "truckCount": 1,
+   "dispatchIntervalMinutes": 0,
+   "collectionTimeMinutes": [
+    540,
+    720,
+    900
+   ],
+   "trafficMode": "APPLY",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "zoneAssignmentRule": "NONE",
+   "intraZoneTravelMinutes": null,
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "occupationMix": [
+    "Student",
+    "Student",
+    "Housewife"
+   ],
+   "days": 10,
+   "seeds": 5,
+   "routeAvailableCapacityKg": 150
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "ASKED_DEF",
+   "trafficMode": "USER",
+   "travelTimeMode": "ASKED_DEF",
+   "numBuildings": "ASKED_DEF",
+   "residentsPerBuilding": "ASKED_DEF",
+   "occupationMix": "USER",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER",
+   "trafficProfileId": "ASKED_DEF"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-R04-A",
+  "req": "R04",
+  "method": "A",
+  "questions": 2,
+  "toolCalls": 8,
+  "rejections": 0,
+  "config": {
+   "truckType": "LARGE_5TON",
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "days": 10,
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "collectionTimeMinutes": [
+    360,
+    720,
+    1080
+   ],
+   "trafficMode": "IGNORE",
+   "truckCount": 1,
+   "routeAvailableCapacityKg": 150,
+   "seeds": 5
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "ASKED_DEF",
+   "trafficMode": "ASKED_DEF",
+   "travelTimeMode": "ASKED_DEF",
+   "numBuildings": "ASKED_DEF",
+   "residentsPerBuilding": "ASKED_DEF",
+   "occupationMix": "ASKED_DEF",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "USER",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 0,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-R04-B",
+  "req": "R04",
+  "method": "B",
+  "questions": 1,
+  "toolCalls": 0,
+  "plannedRuns": 3,
+  "schemaViolations": [],
+  "domainViolations": [],
+  "invented": [],
+  "outsideGuess": [],
+  "config": {
+   "truckType": "LARGE_5TON",
+   "truckCount": 1,
+   "dispatchIntervalMinutes": 0,
+   "collectionTimeMinutes": [
+    360,
+    720,
+    1080
+   ],
+   "trafficMode": "IGNORE",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "zoneAssignmentRule": "NONE",
+   "intraZoneTravelMinutes": null,
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "days": 10,
+   "seeds": 5,
+   "routeAvailableCapacityKg": null
+  },
+  "classes": {
+   "truckType": "SILENT_DEFAULT",
+   "truckCount": "SILENT_DEFAULT",
+   "trafficMode": "SILENT_DEFAULT",
+   "travelTimeMode": "SILENT_DEFAULT",
+   "numBuildings": "SILENT_DEFAULT",
+   "residentsPerBuilding": "SILENT_DEFAULT",
+   "occupationMix": "SILENT_DEFAULT",
+   "days": "USER",
+   "seeds": "USER",
+   "routeAvailableCapacityKg": "SILENT_DEFAULT",
+   "collectionTimeMinutes": "USER"
+  },
+  "silentDefault": 8,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [
+   "routeAvailableCapacityKg"
+  ],
+  "silentShownAtConfirm": []
+ },
+ {
+  "id": "BL-R10-A2",
+  "req": "R10",
+  "method": "A",
+  "questions": 3,
+  "toolCalls": 6,
+  "rejections": 1,
+  "config": null
+ },
+ {
+  "id": "BL-R10-B",
+  "req": "R10",
+  "method": "B",
+  "questions": 1,
+  "toolCalls": 0,
+  "plannedRuns": 2,
+  "schemaViolations": [],
+  "domainViolations": [],
+  "invented": [],
+  "outsideGuess": [
+   "routeTravelMinutes=16"
+  ],
+  "config": {
+   "truckType": "LARGE_5TON",
+   "truckCount": 1,
+   "dispatchIntervalMinutes": 0,
+   "collectionTimeMinutes": 720,
+   "trafficMode": "IGNORE",
+   "trafficProfileId": "jangryang-weekday",
+   "travelTimeMode": "LEGACY_CONSTANT",
+   "zoneAssignmentRule": "NONE",
+   "intraZoneTravelMinutes": null,
+   "numBuildings": 4,
+   "residentsPerBuilding": 25,
+   "occupationMix": [
+    "BlueCollar",
+    "Student",
+    "Housewife"
+   ],
+   "days": 30,
+   "seeds": 30,
+   "routeAvailableCapacityKg": null
+  },
+  "classes": {
+   "truckType": "ASKED_DEF",
+   "truckCount": "SILENT_DEFAULT",
+   "trafficMode": "SILENT_DEFAULT",
+   "travelTimeMode": "SILENT_DEFAULT",
+   "numBuildings": "SILENT_DEFAULT",
+   "residentsPerBuilding": "SILENT_DEFAULT",
+   "occupationMix": "SILENT_DEFAULT",
+   "days": "SILENT_DEFAULT",
+   "seeds": "SILENT_DEFAULT",
+   "routeAvailableCapacityKg": "SILENT_DEFAULT",
+   "collectionTimeMinutes": "ASKED_DEF"
+  },
+  "silentDefault": 9,
+  "silentGuess": 0,
+  "misread": 0,
+  "noDefaultSkipped": [
+   "routeAvailableCapacityKg"
+  ],
+  "silentShownAtConfirm": []
+ }
+]

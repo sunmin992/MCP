@@ -1,0 +1,12 @@
+{
+  "id": "V2-D6-B-r2",
+  "method": "B",
+  "questions": [],
+  "plannedCalls": [
+    {"name": "run_district_simulation", "arguments": {"shiftMinutes": 480}},
+    {"name": "run_district_simulation", "arguments": {"shiftMinutes": 360}}
+  ],
+  "toldUser": "근무 시간만 360분(6시간)으로 바꾸고 나머지(구역 8개, 구역당 600세대, 5톤 차 2대, 포항 북구 요일, 28일, 시드 30 등)는 모두 기본값으로 넣었다. 비교를 위해 현행 기본 480분(8시간) 실행도 함께 넣었다. '수거가 다 끝나는가'는 결과의 잔여량 · 수거 지연 통계로 판단한다.",
+  "stoppedBecause": "요청의 바꿀 항목(shiftMinutes)이 스키마에 그대로 있어 물을 것이 없었고, 인자를 확정했으므로 실행 전 사람 확인을 위해 멈춘다.",
+  "difficulties": "'다 끝날까'에 맞는 직접 출력 항목이 스키마에 없어 잔여량 · 지연 통계로 판단해야 한다. 기준 480분 실행을 같이 넣을지는 비교에 필요하다고 보고 넣었다."
+}

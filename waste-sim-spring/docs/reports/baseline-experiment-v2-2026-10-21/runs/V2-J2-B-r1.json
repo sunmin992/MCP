@@ -1,0 +1,19 @@
+{
+  "id": "V2-J2-B-r1",
+  "method": "B",
+  "questions": [
+    {
+      "text": "이 시뮬레이터는 장량동 원룸촌(4동×25명) 기준입니다. 어떤 수거 시각들을 서로 비교할까요? 그리고 시뮬레이션 기간(일)과 반복 횟수는 어떻게 할까요? 나머지 설정은 기본값으로 둘까요?",
+      "keys": ["collectionTime", "days", "seeds"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "06:00", "days": 10, "seeds": 5}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "12:00", "days": 10, "seeds": 5}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "18:00", "days": 10, "seeds": 5}}
+  ],
+  "toldUser": "'우리 동네'는 이 도구가 다루는 장량동 원룸촌으로 가정했다. 수거 시각·기간·반복 외 모든 값(4동×25명, 수거장 용량 30kg, 임계 0.8, 매일 수거, 논문 기준 배출 시각, 교통 레이어 끔, 5톤 트럭 1대, 경로 적재용량은 차종 정격 등)은 기본값으로 넣었다.",
+  "stoppedBecause": "비교할 시각 3개와 기간·반복을 확정해 호출 3개의 인자를 정했고, 실행은 사람이 설정을 확인한 뒤에 하므로 여기서 멈춘다.",
+  "difficulties": "'우리 동네'가 어디인지 불분명했으나 도구가 장량동 전용이라 질문 없이 그렇게 가정했다. 비교할 시각 후보가 요청에 없어 물어야 했다. 경로 적재용량(routeAvailableCapacityKg)은 선택 항목이고 수거 시각 비교와 직접 관련이 없어 묻지 않고 차종 정격(기본)으로 두었다."
+}

@@ -1,0 +1,36 @@
+{
+  "id": "BL-N3-B",
+  "method": "B",
+  "questions": [
+    {
+      "text": "비교를 위해 몇 가지만 확인할게요. (1) '야간 교대 근무자가 많은' 블록의 직업 구성 비율은 어떻게 되나요? (NightShift/Student/OfficeWorker/BlueCollar/Housewife 중) (2) 이 경로에 배정된 1회 운행 적재용량(kg)이 따로 있나요? 없으면 차종 정격용량을 씁니다. (3) 시뮬레이션 기간(일)과 반복 횟수는? (4) 배출 시각 모델은 논문 기준선(PAPER_BASELINE)과 포항 공식 배출 창(POHANG_ACTUAL) 중 무엇으로 할까요? 나머지(건물 수·주민 수·수거장 용량·차종 등)는 기본값으로 둘까요?",
+      "keys": ["occupationMix", "routeAvailableCapacityKg", "days", "seeds", "dischargeTimeMode"],
+      "answer": "직업 구성: 야간 교대 2 : 학생 1 / 적재 몫(경로 가용 용량): 150kg / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "05:00",
+        "days": 10,
+        "seeds": 5,
+        "occupationMix": ["NightShift", "NightShift", "Student"],
+        "routeAvailableCapacityKg": 150
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "10:00",
+        "days": 10,
+        "seeds": 5,
+        "occupationMix": ["NightShift", "NightShift", "Student"],
+        "routeAvailableCapacityKg": 150
+      }
+    }
+  ],
+  "toldUser": "수거 시각만 05:00 / 10:00 으로 바꾸고 나머지는 같게 둔 두 실행을 비교합니다. 직업 구성 2:1 은 occupationMix 에 [NightShift, NightShift, Student] 로 넣었습니다(배열이 비율로 해석된다는 가정). 배출 시각 모델은 기본값 PAPER_BASELINE, 건물 4동·동당 25명·수거장 30kg·임계 0.8·대형 5톤 1대·교통 레이어 꺼짐 등 나머지는 모두 기본값입니다. 반복 5회는 표본이 작아 차이가 작으면 결론을 단정하기 어렵습니다.",
+  "stoppedBecause": "필요한 값을 질문 1회로 받아 두 비교 호출(05:00 vs 10:00)의 인자를 확정했고, 실제 실행은 사람이 설정을 확인한 뒤 하기로 되어 있어 여기서 멈춤.",
+  "difficulties": "occupationMix 가 문자열 배열이라 '2:1' 비율을 어떻게 표현하는지 스키마에 없음 — 반복 원소로 비율을 나타낸다고 가정함. 기본 배출 시각 모델(PAPER_BASELINE)이 야간 근무자의 귀가 후 배출을 어떻게 반영하는지 스키마만으로는 알 수 없어, POHANG_ACTUAL 비교를 추가할지 망설였으나 사용자가 기본값을 원해 넣지 않음. routeAvailableCapacityKg 150kg 은 하루 배출량(100명×0.9kg≈90kg)보다 크므로 결과에 큰 제약은 아닐 것으로 봄."
+}

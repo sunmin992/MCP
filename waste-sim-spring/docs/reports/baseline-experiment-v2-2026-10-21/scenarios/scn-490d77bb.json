@@ -1,0 +1,109 @@
+{
+ "scenarioId": "scn-490d77bb",
+ "state": "UNCONFIRMED",
+ "sesId": "bukgu-district-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "seeds": 10,
+  "transferMode": "IGNORE",
+  "housingMix": [
+   "Apartment",
+   "Apartment",
+   "Apartment",
+   "Detached"
+  ],
+  "truckType": "LARGE_5TON",
+  "scheduleMode": [
+   "ALTERNATE",
+   "DAILY"
+  ],
+  "zoneCount": 8,
+  "collectionStartMinutes": 360,
+  "truckCount": 2,
+  "holidayMode": "IGNORE",
+  "zoneAllocation": "EQUAL_COUNT",
+  "householdsPerZone": 600,
+  "days": 28
+ },
+ "origins": {
+  "seeds": "USER",
+  "transferMode": "USER",
+  "housingMix": "USER",
+  "truckType": "USER",
+  "scheduleMode": "USER",
+  "zoneCount": "MODEL_DEFAULT",
+  "collectionStartMinutes": "MODEL_DEFAULT",
+  "truckCount": "USER",
+  "holidayMode": "USER",
+  "zoneAllocation": "USER",
+  "householdsPerZone": "MODEL_DEFAULT",
+  "days": "USER"
+ },
+ "unapprovedDefaults": {
+  "zoneCount": 8,
+  "collectionStartMinutes": 360,
+  "householdsPerZone": 600
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Apartment",
+    "Apartment",
+    "Detached"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "LARGE_5TON",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "ALTERNATE",
+   "collectionDays": null,
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 10,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  },
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Apartment",
+    "Apartment",
+    "Detached"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "LARGE_5TON",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "DAILY",
+   "collectionDays": null,
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 10,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  }
+ ],
+ "confirmToken": null
+}

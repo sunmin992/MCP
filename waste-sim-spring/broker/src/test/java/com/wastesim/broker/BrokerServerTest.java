@@ -31,6 +31,14 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ExtendWith(OutputCaptureExtension.class)
 class BrokerServerTest {
 
+    /** 시험 카드의 주소에는 실제 서버가 없다. 응답 확인은 BrokerVerdictTest 가 따로 본다. */
+    @org.springframework.boot.test.context.TestConfiguration
+    static class AllServersUp {
+        @org.springframework.context.annotation.Bean
+        @org.springframework.context.annotation.Primary
+        java.util.function.Predicate<String> reachable() { return endpoint -> true; }
+    }
+
     @Autowired MockMvc mvc;
     @Autowired CandidateRegistry registry;
     private final ObjectMapper mapper = new ObjectMapper();

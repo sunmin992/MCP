@@ -1,0 +1,23 @@
+{
+  "id": "BL-N5-A",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다"], "comparisonAxes": ["수거 시각: 새벽 6시 vs 오전 9시"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "배출 시간 조건을 다룬다고 적힌 서버가 없어 조건을 빼라는 제안(changesPurpose=false). 주차 서버는 도메인 불일치(changesPurpose=true)."},
+    {"profileSent": {"domain": "쓰레기수거", "comparisonAxes": ["수거 시각: 새벽 6시 vs 오전 9시"]}, "verdict": "CHOOSE", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "differences: 북구 행정동 전체(배출 창 20:00~06:00 보정) vs 장량동 원룸촌 한 블록(교통 보정)."}
+  ],
+  "userChoice": "ADJUST_REQUEST: 배출 시간 조건을 빼고 기본 배출 모델로 진행 / CHOOSE: '기본값으로 해줘' → 첫 후보 bukgu-district-waste-sim",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_capability", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "포항시 공식 배출 시간(저녁 8시~새벽 6시) 조건은 어느 서버도 다룬다고 적혀 있지 않습니다. 이 조건을 빼고(서버의 기본 배출 모델로) 진행할까요? 후보: 포항 북구 행정동 시뮬레이터 / 장량동 시뮬레이터.", "keys": ["environmentConditions"], "answer": "그럼 기본 배출 모델로 해줘"},
+    {"text": "두 서버가 맞습니다 — 포항 북구 행정동 전체(구역 집계, 배출 창 20:00~06:00 보정) vs 장량동 원룸촌 한 블록(교통 보정). 어느 쪽을 쓸까요?", "keys": ["serverChoice"], "answer": "기본값으로 해줘"},
+    {"text": "행정동을 몇 개 구역으로 나눌까요(1~40)? 구역당 세대 수(50~5000)? 주거 유형 구성(아파트/단독/원룸/상가)? 차량 크기(5톤/2.5톤/1톤)? 차량 대수(1~20)? 수거 일정(북구 현행 월·화·목·금/매일/격일/요일 지정)? 공휴일 휴무 반영? 적환장 사용? 기간(7~365일)? 반복 횟수(1~100)?", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "scheduleMode", "holidayMode", "transferMode", "days", "seeds"], "answer": "기본값으로 해줘"},
+    {"text": "구역을 차량에 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게)", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-621cb2de",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "배출 시간 조건은 브로커상 반영 불가로 빼고 서버 기본 배출 모델(북구 서버는 배출 창 20:00~06:00 이 보정값으로 들어 있음)을 씀. 비교 변수 collectionStartMinutes=[360(06:00), 540(09:00)]만 USER, 나머지 11개(8구역×600세대, 아파트·단독·원룸, 5톤 2대, 같은 구역 수 배정, 북구 현행 월·화·목·금, 공휴일·적환장 미반영, 28일, 30회)는 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 미승인 기본값 11개로 표시됨. 확인 화면: http://localhost:8091/confirm.html",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 한다.",
+  "difficulties": "브로커는 배출 시간 조건을 '다루는지 적혀 있지 않다'며 빼라고 했지만, 북구 서버의 능력 카드에는 배출 창(20:00~06:00)이 보정 근거로 이미 들어 있어 사실상 요청 조건이 기본 모델에 반영됨 — 브로커 매칭이 calibration 내용을 환경 조건으로 보지 않는 듯함. 대본의 '적재 몫 150kg' 에 해당하는 키가 북구 서버에 없어 쓰지 않음. zoneAllocation 은 첫 기본값 묶음 뒤에야 생성돼 질문이 한 번 더 늘었음."
+}

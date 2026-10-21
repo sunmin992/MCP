@@ -332,4 +332,25 @@ class BrokerVerdictTest {
         // 값("수거차 3대")은 카드의 결정 지점과 닿지 않아 ADJUST_REQUEST 가 된다(2026-10-20).
         assertTrue(axes.contains("수거차 대수") && axes.contains("수거차 3대"), axes);
     }
+
+    @Test
+    void 응답하지_않는_서버는_추천하지_않고_꺼져_있다고_알린다() throws Exception {
+        String endpoint = TestCards.jangnyang().path("endpoint").asText();
+        var deadJangnyang = new FindSimulatorsTool(new CandidateMatcher(registry), mapper, e -> !e.equals(endpoint));
+        var r = deadJangnyang.call(그림의_요청());
+        JsonNode out = mapper.readTree(r.result().toString());
+        assertNotEquals("MATCH", out.path("verdict").asText(), "꺼진 서버로 MATCH 를 내면 LLM 이 부를 수 없는 주소로 간다");
+        assertEquals(endpoint, out.path("unreachable").path("jangnyang-waste-sim").asText(), out.toString());
+        for (JsonNode s : out.path("suggestions")) {
+            assertNotEquals("jangnyang-waste-sim", s.path("serverId").asText(), "꺼진 서버를 고칠 방법으로 제안하지 않는다");
+        }
+    }
+
+    @Test
+    void 서버가_응답하면_그대로_MATCH_다() throws Exception {
+        var allUp = new FindSimulatorsTool(new CandidateMatcher(registry), mapper, e -> true);
+        JsonNode out = mapper.readTree(allUp.call(그림의_요청()).result().toString());
+        assertEquals("MATCH", out.path("verdict").asText());
+        assertTrue(out.path("unreachable").isMissingNode());
+    }
 }

@@ -1,0 +1,21 @@
+{
+  "id": "BL-N5-A2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"], "comparisonAxes": ["수거 시각: 새벽 6시 vs 오전 9시"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "두 쓰레기 서버 모두 '배출 시간 준수' 환경 조건을 다루는지 카드에 없음 → 조건을 빼라는 제안(changesPurpose=false). 주차 서버는 도메인 불일치(changesPurpose=true). matches 에는 가상 서버 district-waste-sim 도 있었음."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "comparisonAxes": ["수거 시각: 새벽 6시 vs 오전 9시"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "배출 시간 조건을 빼고 사용자가 고른 공간 규모(원룸촌 한 블록)를 넣어 재조회 → 장량동 서버 단독 MATCH."}
+  ],
+  "userChoice": "배출 시간 조건을 빼고 기본 배출 모델로 진행, 원룸촌 한 블록 단위(장량동 서버 쪽)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청을 그대로 받을 서버가 없습니다. 쓰레기 수거 서버 두 곳(포항 북구 행정동 단위 / 장량동 원룸촌 블록 단위) 모두 '포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다'는 조건을 다룬다고 적혀 있지 않습니다. (1) 이 조건을 빼고 진행할까요? (2) 행정동 전체(구역 합계)로 볼지, 원룸촌 한 블록 단위(지점별 적재·민원)로 볼지 골라 주세요.", "keys": ["environmentConditions", "spatialScale"], "answer": "그럼 기본 배출 모델로 해줘 / 원룸촌 한 블록 단위로 볼게"},
+    {"text": "시나리오를 만들려면 다음을 정해야 합니다. 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까?(기본값 없음, 꼭 필요) 그리고 수거차량 크기(기본 5톤), 차량 대수(기본 1), 교통량 반영(기본 안 함), 이동시간 계산(기본 구간 상수), 건물 수(기본 4동), 동당 세대(기본 25), 직업 구성(기본 생산직·학생·주부), 기간(기본 30일), 반복(기본 30회)은 어떻게 할까요?", "keys": ["routeAvailableCapacityKg", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds"], "answer": "적재 몫 150kg, 나머지는 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-110a1e84",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "포항 공식 배출 시간(20:00~06:00) 준수 가정은 반영되지 않고 기본(논문 기준선) 배출 모델로 돌아간다고 알림. 적재 몫 150kg 외 9개 값(5톤 1대, 교통 미반영, 구간 상수 이동시간, 4동×25세대, 생산직·학생·주부, 30일, 30회)은 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 미승인 기본값으로 표시된다고 알림. 비교: 수거 시각 06:00(360) vs 09:00(540), 실행 2벌.",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 를 얻음 — 확인·실행은 사람만 한다.",
+  "difficulties": "브로커는 두 쓰레기 서버가 배출 시간 조건을 다루지 않는다고 했지만, 장량동 서버의 run_waste_simulation 도구에는 dischargeTimeMode=POHANG_ACTUAL(배출 창 20:00~06:00 기본) 매개변수가 있다. 그러나 시나리오 템플릿(get_templates)에는 배출 모델 결정 항목이 없어 build_scenario 경로로는 반영할 수 없었다 — 브로커 카드·템플릿과 직접 실행 도구 사이에 능력 불일치가 있다. 또 첫 ADJUST_REQUEST 에서 '어느 서버' 를 고르게 하는 안내는 없었으나(CHOOSE 아님) 후보가 둘이라 공간 규모를 같이 물었다."
+}

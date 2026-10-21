@@ -1,0 +1,39 @@
+{
+  "id": "BL-R01-A",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["평일 교통량"], "objective": "민원이 가장 적은 쓰레기 수거 시각", "comparisonAxes": ["수거 시각"], "population": ["학생이 많음"]},
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3. jangnyang-waste-sim 은 mismatch 0. bukgu-district-waste-sim 은 공간 규모·거주민·교통·목적 불일치, district-waste-sim 은 가상(fictional) 서버로 공간 규모·거주민·교통 불일치."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "시나리오를 만들려면 몇 가지를 정해야 합니다. (1) 비교할 수거 시각은 몇 시들로 할까요? (2) 건물은 몇 동, 한 동에 몇 세대인가요? (3) 수거차량 크기(5톤/2.5톤/1톤)와 대수는? (4) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 전체 용량이 아니라 이 블록 몫) (5) 거주민 직업 구성은 어떻게 할까요? (생산직/학생/전업주부/야간 교대/1인 직장인) (6) 며칠치를, 몇 번 반복해 볼까요? (7) 교통 프로파일(평일 실측/통행량 기반)과 이동시간 계산 방식(구간 상수/교통구역 근사)은 어떻게 할까요?",
+      "keys": ["collectionTimeMinutes", "numBuildings", "residentsPerBuilding", "truckType", "truckCount", "routeAvailableCapacityKg", "occupationMix", "days", "seeds", "trafficProfileId", "travelTimeMode"],
+      "answer": "비교할 수거 시각: 09시, 12시, 15시 / 건물·세대: 기본값으로 / 차량: 기본값으로 / 적재 몫: 150kg / 직업 구성: 학생 위주로 학생 2 : 주부 1 / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-661afff6",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값(MODEL_DEFAULT)으로 넣은 것: 건물 4동, 동당 25세대, 수거차량 LARGE_5TON 1대, 교통 프로파일 jangryang-weekday(평일 실측), 이동시간 LEGACY_CONSTANT(구간 상수). '평일 교통량' 에서 trafficMode=APPLY 를 유도(DERIVED). 확인 화면에서 이 6개 기본값을 승인해야 함.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 을 얻음. 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "응답 JSON 이 문자열로 이중 인코딩되어 읽기 번거로웠다. 실험 변수를 collectionTimeMinutes 로 할지 collectionTimesMinutes(하루 여러 회)로 할지 템플릿 이름이 비슷해 잠깐 헷갈렸다 — 비교 값으로 단일 시각 여러 개를 주는 것이므로 collectionTimeMinutes 로 판단. 실험 변수의 origin 을 origins 에 넣었지만 plan_subtasks 응답에서는 origin 이 null 로 나왔다. 브로커 nextStep 이 run_scenario_by_token 까지 안내하지만 이번 지시상 부르지 않았다."
+}
