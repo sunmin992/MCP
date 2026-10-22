@@ -1,0 +1,78 @@
+{
+ "scenarioId": "scn-f7b98e45",
+ "state": "UNCONFIRMED",
+ "sesId": "pohang-parking-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "lotCount": 12,
+  "maxSearchMinutes": 20,
+  "guidanceMode": "NONE",
+  "spacesPerLot": 80,
+  "congestionMode": "APPLY",
+  "dailyArrivals": 5500,
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "baseFeePer30Min": 500,
+  "congestionProfileId": [
+   "weekend-downtown"
+  ],
+  "days": 14,
+  "pricingPolicy": "FLAT",
+  "seeds": 10
+ },
+ "origins": {
+  "lotCount": "USER",
+  "maxSearchMinutes": "USER",
+  "guidanceMode": "MODEL_DEFAULT",
+  "spacesPerLot": "MODEL_DEFAULT",
+  "congestionMode": "DERIVED",
+  "dailyArrivals": "USER",
+  "userMix": "MODEL_DEFAULT",
+  "congestionProfileId": "DERIVED",
+  "baseFeePer30Min": "MODEL_DEFAULT",
+  "days": "USER",
+  "pricingPolicy": "MODEL_DEFAULT",
+  "seeds": "USER"
+ },
+ "unapprovedDefaults": {
+  "guidanceMode": "NONE",
+  "spacesPerLot": 80,
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "baseFeePer30Min": 500,
+  "pricingPolicy": "FLAT"
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "lotCount": 12,
+   "spacesPerLot": 80,
+   "pricingPolicy": "FLAT",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": null,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 5500,
+   "guidanceMode": "NONE",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": true,
+   "congestionProfileId": "weekend-downtown",
+   "maxSearchMinutes": 20,
+   "days": 14,
+   "seeds": 10,
+   "lotSpacingMinutes": 3.0,
+   "fullLotCircleMinutes": 2.0
+  }
+ ],
+ "confirmToken": null
+}

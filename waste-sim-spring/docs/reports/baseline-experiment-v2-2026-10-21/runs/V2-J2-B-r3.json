@@ -1,0 +1,19 @@
+{
+  "id": "V2-J2-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "장량동 원룸촌 시뮬레이터로 수거 시각별 결과를 비교하겠습니다. (1) 비교할 수거 시각을 알려 주세요(예: 06:00, 12:00, 18:00). (2) 시뮬레이션 기간(일)과 반복 횟수는 어떻게 할까요? (기본 30일, 30회) (3) 수거 차량이 이 경로에 쓸 수 있는 적재용량(kg)이 정해져 있나요? 없으면 차종 정격용량을 씁니다. 나머지는 기본값으로 둘까요?",
+      "keys": ["collectionTime", "days", "seeds", "routeAvailableCapacityKg"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 기간·반복: 10일, 5회 / 적재 몫(경로 가용 용량): 150kg / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "06:00", "days": 10, "seeds": 5, "routeAvailableCapacityKg": 150}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "12:00", "days": 10, "seeds": 5, "routeAvailableCapacityKg": 150}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "18:00", "days": 10, "seeds": 5, "routeAvailableCapacityKg": 150}}
+  ],
+  "toldUser": "수거 시각·기간·반복·경로 적재용량 외의 값은 모두 스키마 기본값(4동 x 25명, 1인 0.9kg, 수거장 30kg, 임계 0.8, 매일 수거, 배출 시각 PAPER_BASELINE, 교통 미사용, 5톤 트럭 1대)으로 넣었다고 알림. 반복 5회는 통계적 신뢰도가 낮을 수 있다고 알림.",
+  "stoppedBecause": "필요한 값을 한 번의 질문으로 모두 받았고, 비교용 호출 3개의 인자를 확정했다. 실행은 사람 확인 후에 하므로 여기서 멈춤.",
+  "difficulties": "'우리 동네'가 어디인지는 도구가 장량동 원룸촌 하나뿐이라 따로 묻지 않았다. 경로 가용 용량 150kg는 기본 하루 배출량(100명 x 0.9kg = 약 90kg)보다 커서 결과에 큰 영향은 없을 수 있다."
+}

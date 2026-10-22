@@ -1,0 +1,33 @@
+{
+  "id": "V2-D3-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "비교를 위해 두 가지만 여쭐게요. (1) 시뮬레이션 기간(일)과 반복 횟수(시드 수)는 얼마로 할까요? (기본 28일 · 30회) (2) 공휴일(추석 연휴 등)을 반영할까요? 반영한다면 수거일이 공휴일일 때 건너뛸지(SKIP) 다음 날로 미룰지(NEXT_DAY)도 알려 주세요. 나머지(구역 수, 차량 등)는 기본값으로 두겠습니다.",
+      "keys": ["days", "seeds", "holidayEnabled", "holidayPolicy"],
+      "answer": "기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "POHANG_BUKGU",
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "scheduleMode": "WEEKDAYS",
+        "collectionDays": ["TUE", "THU", "SAT"],
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "'지금 일정'은 기본값 POHANG_BUKGU(월·화·목·금)로 보았다. 화·목·토는 WEEKDAYS + collectionDays [TUE, THU, SAT]로 넣었다. 공휴일은 기본값대로 반영하지 않았다(holidayEnabled=false, 기간에 추석 연휴가 들어 있지만 두 안 모두 같은 조건). 구역 수·세대 수·차량·적환장 등 나머지는 모두 기본값이다.",
+  "stoppedBecause": "필요한 값(기간 28일, 반복 10회)을 확정했고 나머지는 사용자가 기본값을 원해, 현재 일정과 화·목·토 일정 두 호출의 인자를 확정했다. 실행은 사람이 확인한 뒤 하므로 여기서 멈춘다.",
+  "difficulties": "'지금 일정'이 무엇인지 스키마 기본값(POHANG_BUKGU)으로 추정했다. 주 4회→주 3회 비교라 공휴일 반영 여부가 결과에 영향을 줄 수 있어 물었으나 기본값(미반영)으로 답을 받았다."
+}

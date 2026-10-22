@@ -1,0 +1,33 @@
+{
+  "id": "V2-D4-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "적환장 효과를 보려면 두 경우를 나란히 돌려 비교하려고 합니다. (1) 적환장을 안 쓸 때(소각장 왕복 90분, 기본값)와 쓸 때를 비교하면 될까요? (2) 적환장 왕복 시간은 몇 분으로 잡을까요? 이 값은 기본값이 없습니다. (3) 기간과 반복 횟수는 기본값(28일, 30회)으로 할까요, 다르게 할까요? 나머지 설정은 기본값으로 둡니다.",
+      "keys": ["transferEnabled", "transferRoundTripMinutes", "days", "seeds"],
+      "answer": "비교: 적환장 안 쓸 때와 쓸 때 / 적환장 왕복 시간: 40분 / 기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "transferEnabled": false,
+        "days": 28,
+        "seeds": 10
+      }
+    },
+    {
+      "name": "run_district_simulation",
+      "arguments": {
+        "transferEnabled": true,
+        "transferRoundTripMinutes": 40,
+        "days": 28,
+        "seeds": 10
+      }
+    }
+  ],
+  "toldUser": "적환장 미사용 쪽은 소각장 왕복 시간 기본값 90분을 쓰고, 나머지(구역 8개, 구역당 600세대, 주거 구성 Apartment/Detached/Studio, 5톤 차량 2대, EQUAL_COUNT 배분, 포항 북구 일정 월·화·목·금, 공휴일 미반영, 06:00 시작, 근무 480분, 시작일 2026-09-21 등)는 모두 기본값으로 넣었다고 알림. 두 호출은 적환장 사용 여부와 왕복 시간만 다르다.",
+  "stoppedBecause": "필요한 값(비교 축, 적환장 왕복 시간, 기간·반복)을 한 번의 질문으로 모두 받아 두 호출의 인자를 확정했고, 실행은 사람이 확인한 뒤 하기로 되어 있어 멈춤.",
+  "difficulties": "'수거가 빨리 끝날까'를 볼 지표가 스키마 출력 설명(잔여량 · 수거 지연 통계)에 '완료 시각'으로 명시돼 있지 않아, 수거 지연 통계로 판단해야 할 것으로 보았다. 공휴일 반영(holidayEnabled)은 기본값 false로 두어 추석 연휴 효과는 섞이지 않게 했다."
+}

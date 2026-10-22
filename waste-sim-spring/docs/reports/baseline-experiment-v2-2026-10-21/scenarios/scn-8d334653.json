@@ -1,0 +1,99 @@
+{
+ "scenarioId": "scn-8d334653",
+ "state": "UNCONFIRMED",
+ "sesId": "pohang-parking-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "lotCount": 4,
+  "maxSearchMinutes": 15,
+  "guidanceRefreshMinutes": 5,
+  "guidanceMode": [
+   "NONE",
+   "REALTIME_APP"
+  ],
+  "spacesPerLot": 80,
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "dailyArrivals": 900,
+  "congestionMode": "IGNORE",
+  "baseFeePer30Min": 500,
+  "days": 14,
+  "pricingPolicy": "FLAT",
+  "seeds": 10
+ },
+ "origins": {
+  "lotCount": "USER",
+  "maxSearchMinutes": "USER",
+  "guidanceRefreshMinutes": "USER",
+  "guidanceMode": "USER",
+  "spacesPerLot": "USER",
+  "userMix": "MODEL_DEFAULT",
+  "dailyArrivals": "MODEL_DEFAULT",
+  "congestionMode": "USER",
+  "baseFeePer30Min": "USER",
+  "days": "USER",
+  "pricingPolicy": "USER",
+  "seeds": "USER"
+ },
+ "unapprovedDefaults": {
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "dailyArrivals": 900
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "lotCount": 4,
+   "spacesPerLot": 80,
+   "pricingPolicy": "FLAT",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": null,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 900,
+   "guidanceMode": "NONE",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": false,
+   "congestionProfileId": "weekday-downtown",
+   "maxSearchMinutes": 15,
+   "days": 14,
+   "seeds": 10,
+   "lotSpacingMinutes": 3.0,
+   "fullLotCircleMinutes": 2.0
+  },
+  {
+   "lotCount": 4,
+   "spacesPerLot": 80,
+   "pricingPolicy": "FLAT",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": null,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 900,
+   "guidanceMode": "REALTIME_APP",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": false,
+   "congestionProfileId": "weekday-downtown",
+   "maxSearchMinutes": 15,
+   "days": 14,
+   "seeds": 10,
+   "lotSpacingMinutes": 3.0,
+   "fullLotCircleMinutes": 2.0
+  }
+ ],
+ "confirmToken": null
+}

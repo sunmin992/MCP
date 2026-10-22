@@ -1,0 +1,21 @@
+{
+  "id": "V2-J5-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동에 40세대씩 6동인 원룸 블록", "objective": "아침 9시에 한 번 걷으면 감당이 되는지", "population": ["원룸"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "bukgu: 공간 규모를 행정동 전체로, 목적을 답할 수 있는 질문으로 고치라 함. jangnyang: 거주민 '원룸'은 모델 밖, 목적을 답할 수 있는 질문(최대 적재량 등)으로 고치라 함. parking 은 도메인이 달라 changesPurpose=true."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동에 40세대씩 6동인 원룸 블록", "objective": "최대 적재량"}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "장량동 제안대로 population '원룸'은 직업 유형으로 추정하지 않고 빼고, 목적을 '감당이 되는지'에 가장 가까운 '최대 적재량'으로 바꿈."}
+  ],
+  "userChoice": "원룸촌 한 블록(장량동) 쪽으로, 그쪽 제안대로 고쳐 줘 (jangnyang-waste-sim)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청 그대로 받을 서버가 없습니다. (1) 포항 북구 행정동 시뮬레이터: 공간 규모를 '행정동 전체(구역 집계)'로, 목적을 수거 못 하고 남는 양 · 수거 시작 시각 등으로 바꾸면 쓸 수 있습니다. (2) 장량동 원룸촌 한 블록 시뮬레이터: 거주민 '원룸'을 직업 유형(생산직/학생/주부/야간/직장인)으로 바꾸고, 목적을 최대 적재량 · 수거 시각 · 민원 수 등으로 바꾸면 쓸 수 있습니다. (3) 포항 주차 시뮬레이터: 도메인이 달라 다른 질문이 됩니다. 어느 쪽으로 어떻게 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 쪽으로, 그쪽 제안대로 고쳐 줘"},
+    {"text": "몇 가지 정할 게 있습니다. 1) 반복 횟수는 이 서버에서 최대 100회라 200회는 안 됩니다. 몇 번으로 할까요? 2) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (기본값 없음) 3) 며칠치를 볼까요? (1~365일) 4) 수거차량 크기(5톤/2.5톤/1톤)와 대수, 교통량 반영 여부, 이동시간 계산 방식(구간 상수/교통구역 근사), 거주민 직업 구성은 어떻게 할까요?", "keys": ["seeds", "routeAvailableCapacityKg", "days", "truckType", "truckCount", "trafficMode", "travelTimeMode", "occupationMix"], "answer": "그럼 되는 만큼 최대로 해줘 / 200kg / 30일 / 그 밖은 기본값으로 해줘"}
+  ],
+  "rejections": ["seeds=200: OUT_OF_RANGE — seeds 는 100 이하여야 함 → 사용자 답에 따라 100 으로 고침"],
+  "scenarioId": "scn-1109d503",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "반복 횟수는 상한 100회로 줄였다. 차량 5톤 1대, 교통량 미반영, 이동시간 구간 상수, 직업 구성 BlueCollar/Student/Housewife 는 사용자가 값을 말하지 않아 템플릿 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 승인하지 않은 기본값 5개로 따로 표시된다. 목적은 '감당이 되는지'를 '최대 적재량'으로 바꿔 보고, 거주민 '원룸'은 직업 유형으로 추정하지 않았다. 확인 화면: http://localhost:8090/confirm.html",
+  "stoppedBecause": "build_scenario 가 성공해 state=UNCONFIRMED 가 되었고, get_scenario_status 로 확인 화면 주소를 얻었다. 승인과 실행은 사람만 한다.",
+  "difficulties": "실험 변수를 반드시 줘야 하는데 비교 요청이 없어 collectionTimeMinutes=[540] 한 값으로 넣었다. ADJUST_REQUEST 에서 장량동의 '원룸 → 직업 유형' 제안은 어느 직업으로 바꿀지 정해 주지 않아, 추정하지 말라는 브로커 안내에 따라 population 을 뺐다. 목적 '감당이 되는지'는 답할 수 있는 질문 목록과 바로 맞지 않아 '최대 적재량'을 골랐다."
+}

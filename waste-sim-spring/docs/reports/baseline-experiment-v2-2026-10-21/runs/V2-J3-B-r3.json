@@ -1,0 +1,86 @@
+{
+  "id": "V2-J3-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "10동 x 트럭 1대/2대 비교를 아침 출근길 교통(jangryang-weekday 프로필) 반영해서 설정하려 합니다. 몇 가지만 정해 주세요. (1) 수거 시각은 몇 시인가요? (2) 한 동 세대 수는 몇 세대로 볼까요? (3) 이동시간 계산 방식: 교통구역 근사(ZONE_PROXY_HYBRID) / OSRM 혼합 / 고정 상수 중 무엇으로 할까요? (4) 10동은 교통 구역 A~D에 배정해야 합니다. 인접한 동끼리 덩어리로 묶을까요(CONTIGUOUS), 번갈아 배정할까요(ROUND_ROBIN)? (5) 같은 구역 안 지점 간 이동시간은 몇 분인가요? (6) 두 대일 때 차량 간 배차 간격은 몇 분인가요? (7) 이 경로에 배정된 트럭 적재 몫(kg)이 있나요? 없으면 차종 정격용량을 씁니다. (8) 시뮬레이션 기간과 반복 횟수는요?",
+      "keys": ["collectionTime", "residentsPerBuilding", "travelTimeMode", "zoneAssignmentRule", "intraZoneTravelMinutes", "dispatchIntervalMinutes", "routeAvailableCapacityKg", "days", "seeds"],
+      "answer": "수거 시각: 오전 8시 / 한 동 세대 수: 25세대 / 이동시간 계산 방식: 교통구역 근사로 / 건물의 교통 구역 배정: 덩어리로 묶어서 / 같은 구역 안 이동시간: 2분 / 차량 간 배차 간격: 10분 / 적재 몫(경로 가용 용량): 300kg / 기간·반복: 10일, 5회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "CONTIGUOUS",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 1
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "CONTIGUOUS",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 2,
+        "dispatchIntervalMinutes": 10
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "ROUND_ROBIN",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 1
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "08:00",
+        "days": 10,
+        "seeds": 5,
+        "numBuildings": 10,
+        "residentsPerBuilding": 25,
+        "trafficEnabled": true,
+        "trafficProfileId": "jangryang-weekday",
+        "travelTimeMode": "ZONE_PROXY_HYBRID",
+        "zoneAssignmentRule": "ROUND_ROBIN",
+        "intraZoneTravelMinutes": 2,
+        "routeAvailableCapacityKg": 300,
+        "truckCount": 2,
+        "dispatchIntervalMinutes": 10
+      }
+    }
+  ],
+  "toldUser": "교통 프로필은 스키마 예시인 jangryang-weekday(평일)를 아침 출근길로 가정해 넣었습니다. 구역 배정은 실제 위치 조사가 아닌 가정이므로, 선택하신 덩어리 배정(CONTIGUOUS) 외에 ROUND_ROBIN도 함께 돌려 결과를 범위로 보고합니다(운영 예측이 아닌 가정 비교 실험). 그 밖의 값(차종 LARGE_5TON, 수거장 용량 30kg, 임계 0.8, 배출량·외출 편차, 매일 수거, 배출 시각 모델 PAPER_BASELINE, 정차 시간 0분, 초기 적재 0kg, 기본 이동시간 8분 등)은 기본값입니다. 배차 간격 10분은 2대 호출에만 넣었습니다.",
+  "stoppedBecause": "필요한 값을 모두 확정해 트럭 1대/2대 x 구역 배정 2가지 = 호출 4개를 plannedCalls에 적었고, 실행은 사람이 확인한 뒤 하므로 여기서 멈춤.",
+  "difficulties": "trafficProfileId에 아침 출근 시간대 전용 프로필이 있는지 스키마로는 알 수 없어 예시 값 jangryang-weekday를 썼다. 사용자는 CONTIGUOUS를 골랐지만 스키마가 두 배정을 함께 돌려 범위로 보고하라고 해서 ROUND_ROBIN 호출을 추가했다. routeAvailableCapacityKg 300kg이 트럭당 몫인지 경로 전체 몫인지 애매했으나 스키마 정의(운행 1회당 경로 배정 용량)대로 그대로 넣었다."
+}

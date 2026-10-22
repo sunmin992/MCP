@@ -3,11 +3,11 @@
   "method": "A",
   "brokerCalls": [
     {
-      "profileSent": {"domain": "주차", "spatialScale": "도심", "environmentConditions": ["주말 교통 혼잡"], "objective": "주차장 찾는 데 걸리는 시간"},
+      "profileSent": {"domain": "주차장 탐색", "spatialScale": "도심", "environmentConditions": ["주말 교통 혼잡"], "objective": "주차장 찾는 데 걸리는 시간"},
       "verdict": "MATCH",
       "recommended": "pohang-parking-sim",
       "candidates": ["pohang-parking-sim"],
-      "note": "mismatches·requestAdjustments 없음. 15곳·3만 대가 범위를 넘는다는 점은 브로커가 알려 주지 않았고 시뮬레이터의 validate_answers 에서 드러났다."
+      "note": "matchCount 1, mismatches 없음. endpoint http://localhost:8092/mcp"
     }
   ],
   "userChoice": null,
@@ -19,19 +19,18 @@
     "pohang-parking-sim:get_templates",
     "pohang-parking-sim:validate_answers",
     "pohang-parking-sim:plan_subtasks",
-    "pohang-parking-sim:plan_subtasks",
     "pohang-parking-sim:build_scenario",
     "pohang-parking-sim:build_scenario",
     "pohang-parking-sim:get_scenario_status"
   ],
   "questions": [
     {
-      "text": "요청하신 15곳·하루 3만 대는 이 시뮬레이터 범위(주차장 최대 12곳, 하루 도착 최대 20000대)를 넘습니다. 어떻게 할까요? 또 운전자는 주차장을 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 며칠치를(1~90일), 몇 번 반복할까요(1~100회)? 주차면 수·요금·이용자 구성·안내 방식, 그리고 무엇을 바꿔 가며 비교할지는 어떻게 할까요?",
+      "text": "이 시뮬레이터는 공영주차장을 최대 12곳, 하루 도착 차량을 최대 2만 대까지만 다룹니다. 15곳·3만 대는 넘으니 어떻게 할까요? 그리고 운전자는 주차장을 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 며칠치를 몇 번 반복해 볼까요(기본 14일·30회)? 나머지(주차장당 면수 80, 균일 요금 30분 500원, 이용자 구성 출퇴근·쇼핑·방문, 주차 안내 없음)는 어떻게 할까요?",
       "keys": ["lotCount", "dailyArrivals", "maxSearchMinutes", "days", "seeds", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "guidanceMode"],
       "answer": "그럼 되는 만큼 최대로 해줘 / 20분 / 14일, 10회 / 기본값으로 해줘"
     },
     {
-      "text": "하루 20000대는 12곳 × 80면으로 감당할 수 있는 양의 362%라 실행이 막힙니다. 도착 차량을 줄일까요, 주차장 한 곳의 면수를 늘릴까요?",
+      "text": "12곳 × 80면에 하루 2만 대면 수요가 면수로 감당할 수 있는 양의 362%라 서버가 실행을 막습니다. 도착 차량을 줄일까요, 주차장 면수를 늘릴까요?",
       "keys": ["dailyArrivals", "spacesPerLot"],
       "answer": "그럼 되는 만큼 최대로 해줘"
     }
@@ -39,11 +38,11 @@
   "rejections": [
     "validate_answers: lotCount=15 OUT_OF_RANGE (12 이하)",
     "validate_answers: dailyArrivals=30000 OUT_OF_RANGE (20000 이하)",
-    "build_scenario scn-f908a689 INVALID: 12곳×80면에 하루 20000대는 면수 감당량의 362% — 거의 모든 차량이 포기하는 실험이라 막힘. spacesPerLot 을 300으로 올려 다시 만듦"
+    "build_scenario scn-f908a689 INVALID: lotCount=12, spacesPerLot=80, dailyArrivals=20000 → 하루 주차 수요가 면수 감당량의 362%, 거의 모든 차량이 포기하는 실험이라 실행하지 않음"
   ],
-  "scenarioId": "scn-f9045e65",
+  "scenarioId": "scn-f7b98e45",
   "scenarioState": "UNCONFIRMED",
-  "toldUser": "주차장 15곳→12곳(최대), 하루 3만 대→20000대(최대)로 줄였다. 수요를 감당하도록 주차장 한 곳 면수를 기본 80면에서 300면으로 올린 것은 내 가정이다. '주말에 길이 막힐 때'에서 congestionMode=APPLY, congestionProfileId=weekend-downtown(가정 프로파일)을 정했다. 요금 균일 30분 500원, 이용자 구성 Commuter·Shopper·Visitor, 안내 없음은 기본값(승인 안 된 기본값으로 확인 화면에 표시). 비교 요청이 없어 실험 변수는 congestionProfileId 한 값(weekend-downtown)만 둔 단일 실행이다. 확인 화면: http://localhost:8092/confirm.html",
-  "stoppedBecause": "build_scenario 가 성공해 UNCONFIRMED 가 되었고 get_scenario_status 로 확인 화면 주소를 얻었다. 확인과 실행은 사람만 한다.",
-  "difficulties": "브로커는 MATCH 라며 범위 초과(15곳·3만 대)를 미리 알리지 않았다. build_scenario 는 variableAnswerKey·variableValues 가 필수인데 사용자는 비교를 요청하지 않아 한 값짜리 변수로 넣었다. 수요/면수 차단 기준(몇 % 이하면 통과인지)이 안내되지 않아 면수를 추정해 올렸고, 사용자 답 '되는 만큼 최대로'를 도착 차량 유지·면수 증가로 해석한 것도 판단이 필요했다."
+  "toldUser": "주차장 12곳(상한), 하루 도착 5500대(면수 80 기준 362% 막힘 이후 20000/3.62≈5525 근처로 낮춰 통과한 값)로 줄였다고 알림. 면수 80, 균일 요금 30분 500원, 이용자 구성 Commuter/Shopper/Visitor, 주차 안내 NONE 은 기본값(MODEL_DEFAULT). 혼잡 반영 APPLY·주말 도심 프로파일은 '주말에 길이 막힐 때'에서 정함(DERIVED). 비교 대상이 없어 실험 변수는 congestionProfileId=weekend-downtown 한 값으로 둠. 확인 화면 http://localhost:8092/confirm.html",
+  "stoppedBecause": "build_scenario 가 UNCONFIRMED 로 통과했고 get_scenario_status 로 확인 화면 주소를 얻었다. 확인과 실행은 사람만 한다.",
+  "difficulties": "build_scenario 가 variableAnswerKey·variableValues 를 필수로 받는데 요청에 비교 축이 없어 혼잡 프로파일 한 값으로 넣었다. 수요/면수 막힘의 정확한 허용 임계(100%?)가 응답에 없어 5500대로 시도해 통과했다 — 더 큰 값이 될 수도 있다. '되는 만큼 최대로'가 면수를 늘리라는 뜻인지 차량을 줄이라는 뜻인지 모호해, 사용자가 말하지 않은 면수 대신 차량 수를 줄였다. dailyArrivals 출처를 USER 로 적었지만 엄밀히는 사용자 지시에서 계산한 DERIVED 에 가깝다."
 }

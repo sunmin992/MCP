@@ -1,0 +1,92 @@
+{
+ "scenarioId": "scn-4a108e96",
+ "state": "UNCONFIRMED",
+ "sesId": "bukgu-district-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "holidayMode": "IGNORE",
+  "zoneAllocation": "EQUAL_COUNT",
+  "householdsPerZone": 600,
+  "days": 28,
+  "seeds": 30,
+  "transferMode": "IGNORE",
+  "housingMix": [
+   "Apartment",
+   "Detached",
+   "Studio"
+  ],
+  "truckType": "LARGE_5TON",
+  "scheduleMode": "POHANG_BUKGU",
+  "zoneCount": 8,
+  "collectionStartMinutes": 360,
+  "truckCount": [
+   2
+  ]
+ },
+ "origins": {
+  "holidayMode": "MODEL_DEFAULT",
+  "zoneAllocation": "MODEL_DEFAULT",
+  "householdsPerZone": "MODEL_DEFAULT",
+  "days": "MODEL_DEFAULT",
+  "seeds": "MODEL_DEFAULT",
+  "transferMode": "MODEL_DEFAULT",
+  "housingMix": "MODEL_DEFAULT",
+  "truckType": "MODEL_DEFAULT",
+  "scheduleMode": "MODEL_DEFAULT",
+  "zoneCount": "MODEL_DEFAULT",
+  "collectionStartMinutes": "MODEL_DEFAULT",
+  "truckCount": "MODEL_DEFAULT"
+ },
+ "unapprovedDefaults": {
+  "holidayMode": "IGNORE",
+  "zoneAllocation": "EQUAL_COUNT",
+  "householdsPerZone": 600,
+  "days": 28,
+  "seeds": 30,
+  "transferMode": "IGNORE",
+  "housingMix": [
+   "Apartment",
+   "Detached",
+   "Studio"
+  ],
+  "truckType": "LARGE_5TON",
+  "scheduleMode": "POHANG_BUKGU",
+  "zoneCount": 8,
+  "collectionStartMinutes": 360,
+  "truckCount": [
+   2
+  ]
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Detached",
+    "Studio"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "LARGE_5TON",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "POHANG_BUKGU",
+   "collectionDays": null,
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 30,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  }
+ ],
+ "confirmToken": null
+}

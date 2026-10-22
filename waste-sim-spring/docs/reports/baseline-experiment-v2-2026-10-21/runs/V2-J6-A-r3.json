@@ -1,0 +1,21 @@
+{
+  "id": "V2-J6-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다"], "objective": "수거를 새벽 6시에 하는 게 나은지 오전 9시에 하는 게 나은지", "comparisonAxes": ["수거 시각"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "세 서버 모두 '포항시 공식 배출 시간' 환경 조건을 다루는지 카드에 적혀 있지 않아 그 조건을 빼라고 제안(changesPurpose=false). 목적은 각 서버의 답할 수 있는 질문(예: 수거 시각)으로 바꾸라고 제안. 주차 서버는 도메인이 달라 changesPurpose=true."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록(장량동)", "objective": "수거 시각", "comparisonAxes": ["수거 시각"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "배출 시간 조건을 빼고 공간 규모를 장량동 원룸촌 한 블록으로 고친 요청으로 MATCH. 북구 행정동 서버와 가상 서버는 공간 규모 불일치."}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 단위) — 배출 시간 조건은 빼고 기본 배출 모델 사용",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청을 그대로 받을 서버가 없습니다. 후보: (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체를 구역 집계로 보며 수거 시작 시각 비교 가능, (2) 장량동 생활쓰레기 수거 시뮬레이터 — 원룸촌 한 블록 단위로 수거 시각 · 민원 수 · 최대 적재량 비교 가능, (3) 포항 도심 공영주차장 시뮬레이터 — 도메인이 달라 다른 질문이 됩니다. 두 쓰레기 서버 모두 '포항시 공식 배출 시간(20시~06시)을 다들 지킨다' 조건을 다룬다고 적혀 있지 않아 그 조건을 빼야 하고, 목적은 '수거 시각(06:00 vs 09:00) 비교'로 바꾸게 됩니다. 어느 서버로 볼까요? 배출 시간 조건을 반영할 수 없는데 그래도 진행할까요?", "keys": ["server", "environmentConditions"], "answer": "원룸촌 한 블록(장량동) 단위로 볼게 / 그럼 기본 배출 모델로 해줘"},
+    {"text": "06:00 과 09:00 수거를 비교하는 시나리오를 만들려면 다음을 정해야 합니다: 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg, 기본값 없음 — 꼭 필요), 수거차량 크기(5톤/2.5톤/1톤), 차량 대수, 교통량 반영 여부, 이동시간 계산 방식(구간 상수/교통구역 근사), 건물 동 수(1~26), 동당 세대 수, 거주민 직업 구성, 기간(일), 반복 횟수. 어떻게 할까요?", "keys": ["routeAvailableCapacityKg", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds"], "answer": "적재 몫(경로 가용 용량): 150kg / 그 밖: 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-110a1e84",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "포항시 공식 배출 시간(20시~06시) 조건은 시나리오 템플릿에 대응 결정이 없어 반영하지 못하고 기본(논문 기준선) 배출 모델로 들어갔다고 알림. 적재 몫 150kg 과 비교 수거 시각 06:00(360분)·09:00(540분)은 사용자 값(USER). 나머지 9개(LARGE_5TON, 1대, 교통 미반영, 구간 상수 이동시간, 4동, 동당 25세대, BlueCollar/Student/Housewife, 30일, 30회)는 기본값(MODEL_DEFAULT)이며 확인 화면에 승인되지 않은 기본값으로 따로 표시된다고 알림. 확인은 http://localhost:8090/confirm.html 에서 사람이 해야 함.",
+  "stoppedBecause": "build_scenario 가 성공해 state=UNCONFIRMED 가 되었고 get_scenario_status 로 확인 화면 주소(http://localhost:8090/confirm.html)를 얻었다. 확인과 실행은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "브로커는 장량동 카드가 배출 시간 조건을 다루는지 적혀 있지 않다고 했지만, 시뮬레이터의 run_waste_simulation 도구 입력에는 dischargeTimeMode=POHANG_ACTUAL(배출 창 20:00~06:00)이 있다. 그러나 get_templates/build_scenario 경로에는 이 결정이 없어 시나리오로는 반영할 수 없었다 — 브로커 카드와 실제 도구 능력이 어긋난다. 또 브로커의 objective 조정 제안('답할 수 있는 질문 중 하나로')은 원 질문(06시 vs 09시)이 사실상 '수거 시각' 비교인데도 불일치로 처리해 헷갈렸다."
+}

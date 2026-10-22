@@ -1,0 +1,20 @@
+{
+  "id": "V2-P6-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "주차장 사이 이동시간을 10분(lotSpacingMinutes=10)으로 두고, 안내 없음(NONE)과 실시간 앱(REALTIME_APP)을 비교하려 합니다. '효과가 더 큰지' 보려고 기본 간격 3분에서도 같은 비교를 함께 돌리겠습니다. 두 가지만 정해 주세요: (1) 몇 분 안에 못 찾으면 포기하는 것으로 볼까요(maxSearchMinutes, 기본값 없음)? (2) 실시간 앱의 빈자리 갱신 주기는 몇 분으로 할까요(기본 5분)?",
+      "keys": ["maxSearchMinutes", "guidanceRefreshMinutes"],
+      "answer": "탐색 포기 시간: 15분 / 앱 갱신 주기: 5분"
+    }
+  ],
+  "plannedCalls": [
+    {"name": "run_parking_simulation", "arguments": {"lotSpacingMinutes": 3.0, "guidanceMode": "NONE", "maxSearchMinutes": 15}},
+    {"name": "run_parking_simulation", "arguments": {"lotSpacingMinutes": 3.0, "guidanceMode": "REALTIME_APP", "guidanceRefreshMinutes": 5, "maxSearchMinutes": 15}},
+    {"name": "run_parking_simulation", "arguments": {"lotSpacingMinutes": 10.0, "guidanceMode": "NONE", "maxSearchMinutes": 15}},
+    {"name": "run_parking_simulation", "arguments": {"lotSpacingMinutes": 10.0, "guidanceMode": "REALTIME_APP", "guidanceRefreshMinutes": 5, "maxSearchMinutes": 15}}
+  ],
+  "toldUser": "이동시간 10분은 lotSpacingMinutes(이웃 주차장 사이 자유주행 이동시간)로 넣었다. '더 클까'를 보려고 기본 간격 3분 대비 비교를 가정으로 추가했다. 나머지(주차장 4곳 x 80면, FLAT 500원, 이용자 구성 기본, 하루 900대, 혼잡 미반영, 14일, 시드 30, 만차 한 바퀴 2분)는 기본값이다.",
+  "stoppedBecause": "인자를 확정했고, 도구 실행은 사람이 설정을 확인한 뒤에 하기로 되어 있어 plannedCalls 를 적고 멈췄다.",
+  "difficulties": "'10분씩 걸리면'이 자유주행 간격(lotSpacingMinutes)인지 혼잡 반영 이동시간인지 애매했으나, 스키마에 간격 매개변수가 있어 그것으로 넣었다. '효과가 더 클까'는 기준 간격과의 비교가 필요하다고 보고 2x2 호출로 잡았다. maxSearchMinutes 는 기본값이 없어 포기 통계를 위해 물었다."
+}

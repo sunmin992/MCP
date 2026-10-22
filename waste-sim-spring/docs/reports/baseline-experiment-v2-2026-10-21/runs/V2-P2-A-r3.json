@@ -1,0 +1,15 @@
+{
+  "id": "V2-P2-A-r3",
+  "method": "A",
+  "brokerCalls": [ {"profileSent": {"domain": "주차", "objective": "공영주차장 만차 완화", "comparisonAxes": ["주차 요금 부과 방식"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "matchCount 1, mismatches 없음, requestAdjustments 없음. spatialScale·environmentConditions·population 은 요청에 없어 비워 둠" } ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "questions": [ {"text": "시뮬레이션을 만들려면 몇 가지를 정해 주세요. (1) 무엇과 무엇을 비교할까요? 균일 요금 vs 시간대 차등(08~10시·17~19시 할증)으로 보면 될까요? (2) 혼잡 시간대 할증률은 얼마로 할까요? (예: 0.5 = 50%, 기본값 없음) (3) 운전자는 주차장을 몇 분까지 찾다가 포기하나요? (1~60분, 기본값 없음) (4) 주차장 설정 — 공영주차장 수(기본 4곳), 한 곳당 면수(기본 80면), 30분당 기본요금(기본 500원), 하루 도착 차량(기본 900대) (5) 기간은 며칠(기본 14일), 몇 번 반복(기본 30회)할까요? (6) 그 밖 — 이용자 구성(기본 출퇴근·쇼핑·방문), 주변 도로 혼잡 반영(기본 반영 안 함), 주차 안내 방식(기본 없음)", "keys": ["pricingPolicy", "peakSurchargeRate", "maxSearchMinutes", "lotCount", "spacesPerLot", "baseFeePer30Min", "dailyArrivals", "days", "seeds", "userMix", "congestionMode", "guidanceMode"], "answer": "비교: 균일 요금과 시간대 차등 / 할증률: 50% / 탐색 포기 시간: 15분 / 주차장: 기본값으로 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘" } ],
+  "rejections": [],
+  "scenarioId": "scn-ff759d1c",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 값(승인 안 된 기본값 7개): 주차장 4곳, 한 곳당 80면, 30분당 500원, 하루 도착 900대, 이용자 구성 Commuter·Shopper·Visitor, 도로 혼잡 반영 안 함(IGNORE), 주차 안내 없음(NONE). 확인 화면 http://localhost:8092/confirm.html 에서 사람이 확인해야 실행됨.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 2벌) 후 get_scenario_status 로 확인 화면 주소를 얻음. 확인·실행은 사람 몫이라 멈춤.",
+  "difficulties": "guidanceMode 는 처음 plan_subtasks 에서 lotCount 대기로 DEFERRED 였으나, 질문을 한 번에 묶기 위해 기본값을 함께 물어 넣었다(lotCount 가 1이 아니면 생기는 결정). 비교 변수(pricingPolicy)는 values 가 아니라 variableValues 로 넣는다는 점은 도구 설명에 명확했음."
+}

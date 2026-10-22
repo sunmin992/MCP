@@ -2,20 +2,20 @@
   "id": "V2-P6-A-r1",
   "method": "A",
   "brokerCalls": [
-    {"profileSent": {"domain": "주차", "environmentConditions": ["주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸림"], "objective": "실시간 안내 앱 효과", "comparisonAxes": ["안내 방식"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["pohang-parking-sim", "bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "pohang-parking-sim 은 환경 조건(주차장 간 이동 10분)만 맞지 않음 — 조건을 빼면 쓸 수 있음(changesPurpose=false). 쓰레기 서버 둘은 도메인이 달라 changesPurpose=true."},
-    {"profileSent": {"domain": "주차", "objective": "실시간 안내 앱 효과", "comparisonAxes": ["안내 방식"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "이동시간 조건을 뺀 요청으로 다시 조회 — MATCH, endpoint http://localhost:8092/mcp"}
+    {"profileSent": {"domain": "주차", "environmentConditions": ["주차장 사이 이동에 10분 걸림"], "objective": "실시간 안내 앱의 효과", "comparisonAxes": ["주차 안내 방식"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["pohang-parking-sim", "bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "pohang-parking-sim 만 도메인·목적·비교 축이 맞고, '주차장 사이 이동 10분' 환경 조건을 다루는지 적혀 있지 않아 빼라고 제안(changesPurpose=false). 나머지 두 서버는 쓰레기 수거 도메인(changesPurpose=true)."},
+    {"profileSent": {"domain": "주차", "objective": "실시간 안내 앱의 효과", "comparisonAxes": ["주차 안내 방식"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "이동시간 조건을 뺀 요청으로 재조회 — MATCH"}
   ],
-  "userChoice": "pohang-parking-sim (공영주차장 쪽, 이동시간 조건을 뺀 요청)",
+  "userChoice": "pohang-parking-sim (이동시간 10분 조건을 빼고 공영주차장 서버로 진행)",
   "serverCalled": "pohang-parking-sim",
-  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:get_capability", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
   "questions": [
-    {"text": "요청을 그대로 받을 서버는 없습니다. 포항 도심 공영주차장 시뮬레이터는 안내 방식(실시간 앱) 효과를 볼 수 있지만, '주차장끼리 옮겨 다니는 데 10분' 조건은 다룬다고 적혀 있지 않아 그 조건을 빼야 쓸 수 있습니다. 나머지 후보(북구 · 장량동 생활쓰레기 수거)는 주차가 아니라 다른 질문이 됩니다. 공영주차장 시뮬레이터로 조건을 빼고 진행할까요, 아니면 다른 쪽으로 볼까요?", "keys": [], "answer": "공영주차장 쪽으로 볼게"},
-    {"text": "공영주차장 시뮬레이터로 진행합니다. 몇 가지 정해 주세요. (1) 이 시뮬레이터는 주차장 사이 이동시간을 3분 간격 고정 가정으로 두고 있어 10분으로 넣을 수 없습니다(도로 혼잡 반영은 켤 수 있음). 그래도 진행할까요? (2) 무엇과 무엇을 비교할까요? (안내 없음 / 입구 안내판 / 실시간 앱 중) (3) 운전자는 몇 분까지 찾다가 포기하나요? (1~60분, 기본값 없음) (4) 실시간 앱은 빈자리 정보를 몇 분마다 갱신하나요? (1~60분) (5) 그 밖에 주차장 수(기본 4곳) · 면수(80면) · 요금(균일, 30분 500원) · 이용자 구성(출퇴근 · 쇼핑 · 방문) · 하루 도착 차량(900대) · 도로 혼잡 반영(안 함) · 기간(14일) · 반복(30회)은 어떻게 할까요?", "keys": ["guidanceMode", "maxSearchMinutes", "guidanceRefreshMinutes", "congestionMode", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "dailyArrivals", "days", "seeds"], "answer": "(1) 그럼 기본으로 해줘 (2) 안내 없음과 실시간 앱 (3) 15분 (4) 5분 (5) 기본값으로 해줘"}
+    {"text": "그대로 받을 서버가 없습니다. '포항 도심 공영주차장 탐색·혼잡 시뮬레이터'가 안내 방식(실시간 앱) 효과를 비교할 수 있지만, '주차장 사이 이동에 10분 걸림' 조건은 다루는지 적혀 있지 않아 이 조건을 빼야 쓸 수 있습니다(다른 후보 두 곳은 쓰레기 수거 시뮬레이터라 질문 자체가 바뀝니다). 이동시간 조건을 빼고 공영주차장 쪽으로 볼까요?", "keys": ["environmentConditions", "serverChoice"], "answer": "공영주차장 쪽으로 볼게 / 그럼 기본으로 해줘"},
+    {"text": "공영주차장 시뮬레이터로 설정을 정하겠습니다. (1) 무엇과 무엇을 비교할까요? 안내 방식은 없음 / 입구 안내판 / 실시간 앱 중에서 고를 수 있습니다. (2) 운전자는 주차장을 몇 분까지 찾다가 포기하나요? (1~60분, 기본값 없음) (3) 실시간 앱은 빈자리 정보를 몇 분마다 갱신하나요? (1~60분, 기본 5분) (4) 이 시뮬레이터는 주차장 사이 이동시간을 10분으로 직접 넣을 수 없고 도로 혼잡 반영 여부만 고를 수 있습니다(기본: 반영 안 함). (5) 그 밖의 주차장 수(4곳)·면수(80면)·요금(균일 30분 500원)·이용자 구성(출퇴근·쇼핑·방문)·하루 도착 900대·14일·30회 반복은 기본값으로 둘까요?", "keys": ["guidanceMode", "maxSearchMinutes", "guidanceRefreshMinutes", "congestionMode", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "dailyArrivals", "days", "seeds"], "answer": "비교: 안내 없음과 실시간 앱 / 탐색 포기 시간: 15분 / 앱 갱신 주기: 5분 / 이동시간: 그럼 기본으로 해줘 / 그 밖: 기본값으로 해줘"}
   ],
   "rejections": [],
   "scenarioId": "scn-8d339167",
   "scenarioState": "UNCONFIRMED",
-  "toldUser": "주차장 사이 이동시간 10분은 넣을 수 없어(서버 가정: 3분 간격 고정) 기본 가정으로 진행했다고 알림. 주차장 수 4 · 면수 80 · 균일 요금 30분 500원 · 이용자 구성 Commuter/Shopper/Visitor · 하루 900대 · 도로 혼잡 미반영 · 14일 · 30회 반복은 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 승인하지 않은 기본값 9개로 표시된다고 알림. 비교는 guidanceMode NONE vs REALTIME_APP, 포기 시간 15분 · 갱신 5분은 사용자 값.",
-  "stoppedBecause": "build_scenario 가 성공해 UNCONFIRMED 가 됨. get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻고 멈춤 — 확인은 사람만 한다.",
-  "difficulties": "사용자 질문의 핵심 조건(이동 10분)을 서버가 표현하지 못함 — 브로커는 '다루는지 적혀 있지 않다'고만 했고, 실제로 고정 3분임은 get_capability 의 calibration 항목에서야 알 수 있었음. 그래서 결과가 사용자의 원래 질문('멀면 효과가 더 큰가')에 직접 답하지 못한다. 도로 혼잡 반영(congestionMode=APPLY)이 이동시간을 늘리는 간접 대안일 수 있으나 10분을 지정할 수는 없어 쓰지 않음. guidanceMode 의 출처를 origins 에 USER 로 적었는데 실험 변수라 origins 대상인지 설명이 없었음."
+  "toldUser": "주차장 사이 이동시간 10분은 이 시뮬레이터에 넣을 수 없어 기본 이동시간(혼잡 반영 안 함)으로 둠. 주차장 4곳·80면·균일 요금 30분 500원·이용자 구성 Commuter/Shopper/Visitor·하루 도착 900대·14일·30회 반복·혼잡 IGNORE 는 기본값(MODEL_DEFAULT, 확인 화면에 미승인 기본값 9개로 표시됨). 결과는 설정 간 비교이며 운영 예측이 아님.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED). get_scenario_status 로 확인 화면 주소 http://localhost:8092/confirm.html 를 얻었고, 확인은 사람만 할 수 있으므로 멈춤.",
+  "difficulties": "사용자 질문의 핵심인 '주차장 간 이동시간 10분'을 직접 설정할 매개변수가 없어(도로 혼잡 반영 여부만 있음) 질문의 의도(이동시간이 길 때 앱 효과)가 그대로 답해지지 않음. 비교 기준이 '안내 없음'인지 '입구 안내판'인지 요청에서 불분명해 물어야 했음. 브로커 제안의 첫 질문에서 대본의 두 답(서버 선택, 이동시간 불가)이 모두 해당돼 함께 썼음."
 }

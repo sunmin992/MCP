@@ -1,0 +1,35 @@
+{
+  "id": "V2-J4-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "5톤(LARGE_5TON)과 1톤(SMALL_1TON)을 같은 조건에서 나란히 돌려 비교하려 합니다. 몇 가지 알려 주세요: (1) 1톤 소형차가 운행 1회에 이 경로에 쓸 수 있는 적재 몫(kg)은 얼마인가요? 모르면 차종 정격용량을 씁니다. (2) 수거 시각은 몇 시인가요? (3) 시뮬레이션 기간(일)과 반복 횟수는요? 나머지는 기본값으로 둘까요?",
+      "keys": ["routeAvailableCapacityKg", "collectionTime", "days", "seeds"],
+      "answer": "적재 몫(경로 가용 용량): 120kg / 수거 시각: 12시 / 기간·반복: 30일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "12:00",
+        "days": 30,
+        "seeds": 10,
+        "truckType": "LARGE_5TON"
+      }
+    },
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "12:00",
+        "days": 30,
+        "seeds": 10,
+        "truckType": "SMALL_1TON",
+        "routeAvailableCapacityKg": 120
+      }
+    }
+  ],
+  "toldUser": "5톤 기준 실행은 적재 몫을 따로 받지 않아 차종 정격용량(미입력 시 기본)으로 두었고, 120kg은 1톤 실행에만 넣었다. 그 밖(건물 4동 x 25명, 1인 0.9kg/일, 매일 수거, 트럭 1대, 교통 끔, 이동시간 LEGACY_CONSTANT 8분, 초기 적재 0kg 등)은 모두 기본값이다. 기본값이면 하루 배출량이 약 90kg(100명 x 0.9kg)이라 120kg 몫으로 매일 수거하면 용량이 모자라지 않을 수 있다는 점도 알렸다.",
+  "stoppedBecause": "필요한 값(적재 몫, 수거 시각, 기간·반복)을 모두 받아 비교용 호출 2개의 인자를 확정했다. 도구 실행은 사람이 설정을 확인한 뒤에 하므로 여기서 멈춘다.",
+  "difficulties": "120kg 적재 몫을 1톤 실행에만 넣을지 두 실행 모두에 넣을지 애매했다. 두 실행 모두에 넣으면 차종 차이가 용량에 드러나지 않으므로 1톤에만 넣고 5톤은 정격용량으로 두었다. 또 스키마에 '수거 미완료 날' 같은 출력 지표가 설명되어 있지 않아(월간 민원 통계만 반환한다고 적힘), 결과에서 미완료 일수를 직접 볼 수 있는지 확실하지 않았다."
+}

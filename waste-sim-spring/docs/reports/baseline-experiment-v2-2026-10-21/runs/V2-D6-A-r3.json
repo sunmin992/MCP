@@ -1,0 +1,21 @@
+{
+  "id": "V2-D6-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지", "comparisonAxes": ["근무 시간"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "어느 서버도 근무 시간을 바꿀 수 없고 목적도 닿지 않음. bukgu 는 목적을 '수거 못 하고 남는 양' 등으로, jangnyang 은 공간 규모를 '원룸촌 한 블록'으로 고치라고 제안"},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거 못 하고 남는 양"}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "사용자가 행정동 전체를 골라 목적을 고치고 비교 축(근무 시간)을 뺀 요청으로 재조회"}
+  ],
+  "userChoice": "bukgu-district-waste-sim (행정동 전체(구역 단위)로 볼게)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청을 그대로 받을 서버가 없습니다. 근무 시간은 어느 서버도 바꿔 볼 수 없는 항목입니다. 고칠 수 있는 선택지: (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체(구역 집계), 목적을 '수거 못 하고 남는 양' 등으로 바꿔야 함 (2) 장량동 수거 시뮬레이터 — 공간 규모를 '원룸촌 한 블록'으로 줄여야 함, 목적은 '수거 완료 시각' 등. 어느 쪽으로 고칠까요?", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "이 서버에는 근무 시간을 바꾸는 항목이 없어 '하루 6시간'은 넣을 수 없습니다(근무 시간은 결과에 참고로만 나옵니다). 대신 무엇을 바꿔 비교할까요(차량 수 · 차종 · 수거 시작 시각 등)? 그리고 구역 수(기본 8), 구역당 세대 수(600), 주거 구성, 차종(5톤), 차량 수(2), 구역 배정, 수거 일정(북구 현행), 공휴일 반영, 적환장, 수거 시작 시각(06:00), 기간(28일), 반복(30회)은 어떻게 할까요?", "keys": ["truckCount", "zoneCount", "householdsPerZone", "housingMix", "truckType", "zoneAllocation", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "그럼 기본으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-4a108e96",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "근무 시간(하루 6시간)은 이 서버에서 바꿀 수 없어 반영하지 못했고, 결과의 근무 시간은 참고 지표로만 나온다고 알림. 모든 값(구역 8, 600세대, 아파트/단독/원룸, 5톤 2대, 같은 구역 수 배정, 북구 현행 월화목금, 공휴일 무시, 적환장 없음, 06:00 시작, 28일, 30회)을 템플릿 기본값(MODEL_DEFAULT)으로 넣었고, 실험 변수는 truckCount=[2] 한 값(기준 설정 1벌)으로 둠",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소 http://localhost:8091/confirm.html 을 얻음 — 승인은 사람만 함",
+  "difficulties": "근무 시간이 어떤 서버의 바꿀 수 있는 항목에도 없어 사용자 질문의 핵심(6시간이면 다 끝나나)을 직접 시뮬레이션할 수 없음. '기본으로' 답을 받아 비교할 변수가 없을 때 variableAnswerKey 를 무엇으로 둘지 안내가 없어 truckCount 기본값 한 개로 둠. 결과의 '근무 시간' 참고 지표로 기본 설정에서 하루 근무가 6시간 안에 끝나는지 간접적으로 볼 수는 있음"
+}

@@ -1,0 +1,22 @@
+{
+  "id": "V2-P3-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "주차", "spatialScale": "동네", "environmentConditions": ["밤"], "objective": "밤에 동네 주민이 차 댈 곳 확보", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["밤에 차 댈 데가 없는 동네 주민"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["pohang-parking-sim", "bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "pohang-parking-sim 이 유일한 match. '밤' 환경 조건 제거, 목적을 답할 수 있는 질문(거주자 우선 구획 효과 등)으로 바꾸라는 조정 제안(changesPurpose=false). 폐기물 서버 둘은 도메인 변경(changesPurpose=true)."},
+    {"profileSent": {"domain": "주차", "spatialScale": "동네", "objective": "거주자 우선 구획 효과", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["밤에 차 댈 데가 없는 동네 주민"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "조정 후 mismatch 없이 MATCH. endpoint http://localhost:8092/mcp"}
+  ],
+  "userChoice": "pohang-parking-sim (공영주차장 쪽으로 볼게 — '밤' 조건 빼고 목적을 '거주자 우선 구획 효과'로 고침)",
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "questions": [
+    {"text": "요청을 그대로 받을 서버는 없습니다. 공영주차장 시뮬레이터(pohang-parking-sim)를 쓰려면 '밤' 조건을 빼고 목적을 '거주자 우선 구획 효과'로 바꾸면 됩니다. 쓰레기 수거 서버 둘은 아예 다른 질문이 됩니다. 어느 쪽으로 고칠까요?", "keys": [], "answer": "공영주차장 쪽으로 볼게"},
+    {"text": "몇 가지 정해 주세요: 공영주차장 수(1~12곳), 주차장당 면수, 요금 방식(균일/시간대 차등/무료), 이용자 구성(출퇴근·쇼핑·방문·거주자), 비교할 거주자 우선 구획 비율(0~0.9), 하루 도착 차량 수, 도로 혼잡 반영 여부, 운전자가 탐색을 포기하는 시간(1~60분, 기본값 없음), 기간(일)과 반복 횟수.", "keys": ["lotCount", "spacesPerLot", "pricingPolicy", "userMix", "residentPriorityShare", "dailyArrivals", "congestionMode", "maxSearchMinutes", "days", "seeds"], "answer": "이용자 구성: 출퇴근 1 : 쇼핑 1 : 거주자 1 / 거주자 우선 비율: 20%와 40%를 비교해 줘 / 탐색 포기 시간: 15분 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"},
+    {"text": "30분당 기본 요금은 얼마로 할까요? 주차 안내는 어떻게 하나요(없음/입구 안내판/실시간 앱)?", "keys": ["baseFeePer30Min", "guidanceMode"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-af98761a",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 값(확인 화면에 미승인 기본값 7개로 표시): 주차장 4곳, 곳당 80면, 균일 요금 30분 500원, 하루 도착 900대, 안내 없음, 도로 혼잡 미반영. 이용자 구성 Commuter·Shopper·Resident 1:1:1, 우선 구획 0.2 vs 0.4, 탐색 포기 15분, 14일·10회는 사용자 지정. '밤' 조건은 이 서버가 다루지 않아 뺐고, 거주자는 19시 도착·다음날 아침까지로 모델링됨.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2). get_scenario_status 로 확인 화면 http://localhost:8092/confirm.html 을 얻음 — 승인은 사람만 하므로 멈춤.",
+  "difficulties": "첫 브로커 호출에서 '밤'을 환경 조건으로, 사용자 말을 목적으로 넣었더니 ADJUST_REQUEST — 서버 Resident 유형이 이미 야간 주차(19시 도착)를 다루는데도 '밤' 조건이 mismatch 로 나와 혼란스러웠다. residentPriorityShare 는 userMix 에 Resident 가 있어야 생기는(DEFERRED) 결정이라 첫 질문 묶음에서 함께 물어도 되는지 애매했다."
+}

@@ -1,0 +1,39 @@
+{
+  "id": "V2-D4-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지", "comparisonAxes": ["적환장 사용 여부"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "공간 규모는 요청에 없어 비워 둠. 북구 행정동 서버만 적환장 효과를 다룰 수 있어 MATCH. 나머지 두 서버는 목적·비교 축 불일치(district-waste-sim 은 가상 서버)."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "비교는 적환장 안 씀 vs 씀 으로 하겠습니다. 다음을 알려 주세요: 적환장 왕복 시간(10~300분, 기본값 없음), 기간(7~365일)·반복 횟수(1~100회), 구역 수, 구역당 세대 수, 주거 유형 구성, 차종, 차량 대수, 수거 일정, 공휴일 반영, 수거 시작 시각 — 정하지 않으신 것은 기본값으로 넣을까요?",
+      "keys": ["transferMode", "transferRoundTripMinutes", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "scheduleMode", "holidayMode", "collectionStartMinutes"],
+      "answer": "비교: 적환장 안 쓸 때와 쓸 때 / 적환장 왕복 시간: 40분 / 기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-b8026bd5",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것(확인 화면에 미승인 기본값 9개로 표시): 구역 8개, 구역당 600세대, 주거 구성 Apartment/Detached/Studio, 5톤 차 2대, 구역 배정 EQUAL_COUNT(같은 구역 수 — 질문 묶음 뒤에 생긴 결정이라 '그 밖 기본값' 답으로 처리), 포항 북구 현행 일정(월·화·목·금), 공휴일 미반영, 06:00 시작. 적환장 미사용 쪽은 소각장 왕복 90분 가정. 확인 화면: http://localhost:8091/confirm.html",
+  "stoppedBecause": "build_scenario 성공으로 UNCONFIRMED 상태가 됨. get_scenario_status 로 확인 화면 주소를 얻고 사람의 승인을 기다리며 멈춤.",
+  "difficulties": "zoneAllocation 은 처음 plan_subtasks 에서 DEFERRED(zoneCount·truckCount 대기)라 첫 질문 묶음에 넣지 못했고, 값이 정해진 뒤에야 UNFILLED 로 나타남. 별도 질문 없이 '그 밖 기본값' 답으로 채움. 공간 규모를 브로커에 비워 보냈는데도 MATCH 가 나와 행정동/구역 선택 질문은 생기지 않음."
+}

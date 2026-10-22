@@ -4,17 +4,16 @@
  "sesId": "jangnyang-ses",
  "sesVersion": "1.0.0",
  "values": {
-  "routeAvailableCapacityKg": 150,
   "trafficProfileId": "jangryang-weekday",
   "trafficMode": "APPLY",
   "truckType": "LARGE_5TON",
-  "travelTimeMode": "LEGACY_CONSTANT",
   "numBuildings": 4,
   "occupationMix": [
    "Student",
    "Student",
    "Housewife"
   ],
+  "travelTimeMode": "LEGACY_CONSTANT",
   "collectionTimeMinutes": [
    540,
    720,
@@ -23,27 +22,28 @@
   "truckCount": 1,
   "residentsPerBuilding": 25,
   "days": 10,
-  "seeds": 5
+  "seeds": 5,
+  "routeAvailableCapacityKg": 150
  },
  "origins": {
-  "routeAvailableCapacityKg": "USER",
   "trafficProfileId": "MODEL_DEFAULT",
   "trafficMode": "DERIVED",
   "truckType": "MODEL_DEFAULT",
-  "travelTimeMode": "MODEL_DEFAULT",
   "numBuildings": "MODEL_DEFAULT",
   "occupationMix": "USER",
+  "travelTimeMode": "MODEL_DEFAULT",
   "collectionTimeMinutes": "USER",
   "truckCount": "MODEL_DEFAULT",
   "residentsPerBuilding": "MODEL_DEFAULT",
   "days": "USER",
-  "seeds": "USER"
+  "seeds": "USER",
+  "routeAvailableCapacityKg": "USER"
  },
  "unapprovedDefaults": {
   "trafficProfileId": "jangryang-weekday",
   "truckType": "LARGE_5TON",
-  "travelTimeMode": "LEGACY_CONSTANT",
   "numBuildings": 4,
+  "travelTimeMode": "LEGACY_CONSTANT",
   "truckCount": 1,
   "residentsPerBuilding": 25
  },
@@ -96,8 +96,8 @@
    "dispatchIntervalMinutes": 0,
    "routeSequence": null,
    "trafficComplaintWeight": 1.0,
-   "collectionTimeLabel": "09:00",
-   "truckCount": 1
+   "truckCount": 1,
+   "collectionTimeLabel": "09:00"
   },
   {
    "collectionTimeMinutes": 720,
@@ -146,8 +146,8 @@
    "dispatchIntervalMinutes": 0,
    "routeSequence": null,
    "trafficComplaintWeight": 1.0,
-   "collectionTimeLabel": "12:00",
-   "truckCount": 1
+   "truckCount": 1,
+   "collectionTimeLabel": "12:00"
   },
   {
    "collectionTimeMinutes": 900,
@@ -196,8 +196,8 @@
    "dispatchIntervalMinutes": 0,
    "routeSequence": null,
    "trafficComplaintWeight": 1.0,
-   "collectionTimeLabel": "15:00",
-   "truckCount": 1
+   "truckCount": 1,
+   "collectionTimeLabel": "15:00"
   }
  ],
  "confirmToken": null

@@ -1,0 +1,27 @@
+{
+  "id": "V2-J5-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "설정 전에 세 가지만 확인할게요. (1) 시뮬레이션 기간은 며칠로 할까요? (기본 30일) (2) 동마다 수거장 용량은 얼마인가요? (기본 30kg — 40세대×0.9kg≈36kg/일이라 기본값이면 하루치보다 작습니다) (3) 이 블록을 도는 트럭 운행 1회에 이 경로 몫으로 배정된 적재용량이 따로 있나요? (없으면 5톤 차 정격용량으로 계산)",
+      "keys": ["days", "capacity", "routeAvailableCapacityKg"],
+      "answer": "기간: 30일 / 적재 몫(경로 가용 용량): 200kg / 수거장 용량: 기본값으로 해줘"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_waste_simulation",
+      "arguments": {
+        "collectionTime": "09:00",
+        "numBuildings": 6,
+        "residentsPerBuilding": 40,
+        "seeds": 200,
+        "days": 30,
+        "routeAvailableCapacityKg": 200
+      }
+    }
+  ],
+  "toldUser": "원룸이라 1세대=1인으로 보고 residentsPerBuilding=40으로 넣었다. 매일 1회 수거(collectionIntervalDays 기본 1), 수거장 용량 30kg·민원 임계 0.8·1인 0.9kg/일·배출 시각 PAPER_BASELINE·이동시간 LEGACY_CONSTANT(교통 미사용)·트럭 1대(LARGE_5TON)는 기본값이다. 하루 배출 추정치 약 216kg(6동×40명×0.9kg)이 배정 적재 몫 200kg보다 조금 많다는 점도 알렸다.",
+  "stoppedBecause": "필요한 값을 모두 확정해 호출 인자를 plannedCalls에 적었고, 실제 실행은 사람이 설정을 확인한 뒤에 하므로 여기서 멈춘다.",
+  "difficulties": "'세대'를 인원으로 바꿀지(원룸이라 1인 가정), '감당'이 수거장 용량인지 트럭 적재 용량인지가 애매해 둘 다 물었다. 6동이라 zoneAssignmentRule이 신경 쓰였지만 ZONE_PROXY_HYBRID를 쓰지 않으므로 넣지 않았다. seeds 200은 스키마상 상한이 없어 그대로 넣었다."
+}

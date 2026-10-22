@@ -1,0 +1,33 @@
+{
+  "id": "V2-D3-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "화·목·토 주 3회 수거로 바꾸면 지금 일정과 비교해 어떤지", "comparisonAxes": ["수거 요일"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "목적 문장이 어느 서버의 '답할 수 있는 질문'과도 닿지 않음. bukgu 는 목적만 '수거 요일 · 주기' 등으로 바꾸면 사용 가능, jangnyang 은 공간 규모(원룸촌 한 블록)도 바꿔야 함, parking 은 changesPurpose=true. matches 에는 가상 서버 district-waste-sim 도 있었음"},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거 요일 · 주기", "comparisonAxes": ["수거 요일"]}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "사용자 선택에 따라 목적을 bukgu 의 답할 수 있는 질문 '수거 요일 · 주기'로 고쳐 재조회"}
+  ],
+  "userChoice": "행정동 전체(구역 단위)로 볼게 → bukgu-district-waste-sim (목적을 '수거 요일 · 주기'로 고침)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. ① 포항 북구 행정동 생활폐기물 시뮬레이터(행정동 전체·구역 집계) — 목적을 '수거 요일·주기' 등 답할 수 있는 질문으로 바꾸면 사용 가능 ② 장량동 시뮬레이터 — 공간 규모를 '원룸촌 한 블록'으로 줄이고 목적도 바꿔야 함 ③ 주차 시뮬레이터 — 다른 질문이 됨. 어느 쪽으로 고칠까요?", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "아직 정해지지 않은 값이 있습니다: 구역 수(기본 8), 구역당 세대 수(600), 주거 유형 구성(아파트·단독·원룸), 차종(5톤), 차량 수(2대), 공휴일 반영(안 함), 적환장(안 씀), 수거 시작 시각(06:00), 기간(28일), 반복 횟수(30회). 어떻게 할까요?", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"},
+    {"text": "차량이 2대라 구역을 차량에 나누는 방식도 정해야 합니다 — 같은 구역 수(기본) / 예상 작업 시간이 같게. 어떻게 할까요?", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-64342138",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "비교 변수 scheduleMode = [POHANG_BUKGU(현행 월·화·목·금), WEEKDAYS(화·목·토)], collectionDays=[TUE,THU,SAT] 은 요청에서 받음. 기본값으로 넣은 것: 구역 8개, 구역당 600세대, 주거 구성 Apartment·Detached·Studio, 5톤 차 2대, 구역 배정 EQUAL_COUNT, 공휴일 미반영, 적환장 미사용, 수거 시작 06:00 (확인 화면에 승인 안 된 기본값 9개로 표시됨). 확인 화면: http://localhost:8091/confirm.html",
+  "stoppedBecause": "build_scenario 가 성공해 UNCONFIRMED 가 되었고, get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 여기서 멈춤",
+  "difficulties": "첫 find_simulators 에서 사용자 문장을 그대로 목적에 넣자 어느 서버의 답할 수 있는 질문과도 닿지 않아 ADJUST_REQUEST 가 나옴 — 목적에 무엇을 적어야 하는지(답할 수 있는 질문 목록의 이름) 도구 설명에 없어 헷갈림. zoneAllocation 은 truckCount 가 정해진 뒤에야 생겨 질문이 한 번 더 늘었음. '지금 일정'을 POHANG_BUKGU 로 본 것은 템플릿의 defaultBasis(현행 월·화·목·금)에서 추론함(scheduleMode origin=DERIVED)."
+}

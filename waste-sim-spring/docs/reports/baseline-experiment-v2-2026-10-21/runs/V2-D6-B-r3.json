@@ -1,0 +1,12 @@
+{
+  "id": "V2-D6-B-r3",
+  "method": "B",
+  "questions": [],
+  "plannedCalls": [
+    {"name": "run_district_simulation", "arguments": {"shiftMinutes": 480}},
+    {"name": "run_district_simulation", "arguments": {"shiftMinutes": 360}}
+  ],
+  "toldUser": "근무 시간 6시간은 shiftMinutes=360 으로 넣었고, 비교 기준으로 현재 기본값 8시간(480분) 실행을 함께 적었다. 그 밖의 값(구역 8개, 구역당 600세대, 5톤 2대, 포항 북구 일정 월·화·목·금, 28일, 시드 30, 시작일 2026-09-21 등)은 모두 스키마 기본값이다. 공휴일은 기본값대로 반영하지 않는다.",
+  "stoppedBecause": "요청이 shiftMinutes 하나로 바로 표현되고 나머지는 기본값으로 충분해 질문 없이 기준(480분)과 6시간(360분) 두 호출을 확정했다. 실행은 사람이 설정을 확인한 뒤 한다.",
+  "difficulties": "'다 끝날까'를 판단할 직접적인 출력 항목(미수거 여부)이 스키마에 명시되지 않아, 결과의 구역별 잔여량 · 수거 지연 통계를 기준 실행과 비교해 판단하기로 했다. 기본 기간에 추석 연휴가 들지만 holidayEnabled 기본값이 false 라 그대로 두었다."
+}

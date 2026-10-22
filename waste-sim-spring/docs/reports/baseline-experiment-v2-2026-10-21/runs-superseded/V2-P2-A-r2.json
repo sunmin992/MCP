@@ -1,0 +1,20 @@
+{
+  "id": "V2-P2-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "주차", "objective": "공영주차장 만차 완화", "comparisonAxes": ["주차 요금 방식"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "matchCount 1, mismatches 없음. nextStep 대로 브로커를 다시 부르지 않고 http://localhost:8092/mcp 로 감"}
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "questions": [
+    {"text": "시나리오를 만들려면 몇 가지 정해야 합니다. (1) 비교: 균일 요금과 시간대 차등 요금(08~10시·17~19시 할증)을 나란히 비교할까요? (2) 혼잡 시간대 할증률은 얼마로 할까요? (0.5 = 50%, 기본값 없음) (3) 운전자는 주차장을 몇 분까지 찾다가 포기하나요? (1~60분, 기본값 없음) (4) 주차장: 공영주차장 수(기본 4곳)와 한 곳당 면수(기본 80면) (5) 30분당 기본 요금(기본 500원) (6) 이용자 구성(기본 출퇴근·쇼핑·방문)과 하루 도착 차량 수(기본 900대) (7) 주변 도로 혼잡을 이동시간에 반영할까요? (기본 반영 안 함) (8) 며칠치를 몇 번 반복해 볼까요? (기본 14일, 30회)", "keys": ["pricingPolicy", "peakSurchargeRate", "maxSearchMinutes", "lotCount", "spacesPerLot", "baseFeePer30Min", "userMix", "dailyArrivals", "congestionMode", "days", "seeds"], "answer": "비교: 균일 요금과 시간대 차등 / 할증률: 50% / 탐색 포기 시간: 15분 / 주차장: 기본값으로 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"},
+    {"text": "주차장이 여러 곳이라 주차 안내 방식도 정해야 합니다. 없음(들어가 봐야 앎) / 입구 안내판 / 실시간 앱 중 어떻게 할까요? (기본 없음)", "keys": ["guidanceMode"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-ff759d1c",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값(MODEL_DEFAULT)으로 넣은 7개: 주차장 4곳, 한 곳당 80면, 30분당 500원, 이용자 구성 Commuter·Shopper·Visitor, 하루 도착 900대, 도로 혼잡 반영 안 함(IGNORE), 주차 안내 없음(NONE). 확인 화면에 승인 안 된 기본값으로 따로 표시된다고 안내함. 할증률 0.5, 탐색 포기 15분, 14일, 10회, 비교(FLAT vs TIME_OF_DAY)는 사용자 값(USER).",
+  "stoppedBecause": "build_scenario 성공으로 UNCONFIRMED 상태가 되어 get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻고 멈춤. 승인과 실행은 사람 몫.",
+  "difficulties": "guidanceMode 는 lotCount 가 정해지기 전엔 DEFERRED 라 첫 질문 묶음에 넣지 못했고, 주차장 수 기본값을 받은 뒤에야 생성되어 질문이 한 번 더 늘었다. 검토: 기본값이 있는 DEFERRED 항목도 첫 묶음에 조건부로 함께 물을 수 있었다. validate_answers 는 '원문 문자열'을 받는다고 해 userMix 를 쉼표 문자열로 보냈는데 받아들여졌다 — 목록 형식 안내가 따로 없었다."
+}

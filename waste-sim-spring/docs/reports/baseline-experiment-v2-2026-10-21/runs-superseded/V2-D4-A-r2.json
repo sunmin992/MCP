@@ -1,0 +1,29 @@
+{
+  "id": "V2-D4-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "적환장을 쓰면 소각장 왕복 시간이 줄어 수거가 빨리 끝나는지", "comparisonAxes": ["적환장 사용 여부"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "북구 행정동 서버만 목적·비교 축(적환장 효과)과 닿음. 나머지 둘은 mismatch (district-waste-sim 은 가상)."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {
+      "text": "적환장 효과를 보려면 몇 가지를 정해야 합니다. (1) 비교는 '적환장 안 쓸 때(소각장 왕복, 90분 가정)'와 '적환장 쓸 때' 두 가지로 할까요? (2) 적환장까지 다녀오는 데 몇 분 걸리나요? (10~300분, 기본값 없음) (3) 며칠치를 몇 번 반복해 볼까요? (기본 28일, 30회) (4) 그 밖의 설정(구역 수 8, 구역당 600세대, 주거 구성 아파트/단독/원룸, 5톤 차 2대, 같은 구역 수로 배정, 포항 북구 월·화·목·금 수거, 공휴일 미반영, 06:00 시작)은 기본값으로 둘까요, 바꿀까요?",
+      "keys": ["transferMode", "transferRoundTripMinutes", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "zoneAllocation", "scheduleMode", "holidayMode", "collectionStartMinutes"],
+      "answer": "비교: 적환장 안 쓸 때와 쓸 때 / 적환장 왕복 시간: 40분 / 기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-b8026bd5",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "구역 수 8, 구역당 600세대, 주거 구성 Apartment/Detached/Studio, 5톤 차 2대, EQUAL_COUNT 배정, 포항 북구 월·화·목·금 일정, 공휴일 미반영(IGNORE), 06:00 시작은 사용자가 값을 말하지 않아 기본값(MODEL_DEFAULT)으로 넣었고, 확인 화면에 승인하지 않은 기본값 9개로 따로 표시된다. 적환장 미사용 시 소각장 왕복은 서버 가정(90분)이다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소 http://localhost:8091/confirm.html 를 얻음 — 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "공간 규모가 요청에 없어 브로커에 비워 보냈는데 MATCH 가 바로 나와 '어느 서버' 질문은 생기지 않았다. 사용자의 '수거가 빨리 끝날까'에 맞는 관측 항목 이름이 템플릿에 명시돼 있지 않아 observations 는 run_scenario_by_token 설명의 '근무 시간'과 브로커 후보 문구의 '수거 완료 시각'을 참고해 넣었다."
+}

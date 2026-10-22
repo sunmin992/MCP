@@ -1,0 +1,20 @@
+{
+  "id": "V2-P5-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "주차", "comparisonAxes": ["공영주차장 요금"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "matchCount 1, mismatches 없음. 목적·규모 등은 요청에 없어 비워 둠"}
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:validate_answers", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "questions": [
+    {"text": "1) 무엇과 무엇을 비교할까요? 예: 지금 요금(균일 요금) vs 무료 (시간대 차등 요금도 고를 수 있습니다) 2) 운전자는 주차장을 몇 분까지 찾다가 포기하나요? (1~60분, 기본값이 없어 정해 주셔야 합니다) 3) 그 밖의 항목(주차장 수 4곳, 한 곳당 80면, 30분당 500원, 이용자 구성 출퇴근·쇼핑·방문, 하루 도착 900대, 도로 혼잡 미반영, 14일, 30회 반복)은 기본값으로 둘까요, 직접 정하시겠어요?", "keys": ["pricingPolicy", "maxSearchMinutes", "lotCount", "spacesPerLot", "baseFeePer30Min", "userMix", "dailyArrivals", "congestionMode", "days", "seeds"], "answer": "비교: 지금 요금(균일)과 무료 / 탐색 포기 시간: 15분 / 그 밖: 기본값으로 해줘"},
+    {"text": "주차장이 여러 곳이라 주차 안내 방식도 정해야 합니다. 없음(들어가 봐야 앎) / 입구 안내판 / 실시간 앱 중 어떻게 할까요? (기본값: 없음)", "keys": ["guidanceMode"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-5255f7b1",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "사용자가 값을 말하지 않은 9개 항목을 기본값(MODEL_DEFAULT)으로 넣었다고 알림: 주차장 4곳, 한 곳당 80면, 균일 요금 30분당 500원(가정값), 이용자 구성 Commuter·Shopper·Visitor, 하루 도착 900대, 도로 혼잡 미반영(IGNORE), 주차 안내 없음(NONE), 14일, 30회 반복. 확인 화면 http://localhost:8092/confirm.html 에서 승인되지 않은 기본값으로 따로 보인다고 안내",
+  "stoppedBecause": "build_scenario 가 성공해 UNCONFIRMED 상태가 됐고, get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻었다. 승인과 실행은 사람만 한다",
+  "difficulties": "guidanceMode 는 처음 plan_subtasks 에서 lotCount 에 걸려 DEFERRED 였다가 lotCount 를 넣은 뒤에야 UNFILLED 로 나타나, 첫 질문 묶음에 넣지 못하고 질문을 한 번 더 했다. 기본값을 쓸 lotCount 를 미리 넣고 계산했으면 한 묶음으로 끝났을 것. '지금 요금' 의 실제 금액은 사용자가 말하지 않아 템플릿 가정값 500원을 썼다"
+}

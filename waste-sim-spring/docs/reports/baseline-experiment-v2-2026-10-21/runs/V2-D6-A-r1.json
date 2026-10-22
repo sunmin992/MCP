@@ -2,19 +2,20 @@
   "id": "V2-D6-A-r1",
   "method": "A",
   "brokerCalls": [
-    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지", "comparisonAxes": ["근무 시간"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "어느 서버도 근무 시간을 목적·비교 축으로 받지 못함. bukgu 는 공간 규모는 맞고 목적을 '수거 못 하고 남는 양' 등으로, 비교 축을 차량 수 등으로 바꾸라고 제안(changesPurpose=false)."},
-    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거 못 하고 남는 양"}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "고친 요청으로 bukgu-district-waste-sim(http://localhost:8091/mcp) 추천."}
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거차 근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지", "comparisonAxes": ["근무 시간"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim", "district-waste-sim"], "note": "어느 서버도 근무 시간을 비교 축/목적으로 받지 않음. bukgu-district-waste-sim 은 행정동(구역 집계) 규모가 맞고 목적을 '수거 못 하고 남는 양' 등으로 고치면 쓸 수 있다고 제안(changesPurpose=false)."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거 못 하고 남는 양"}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "사용자가 행정동 전체(구역 단위)를 골라 목적을 고쳐 재조회. district-waste-sim 은 가상(fictional) 서버."}
   ],
-  "userChoice": "bukgu-district-waste-sim (행정동 전체 구역 단위, 목적을 '수거 못 하고 남는 양'으로 고침)",
+  "userChoice": "행정동 전체(구역 단위) — bukgu-district-waste-sim, 목적을 '수거 못 하고 남는 양'으로 고침",
   "serverCalled": "bukgu-district-waste-sim",
   "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
   "questions": [
-    {"text": "요청 그대로 받을 서버가 없습니다. 근무 시간(하루 6시간)은 어느 서버도 바꿔 볼 수 없습니다. 선택지: (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체(구역 단위), 목적을 '수거 못 하고 남는 양' 등으로, 비교 축을 차량 수·수거 시작 시각 등으로 바꾸면 쓸 수 있음 (2) 장량동 시뮬레이터 — 공간 규모를 '원룸촌 한 블록'으로 줄여야 함 (3) 주차 시뮬레이터 — 다른 질문이 됨. 어느 쪽으로 고칠까요? 근무 시간 대신 무엇을 비교할지, 구역 수·세대 수·차종 등 나머지 값은 어떻게 할까요?", "keys": ["serverChoice", "objective", "comparisonAxes", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "zoneAllocation", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "행정동 전체(구역 단위)로 볼게 / (근무 시간을 바꿀 수 없다는 점에 대해) 그럼 기본으로 해줘"}
+    {"text": "근무 시간(하루 6시간)을 바꿔 볼 수 있는 시뮬레이터는 없습니다. 대신 이렇게 고치면 쓸 수 있습니다: (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체를 구역 단위로 보며 '수거 못 하고 남는 양' 같은 질문에 답함, (2) 장량동 생활쓰레기 수거 시뮬레이터 — 원룸촌 한 블록 규모로 줄여야 함, '수거 완료 시각' 등에 답함. 어느 쪽으로 요청을 고칠까요?", "keys": ["spatialScale", "objective"], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "이 서버에도 근무 시간 항목은 없어 6시간으로 줄여 볼 수 없습니다. 대신 무엇을 바꿔 비교할까요(예: 차량 수, 차종, 수거 요일·주기, 수거 시작 시각)? 그리고 구역 수·구역당 세대 수·주거 구성·차종·구역 배정·수거 일정·공휴일 반영·적환장·수거 시작 시각·기간·반복 횟수는 어떻게 할까요?", "keys": ["truckCount", "zoneCount", "householdsPerZone", "housingMix", "truckType", "zoneAllocation", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "그럼 기본으로 해줘"}
   ],
   "rejections": [],
   "scenarioId": "scn-4a109257",
   "scenarioState": "UNCONFIRMED",
-  "toldUser": "근무 시간은 이 서버가 바꿀 수 없어 비교하지 못한다고 알림. 실험 변수는 처리 능력의 대리로 차량 수(truckCount) 1대 vs 2대를 가정으로 넣었고, 나머지 11개 값(구역 8, 세대 600, 주거 구성 아파트·단독·원룸, 5톤, 같은 구역 수 배정, 북구 월·화·목·금, 공휴일 무시, 적환장 없음, 06:00 시작, 28일, 30회 반복)은 모두 템플릿 기본값(MODEL_DEFAULT)으로 넣었다고 알림. 결과의 '근무 시간'은 참고 지표로만 나온다고 알림. 확인 화면: http://localhost:8091/confirm.html",
-  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 확인은 사람만 할 수 있어 멈춤.",
-  "difficulties": "근무 시간(하루 6시간 제한)을 받는 매개변수가 없어 사용자의 원래 질문에 직접 답할 수 없음. ADJUST_REQUEST 제안은 목적·비교 축을 바꾸라고만 하고, 무엇을 실험 변수로 삼을지 기본값이 없어 차량 수 1 vs 2 를 임의로 골랐음. 실행 결과에 '근무 시간'이 참고 지표로 나온다는 것은 run 도구 설명에만 있어 근무 시간이 길어지는지 간접 확인만 가능."
+  "toldUser": "근무 시간은 바꿀 수 없어 수거 역량을 줄이는 대용으로 차량 수 1대 vs 2대(기본값)를 비교 변수로 가정해 넣었고, 나머지 11개 값(구역 8개, 구역당 600세대, 아파트·단독·원룸, 5톤, 같은 구역 수 배정, 북구 현행 월·화·목·금, 공휴일 미반영, 적환장 미사용, 06:00 시작, 28일, 30회)은 모두 템플릿 기본값(MODEL_DEFAULT)으로 넣었다. 확인 화면 http://localhost:8091/confirm.html 에서 승인해야 실행된다.",
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 한다.",
+  "difficulties": "원 질문의 핵심인 근무 시간(6시간)은 어느 서버에도 없어 질문 자체가 답해지지 않는다. 브로커는 changesPurpose=false 라 했지만 실제로는 질문의 의미가 크게 바뀐다. 기본값으로 하라는 답을 받고도 비교 변수(variableAnswerKey)는 필수라 차량 수 [1,2]를 모델이 골랐다 — 비교 변수에 대한 '기본값'이 정의되어 있지 않아 헷갈렸다. 결과 지표 설명에 '참고: 근무 시간'이 있어 실행 후 근무 시간을 관찰할 수는 있어 보인다."
 }

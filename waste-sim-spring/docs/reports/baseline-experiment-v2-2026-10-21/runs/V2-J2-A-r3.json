@@ -1,0 +1,43 @@
+{
+  "id": "V2-J2-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "objective": "수거 시각을 바꾸면 어떻게 되는지", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional, example.invalid)도 있었으나 candidates 에서 빠져 있어 제시하지 않음. differences: region/unit(행정동 전체 집계 vs 원룸촌 한 블록)/calibration"
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 단위)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "맞는 시뮬레이터가 둘 있습니다. (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 포항시 북구 행정동 전체를 구역 집계로 봄, 수거 요일·배출 창(20:00~06:00) 표준데이터로 보정. (2) 장량동 생활쓰레기 수거 시뮬레이터 — 장량동 원룸촌 한 블록 단위, TMAP 교통 지체·장량동 실측 교통량·포항시 북구 수거 일정으로 보정. 어느 쪽으로 볼까요?",
+      "keys": ["serverChoice"],
+      "answer": "원룸촌 한 블록(장량동) 단위로 볼게"
+    },
+    {
+      "text": "시나리오를 만들려면 다음을 정해 주세요. 1) 비교할 수거 시각들은? 2) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 전체 용량이 아니라 블록 배정 몫, 기본값 없음) 3) 며칠치를 볼까요(1~365, 기본 30)? 몇 번 반복할까요(1~100, 기본 30)? 4) 그 밖에: 수거차량 크기(기본 5톤), 대수(기본 1), 교통량 반영(기본 안 함), 이동시간 계산(기본 구간 상수), 건물 수(기본 4동), 동당 세대(기본 25), 거주민 직업 구성(기본 생산직/학생/전업주부) — 바꿀 것이 있나요?",
+      "keys": ["collectionTimeMinutes", "routeAvailableCapacityKg", "days", "seeds", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 적재 몫: 150kg / 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1110007d",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "수거차량 5톤 1대, 교통량 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 건물 4동·동당 25세대, 직업 구성 BlueCollar/Student/Housewife 는 사용자가 값 없이 '기본값으로' 넘긴 것이라 MODEL_DEFAULT 로 넣었고 확인 화면에 승인 전 기본값 7개로 따로 표시된다고 알림. 수거 시각은 06:00/12:00/18:00 을 분(360/720/1080)으로 바꿔 넣음.",
+  "stoppedBecause": "build_scenario 가 valid 로 통과해 UNCONFIRMED(scn-1110007d, 실행 3벌) 가 됐고, get_scenario_status 로 확인 화면 http://localhost:8090/confirm.html 을 얻음. 확인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "실험 변수 답변키가 collectionTime(HH:MM, run_waste_simulation) 이 아니라 템플릿의 collectionTimeMinutes(분 정수) 임을 get_templates 에서 확인해야 했음. 브로커 응답의 matches 에 가상 서버가 포함되나 candidates 에는 없어 어느 목록을 보여 줄지 잠시 헷갈림. confirmUrl 에 scenarioId 가 붙어 있지 않아 확인 화면에서 어느 시나리오인지 사용자가 골라야 하는지 불분명."
+}

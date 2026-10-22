@@ -2,20 +2,21 @@
   "id": "V2-P3-A-r2",
   "method": "A",
   "brokerCalls": [
-    {"profileSent": {"domain": "주차", "spatialScale": "동네", "environmentConditions": ["밤"], "objective": "밤에 동네 주민들이 차 댈 데가 없는 문제 해소", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["pohang-parking-sim", "bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "pohang-parking-sim 은 '밤' 조건 제거, 목적을 답할 수 있는 질문(거주자 우선 구획 효과)으로 바꾸면 사용 가능(changesPurpose=false). 폐기물 서버 둘은 도메인 변경이 필요(changesPurpose=true)."},
-    {"profileSent": {"domain": "주차", "spatialScale": "동네", "objective": "거주자 우선 구획 효과", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "mismatches 없음. nextStep: 브로커 재호출 금지, http://localhost:8092/mcp 사용."}
+    {"profileSent": {"domain": "주차", "spatialScale": "동네", "environmentConditions": ["밤"], "objective": "밤에 동네 주민들이 차 댈 데가 없는 문제 개선", "comparisonAxes": ["거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["pohang-parking-sim", "bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "pohang-parking-sim 은 '밤' 조건 제거, 목적을 '거주자 우선 구획 효과'로 바꾸면 사용 가능(changesPurpose=false). 쓰레기 서버 둘은 도메인 불일치(changesPurpose=true)."},
+    {"profileSent": {"domain": "주차", "spatialScale": "동네", "objective": "거주자 우선 구획 효과", "comparisonAxes": ["거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "고친 요청으로 재조회, mismatches 없음"}
   ],
-  "userChoice": "pohang-parking-sim (공영주차장 쪽으로 요청 조정: '밤' 조건 제거, 목적을 '거주자 우선 구획 효과'로)",
+  "userChoice": "공영주차장 쪽(pohang-parking-sim, '밤' 조건 제거 + 목적을 '거주자 우선 구획 효과'로 조정)",
   "serverCalled": "pohang-parking-sim",
-  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
   "questions": [
-    {"text": "요청을 그대로 받을 서버가 없습니다. 가장 가까운 곳은 '포항 도심 공영주차장 탐색·혼잡 시뮬레이터(pohang-parking-sim)'인데, 쓰려면 '밤' 조건을 빼고 목적을 이 서버가 답할 수 있는 질문인 '거주자 우선 구획 효과'로 바꿔야 합니다(질문 취지는 그대로). 쓰레기 수거 서버 두 곳(bukgu-district-waste-sim, jangnyang-waste-sim)은 도메인 자체가 달라 다른 질문이 됩니다. 어느 쪽으로 고칠까요?", "keys": [], "answer": "공영주차장 쪽으로 볼게"},
-    {"text": "시나리오 설정을 여쭙니다. ① 공영주차장 수(1~12곳, 기본 4) ② 주차장당 면수(10~1000, 기본 80) ③ 요금(균일/시간대 차등/무료, 기본 균일)과 30분 기본 요금(기본 500원) ④ 이용자 구성(출퇴근 Commuter/쇼핑 Shopper/방문 Visitor/거주자 Resident, 기본 출퇴근·쇼핑·방문) ⑤ 비교할 거주자 우선 구획 비율 값들(0~0.9) ⑥ 하루 도착 차량 수(기본 900) ⑦ 주차 안내 방식(없음/입구 안내판/실시간 앱, 기본 없음) ⑧ 주변 도로 혼잡 반영 여부(기본 반영 안 함) ⑨ 운전자가 몇 분 찾다가 포기하는지(1~60분, 기본값 없음 — 꼭 정해 주세요) ⑩ 기간(1~90일, 기본 14일)과 반복 횟수(1~100회, 기본 30회)", "keys": ["lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "residentPriorityShare", "dailyArrivals", "guidanceMode", "congestionMode", "maxSearchMinutes", "days", "seeds"], "answer": "이용자 구성: 출퇴근 1 : 쇼핑 1 : 거주자 1 / 거주자 우선 비율: 20%와 40%를 비교해 줘 / 탐색 포기 시간: 15분 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"}
+    {"text": "요청을 그대로 받을 서버가 없습니다. 공영주차장 시뮬레이터(pohang-parking-sim)는 '밤' 조건을 빼고 목적을 '거주자 우선 구획 효과'로 바꾸면 쓸 수 있습니다(질문 취지는 그대로). 다른 후보 둘은 쓰레기 수거 시뮬레이터라 전혀 다른 질문이 됩니다. 어느 쪽으로 요청을 고칠까요?", "keys": [], "answer": "공영주차장 쪽으로 볼게"},
+    {"text": "몇 가지 정해 주세요: 공영주차장은 몇 곳인가요(1~12, 기본 4)? 주차장 한 곳의 면수는(기본 80)? 요금 방식은(균일/시간대 차등/무료, 기본 균일)? 이용자 구성은(출퇴근/쇼핑/방문/거주자)? 하루 도착 차량은(기본 900)? 도로 혼잡을 이동시간에 반영할까요(기본 미반영)? 운전자는 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 며칠치를 볼까요(기본 14일)? 몇 번 반복할까요(기본 30회)?", "keys": ["lotCount", "spacesPerLot", "pricingPolicy", "userMix", "dailyArrivals", "congestionMode", "maxSearchMinutes", "days", "seeds"], "answer": "이용자 구성: 출퇴근 1 : 쇼핑 1 : 거주자 1 / 탐색 포기 시간: 15분 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"},
+    {"text": "주차장마다 거주자 우선 구획을 몇 % 둘까요(0~0.9, 기본값 없음 — 비교할 값들을 알려 주세요)? 30분당 기본 요금은(기본 500원)? 주차 안내 방식은(없음/입구 안내판/실시간 앱, 기본 없음)?", "keys": ["residentPriorityShare", "baseFeePer30Min", "guidanceMode"], "answer": "거주자 우선 비율: 20%와 40%를 비교해 줘 / 그 밖: 기본값으로 해줘"}
   ],
   "rejections": [],
   "scenarioId": "scn-af98761a",
   "scenarioState": "UNCONFIRMED",
-  "toldUser": "기본값으로 넣은 것(확인 화면에 미승인 기본값 7개로 표시됨): 주차장 4곳, 주차장당 80면, 균일 요금, 30분 500원, 하루 도착 900대, 주차 안내 없음, 도로 혼잡 반영 안 함. 사용자 요청의 '밤' 조건은 서버가 다루지 않아 뺐으며, 거주자(Resident)는 19시 도착·다음날 아침까지 머무는 유형으로 모델링되어 밤 수요는 그 유형으로만 반영된다. 이용자 구성 1:1:1 은 [Commuter, Shopper, Resident] 로 옮겼다. 확인은 http://localhost:8092/confirm.html 에서 사람이 해야 한다.",
-  "stoppedBecause": "build_scenario 성공으로 state=UNCONFIRMED. get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻었고, 확인·실행은 사람만 하므로 멈춤.",
-  "difficulties": "'밤'은 사용자 문제의 핵심인데 브로커가 환경 조건으로 받지 않아 빼야 했다 — 서버 환경 조건 목록의 time-of-day-demand 와 같은 뜻인지 불분명했다. 또 guidanceMode·baseFeePer30Min 은 처음 plan_subtasks 에서 DEFERRED 라 나중에 따로 물어야 할 수 있었는데, 질문 수를 줄이려고 첫 묶음에 조건부 질문으로 함께 넣었다."
+  "toldUser": "기본값(MODEL_DEFAULT, 확인 화면에 미승인 기본값으로 표시): 주차장 4곳, 곳당 80면, 균일 요금 30분 500원, 하루 도착 900대, 주차 안내 없음, 도로 혼잡 미반영. '밤' 조건은 이 서버가 다루지 않아 뺐고, 거주자(Resident)는 19시 도착·다음날 아침까지 머무는 이용자로 모델링된다는 점을 가정으로 알림. 비교 값 0.2/0.4 를 실행 2벌로 구성.",
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻음 — 확인(승인)은 사람만 할 수 있어 여기서 멈춤.",
+  "difficulties": "브로커 ADJUST_REQUEST 에서 '밤' 조건 제거가 요청의 핵심(밤 주차난)을 빼는 것처럼 보였으나, 서버의 Resident 유형이 19시 도착·익일 아침 체류로 밤 수요를 이미 담고 있어 취지는 유지됨. residentPriorityShare 가 userMix 에 따라 DEFERRED 였다가 mustAskNoDefault 로 바뀌어 질문 묶음이 둘로 나뉨. plan_subtasks 에 variableValues 를 주면 origin 이 null 로 나오는데(origins 미전달 시 정상) 혼동 소지."
 }

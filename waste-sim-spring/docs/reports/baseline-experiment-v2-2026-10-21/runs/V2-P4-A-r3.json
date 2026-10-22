@@ -1,0 +1,48 @@
+{
+  "id": "V2-P4-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "spatialScale": "도심 공영주차장 15곳", "environmentConditions": ["주말 교통 혼잡"], "objective": "하루 3만 대가 몰릴 때 주차장 찾는 데 걸리는 시간"},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "mismatches/requestAdjustments 없이 MATCH. 15곳·3만 대가 서버 범위를 넘는다는 점은 브로커가 알려 주지 않았고 시뮬레이터 템플릿(lotCount 최대 12, dailyArrivals 최대 20000)에서 드러남"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "이 시뮬레이터는 공영주차장 최대 12곳, 하루 도착 차량 최대 2만 대까지만 다룹니다(15곳·3만 대는 범위 밖). 어떻게 할까요? 또 운전자는 주차장을 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 며칠치를 몇 번 반복해 볼까요? 주차면 수·요금·이용자 구성·안내 방식이나 따로 비교하고 싶은 항목은 어떻게 할까요?",
+      "keys": ["lotCount", "dailyArrivals", "maxSearchMinutes", "days", "seeds", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "guidanceMode"],
+      "answer": "그럼 되는 만큼 최대로 해줘 / 20분 / 14일, 10회 / 기본값으로 해줘"
+    },
+    {
+      "text": "12곳 × 80면에 하루 2만 대면 감당량의 362%라 서버가 실행을 막습니다. 도착 차량을 줄일까요, 주차장당 면수를 늘릴까요?",
+      "keys": ["dailyArrivals", "spacesPerLot"],
+      "answer": "그럼 되는 만큼 최대로 해줘"
+    }
+  ],
+  "rejections": [
+    "validate_answers: lotCount=15 OUT_OF_RANGE (12 이하)",
+    "validate_answers: dailyArrivals=30000 OUT_OF_RANGE (20000 이하)",
+    "build_scenario scn-daa159b0 INVALID: dailyArrivals=20000 은 12곳×80면 감당량의 362% — 거의 모든 차량이 포기하는 실험이라 실행 불가. dailyArrivals=16500(약 299%)로 낮춰 통과"
+  ],
+  "scenarioId": "scn-da89b664",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 15곳→12곳, 하루 3만 대→1만 6500대로 줄였다(서버 한도 및 수요/면수 300% 근처 제한). 도로 혼잡 반영(APPLY)과 주말 도심 혼잡 프로파일은 '주말에 길이 막힐 때'에서 정했다(DERIVED). 주차면 80면, 균일 요금 30분 500원, 이용자 구성 Commuter·Shopper·Visitor, 주차 안내 없음은 승인되지 않은 기본값. 비교 축 요청이 없어 실험 변수는 congestionProfileId=weekend-downtown 한 값으로 실행 1벌. 확인 화면 http://localhost:8092/confirm.html 에서 사람이 승인해야 함",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 함",
+  "difficulties": "브로커는 MATCH 로만 답하고 15곳·3만 대가 서버 범위를 넘는다는 것은 알려 주지 않았다. 수요/면수 차단 기준(약 300%로 추정)이 템플릿에 드러나지 않아 '되는 만큼 최대'의 정확한 상한을 몰라 16500대로 잡았다. 비교 축이 없는 요청인데 build_scenario 가 variableAnswerKey·variableValues 를 필수로 요구해 단일 값 변수로 넣었다."
+}

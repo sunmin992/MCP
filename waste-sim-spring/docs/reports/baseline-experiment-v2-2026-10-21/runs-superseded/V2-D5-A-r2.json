@@ -1,0 +1,25 @@
+{
+  "id": "V2-D5-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동을 50개 구역으로 나눔", "objective": "수거차 3대로 감당할 수 있는지", "environmentConditions": ["상가가 많음"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim", "district-waste-sim(fictional)"], "note": "bukgu: '상가가 많음' 조건 빼기, 목적을 답할 수 있는 질문(수거 못 하고 남는 양, 차량 수 등)으로 바꾸기 제안. jangnyang 은 공간 규모(원룸촌 한 블록) 불일치, parking 은 도메인 불일치."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동 전체(구역 단위)", "objective": "수거 못 하고 남는 양", "comparisonAxes": ["차량 수"]}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim(fictional)", "jangnyang-waste-sim"], "note": "사용자가 행정동 전체(구역 단위)를 골라 요청을 고친 뒤 재조회, endpoint http://localhost:8091/mcp"}
+  ],
+  "userChoice": "행정동 전체(구역 단위)로 볼게 — bukgu-district-waste-sim 의 조정안(상가 조건 제외, 목적을 '수거 못 하고 남는 양' / 비교 축 '차량 수'로)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:build_scenario"],
+  "questions": [
+    {"text": "요청 그대로 받을 서버가 없습니다. 북구 행정동 시뮬레이터(행정동 전체, 구역 단위)는 '상가가 많음' 조건을 빼고 목적을 '수거 못 하고 남는 양 / 차량 수 비교'로 바꾸면 쓸 수 있고, 장량동 시뮬레이터는 '원룸촌 한 블록' 규모로 줄여야 하며, 주차 시뮬레이터는 다른 질문이 됩니다. 어느 쪽으로 고칠까요?", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "구역은 최대 40개까지라 50개는 안 됩니다 — 몇 개로 할까요? / 구역 주거 유형 구성은 어떻게 할까요? / 상가 쓰레기도 이 수거에 포함할까요? / 구역을 차량에 어떻게 나눌까요(같은 구역 수 / 예상 작업 시간이 같게)? / 며칠치를 몇 번 반복해 볼까요? / 구역당 세대수 · 차종 · 수거 일정 · 공휴일 반영 · 적환장 · 수거 시작 시각은 어떻게 할까요?", "keys": ["zoneCount", "housingMix", "commercialHandling", "zoneAllocation", "days", "seeds", "householdsPerZone", "truckType", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes"], "answer": "그럼 되는 만큼 최대로 해줘 / 아파트 1 : 상가 1 / 이 수거에 포함해 / 작업 시간이 같게 / 28일, 10회 / 기본값으로 해줘"},
+    {"text": "수거차 3대(5톤)로는 수거일 하루에 실어야 할 양이 근무 시간 안에 실을 수 있는 양의 246%라 시뮬레이터가 실행을 막았습니다. 차량 수 · 수거 요일 · 차종을 바꿔 볼까요, 아니면 여기서 멈출까요?", "keys": ["truckCount", "scheduleMode", "truckType"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [
+    "zoneCount=50: OUT_OF_RANGE — 40 이하여야 함 (사용자 동의로 40으로 줄임)",
+    "build_scenario truckCount=3: 수거일 하루 실어야 할 양이 근무 시간 내 적재 가능량의 246% — 매번 크게 남는 실험이라 실행하지 않음 (state INVALID)"
+  ],
+  "scenarioId": "scn-59c5abbb",
+  "scenarioState": "INVALID",
+  "toldUser": "50개 구역은 상한 40을 넘어 40개로 줄였다. 구역당 600세대(상가 구역은 점포 600개), 차종 5톤, 포항 북구 현행 수거 요일(월·화·목·금), 공휴일 미반영, 적환장 미사용(소각장 왕복), 06:00 시작은 기본값으로 넣었다. 수거차 3대는 사용자 값.",
+  "stoppedBecause": "build_scenario 가 truckCount=3 에서 용량 초과(246%)로 막혀 INVALID. 사용자에게 차량 · 요일 · 차종을 바꿀지 물었으나 답이 '기본값으로 해줘'였고, 기본값(차량 2대, 5톤, 북구 현행 요일)은 이미 들어가 있거나 더 나빠서 막힘을 풀 수 없다. 사용자 질문('3대로 감당할 수 있나')에는 사전 검사로 '아니다(필요량의 약 41%만 소화)'라는 답이 나왔으므로 사용자가 지정한 값을 임의로 바꾸지 않고 멈춤.",
+  "difficulties": "브로커 1차 조회에서 '상가가 많음'을 넣을 칸(population 은 거주민용)이 애매해 environmentConditions 에 넣었고, 그 결과 조건을 빼라는 조정이 나왔지만 실제 서버는 housingMix 의 Commercial 로 상가를 다룬다. 목적 '3대로 감당 가능한가'가 카드의 질문 목록과 닿지 않아 '수거 못 하고 남는 양'으로 바꿔야 했다. 실험 변수를 truckCount 하나 값([3])으로 둔 것이 맞는지 안내가 없었다. 용량 사전 차단은 사용자의 질문에 대한 답 자체이기도 한데, 실행 가능한 시나리오로 이어 가려면 사용자 값을 바꿔야 해 '기본값으로' 답과 맞물리지 않았다."
+}

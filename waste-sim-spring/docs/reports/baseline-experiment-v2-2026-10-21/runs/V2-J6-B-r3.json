@@ -1,0 +1,12 @@
+{
+  "id": "V2-J6-B-r3",
+  "method": "B",
+  "questions": [],
+  "plannedCalls": [
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "06:00", "dischargeTimeMode": "POHANG_ACTUAL", "dischargeWindowStartMinutes": 1200, "dischargeWindowEndMinutes": 360}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "09:00", "dischargeTimeMode": "POHANG_ACTUAL", "dischargeWindowStartMinutes": 1200, "dischargeWindowEndMinutes": 360}}
+  ],
+  "toldUser": "배출 시간은 POHANG_ACTUAL(20:00~06:00, 1200~360분)로 넣었다. 나머지(30일, 30회 반복, 4동x25명, 매일 수거, 수거장 30kg, 임계 0.8, 1인 0.9kg, 교통 레이어 꺼짐, 5톤 트럭 1대)는 모두 기본값으로 두었고, 두 호출은 수거 시각만 다르다.",
+  "stoppedBecause": "요청에 필요한 값(배출 모델, 배출 창, 비교할 수거 시각 두 개)이 모두 요청에 있어 질문 없이 비교 호출 두 개를 확정했다. 도구는 실제로 부르지 않는다.",
+  "difficulties": "배출 창 종료가 06:00이고 수거도 06:00이라 경계 시각에 배출한 양이 그날 수거에 포함되는지 스키마만으로는 알 수 없다. 교통을 켤지 고민했으나 요청이 배출-수거 시각 관계만 묻고 있어 기본값(꺼짐)으로 두었다."
+}

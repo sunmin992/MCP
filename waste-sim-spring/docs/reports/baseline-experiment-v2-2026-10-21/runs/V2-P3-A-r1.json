@@ -2,20 +2,20 @@
   "id": "V2-P3-A-r1",
   "method": "A",
   "brokerCalls": [
-    {"profileSent": {"domain": "주차", "spatialScale": "동네", "environmentConditions": ["밤"], "objective": "밤에 동네 주민들이 차 댈 데가 없는 문제 완화", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["pohang-parking-sim", "bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "pohang-parking-sim 이 유일한 match. '밤' 환경 조건 빼기, 목적을 답할 수 있는 질문(거주자 우선 구획 효과)으로 바꾸기 제안(changesPurpose=false). 쓰레기 서버 둘은 changesPurpose=true."},
-    {"profileSent": {"domain": "주차", "spatialScale": "동네", "objective": "거주자 우선 구획 효과", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "mismatches 없음. nextStep: 브로커 재호출 금지, http://localhost:8092/mcp 로 이동."}
+    {"profileSent": {"domain": "주차", "spatialScale": "한 동네", "environmentConditions": ["밤"], "objective": "밤에 주민들이 차 댈 데가 없는 문제 해소", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["pohang-parking-sim", "bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "pohang-parking-sim 은 '밤' 조건 제거, 목적을 답할 수 있는 질문(거주자 우선 구획 효과 등)으로 바꾸면 사용 가능(changesPurpose=false). 쓰레기 수거 서버 둘은 도메인이 달라 changesPurpose=true."},
+    {"profileSent": {"domain": "주차", "spatialScale": "한 동네", "objective": "거주자 우선 구획 효과", "comparisonAxes": ["공영주차장 거주자 우선 구획 비율"], "population": ["동네 주민"]}, "verdict": "MATCH", "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "조정 후 mismatch 없이 MATCH. endpoint http://localhost:8092/mcp"}
   ],
-  "userChoice": "pohang-parking-sim (공영주차장 쪽으로 볼게 — '밤' 조건 빼고 목적을 '거주자 우선 구획 효과'로 고침)",
+  "userChoice": "공영주차장 쪽으로 볼게 (pohang-parking-sim, '밤' 조건 제거 + 목적을 '거주자 우선 구획 효과'로 조정)",
   "serverCalled": "pohang-parking-sim",
   "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
   "questions": [
-    {"text": "그대로 받을 서버가 없습니다. 공영주차장 시뮬레이터(pohang-parking-sim)를 쓰려면 '밤' 조건을 빼고 목적을 '거주자 우선 구획 효과'로 바꿔야 합니다. 쓰레기수거 서버 둘은 다른 질문이 됩니다. 어느 쪽으로 고칠까요?", "keys": [], "answer": "공영주차장 쪽으로 볼게"},
-    {"text": "시나리오를 만들려면 정해야 할 것이 있습니다. (1) 주차장 이용자 구성은? (출퇴근/쇼핑/방문/거주자 — 거주자 우선 구획을 보려면 거주자가 있어야 합니다) (2) 거주자 우선 구획 비율은 몇 %로, 어떤 값들을 비교할까요? (3) 운전자는 몇 분까지 찾다가 포기하나요? (기본값 없음) (4) 며칠치를, 몇 번 반복할까요? (5) 주차장 수·면수·요금·안내 방식·하루 도착 대수·도로 혼잡 반영은 어떻게 할까요?", "keys": ["userMix", "residentPriorityShare", "maxSearchMinutes", "days", "seeds", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "guidanceMode", "dailyArrivals", "congestionMode"], "answer": "이용자 구성: 출퇴근 1 : 쇼핑 1 : 거주자 1 / 거주자 우선 비율: 20%와 40%를 비교해 줘 / 탐색 포기 시간: 15분 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"}
+    {"text": "요청을 그대로 받을 서버가 없습니다. 공영주차장 시뮬레이터(pohang-parking-sim)는 '밤' 조건을 빼고 목적을 '거주자 우선 구획 효과'로 바꾸면 쓸 수 있고, 쓰레기 수거 서버 두 곳(bukgu-district-waste-sim, jangnyang-waste-sim)은 도메인이 달라 다른 질문이 됩니다. 어느 쪽으로 요청을 고칠까요?", "keys": [], "answer": "공영주차장 쪽으로 볼게"},
+    {"text": "몇 가지 정해 주세요: ① 주차장 이용자 구성(출퇴근/쇼핑/방문/거주자 비중) ② 거주자 우선 구획 비율(0~0.9, 비교할 값들) ③ 운전자가 몇 분 찾다가 포기하는지(1~60분, 기본값 없음) ④ 기간(일)과 반복 횟수 ⑤ 그 밖에 주차장 수(기본 4곳), 면수(80면), 요금(균일, 30분 500원), 하루 도착 차량(900대), 안내 방식(없음), 도로 혼잡 반영(안 함)은 어떻게 할까요?", "keys": ["userMix", "residentPriorityShare", "maxSearchMinutes", "days", "seeds", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "dailyArrivals", "guidanceMode", "congestionMode"], "answer": "출퇴근 1 : 쇼핑 1 : 거주자 1 / 20%와 40%를 비교해 줘 / 15분 / 14일, 10회 / 그 밖은 기본값으로 해줘"}
   ],
   "rejections": [],
   "scenarioId": "scn-af98761a",
   "scenarioState": "UNCONFIRMED",
-  "toldUser": "기본값(MODEL_DEFAULT, 미승인 기본값 7개)으로 넣음: 주차장 4곳, 곳당 80면, 균일 요금 30분 500원, 하루 도착 900대, 안내 없음(NONE), 도로 혼잡 미반영(IGNORE). '밤' 조건은 빼고 거주자(Resident, 19시 도착·다음날 아침까지) 유형으로 야간 수요를 나타냄. 확인 화면: http://localhost:8092/confirm.html",
-  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED, runCount=2). get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 여기서 멈춤.",
-  "difficulties": "userMix 가 비율이 아니라 목록 반복으로 비중을 정해 1:1:1 은 [Commuter,Shopper,Resident] 로 넣음. '밤' 조건은 카드에 없어 뺐지만 Resident 의 19시 도착으로 대체되는지는 응답만으로 확실치 않음. 실험 변수(residentPriorityShare)를 values 에 넣지 않고 variableValues 로만 줬는데 통과함."
+  "toldUser": "주차장 수 4곳, 면수 80면, 요금 균일(FLAT) 30분 500원, 하루 도착 900대, 안내 없음(NONE), 도로 혼잡 미반영(IGNORE) 은 사용자가 '기본값으로' 라고 해서 템플릿 기본값(MODEL_DEFAULT)으로 넣었다 — 확인 화면에 미승인 기본값 7개로 표시됨. 비교 변수 residentPriorityShare=[0.2, 0.4], 실행 2벌.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html)를 얻음. 확인·실행은 사람만 하므로 멈춤.",
+  "difficulties": "브로커 첫 응답의 목적 mismatch 를 사용자에게 어떻게 조정할지(어느 '답할 수 있는 질문'으로 바꿀지) 직접 고르게 해야 하는지 애매했다 — 비교 축이 이미 거주자 우선 구획이어서 '거주자 우선 구획 효과'로 맞췄다. 사용자의 '밤' 관심은 Resident 유형(19시 도착·다음날 아침까지)으로 반영되며 별도 시간대 조건은 없다. build_scenario 에서 실험 변수는 values 가 아니라 variableValues 로만 주고, origins 에 USER 로 넣었다."
 }

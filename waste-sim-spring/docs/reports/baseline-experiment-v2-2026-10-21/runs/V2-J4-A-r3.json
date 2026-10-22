@@ -1,0 +1,21 @@
+{
+  "id": "V2-J4-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거가 다 안 끝나는 날이 생기는지", "comparisonAxes": ["수거차 종류"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "목적·비교축이 어느 카드와도 닿지 않음. 장량동 서버 제안: 목적을 '수거 완료 시각' 등으로, 비교축을 '차종'으로."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "objective": "수거 완료 시각", "comparisonAxes": ["차종"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "장량동 서버가 mismatch 없이 추천됨"}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록, 목적=수거 완료 시각, 비교축=차종으로 고침)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. 후보: (1) 장량동 생활쓰레기 수거 시뮬레이터(원룸촌 블록) — 목적을 '수거 완료 시각'·'최대 적재량' 등으로, 비교 축을 '차종'으로 고치면 쓸 수 있음 (2) 포항 북구 행정동 시뮬레이터 — 목적을 '수거 못 하고 남는 양' 등으로, 비교 축을 '차종'으로 (3) 주차 시뮬레이터 — 다른 질문이 됨. 어느 쪽으로 어떻게 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 쪽으로 볼게 — 그쪽 제안대로 고쳐 줘"},
+    {"text": "5톤 대 1톤을 비교하겠습니다. 다음을 알려 주세요: 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg, 기본값 없음) / 수거 시각 / 수거차 대수 / 교통량 반영 여부 / 이동시간 계산 방식(구간 상수·교통구역 근사) / 건물 수(1~26동) / 한 동 세대 수 / 거주민 직업 구성 / 기간(일) / 반복 횟수", "keys": ["routeAvailableCapacityKg", "collectionTimeMinutes", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds"], "answer": "적재 몫 120kg, 수거 시각 12시, 30일·10회, 그 밖은 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-df5cad66",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣음(승인 안 된 기본값): 수거차 1대, 교통 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 4동, 동당 25세대, 직업 구성 BlueCollar/Student/Housewife. 확인 화면 http://localhost:8090/confirm.html 에서 승인해 달라고 안내.",
+  "stoppedBecause": "build_scenario 성공, state=UNCONFIRMED. get_scenario_status 로 확인 화면 주소를 얻었고, 확인은 사람만 할 수 있어 멈춤.",
+  "difficulties": "1) 첫 브로커 응답에서 '다 안 끝나는 날'에 해당하는 목적이 장량동 목록에 직접 없어 '수거 완료 시각'으로 골랐음(북구의 '수거 못 하고 남는 양'이 더 가까울 수 있음). 2) 적재 몫 120kg 이 두 차종 모두에 똑같이 들어가므로, 차종 정격용량 차이가 결과에 반영되는지 불분명함 — 5톤/1톤 비교가 적재 몫에 덮일 수 있음."
+}

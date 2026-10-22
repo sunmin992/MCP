@@ -1,0 +1,40 @@
+{
+  "id": "V2-D2-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "쓰레기가 얼마나 쌓이는지", "comparisonAxes": ["수거 요일"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "spatialScale 와 population 은 요청에 없어 비웠다. 북구 행정동 서버가 모든 조건 일치(mismatch 없음)로 추천됨. 나머지 두 후보는 환경 조건·목적 불일치(하나는 fictional)."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "몇 가지 정해 주세요. (1) 어떤 수거 일정끼리 비교할까요? (포항 북구 현행 월·화·목·금 / 매일(일요일 제외) / 격일 월·수·금 / 요일 직접 지정) (2) 추석 연휴 같은 공휴일에 수거일이 걸리면 건너뛸까요, 다음 날 대신 수거할까요? (3) 며칠치를 몇 번 반복해 볼까요? (기본 2026-09-21부터 28일, 30회) (4) 그 밖에 구역 수·구역당 세대수·주거 유형 구성·차량 크기와 대수·구역 배정 방식·적환장 사용·수거 시작 시각은 어떻게 할까요? 따로 없으면 기본값으로 넣겠습니다.",
+      "keys": ["scheduleMode", "holidayPolicy", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "zoneAllocation", "transferMode", "collectionStartMinutes"],
+      "answer": "비교할 수거 요일: 지금 포항 북구 일정(월화목금)과 매일 수거 / 공휴일엔 건너뛰어 / 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-7493136a",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "공휴일 반영(holidayMode=APPLY)은 '추석 연휴가 낀 주'에서 정한 값(DERIVED)이다. 구역 8개, 구역당 600세대, 주거 구성 아파트·단독·원룸, 5톤 차량 2대, 구역 배정 같은 구역 수, 적환장 미사용(소각장 왕복), 수거 시작 06:00 은 사용자가 값 없이 넘겨 템플릿 기본값(MODEL_DEFAULT)으로 넣었다 — 확인 화면에 승인하지 않은 기본값 8개로 따로 표시된다. 확인 화면: http://localhost:8091/confirm.html",
+  "stoppedBecause": "build_scenario 성공으로 state 가 UNCONFIRMED 가 됐고 get_scenario_status 로 확인 화면 주소를 얻었다. 승인과 실행은 사람만 한다.",
+  "difficulties": "첫 plan_subtasks 에서 zoneAllocation 은 DEFERRED(truckCount 대기)였다가 기본값을 채운 두 번째 계산에서 UNFILLED 로 드러났다 — 묶음 질문의 '그 밖 기본값' 답으로 덮었다. validate_answers 가 원문 문자열을 받으라고 해 목록값(housingMix)을 JSON 문자열로 보냈는데 통과했다. 비교 변수 scheduleMode 의 두 값은 validate_answers 에 따로 보내야 했다."
+}

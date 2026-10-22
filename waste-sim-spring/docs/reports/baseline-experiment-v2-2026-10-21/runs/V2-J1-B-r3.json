@@ -1,0 +1,19 @@
+{
+  "id": "V2-J1-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "설정을 잡기 위해 몇 가지 여쭙겠습니다. (1) 비교할 수거 시각 후보는 몇 시들인가요? (2) 블록의 건물 수와 건물당 거주자 수는요? (3) 차량(차종·대수)은 어떻게 할까요? (4) 이 경로에 배정된 트럭 적재 몫(kg)이 따로 있나요? (5) '학생이 많다'를 직업 구성으로 어떻게 나타낼까요(예: 학생 몇 : 다른 직업 몇)? (6) 시뮬레이션 기간(일)과 반복 횟수는요?",
+      "keys": ["collectionTime", "numBuildings", "residentsPerBuilding", "truckType", "truckCount", "routeAvailableCapacityKg", "occupationMix", "days", "seeds"],
+      "answer": "(1) 09시, 12시, 15시 (2) 기본값으로 (3) 기본값으로 (4) 150kg (5) 학생 위주로 학생 2 : 주부 1 (6) 10일, 5회"
+    }
+  ],
+  "plannedCalls": [
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "09:00", "days": 10, "seeds": 5, "occupationMix": ["Student", "Student", "Housewife"], "trafficEnabled": true, "trafficProfileId": "jangryang-weekday", "routeAvailableCapacityKg": 150}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "12:00", "days": 10, "seeds": 5, "occupationMix": ["Student", "Student", "Housewife"], "trafficEnabled": true, "trafficProfileId": "jangryang-weekday", "routeAvailableCapacityKg": 150}},
+    {"name": "run_waste_simulation", "arguments": {"collectionTime": "15:00", "days": 10, "seeds": 5, "occupationMix": ["Student", "Student", "Housewife"], "trafficEnabled": true, "trafficProfileId": "jangryang-weekday", "routeAvailableCapacityKg": 150}}
+  ],
+  "toldUser": "건물 4동 x 25명, 대형 5톤 1대, 매일 수거, 이동시간 계산은 LEGACY_CONSTANT(건물 간 8분) 기본값을 그대로 썼다. 평일 교통은 trafficEnabled=true와 스키마 예시의 'jangryang-weekday' 프로필로 넣었는데, 프로필 id가 실제로 있는지는 확인하지 않은 가정이다. 학생 2 : 주부 1은 occupationMix를 [Student, Student, Housewife]로 나타낸 것이고, 이 배열이 비율로 읽힌다는 것도 가정이다.",
+  "stoppedBecause": "사용자 답으로 인자가 모두 정해졌다. 규칙에 따라 도구는 부르지 않고, 비교할 세 시각마다 호출을 하나씩 적은 뒤 사람의 확인을 기다리며 멈췄다.",
+  "difficulties": "occupationMix가 비율 배열인지 이름 목록인지 스키마에 적혀 있지 않다. 교통 반영에 travelTimeMode를 바꿔야 하는지(LEGACY_CONSTANT에서도 교통이 결과에 반영되는지)도 스키마만으로는 알 수 없다. ZONE_PROXY_HYBRID는 intraZoneTravelMinutes를 따로 정해야 해서 기본값을 유지했다. 'jangryang-weekday'는 예시로만 나와 있다."
+}

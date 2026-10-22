@@ -1,0 +1,53 @@
+{
+  "id": "V2-P1-B-r3",
+  "method": "B",
+  "questions": [
+    {
+      "text": "안내 없음과 실시간 앱 두 경우를 비교하려고 합니다. 몇 가지만 정해 주세요: (1) 주차장 한 곳의 면수 (2) 요금 정책과 30분당 요금 (3) 몇 분 안에 못 찾으면 포기하는 것으로 볼지 (4) 앱의 빈자리 갱신 주기 (5) 도로 혼잡을 반영할지 (6) 시뮬레이션 기간과 반복 횟수",
+      "keys": ["spacesPerLot", "pricingPolicy", "baseFeePer30Min", "maxSearchMinutes", "guidanceRefreshMinutes", "congestionEnabled", "days", "seeds"],
+      "answer": "주차장마다 80면 / 균일 500원 / 탐색 포기 시간 15분 / 앱 갱신 주기 5분 / 도로 혼잡 반영 안 해 / 14일, 10회"
+    }
+  ],
+  "plannedCalls": [
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "lotCount": 4,
+        "spacesPerLot": 80,
+        "pricingPolicy": "FLAT",
+        "baseFeePer30Min": 500,
+        "userMix": ["Commuter", "Shopper", "Visitor"],
+        "dailyArrivals": 900,
+        "guidanceMode": "NONE",
+        "congestionEnabled": false,
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10,
+        "lotSpacingMinutes": 3.0,
+        "fullLotCircleMinutes": 2.0
+      }
+    },
+    {
+      "name": "run_parking_simulation",
+      "arguments": {
+        "lotCount": 4,
+        "spacesPerLot": 80,
+        "pricingPolicy": "FLAT",
+        "baseFeePer30Min": 500,
+        "userMix": ["Commuter", "Shopper", "Visitor"],
+        "dailyArrivals": 900,
+        "guidanceMode": "REALTIME_APP",
+        "guidanceRefreshMinutes": 5,
+        "congestionEnabled": false,
+        "maxSearchMinutes": 15,
+        "days": 14,
+        "seeds": 10,
+        "lotSpacingMinutes": 3.0,
+        "fullLotCircleMinutes": 2.0
+      }
+    }
+  ],
+  "toldUser": "비교 축은 요청에서 읽어 안내 방식 NONE 대 REALTIME_APP 으로 잡았다. 이용자 구성(Commuter·Shopper·Visitor), 하루 도착 900대, 주차장 간 이동 3분, 만차 한 바퀴 2분은 기본값으로 넣었다. 두 실행은 안내 방식(과 앱의 갱신 주기)만 다르고 나머지는 같다. 배회 감소는 두 결과의 탐색 시간·포기 통계 차이로 본다.",
+  "stoppedBecause": "인자를 다 정해서 plannedCalls 두 개(안내 없음, 실시간 앱)를 적었다. 실행은 사람이 설정을 확인한 뒤에 한다.",
+  "difficulties": "maxSearchMinutes 는 기본값이 없어서 꼭 물어봐야 했다. 안 정하면 포기 통계가 나오지 않을 수 있다. 비교 대상은 요청에 이미 드러나 있어서 따로 묻지 않았다. guidanceRefreshMinutes 는 NONE 실행에서는 의미가 없어 그 호출에서는 뺐다."
+}

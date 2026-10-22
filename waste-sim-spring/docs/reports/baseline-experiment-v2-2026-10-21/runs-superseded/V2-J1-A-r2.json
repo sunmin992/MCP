@@ -1,0 +1,39 @@
+{
+  "id": "V2-J1-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["평일 교통량"], "objective": "민원이 가장 적은 쓰레기 수거 시각", "comparisonAxes": ["수거 시각"], "population": ["학생이 많음"]},
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"],
+      "note": "jangnyang-waste-sim 이 모든 축에서 맞아 MATCH. 나머지 둘은 공간 규모·거주민·교통·목적 불일치(district-waste-sim 은 가상 서버)."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "시나리오를 만들려면 다음을 정해야 합니다. (1) 비교할 수거 시각은 언제들인가요? (2) 건물은 몇 동(1~26), 한 동에 몇 세대인가요? (3) 수거차량 크기(5톤/2.5톤/1톤)와 대수는? (4) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (기본값 없음) (5) 거주민 직업 구성은 어떻게 할까요? (BlueCollar/Student/Housewife/NightShift/OfficeWorker) (6) 며칠치를 몇 번 반복할까요? (7) 교통 프로파일(평일 실측/통행량 기반)과 이동시간 계산 방식(구간 상수/교통구역 근사)은? 정하지 않은 항목은 기본값으로 넣겠습니다.",
+      "keys": ["collectionTimeMinutes", "numBuildings", "residentsPerBuilding", "truckType", "truckCount", "routeAvailableCapacityKg", "occupationMix", "days", "seeds", "trafficProfileId", "travelTimeMode"],
+      "answer": "비교할 수거 시각: 09시, 12시, 15시 / 건물·세대: 기본값으로 / 차량: 기본값으로 / 적재 몫: 150kg / 직업 구성: 학생 위주로 학생 2 : 주부 1 / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-c80c320c",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것: 차량 LARGE_5TON 1대, 건물 4동×25세대, 교통 프로파일 jangryang-weekday, 이동시간 LEGACY_CONSTANT(구간 상수). trafficMode=APPLY 는 '평일 교통량'에서 정했다(DERIVED). 직업 구성 '학생 2 : 주부 1'은 [Student, Student, Housewife] 로 옮겼다. 확인 화면 http://localhost:8090/confirm.html 에서 사람이 승인해야 실행된다.",
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음. 승인은 사람만 한다.",
+  "difficulties": "교통을 반영하는데 이동시간 기본값이 LEGACY_CONSTANT 라서 교통 프로파일이 결과에 실제로 반영되는지 도구 설명만으로는 분명하지 않았다. 브로커 nextStep 이 run_scenario_by_token 까지 안내하지만 과제 규칙상 실행은 하지 않았다."
+}
