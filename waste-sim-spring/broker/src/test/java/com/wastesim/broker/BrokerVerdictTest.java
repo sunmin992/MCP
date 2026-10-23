@@ -347,6 +347,20 @@ class BrokerVerdictTest {
     }
 
     @Test
+    void 등록된_서버가_모두_꺼져_있으면_NONE_과_함께_꺼져_있다고_알린다() throws Exception {
+        // 지어낸 후보뿐이라고 하면 사용자는 서버가 없는 줄 안다 — 다시 켜면 쓸 수 있는 서버다.
+        var allDown = new FindSimulatorsTool(new CandidateMatcher(registry), mapper, e -> false);
+        JsonNode out = mapper.readTree(allDown.call(그림의_요청()).result().toString());
+        assertEquals("NONE", out.path("verdict").asText());
+        assertEquals("jangnyang-waste-sim", out.path("unreachable").fieldNames().next(), out.toString());
+        String said = out.path("note").asText() + " " + out.path("nextStep").asText();
+        assertTrue(said.contains("응답하지 않"), said);
+        assertTrue(said.contains("jangnyang-waste-sim"), "꺼진 서버를 이름으로 알려야 한다: " + said);
+        assertFalse(said.contains("지어낸 후보뿐"), said);
+        assertFalse(said.contains("등록돼 있지 않습니다"), said);
+    }
+
+    @Test
     void 서버가_응답하면_그대로_MATCH_다() throws Exception {
         var allUp = new FindSimulatorsTool(new CandidateMatcher(registry), mapper, e -> true);
         JsonNode out = mapper.readTree(allUp.call(그림의_요청()).result().toString());

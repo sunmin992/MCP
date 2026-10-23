@@ -156,11 +156,19 @@ public class FindSimulatorsTool implements McpToolProvider {
                 matcher.outsideDomain(profile).stream().filter(callable).forEach(suggestions::add);
                 if (suggestions.isEmpty()) {
                     root.put("verdict", "NONE");
-                    root.put("nextStep", "사용자에게 지금 쓸 수 있는 시뮬레이터가 없다고 전하십시오.");
                     callLog.info("[4 매칭] NONE — 부를 수 있는 서버 없음");
-                    root.put("note", "부를 수 있는 시뮬레이터 서버가 등록돼 있지 않습니다"
-                            + (matches.isEmpty() ? "" : " — 도메인이 맞는 것은 지어낸 후보뿐입니다")
-                            + ". list_candidates 로 등록된 서버를 확인하십시오.");
+                    if (!down.isEmpty()) {
+                        // 서버는 있는데 꺼져 있다. "없다" 고 하면 사용자는 다시 켜면 될 일을 포기한다.
+                        root.put("nextStep", "사용자에게 등록된 시뮬레이터 " + down.keySet()
+                                + " 가 지금 응답하지 않아 쓸 수 없다고 전하십시오. 서버가 다시 켜지면 같은 요청으로 다시 조회합니다.");
+                        root.put("note", "등록된 시뮬레이터 서버 " + down.keySet() + " 가 지금 응답하지 않습니다"
+                                + " — 꺼져 있거나 연결할 수 없습니다. 이 밖에 부를 수 있는 서버는 없습니다.");
+                    } else {
+                        root.put("nextStep", "사용자에게 지금 쓸 수 있는 시뮬레이터가 없다고 전하십시오.");
+                        root.put("note", "부를 수 있는 시뮬레이터 서버가 등록돼 있지 않습니다"
+                                + (matches.isEmpty() ? "" : " — 도메인이 맞는 것은 지어낸 후보뿐입니다")
+                                + ". list_candidates 로 등록된 서버를 확인하십시오.");
+                    }
                 } else {
                     root.put("verdict", "ADJUST_REQUEST");
                     root.put("nextStep", "사용자에게 requestAdjustments 를 전하고 요청을 고칠지 물으십시오. "
