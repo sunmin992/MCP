@@ -107,6 +107,11 @@ public class RunScenarioByTokenTool implements McpToolProvider {
                     "이미 실행 중이거나 시나리오 상태가 바뀌었습니다. 상태를 다시 확인하십시오.");
         }
         try {
+            // 확인 화면에서 승인했어도 사용자가 말한 값은 아니다. 결과만 받은 LLM 이 다시 알릴 수 있게
+            // 엔진의 가정 메모 앞에 싣는다 — 행정동 · 주차 서버와 같은 문장이다.
+            var defaults = found.get().pes().unapprovedDefaults();
+            String defaultsNote = defaults.isEmpty() ? null
+                    : "사용자가 말하지 않고 기본값으로 정해 확인 화면에서 승인된 값: " + defaults;
             var runs = mapper.createArrayNode();
             for (SimulationConfig cfg : scenario.runs()) {
                 // 시나리오가 확인한 반복 횟수(cfg.getSeeds())만큼 돌려 집계한다.
@@ -159,7 +164,9 @@ public class RunScenarioByTokenTool implements McpToolProvider {
                 node.put("massBalanceErrorKg", r.getMassBalanceErrorKg());
                 node.set("allTotals", mapper.valueToTree(r.getAllTotals()));
                 node.set("dataQualityFlags", mapper.valueToTree(r.getDataQualityFlags()));
-                node.set("assumptionNotes", mapper.valueToTree(r.getAssumptionNotes()));
+                var notes = node.putArray("assumptionNotes");
+                if (defaultsNote != null) notes.add(defaultsNote);
+                r.getAssumptionNotes().forEach(notes::add);
                 node.put("coordinateQuality", r.getCoordinateQualityLabel());
             }
 

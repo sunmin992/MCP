@@ -273,6 +273,33 @@ class RunScenarioByTokenToolTest {
     }
 
     @Test
+    void 기본값으로_승인된_값이_결과의_가정_메모에_실린다() throws Exception {
+        // 확인 화면에서 승인했어도 사용자가 말한 값은 아니다. 결과만 받은 LLM 이 그 값을 사용자에게
+        // 다시 알릴 수 있어야 한다 — 행정동 · 주차 서버와 같은 문장으로 싣는다.
+        var args = mapper.createObjectNode();
+        var values = args.putObject("values");
+        values.put("truckType", "SMALL_1TON");
+        values.put("days", 5);
+        values.put("seeds", 2);
+        values.put("routeAvailableCapacityKg", 150);
+        args.putObject("origins").put("truckType", "MODEL_DEFAULT");
+        args.put("variableAnswerKey", "collectionTimeMinutes");
+        args.putArray("variableValues").add(360);
+        var b = mapper.readTree(buildTool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
+        var confirmArgs = mapper.createObjectNode();
+        confirmArgs.put("scenarioId", b.path("scenarioId").asText());
+        var c = mapper.readTree(confirmTool.call(confirmArgs).result().toString());
+
+        var out = mapper.readTree(runTool.call(
+                runArgs(c.path("scenarioId").asText(), c.path("confirmToken").asText())).result().toString());
+        for (var run : out.path("runs")) {
+            String notes = run.path("assumptionNotes").toString();
+            assertTrue(notes.contains("기본값으로 정해 확인 화면에서 승인된 값") && notes.contains("truckType=SMALL_1TON"), notes);
+            assertFalse(notes.contains("days="), "사용자가 말한 값은 싣지 않는다: " + notes);
+        }
+    }
+
+    @Test
     void 스키마가_토큰을_필수로_요구한다() throws Exception {
         var schema = mapper.readTree(runTool.inputSchemaJson());
         assertEquals("run_scenario_by_token", runTool.toolName());
