@@ -366,7 +366,8 @@
       "landlord-inspection",
       "weekday-schedule",
       "holidays",
-      "monthly-variation"
+      "monthly-variation",
+      "discharge-time"
     ],
     "answerableQuestions": [
       "collection-time",
@@ -466,6 +467,17 @@
           "월별",
           "계절"
         ]
+      },
+      {
+        "key": "discharge-time",
+        "matchKeys": [
+          "배출 시간",
+          "배출시간",
+          "배출 시각",
+          "내놓는 시간",
+          "공식 배출"
+        ],
+        "model": "dischargeTimeMode=POHANG_ACTUAL — 배출 허용 창(기본 20:00~06:00) 안에서만 배출한다. 이 모드에서는 직업이 배출 시각에 영향을 주지 않는다"
       }
     ],
     "objectiveMatchKeys": [
@@ -476,7 +488,10 @@
           "수거 시각",
           "수거시각",
           "몇 시",
-          "시각"
+          "시각",
+          "시에 하는",
+          "시에 수거",
+          "시에 걷"
         ]
       },
       {

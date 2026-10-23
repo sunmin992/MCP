@@ -57,7 +57,7 @@ class ScenarioFlowTest {
         JsonNode built = call("build_scenario", """
             {"values":{"zoneCount":8,"householdsPerZone":600,"housingMix":["Apartment","Detached","Studio"],
                        "truckType":"LARGE_5TON","zoneAllocation":"EQUAL_COUNT","scheduleMode":"POHANG_BUKGU",
-                       "holidayMode":"IGNORE","transferMode":"IGNORE","collectionStartMinutes":360,"days":7,"seeds":1},
+                       "holidayMode":"IGNORE","transferMode":"IGNORE","collectionStartMinutes":360,"shiftMinutes":480,"days":7,"seeds":1},
              "origins":{"truckCount":"USER"},
              "variableAnswerKey":"truckCount","variableValues":[2,1]}
             """);
@@ -77,11 +77,11 @@ class ScenarioFlowTest {
         JsonNode built = call("build_scenario", """
             {"values":{"zoneCount":8,"householdsPerZone":600,"housingMix":["Apartment","Detached","Studio"],
                        "truckType":"LARGE_5TON","truckCount":1,"holidayMode":"APPLY","holidayPolicy":"NEXT_DAY",
-                       "transferMode":"APPLY","transferRoundTripMinutes":30,"collectionStartMinutes":360,
+                       "transferMode":"APPLY","transferRoundTripMinutes":30,"collectionStartMinutes":360,"shiftMinutes":480,
                        "days":28,"seeds":3},
              "origins":{"zoneCount":"USER","householdsPerZone":"MODEL_DEFAULT","housingMix":"USER","truckType":"MODEL_DEFAULT",
                         "truckCount":"USER","holidayMode":"USER","holidayPolicy":"USER","transferMode":"USER",
-                        "transferRoundTripMinutes":"USER","collectionStartMinutes":"MODEL_DEFAULT","days":"USER","seeds":"USER"},
+                        "transferRoundTripMinutes":"USER","collectionStartMinutes":"MODEL_DEFAULT","shiftMinutes":"MODEL_DEFAULT","days":"USER","seeds":"USER"},
              "variableAnswerKey":"scheduleMode","variableValues":["POHANG_BUKGU","DAILY"]}
             """);
         assertThat(built.path("valid").asBoolean()).as(built.toString()).isTrue();

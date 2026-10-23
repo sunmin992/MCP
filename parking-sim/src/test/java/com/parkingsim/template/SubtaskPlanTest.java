@@ -19,8 +19,8 @@ class SubtaskPlanTest {
     }
 
     @Test
-    void 템플릿은_15개이고_SES_식별자가_있다() {
-        assertThat(catalog.all()).hasSize(15);
+    void 템플릿은_16개이고_SES_식별자가_있다() {
+        assertThat(catalog.all()).hasSize(16);
         assertThat(catalog.sesId()).isEqualTo("pohang-parking-ses");
     }
 
@@ -71,6 +71,6 @@ class SubtaskPlanTest {
                 "congestionMode", "IGNORE", "maxSearchMinutes", 15, "days", 7, "seeds", 5));
         SubtaskPlan plan = planner.plan(a);
         assertThat(plan.complete()).isTrue();
-        assertThat(plan.counts().get(SubtaskStatus.NOT_GENERATED)).isEqualTo(6);
+        assertThat(plan.counts().get(SubtaskStatus.NOT_GENERATED)).isEqualTo(7);
     }
 }

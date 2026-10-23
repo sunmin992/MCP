@@ -206,6 +206,22 @@
       "nodeKind": "SPECIALIZATION"
     },
     {
+      "templateId": "jn.dischargeTimeMode",
+      "answerKey": "dischargeTimeMode",
+      "valueType": "ENUM",
+      "generateWhen": "ALWAYS",
+      "allowed": [
+        "PAPER_BASELINE",
+        "POHANG_ACTUAL"
+      ],
+      "defaultValue": "PAPER_BASELINE",
+      "defaultBasis": "dischargeTimeMode 초기값 — 직업별 배출 시각(논문 기준선)",
+      "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+      "configField": "dischargeTimeMode",
+      "sesPath": "건물/거주민집합/배출시간",
+      "nodeKind": "SPECIALIZATION"
+    },
+    {
       "templateId": "jn.days",
       "answerKey": "days",
       "valueType": "INTEGER",

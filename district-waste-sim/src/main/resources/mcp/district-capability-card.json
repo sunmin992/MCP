@@ -40,6 +40,7 @@
       {"path": "적환장결합", "kind": "COUPLING_CONDITION", "field": "transferEnabled", "matchKeys": ["적환장"], "default": false},
       {"path": "적환장결합/왕복시간", "kind": "ATTRIBUTE", "field": "transferRoundTripMinutes", "matchKeys": ["적환장 왕복", "왕복 시간"], "generateWhen": "transferEnabled", "default": null},
       {"path": "실험프레임/수거시작시각", "kind": "ATTRIBUTE", "field": "collectionStartMinutes", "matchKeys": ["수거 시작 시각", "시작 시각", "수거 시각"], "range": {"min": 0, "max": 1439}, "default": 360},
+      {"path": "수거차량집합/근무시간", "kind": "ATTRIBUTE", "field": "shiftMinutes", "matchKeys": ["근무 시간", "근무시간", "작업 시간", "근무"], "range": {"min": 120, "max": 720}, "default": 480},
       {"path": "실험프레임/기간", "kind": "ATTRIBUTE", "field": "days", "matchKeys": ["기간", "며칠"], "range": {"min": 7, "max": 365}, "default": 28},
       {"path": "실험프레임/반복", "kind": "ATTRIBUTE", "field": "seeds", "matchKeys": ["반복 횟수"], "range": {"min": 1, "max": 100}, "default": 30}
     ]
@@ -49,7 +50,7 @@
     "period": {"days": {"min": 7, "max": 365, "default": 28}, "startDate": "2026-09-21"},
     "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
     "environment": ["weekday-schedule", "holidays", "transfer-station"],
-    "answerableQuestions": ["uncollected", "wait-days", "schedule", "truck-count", "truck-type", "collection-time", "holiday-effect", "transfer-effect", "zone-allocation"],
+    "answerableQuestions": ["uncollected", "wait-days", "schedule", "truck-count", "truck-type", "collection-time", "holiday-effect", "transfer-effect", "zone-allocation", "shift"],
     "scenarioTypes": ["schedule-compare", "fleet-sweep", "holiday-week", "transfer-station", "housing-mix"],
     "tools": [
       {"name": "get_templates", "what": "서브태스크 템플릿", "status": "OK"},
@@ -73,7 +74,8 @@
       {"key": "collection-time", "label": "수거 시작 시각", "matchKeys": ["수거 시각", "몇 시", "시작 시각", "시각"]},
       {"key": "holiday-effect", "label": "공휴일 · 연휴 영향", "matchKeys": ["공휴일", "명절", "연휴", "추석"]},
       {"key": "transfer-effect", "label": "적환장 효과", "matchKeys": ["적환장"]},
-      {"key": "zone-allocation", "label": "구역 배정 방식", "matchKeys": ["구역 배정", "구역 나누", "구역을 나"]}
+      {"key": "zone-allocation", "label": "구역 배정 방식", "matchKeys": ["구역 배정", "구역 나누", "구역을 나"]},
+      {"key": "shift", "label": "근무 시간 안에 끝나는지", "matchKeys": ["근무 시간", "근무시간", "작업 시간", "다 끝나", "끝나는지", "끝날까"]}
     ]
   },
   "quality": {

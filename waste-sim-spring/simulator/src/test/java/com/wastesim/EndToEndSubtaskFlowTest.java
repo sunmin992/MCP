@@ -65,6 +65,7 @@ class EndToEndSubtaskFlowTest {
         // 이 블록에 배정된 적재 몫. 지정하지 않으면 가동률이 죽는다.
         a.put("routeAvailableCapacityKg", 150.0);
         a.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
+        a.put("dischargeTimeMode", "PAPER_BASELINE");
         return a;
     }
 

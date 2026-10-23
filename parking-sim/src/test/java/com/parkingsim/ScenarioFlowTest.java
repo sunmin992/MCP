@@ -57,7 +57,7 @@ class ScenarioFlowTest {
         JsonNode built = call("build_scenario", """
             {"values":{"spacesPerLot":80,"pricingPolicy":"FLAT","baseFeePer30Min":500,"userMix":["Commuter","Shopper"],
                        "dailyArrivals":900,"guidanceMode":"REALTIME_APP","guidanceRefreshMinutes":5,
-                       "congestionMode":"IGNORE","maxSearchMinutes":10,"days":1,"seeds":1},
+                       "congestionMode":"IGNORE","maxSearchMinutes":10,"lotSpacingMinutes":3.0,"days":1,"seeds":1},
              "origins":{"lotCount":"USER"},
              "variableAnswerKey":"lotCount","variableValues":[4,6]}
             """);
@@ -78,11 +78,11 @@ class ScenarioFlowTest {
             {"values":{"lotCount":4,"spacesPerLot":60,"pricingPolicy":"FLAT","baseFeePer30Min":500,
                        "userMix":["Commuter","Shopper","Visitor"],"dailyArrivals":1000,
                        "congestionMode":"APPLY","congestionProfileId":"weekday-downtown",
-                       "maxSearchMinutes":12,"guidanceRefreshMinutes":5,"days":3,"seeds":3},
+                       "maxSearchMinutes":12,"guidanceRefreshMinutes":5,"lotSpacingMinutes":3.0,"days":3,"seeds":3},
              "origins":{"lotCount":"USER","spacesPerLot":"MODEL_DEFAULT","pricingPolicy":"MODEL_DEFAULT",
                         "baseFeePer30Min":"MODEL_DEFAULT","userMix":"USER","dailyArrivals":"USER",
                         "congestionMode":"USER","congestionProfileId":"MODEL_DEFAULT",
-                        "maxSearchMinutes":"USER","days":"USER","seeds":"USER"},
+                        "maxSearchMinutes":"USER","lotSpacingMinutes":"MODEL_DEFAULT","days":"USER","seeds":"USER"},
              "variableAnswerKey":"guidanceMode","variableValues":["NONE","REALTIME_APP"]}
             """);
         assertThat(built.path("valid").asBoolean()).isTrue();
@@ -120,7 +120,7 @@ class ScenarioFlowTest {
         JsonNode built = call("build_scenario", """
             {"values":{"lotCount":4,"spacesPerLot":80,"pricingPolicy":"FLAT","baseFeePer30Min":500,
                        "userMix":["Commuter","Shopper"],"dailyArrivals":800,"congestionMode":"IGNORE",
-                       "maxSearchMinutes":15,"days":3,"seeds":2},
+                       "maxSearchMinutes":15,"lotSpacingMinutes":3.0,"days":3,"seeds":2},
              "variableAnswerKey":"guidanceMode","variableValues":["NONE","REALTIME_APP"]}
             """);
         String blocks = built.path("blocks").toString();

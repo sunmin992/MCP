@@ -39,6 +39,7 @@
       {"path": "도로혼잡결합", "kind": "COUPLING_CONDITION", "field": "congestionEnabled", "matchKeys": ["도로 혼잡", "혼잡 반영"], "default": false},
       {"path": "도로혼잡결합/프로파일", "kind": "ATTRIBUTE", "field": "congestionProfileId", "matchKeys": ["혼잡 프로파일"], "generateWhen": "congestionEnabled", "default": "weekday-downtown"},
       {"path": "이용자집합/이용자/탐색포기시간", "kind": "ATTRIBUTE", "field": "maxSearchMinutes", "matchKeys": ["탐색 포기 시간", "포기 시간", "찾다가 포기"], "range": {"min": 1, "max": 60}, "default": null},
+      {"path": "주차장집합/주차장간격", "kind": "ATTRIBUTE", "field": "lotSpacingMinutes", "matchKeys": ["주차장 간격", "주차장 사이", "주차장끼리", "옮겨 다니", "이동 시간"], "range": {"min": 0.5, "max": 30}, "generateWhen": "lotCount >= 2", "default": 3.0},
       {"path": "실험프레임/기간", "kind": "ATTRIBUTE", "field": "days", "matchKeys": ["기간", "며칠"], "range": {"min": 1, "max": 90}, "default": 14},
       {"path": "실험프레임/반복", "kind": "ATTRIBUTE", "field": "seeds", "matchKeys": ["반복 횟수"], "range": {"min": 1, "max": 100}, "default": 30}
     ]
@@ -47,7 +48,7 @@
     "spatialScale": {"lots": {"min": 1, "max": 12, "default": 4}, "spacesPerLot": {"min": 10, "max": 1000, "default": 80}},
     "period": {"days": {"min": 1, "max": 90, "default": 14}},
     "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
-    "environment": ["road-congestion", "time-of-day-demand", "guidance", "pricing", "resident-priority"],
+    "environment": ["road-congestion", "time-of-day-demand", "guidance", "pricing", "resident-priority", "lot-spacing"],
     "answerableQuestions": ["search-time", "give-up", "occupancy", "pricing-effect", "guidance-effect", "resident-priority", "lot-count", "congestion-effect"],
     "scenarioTypes": ["guidance-compare", "pricing-compare", "capacity-sweep", "demand-sweep", "user-mix"],
     "tools": [
@@ -64,7 +65,9 @@
        "model": "이용자 유형별 도착 시각 분포(userMix)로 시간대 수요를 만들고 hourlyOccupancy 로 시간대별 점유를 본다. 평일 · 주말 수요를 따로 두지 않으므로 주말은 이용자 구성 · 하루 도착 대수로 표현한다"},
       {"key": "guidance", "matchKeys": ["실시간", "안내판", "주차 안내", "앱"]},
       {"key": "pricing", "matchKeys": ["요금", "유료", "무료", "할증", "차등"]},
-      {"key": "resident-priority", "matchKeys": ["거주자 우선", "거주자 구획", "거주자 전용"]}
+      {"key": "resident-priority", "matchKeys": ["거주자 우선", "거주자 구획", "거주자 전용"]},
+      {"key": "lot-spacing", "matchKeys": ["주차장끼리", "주차장 사이", "주차장 간", "옮겨 다니", "멀어서", "떨어져"],
+       "model": "주차장을 한 줄로 두고 이웃한 두 곳 사이의 이동시간(lotSpacingMinutes)으로 표현한다. 실제 거리 · 도로망은 없다"}
     ],
     "objectiveMatchKeys": [
       {"key": "search-time", "label": "주차 탐색 시간", "matchKeys": ["찾는 시간", "탐색", "배회", "주차 찾", "주차장 찾", "자리 찾", "세울", "세우", "대는 데", "댈 수", "주차하는 데"]},

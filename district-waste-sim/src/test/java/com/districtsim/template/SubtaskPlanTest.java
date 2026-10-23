@@ -18,8 +18,8 @@ class SubtaskPlanTest {
     }
 
     @Test
-    void 템플릿은_16개이고_SES_식별자가_있다() {
-        assertThat(catalog.all()).hasSize(16);
+    void 템플릿은_17개이고_SES_식별자가_있다() {
+        assertThat(catalog.all()).hasSize(17);
         assertThat(catalog.sesId()).isEqualTo("bukgu-district-ses");
     }
 
@@ -62,7 +62,7 @@ class SubtaskPlanTest {
                 Map.entry("zoneCount", 8), Map.entry("householdsPerZone", 600),
                 Map.entry("housingMix", List.of("Apartment", "Detached")), Map.entry("truckType", "LARGE_5TON"),
                 Map.entry("truckCount", 1), Map.entry("scheduleMode", "DAILY"), Map.entry("holidayMode", "APPLY"),
-                Map.entry("transferMode", "IGNORE"), Map.entry("collectionStartMinutes", 360),
+                Map.entry("transferMode", "IGNORE"), Map.entry("collectionStartMinutes", 360), Map.entry("shiftMinutes", 480),
                 Map.entry("days", 28), Map.entry("seeds", 5));
         SubtaskPlan plan = planner.plan(a);
         assertThat(plan.complete()).isTrue();

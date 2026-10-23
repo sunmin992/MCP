@@ -197,6 +197,7 @@ class SesMcpToolsTest {
         v.put("days", 30);
         v.put("seeds", 30);
         v.put("routeAvailableCapacityKg", 150);
+        v.put("dischargeTimeMode", "PAPER_BASELINE");
         var o = args.putObject("origins");
         v.fieldNames().forEachRemaining(k -> o.put(k, "USER"));
         args.put("variableAnswerKey", "collectionTimeMinutes");

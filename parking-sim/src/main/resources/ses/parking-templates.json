@@ -94,6 +94,13 @@
       "configField": "maxSearchMinutes", "sesPath": "이용자집합/이용자/탐색포기시간", "nodeKind": "ATTRIBUTE"
     },
     {
+      "templateId": "pk.lotSpacing", "answerKey": "lotSpacingMinutes", "valueType": "NUMBER", "generateWhen": "MULTIPLE_LOTS",
+      "allowed": [], "min": 0.5, "max": 30.0, "unit": "minute",
+      "defaultValue": 3.0, "defaultBasis": "lotSpacingMinutes 초기값 — 가정한 한 줄 배치에서 이웃한 주차장 사이 3분",
+      "question": "이웃한 두 주차장 사이를 차로 옮겨 가는 데 몇 분 걸리나요? (0.5~30분, 도로 혼잡을 반영하면 이 시간에 혼잡 배수가 곱해집니다)",
+      "configField": "lotSpacingMinutes", "sesPath": "주차장집합/주차장간격", "nodeKind": "ATTRIBUTE"
+    },
+    {
       "templateId": "pk.days", "answerKey": "days", "valueType": "INTEGER", "generateWhen": "ALWAYS",
       "allowed": [], "min": 1.0, "max": 90.0, "unit": null,
       "defaultValue": 14, "defaultBasis": "days 초기값",
