@@ -1,0 +1,39 @@
+{
+  "id": "V3-P6-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "environmentConditions": ["주차장 간 이동시간 10분"], "objective": "실시간 안내 앱의 효과", "comparisonAxes": ["주차 안내 방식"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "이동시간 10분이 lot-spacing 으로 매핑됨. mismatches·requestAdjustments 없음."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "주차장 사이 이동시간은 말씀대로 10분으로 넣겠습니다. 몇 가지 정해 주세요. (1) 주차 안내 방식은 무엇과 무엇을 비교할까요? (없음 / 입구 안내판 / 실시간 앱) (2) 운전자는 주차장을 몇 분까지 찾다가 포기하나요? (1~60분, 기본값이 없어 정해 주셔야 합니다) (3) 실시간 앱은 빈자리 정보를 몇 분마다 갱신하나요? (1~60분, 기본 5분) (4) 나머지 — 주차장 4곳, 곳당 80면, 균일 요금 30분 500원, 이용자 구성 출퇴근·쇼핑·방문, 하루 도착 900대, 도로 혼잡 미반영, 14일, 30회 반복 — 은 기본값으로 둘까요, 바꿀 것이 있나요?",
+      "keys": ["guidanceMode", "maxSearchMinutes", "guidanceRefreshMinutes", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "dailyArrivals", "congestionMode", "days", "seeds"],
+      "answer": "비교: 안내 없음과 실시간 앱 / 탐색 포기 시간: 15분 / 앱 갱신 주기: 5분 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-dcf66ef4",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 4곳, 곳당 80면, 균일 요금(30분 500원), 이용자 구성 Commuter·Shopper·Visitor, 하루 도착 900대, 도로 혼잡 미반영, 14일, 30회 반복을 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 미승인 기본값 9개로 표시된다고 알림. 이동시간 10분·포기 15분·갱신 5분·비교(NONE vs REALTIME_APP)는 사용자 값(USER).",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED, 실행 설정 2벌) 후 get_scenario_status 로 확인 화면 주소 http://localhost:8092/confirm.html 을 얻음. 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "첫 plan_subtasks 에서 lotSpacingMinutes 를 넣었는데도 lotCount 미정 때문에 DEFERRED 로 나와 값이 받아들여졌는지 헷갈렸음. 실험 변수(guidanceMode)는 answers 대신 variableValues 로 주고 origins 에 넣어도 되는지 설명이 분명하지 않음. 브로커 nextStep 이 run_scenario_by_token 까지 안내하지만 과제 규칙상 실행하지 않음."
+}

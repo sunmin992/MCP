@@ -1,0 +1,29 @@
+{
+  "id": "V3-J6-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"], "objective": "새벽 6시 수거와 오전 9시 수거 중 더 나은 수거 시각", "comparisonAxes": ["수거 시각"]},
+      "verdict": "MATCH",
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "장량동 서버만 배출 시간 조건(discharge-time)을 다뤄 mismatch 없음. 다른 두 서버는 배출 시간 조건을 빼야 쓸 수 있다는 requestAdjustments(changesPurpose=false). spatialScale 은 사용자가 말하지 않아 비움."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:find_simulators", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {
+      "text": "적재 몫(이 블록에 쓸 청소차 적재 몫, kg)은 얼마로 할까요? 그리고 나머지(차량 크기·대수, 교통량 반영, 이동시간 방식, 건물 수, 세대 수, 직업 구성, 기간, 반복 횟수)는 기본값(5톤 1대, 교통 미반영, 구간 상수, 4동, 25세대, 생산직/학생/주부, 30일, 30회)으로 할까요, 바꿀 것이 있나요?",
+      "keys": ["routeAvailableCapacityKg", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds"],
+      "answer": "적재 몫은 150kg. 그 밖은 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-3a227172",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "dischargeTimeMode=POHANG_ACTUAL 은 요청의 '공식 배출 시간을 지킨다'에서 DERIVED 로 넣었다. 수거 시각 비교값 360(06:00)·540(09:00)은 사용자가 말한 값. 나머지 9개(5톤 1대, 교통 미반영, 구간 상수, 4동, 25세대, 생산직/학생/주부, 30일, 30회)는 사용자가 '기본값으로' 넘긴 MODEL_DEFAULT 로 넣었고 확인 화면에 미승인 기본값으로 따로 보인다고 알림. 확인 화면: http://localhost:8090/confirm.html",
+  "stoppedBecause": "build_scenario 성공으로 UNCONFIRMED 상태가 되었고 get_scenario_status 로 확인 화면 주소를 얻었다. 승인은 사람만 할 수 있어 여기서 멈춤.",
+  "difficulties": "objective 를 사용자가 명시하지 않아(어느 쪽이 '나은지'의 기준 불명) 비교 질문 그대로 적었다. plan_subtasks 는 variableValues 로 준 collectionTimeMinutes 를 FILLED 로 보이지만 origin 은 null 로 나왔고, 두 번째 plan_subtasks 에 origins 를 생략하자 dischargeTimeMode 의 origin 도 null 로 표시됐다."
+}

@@ -1,0 +1,108 @@
+{
+ "scenarioId": "scn-dcf66ef4",
+ "state": "UNCONFIRMED",
+ "sesId": "pohang-parking-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "guidanceRefreshMinutes": 5,
+  "dailyArrivals": 900,
+  "lotSpacingMinutes": 10.0,
+  "baseFeePer30Min": 500,
+  "days": 14,
+  "lotCount": 4,
+  "seeds": 30,
+  "spacesPerLot": 80,
+  "congestionMode": "IGNORE",
+  "maxSearchMinutes": 15,
+  "pricingPolicy": "FLAT",
+  "guidanceMode": [
+   "NONE",
+   "REALTIME_APP"
+  ],
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ]
+ },
+ "origins": {
+  "guidanceRefreshMinutes": "USER",
+  "dailyArrivals": "MODEL_DEFAULT",
+  "lotSpacingMinutes": "USER",
+  "baseFeePer30Min": "MODEL_DEFAULT",
+  "days": "MODEL_DEFAULT",
+  "lotCount": "MODEL_DEFAULT",
+  "seeds": "MODEL_DEFAULT",
+  "spacesPerLot": "MODEL_DEFAULT",
+  "congestionMode": "MODEL_DEFAULT",
+  "maxSearchMinutes": "USER",
+  "pricingPolicy": "MODEL_DEFAULT",
+  "guidanceMode": "USER",
+  "userMix": "MODEL_DEFAULT"
+ },
+ "unapprovedDefaults": {
+  "dailyArrivals": 900,
+  "baseFeePer30Min": 500,
+  "days": 14,
+  "lotCount": 4,
+  "seeds": 30,
+  "spacesPerLot": 80,
+  "congestionMode": "IGNORE",
+  "pricingPolicy": "FLAT",
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ]
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "lotCount": 4,
+   "spacesPerLot": 80,
+   "pricingPolicy": "FLAT",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": null,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 900,
+   "guidanceMode": "NONE",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": false,
+   "congestionProfileId": "weekday-downtown",
+   "maxSearchMinutes": 15,
+   "days": 14,
+   "seeds": 30,
+   "lotSpacingMinutes": 10.0,
+   "fullLotCircleMinutes": 2.0
+  },
+  {
+   "lotCount": 4,
+   "spacesPerLot": 80,
+   "pricingPolicy": "FLAT",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": null,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 900,
+   "guidanceMode": "REALTIME_APP",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": false,
+   "congestionProfileId": "weekday-downtown",
+   "maxSearchMinutes": 15,
+   "days": 14,
+   "seeds": 30,
+   "lotSpacingMinutes": 10.0,
+   "fullLotCircleMinutes": 2.0
+  }
+ ],
+ "confirmToken": null
+}

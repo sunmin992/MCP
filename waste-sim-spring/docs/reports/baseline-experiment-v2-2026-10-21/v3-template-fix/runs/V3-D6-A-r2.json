@@ -1,0 +1,45 @@
+{
+  "id": "V3-D6-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거차 근무 시간을 하루 6시간으로 줄였을 때 수거가 다 끝나는지", "comparisonAxes": ["수거차 근무 시간"]},
+      "verdict": "MATCH",
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "bukgu-district-waste-sim 이 목적·비교 축(수거차량집합/근무시간)까지 맞아 추천. district-waste-sim(가상)·jangnyang-waste-sim 은 근무 시간 축 불일치."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "questions": [
+    {
+      "text": "6시간(360분) 근무를 현행 8시간(480분)과 비교해 보려 합니다. 나머지 설정을 정해 주세요: 행정동을 몇 개 구역으로 나눌지(1~40), 구역마다 세대 수(50~5000), 주거 유형 구성(아파트/단독/원룸/상가), 수거차량 크기(5톤/2.5톤/1톤), 수거차량 대수(1~20), 수거 일정(북구 현행 월·화·목·금/매일/격일/요일 지정), 공휴일 휴무 반영 여부, 적환장 사용 여부, 수거 시작 시각, 며칠치를 볼지(7~365일), 반복 횟수(1~100).",
+      "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"],
+      "answer": "기본값으로 해줘"
+    },
+    {
+      "text": "수거차가 2대이니, 구역을 차량에 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게)",
+      "keys": ["zoneAllocation"],
+      "answer": "기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-e1e858c3",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "근무 시간 6시간(360분)은 사용자 값(USER), 비교 기준 8시간(480분)은 현행 기본값으로 함께 넣었다고 알림. 나머지 12개(8구역×600세대, 아파트·단독·원룸, 5톤 2대, 같은 구역 수 배정, 북구 월·화·목·금, 공휴일 미반영, 적환장 미사용, 06:00 시작, 28일, 30회 반복)는 MODEL_DEFAULT 기본값으로 넣었고 확인 화면 http://localhost:8091/confirm.html 에서 승인이 필요하다고 안내.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 확인은 사람만 하므로 멈춤.",
+  "difficulties": "비교 기준값 480 을 variableValues 에 넣으면 그 출처를 따로 적을 칸이 없어 shiftMinutes 전체를 USER 로 표기함(480 은 사실상 기본값). 첫 plan_subtasks 는 기본값이 있어도 모두 UNFILLED 로 나와, 기본값으로 넘긴 뒤에야 zoneAllocation 이 생겨 질문이 두 번으로 나뉨."
+}

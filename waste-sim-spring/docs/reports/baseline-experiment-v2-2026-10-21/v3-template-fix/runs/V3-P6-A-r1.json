@@ -1,0 +1,29 @@
+{
+  "id": "V3-P6-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "environmentConditions": ["주차장 간 이동시간 10분"], "objective": "실시간 안내 앱의 효과", "comparisonAxes": ["주차 안내 방식"]},
+      "verdict": "MATCH",
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "환경 조건이 lot-spacing 으로 매칭됨, mismatches 없음"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "questions": [
+    {
+      "text": "비교는 '안내 없음 vs 실시간 앱'으로 할까요? 운전자가 몇 분까지 찾다가 포기하나요(기본값 없음)? 실시간 앱 갱신 주기는 몇 분인가요? 나머지(주차장 4곳, 80면, 균일요금 500원, 이용자 구성, 하루 900대, 도로혼잡 미반영, 14일, 30회)는 기본값으로 할까요?",
+      "keys": ["guidanceMode", "maxSearchMinutes", "guidanceRefreshMinutes", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "dailyArrivals", "congestionMode", "days", "seeds"],
+      "answer": "안내 없음과 실시간 앱 / 탐색 포기 시간: 15분 / 앱 갱신 주기: 5분 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-8612586e",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 간 이동시간 10분은 요청에서 lotSpacingMinutes=10(USER)으로 넣음. 주차장 4곳·80면·균일요금 30분당 500원·이용자 Commuter/Shopper/Visitor·하루 900대·도로혼잡 미반영·14일·30회 반복은 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 미승인 기본값 9개로 표시됨. 확인 화면: http://localhost:8092/confirm.html",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 할 수 있음",
+  "difficulties": "이동시간 10분이 lotSpacingMinutes 로 바로 대응돼 대본의 '이동시간을 넣을 수 없다' 답은 필요 없었음. 첫 plan_subtasks 에서 lotSpacingMinutes 를 넣었는데도 lotCount 를 기다리며 DEFERRED 로 표시돼 값이 반영됐는지 잠시 헷갈렸음(lotCount 를 채우자 FILLED). 사용자 질문의 '10분이면 효과가 더 클까'는 이동시간 자체를 비교 축으로 볼 여지도 있으나 사용자 답에 따라 안내 방식만 비교함."
+}

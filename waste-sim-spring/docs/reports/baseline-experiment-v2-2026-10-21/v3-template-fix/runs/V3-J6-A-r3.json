@@ -1,0 +1,21 @@
+{
+  "id": "V3-J6-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "포항시", "environmentConditions": ["공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"], "objective": "수거를 새벽 6시와 오전 9시 중 어느 때 하는 게 나은지", "comparisonAxes": ["수거 시각"]}, "verdict": "ADJUST_REQUEST", "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "pohang-parking-sim"], "note": "공간 규모 '포항시'가 어느 서버 분석 단위와도 맞지 않고, 목적 문장이 답할 수 있는 질문과 닿지 않음. jangnyang 은 배출 시간 조건(discharge-time)을 다룸; bukgu 는 다루지 않음(빼라고 제안)."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"], "objective": "수거 시각", "comparisonAxes": ["수거 시각"]}, "verdict": "MATCH", "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "사용자가 원룸촌 한 블록(장량동)을 골라 공간 규모와 목적을 고쳐 재조회, mismatch 없음."}
+  ],
+  "userChoice": "jangnyang-waste-sim (공간 규모를 '원룸촌 한 블록'으로 고침)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "포항시 전체를 그대로 다룰 수 있는 시뮬레이터는 없습니다. 고를 수 있는 길: (1) 장량동 생활쓰레기 수거 시뮬레이터 — 공간 규모를 '원룸촌 한 블록'(최대 26동)으로 줄이면 공식 배출 시간 조건과 수거 시각 비교를 그대로 다룹니다. (2) 포항 북구 행정동 시뮬레이터 — '행정동 전체(구역 집계)'로 보되 공식 배출 시간 조건은 빼야 합니다. (3) 주차 시뮬레이터 — 다른 질문이 됩니다. 어느 쪽으로 요청을 고칠까요?", "keys": ["spatialScale"], "answer": "원룸촌 한 블록(장량동) 단위로 볼게"},
+    {"text": "시나리오를 만들려면 다음을 정해야 합니다: 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까?(기본값 없음, 꼭 필요) / 수거차량 크기(5톤·2.5톤·1톤, 기본 5톤) / 수거차량 대수(기본 1) / 교통량 반영 여부(기본 반영 안 함) / 이동시간 계산 방식(기본 구간 상수) / 건물 동 수(1~26, 기본 4) / 한 동 세대 수(기본 25) / 거주민 직업 구성(기본 생산직·학생·전업주부) / 기간(기본 30일) / 반복 횟수(기본 30회). 정하지 않은 것은 기본값으로 넣을까요?", "keys": ["routeAvailableCapacityKg", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds"], "answer": "적재 몫 150kg, 나머지는 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-3a227172",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "배출 시간 모델은 요청('공식 배출 시간을 다들 지킨다')에서 POHANG_ACTUAL(20:00~06:00)로 정했다(DERIVED). 비교 수거 시각은 06:00(360분)·09:00(540분). 적재 몫 150kg 만 사용자가 준 값이고, 차종 5톤·1대·교통 미반영·구간 상수 이동시간·4동×25세대·생산직/학생/전업주부·30일·30회 반복은 기본값(MODEL_DEFAULT, 승인 안 된 기본값 9개)으로 넣었다. 대상은 포항시 전체가 아니라 장량동 원룸촌 한 블록이고 결과는 설정 간 비교이지 운영 예측이 아니다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html 를 얻음 — 승인과 실행은 사람만 한다.",
+  "difficulties": "첫 브로커 응답에서 목적 문장('새벽 6시와 오전 9시 중 어느 쪽')이 답할 수 있는 질문과 닿지 않는다며 '수거 시각' 같은 짧은 이름으로 바꾸라고 함 — 목적 칸에도 항목 이름을 넣어야 하는 줄 처음엔 몰랐다. 수거 시각은 분 단위 정수(collectionTimeMinutes)로 넣어야 하고, 실험 변수는 answers 가 아니라 variableValues 로 준다는 점은 도구 설명대로 따랐다. plan_subtasks 두 번째 호출에서 origins 를 빼서 origin 이 null 로 표시됨(빌드에는 영향 없음)."
+}

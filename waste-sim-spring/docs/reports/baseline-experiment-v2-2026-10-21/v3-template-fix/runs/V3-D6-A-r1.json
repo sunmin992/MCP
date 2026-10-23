@@ -1,0 +1,20 @@
+{
+  "id": "V3-D6-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거차 근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지", "comparisonAxes": ["근무 시간"]}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "bukgu-district-waste-sim 이 mismatch 없이 추천됨(근무 시간 = 수거차량집합/근무시간). district-waste-sim(가상)과 jangnyang-waste-sim 은 근무 시간 축이 없어 mismatch."}
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:find_simulators", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "8시간(480분, 기본)과 6시간(360분) 근무를 비교하려 합니다. 나머지 설정을 정해 주세요: 행정동을 몇 개 구역으로 나눌까요(1~40)? 구역마다 몇 세대인가요(50~5000)? 구역의 주거 유형 구성(Apartment/Detached/Studio/Commercial)은? 수거차량 크기(5톤/2.5톤/1톤)? 수거차량 몇 대(1~20)? 수거 일정(포항 북구 현행 월·화·목·금 / 매일 / 격일 / 요일 지정)? 공휴일 휴무 반영할까요? 적환장을 쓸까요? 몇 시에 수거를 시작할까요(자정 기준 분, 360=06:00)? 며칠치를 볼까요(7~365일)? 몇 번 반복할까요(1~100회)?", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "기본값으로 해줘"},
+    {"text": "구역을 차량에 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게)", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-e1e858c3",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "근무 시간 비교 기준선으로 기본값 8시간(480분)을 가정해 480 vs 360분 두 실행으로 만들었다. 나머지 12개 값(8구역×600세대, 아파트·단독·원룸, 5톤 2대, 같은 구역 수 배정, 포항 북구 월·화·목·금, 공휴일 무시, 적환장 미사용, 06:00 시작, 28일, 30회 반복)은 템플릿 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에서 승인되지 않은 기본값으로 표시된다. 확인은 http://localhost:8091/confirm.html 에서 직접 해야 한다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 멈춤.",
+  "difficulties": "사용자가 '줄이면'이라고만 해 비교 기준선(현재 근무 시간)을 직접 말하지 않음 — 템플릿 기본 480분을 기준선으로 넣었다. plan_subtasks 응답에서 variableValues 로 준 shiftMinutes 의 origin 이 null 로 나와 출처를 어떻게 싣는지 애매했다(build_scenario 에는 USER 로 적음)."
+}

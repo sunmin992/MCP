@@ -1,0 +1,18 @@
+{
+  "id": "V3-D6-A-r3",
+  "method": "A",
+  "brokerCalls": [ {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거차 근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지"}, "verdict": "MATCH", "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"], "note": "bukgu-district-waste-sim 이 공간 규모(행정동 전체, 구역 집계)와 목적(근무 시간 안에 끝나는지)에 모두 맞아 불일치 없이 추천됨. district-waste-sim(가상)은 목적이 맞지 않았고, jangnyang-waste-sim 은 규모와 목적이 모두 맞지 않았음." } ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "questions": [
+    {"text": "근무 시간 6시간(360분)을 현행 8시간(480분)과 비교해 보겠습니다. 나머지 설정을 알려 주세요: 행정동을 몇 개 구역으로 나눠 볼까요? (1~40) / 구역마다 몇 세대인가요? (50~5000) / 구역의 주거 유형 구성을 어떻게 할까요? (Apartment / Detached / Studio / Commercial) / 수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤) / 수거차량은 몇 대인가요? (1~20대) / 수거 일정은 어떻게 할까요? (포항 북구 현행 월·화·목·금 / 매일 / 격일 / 요일 직접 지정) / 공휴일에 수거를 쉬는 것을 반영할까요? / 가까운 적환장을 써서 차를 비울까요? / 몇 시에 수거를 시작할까요? / 며칠치를 볼까요? (7~365일) / 몇 번 반복할까요? (1~100회)", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "days", "seeds"], "answer": "기본값으로 해줘"},
+    {"text": "구역을 차량에 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게)", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-e1e858c3",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "근무 시간은 사용자가 말한 360분(6시간)을 USER 로 넣고, 비교 기준으로 템플릿 기본값 480분(8시간)을 함께 두어 shiftMinutes=[480,360] 두 실행으로 만들었다. 나머지 12개 값(구역 8개, 구역당 600세대, 아파트/단독/원룸, 5톤 차량 2대, 같은 구역 수 배정, 포항 북구 월·화·목·금 일정, 공휴일 무시, 적환장 미사용, 06:00 시작, 28일, 30회 반복)은 사용자가 '기본값으로' 넘긴 기본값(MODEL_DEFAULT)이므로 확인 화면에 승인되지 않은 기본값으로 따로 표시된다.",
+  "stoppedBecause": "build_scenario 가 성공해 state 가 UNCONFIRMED 가 되었고, get_scenario_status 로 확인 화면 주소 http://localhost:8091/confirm.html 을 얻었다. 확인은 사람만 할 수 있어 여기서 멈춤.",
+  "difficulties": "비교 기준(8시간)을 둘지는 도구 안내에 따로 나와 있지 않았다. '줄이면'이라는 표현을 현행 기본값 대비 비교로 해석해 480을 기준값으로 넣었다. build_scenario 의 values 에 실험 변수(shiftMinutes)를 넣어야 하는지도 분명하지 않았지만, plan_subtasks 안내에 맞춰 variableValues 로만 주었고 통과했다."
+}
