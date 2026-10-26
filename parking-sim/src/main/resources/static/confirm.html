@@ -40,6 +40,9 @@
     main { display:block; }
     #list { width:auto; max-height:34vh; border-right:0; border-bottom:1px solid var(--line); }
     #detail { padding:14px 16px; }
+    /* 표가 화면보다 넓으면 표만 가로로 밀어 본다 — 근거 열이 잘리면 무엇을 승인하는지 다 볼 수 없다. */
+    #detail table { display:block; max-width:100%; overflow-x:auto; }
+    th, td { white-space:nowrap; }
   }
 </style>
 </head>
@@ -112,12 +115,17 @@ async function loadDetail(id) {
     return;
   }
   const d = await res.json();
-  const swept = sweptKeys(d.runs);
   const unapproved = Object.entries(d.unapprovedDefaults || {});
   // 항목은 이름으로 보이고, 영문 키는 옆에 작게 둔다 — LLM 과 같은 키로 이야기할 수 있게.
   // 템플릿이 아닌, 실행 설정에만 있는 보조 칸의 이름.
   const shown = Object.assign({ collectionTimeLabel: '수거 시각(시:분)' }, d.labels);
   const name = k => shown[k] ? `${esc(shown[k])} <code>${esc(k)}</code>` : esc(k);
+  // 실행 설정에는 같은 값이 두 이름으로 들어 있기도 하다(truckCount · numTrucks). 이름과 값이 같은 열은 한 번만 보인다.
+  const seen = new Set();
+  const swept = sweptKeys(d.runs).filter(k => {
+    const sig = (shown[k] ?? k) + JSON.stringify(d.runs.map(r => r[k]));
+    return !seen.has(sig) && seen.add(sig);
+  });
   $list.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.id === id)));
 
   $detail.innerHTML = `
@@ -154,7 +162,7 @@ async function loadDetail(id) {
 
     <h3 style="font-size:14px;margin:0 0 0">조건마다 달라지는 것</h3>
     ${swept.length ? `<div class="scroll"><table><tr>${swept.map(k => `<th>${name(k)}</th>`).join('')}</tr>
-      ${d.runs.map(r => `<tr>${swept.map(k => `<td>${esc(r[k])}</td>`).join('')}</tr>`).join('')}
+      ${d.runs.map(r => `<tr>${swept.map(k => `<td>${typeof r[k] === 'boolean' ? (r[k] ? '적용' : '적용 안 함') : esc(r[k])}</td>`).join('')}</tr>`).join('')}
       </table></div>` : '<p style="color:#666">설정 한 벌뿐입니다.</p>'}
 
     <button class="go" ${d.state !== 'CONFIRMED' && !d.blocks.length ? '' : 'disabled'}>

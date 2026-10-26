@@ -368,6 +368,9 @@ class RunScenarioByTokenToolTest {
         @SuppressWarnings("unchecked")
         var labels = (java.util.Map<String, String>) detail.get("labels");
         assertEquals("차량 크기", labels.get("truckType"), "영문 키만 보이면 비전문가가 무엇을 승인하는지 모른다");
+        // 비교 표는 실행 설정 이름으로 그린다 — 답변키와 이름이 다른 항목도 이름이 붙어야 한다.
+        assertEquals("차량 대수", labels.get("numTrucks"));
+        assertEquals("교통 반영 여부", labels.get("trafficEnabled"));
     }
 
     @Test

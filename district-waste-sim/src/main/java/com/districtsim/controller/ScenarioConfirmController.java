@@ -110,6 +110,8 @@ public class ScenarioConfirmController {
                     out.put("request", store.request(scenarioId).orElse(null));
                     Map<String, String> labels = new LinkedHashMap<>();
                     catalog.all().forEach(t -> labels.put(t.answerKey(), t.label()));
+                    // 비교 표는 실행 설정 이름(numTrucks, congestionEnabled 등)으로 그려진다 — 그 이름에도 붙인다.
+                    catalog.all().forEach(t -> labels.putIfAbsent(t.configField(), t.label()));
                     out.put("labels", labels);
                     return ResponseEntity.ok(out);
                 })
