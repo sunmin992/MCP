@@ -128,7 +128,7 @@ async function loadDetail(id) {
       SES ${esc(d.sesId)} ${esc(d.sesVersion)} · 실행 설정 ${d.runs.length}벌
     </p>
 
-    <div class="ask"><strong>사용자 요청</strong>
+    <div class="ask"><strong>LLM 이 전달한 사용자 요청</strong>
       <p>${d.request ? esc(d.request) : '<span style="color:#666">요청 원문이 함께 전달되지 않았습니다.</span>'}</p></div>
 
     ${unapproved.length ? (d.state === 'UNCONFIRMED'

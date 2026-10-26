@@ -29,7 +29,12 @@ class ScenarioFlowTest {
     private final ObjectMapper mapper = new ObjectMapper();
 
     private JsonNode call(String tool, String argsJson) throws Exception {
-        ToolResult r = registry.byToolName(tool).call(mapper.readTree(argsJson));
+        JsonNode args = mapper.readTree(argsJson);
+        // build_scenario 는 사용자 요청 원문을 받아야 한다 — 이 시험들의 관심이 아니므로 여기서 채운다.
+        if (tool.equals("build_scenario") && !args.has("request")) {
+            ((com.fasterxml.jackson.databind.node.ObjectNode) args).put("request", "시험 요청");
+        }
+        ToolResult r = registry.byToolName(tool).call(args);
         assertThat(r.ready()).as(tool + " " + r.errors()).isTrue();
         return mapper.readTree(String.valueOf(r.result()));
     }
@@ -141,5 +146,13 @@ class ScenarioFlowTest {
             """);
         assertThat(plan.path("onlyFor").path("zoneAllocation").toString()).contains("3");
         assertThat(plan.path("onlyFor").path("zoneAllocation").toString()).doesNotContain("1");
+    }
+
+    @Test
+    void 요청_원문이_없으면_시나리오를_만들지_않는다() throws Exception {
+        ToolResult r = registry.byToolName("build_scenario").call(mapper.readTree(
+                "{\"values\":{},\"variableAnswerKey\":\"days\",\"variableValues\":[7]}"));
+        assertThat(r.ready()).isFalse();
+        assertThat(String.valueOf(r.errors())).contains("request");
     }
 }

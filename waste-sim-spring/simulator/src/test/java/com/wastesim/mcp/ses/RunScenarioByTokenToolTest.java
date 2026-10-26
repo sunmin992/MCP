@@ -330,6 +330,25 @@ class RunScenarioByTokenToolTest {
     }
 
     @Test
+    void 요청_원문이_없으면_시나리오를_만들지_않는다() throws Exception {
+        // 서버는 사용자의 말을 직접 듣지 못한다. LLM 이 옮겨 주지 않으면 확인 화면에서 요청과 설정을 나란히 볼 수 없다.
+        var args = mapper.createObjectNode();
+        var values = args.putObject("values");
+        values.put("days", 3);
+        values.put("seeds", 2);
+        values.put("routeAvailableCapacityKg", 150);
+        args.put("variableAnswerKey", "collectionTimeMinutes");
+        args.putArray("variableValues").add(360);
+        com.wastesim.TestScenarioRequests.completed(args).remove("request");
+        var r = buildTool.call(args);
+        assertFalse(r.ready(), "요청 원문 없이 만들어졌다");
+        assertTrue(r.toString().contains("request"), r.toString());
+
+        args.put("request", "  ");
+        assertFalse(buildTool.call(args).ready(), "빈 문자열도 요청 원문이 아니다");
+    }
+
+    @Test
     void 확인_화면_상세에_요청_원문과_항목_이름이_실린다() throws Exception {
         var args = mapper.createObjectNode();
         var values = args.putObject("values");

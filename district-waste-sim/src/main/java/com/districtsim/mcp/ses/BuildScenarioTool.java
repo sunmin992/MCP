@@ -70,13 +70,17 @@ public class BuildScenarioTool implements McpToolProvider {
                "variableAnswerKey":{"type":"string","description":"실험 변수의 답변키"},
                "variableValues":{"type":"array","description":"비교할 값들"},
                "observations":{"type":"array","items":{"type":"string"}},
-               "request":{"type":"string","description":"사용자가 처음 한 요청 원문. 확인 화면이 설정 옆에 그대로 보여 준다 — 사용자는 자기 요청과 설정이 맞는지 보고 승인한다"}},
-             "required":["values","variableAnswerKey","variableValues"]}
+               "request":{"type":"string","description":"사용자가 처음 한 요청 원문(요약하거나 바꿔 쓰지 않는다). 확인 화면이 설정 옆에 그대로 보여 준다 — 사용자는 자기 요청과 설정이 맞는지 보고 승인한다"}},
+             "required":["values","variableAnswerKey","variableValues","request"]}
             """;
     }
 
     @Override
     public ToolResult call(JsonNode args) {
+        // 서버는 사용자의 말을 직접 듣지 못한다. LLM 이 옮겨 주지 않으면 확인 화면에서 요청과 설정을 나란히 볼 수 없다.
+        if (args.path("request").asText("").isBlank()) {
+            return ToolFailure.of("request", "사용자 요청 원문(request)이 없습니다 — 사용자가 처음 한 요청을 그대로 넣어 다시 부르십시오.");
+        }
         try {
             Map<String, Object> values = new LinkedHashMap<>();
             args.path("values").fields().forEachRemaining(

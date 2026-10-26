@@ -57,6 +57,8 @@ class CompletenessAndOriginTest {
     }
 
     private JsonNode call(ObjectNode args) throws Exception {
+        // 요청 원문은 이 시험들의 관심이 아니다 — 빠진 결정과 출처만 본다.
+        if (!args.has("request")) args.put("request", "시험 요청");
         ToolResult r = build.call(args);
         assertTrue(r.ready(), String.valueOf(r.errors()));
         return mapper.readTree(r.result().toString());
@@ -135,6 +137,7 @@ class CompletenessAndOriginTest {
     void 모르는_출처는_거절한다() {
         ObjectNode args = complete();
         ((ObjectNode) args.get("origins")).put("truckType", "기본값");
+        args.put("request", "시험 요청");
         ToolResult r = build.call(args);
         assertFalse(r.ready());
         assertTrue(r.errors().toString().contains("MODEL_DEFAULT"), "규칙을 함께 알려야 한다");

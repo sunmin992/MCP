@@ -68,6 +68,7 @@ public final class TestScenarioRequests {
             if (!filled) break;
         }
         values.fieldNames().forEachRemaining(k -> { if (!origins.has(k)) origins.put(k, "USER"); });
+        if (!args.has("request")) args.put("request", "시험 요청");
         return args;
     }
 }

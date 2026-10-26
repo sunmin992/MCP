@@ -202,6 +202,7 @@ class SesMcpToolsTest {
         v.fieldNames().forEachRemaining(k -> o.put(k, "USER"));
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(720);
+        args.put("request", "시험 요청");
         return args;
     }
 
