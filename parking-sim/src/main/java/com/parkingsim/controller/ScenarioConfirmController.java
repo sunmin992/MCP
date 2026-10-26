@@ -42,14 +42,17 @@ public class ScenarioConfirmController {
     private final ScenarioStore store;
     private final ConfirmScenarioTool confirmTool;
     private final ObjectMapper mapper;
+    private final com.parkingsim.template.TemplateCatalog catalog;
 
     public ScenarioConfirmController(ScenarioStore store, ConfirmScenarioTool confirmTool,
                                      ObjectMapper mapper,
-                                     @Value("${server.address:}") String boundAddress) {
+                                     @Value("${server.address:}") String boundAddress,
+                                     com.parkingsim.template.TemplateCatalog catalog) {
         this.boundAddress = boundAddress;
         this.store = store;
         this.confirmTool = confirmTool;
         this.mapper = mapper;
+        this.catalog = catalog;
     }
 
     /** 보관 중인 시나리오 목록. 확인 화면의 왼쪽이다. */
@@ -103,6 +106,11 @@ public class ScenarioConfirmController {
                     // 발급된 토큰은 상태의 일부다. 확인 직후에만 띄우면 화면을 새로
                     // 그리는 순간 사라지고, 사용자는 무엇을 들고 실행해야 할지 모른다.
                     out.put("confirmToken", e.scenario().confirmToken());
+                    // 사용자는 자기 요청과 설정을 나란히 보고, 영문 키가 아니라 이름으로 읽어야 무엇을 승인하는지 안다.
+                    out.put("request", store.request(scenarioId).orElse(null));
+                    Map<String, String> labels = new LinkedHashMap<>();
+                    catalog.all().forEach(t -> labels.put(t.answerKey(), t.label()));
+                    out.put("labels", labels);
                     return ResponseEntity.ok(out);
                 })
                 .orElseGet(() -> ResponseEntity.notFound().build());

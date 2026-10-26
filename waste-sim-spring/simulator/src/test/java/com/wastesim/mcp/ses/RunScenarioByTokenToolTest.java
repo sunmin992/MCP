@@ -324,8 +324,31 @@ class RunScenarioByTokenToolTest {
         assertTrue(out.path("nextStep").asText().contains("confirm.html"));
         // 모델은 이 주소를 사용자에게 그대로 옮긴다. 경로만 주면 호스트·포트를 짐작하게 되고,
         // 실제로 8080 을 붙여 안내해 확인 화면이 열리지 않았다.
-        assertEquals("http://localhost:8090/confirm.html", out.path("confirmUrl").asText());
-        assertTrue(out.path("nextStep").asText().contains("http://localhost:8090/confirm.html"));
+        // 시나리오 id 를 붙여야 화면이 그 시나리오를 바로 연다 — 없으면 사용자가 목록에서 자기 것을 찾아야 한다.
+        assertEquals("http://localhost:8090/confirm.html?id=" + id, out.path("confirmUrl").asText());
+        assertTrue(out.path("nextStep").asText().contains("http://localhost:8090/confirm.html?id=" + id));
+    }
+
+    @Test
+    void 확인_화면_상세에_요청_원문과_항목_이름이_실린다() throws Exception {
+        var args = mapper.createObjectNode();
+        var values = args.putObject("values");
+        values.put("truckType", "SMALL_1TON");
+        values.put("days", 3);
+        values.put("seeds", 2);
+        values.put("routeAvailableCapacityKg", 150);
+        args.put("variableAnswerKey", "collectionTimeMinutes");
+        args.putArray("variableValues").add(360);
+        args.put("request", "원룸촌에서 새벽 6시에 걷으면 민원이 줄어?");
+        var b = mapper.readTree(buildTool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
+
+        var controller = new com.wastesim.controller.ScenarioConfirmController(store, confirmTool, mapper, "", catalog);
+        var detail = controller.detail(b.path("scenarioId").asText()).getBody();
+        assertEquals("원룸촌에서 새벽 6시에 걷으면 민원이 줄어?", detail.get("request"),
+                "사용자는 자기 요청과 설정을 나란히 보고 판단해야 한다");
+        @SuppressWarnings("unchecked")
+        var labels = (java.util.Map<String, String>) detail.get("labels");
+        assertEquals("차량 크기", labels.get("truckType"), "영문 키만 보이면 비전문가가 무엇을 승인하는지 모른다");
     }
 
     @Test

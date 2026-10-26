@@ -30,7 +30,8 @@ public record SubtaskTemplate(
         String question,
         String configField,
         String sesPath,
-        String nodeKind) {
+        String nodeKind,
+        String label) {
 
     public SubtaskTemplate {
         allowed = allowed == null ? List.of() : List.copyOf(allowed);

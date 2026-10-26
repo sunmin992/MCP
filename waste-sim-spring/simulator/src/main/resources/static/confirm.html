@@ -25,6 +25,9 @@
   th { background:#fafafa; font-weight:600; }
   .warn { border-left:3px solid var(--warn); background:#fdf6f0; padding:9px 12px; margin:12px 0; }
   .approved { border-left:3px solid var(--line); background:#f6f6f6; padding:9px 12px; margin:12px 0; }
+  .ask { border-left:3px solid #3a6ea5; background:#f2f6fb; padding:9px 12px; margin:12px 0; }
+  .ask p { margin:4px 0 0; }
+  td code, th code { font-size:12px; color:var(--muted); background:none; padding:0; }
   #exposure { display:none; background:#a4501a; color:#fff; padding:8px 20px; font-size:13px; }
   #exposure.on { display:block; }
   button.go { padding:9px 18px; font:inherit; cursor:pointer; border:1px solid #333;
@@ -98,11 +101,24 @@ function sweptKeys(runs) {
     runs.some(r => JSON.stringify(r[k]) !== JSON.stringify(runs[0][k])));
 }
 
+// 출처를 사람이 읽는 말로 — 영문 표기만 보이면 무엇이 내가 말한 값인지 가를 수 없다.
+const ORIGIN = { USER: '사용자가 말함', MODEL_DEFAULT: '기본값(사용자가 정하지 않음)', DERIVED: '요청에서 도출' };
+
 async function loadDetail(id) {
   current = id;
-  const d = await (await fetch(`/api/scenarios/${encodeURIComponent(id)}`)).json();
+  const res = await fetch(`/api/scenarios/${encodeURIComponent(id)}`);
+  if (!res.ok) {
+    $detail.innerHTML = `<p class="empty">시나리오 <code>${esc(id)}</code> 를 찾지 못했습니다. 서버가 다시 시작되었으면 시나리오를 다시 만들어야 합니다.</p>`;
+    return;
+  }
+  const d = await res.json();
   const swept = sweptKeys(d.runs);
   const unapproved = Object.entries(d.unapprovedDefaults || {});
+  // 항목은 이름으로 보이고, 영문 키는 옆에 작게 둔다 — LLM 과 같은 키로 이야기할 수 있게.
+  // 템플릿이 아닌, 실행 설정에만 있는 보조 칸의 이름.
+  const shown = Object.assign({ collectionTimeLabel: '수거 시각(시:분)' }, d.labels);
+  const name = k => shown[k] ? `${esc(shown[k])} <code>${esc(k)}</code>` : esc(k);
+  $list.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.id === id)));
 
   $detail.innerHTML = `
     <h2 style="font-size:16px;margin:0 0 6px">
@@ -112,29 +128,32 @@ async function loadDetail(id) {
       SES ${esc(d.sesId)} ${esc(d.sesVersion)} · 실행 설정 ${d.runs.length}벌
     </p>
 
+    <div class="ask"><strong>사용자 요청</strong>
+      <p>${d.request ? esc(d.request) : '<span style="color:#666">요청 원문이 함께 전달되지 않았습니다.</span>'}</p></div>
+
     ${unapproved.length ? (d.state === 'UNCONFIRMED'
       ? `<div class="warn"><strong>사용자가 승인하지 않은 기본값 ${unapproved.length}개</strong>
       <table><tr><th>항목</th><th>값</th></tr>
-      ${unapproved.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}
+      ${unapproved.map(([k, v]) => `<tr><td>${name(k)}</td><td>${esc(v)}</td></tr>`).join('')}
       </table>확인하면 이 값으로 돌아갑니다.</div>`
       // 확인은 시나리오 전체를 승인한다. 값의 출처(MODEL_DEFAULT)는 기록이라 바꾸지 않지만,
       // 확인한 뒤에도 "승인하지 않은" 이라고 쓰면 사람이 누른 확인이 없던 일처럼 읽힌다.
       : `<div class="approved"><strong>확인 때 함께 승인된 기본값 ${unapproved.length}개</strong>
       <table><tr><th>항목</th><th>값</th></tr>
-      ${unapproved.map(([k, v]) => `<tr><td>${esc(k)}</td><td>${esc(v)}</td></tr>`).join('')}
+      ${unapproved.map(([k, v]) => `<tr><td>${name(k)}</td><td>${esc(v)}</td></tr>`).join('')}
       </table>사용자가 말하지 않은 값이지만, 확인 화면에서 이 값으로 승인했습니다.</div>`) : ''}
 
     ${d.blocks.length ? `<div class="warn"><strong>막힌 사유</strong><ul>
       ${d.blocks.map(b => `<li>${esc(b)}</li>`).join('')}</ul></div>` : ''}
 
-    <h3 style="font-size:14px;margin:16px 0 0">사용자가 정한 값</h3>
-    <table><tr><th>답변키</th><th>값</th><th>출처</th></tr>
+    <h3 style="font-size:14px;margin:16px 0 0">모든 항목과 정한 근거</h3>
+    <table><tr><th>항목</th><th>값</th><th>정한 근거</th></tr>
     ${Object.entries(d.values).map(([k, v]) =>
-      `<tr><td>${esc(k)}</td><td>${esc(v)}</td><td>${esc(d.origins[k] ?? '')}</td></tr>`).join('')}
+      `<tr><td>${name(k)}</td><td>${esc(v)}</td><td>${esc(ORIGIN[d.origins[k]] ?? d.origins[k] ?? '')}</td></tr>`).join('')}
     </table>
 
     <h3 style="font-size:14px;margin:0 0 0">조건마다 달라지는 것</h3>
-    ${swept.length ? `<div class="scroll"><table><tr>${swept.map(k => `<th>${esc(k)}</th>`).join('')}</tr>
+    ${swept.length ? `<div class="scroll"><table><tr>${swept.map(k => `<th>${name(k)}</th>`).join('')}</tr>
       ${d.runs.map(r => `<tr>${swept.map(k => `<td>${esc(r[k])}</td>`).join('')}</tr>`).join('')}
       </table></div>` : '<p style="color:#666">설정 한 벌뿐입니다.</p>'}
 
@@ -161,7 +180,9 @@ async function confirmIt(id) {
   await loadDetail(id);
 }
 
-loadList();
+// LLM 이 안내한 주소(?id=...)로 들어오면 그 시나리오를 바로 연다.
+const wanted = new URLSearchParams(location.search).get('id');
+loadList().then(() => { if (wanted) loadDetail(wanted); });
 </script>
 </body>
 </html>

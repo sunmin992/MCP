@@ -69,7 +69,8 @@ public class BuildScenarioTool implements McpToolProvider {
                "origins":{"type":"object","description":"답변키 → USER / MODEL_DEFAULT / DERIVED. 사용자가 값을 직접 말했을 때만 USER, '기본값으로' 처럼 값 없이 넘긴 것은 MODEL_DEFAULT. 적지 않으면 MODEL_DEFAULT"},
                "variableAnswerKey":{"type":"string","description":"실험 변수의 답변키"},
                "variableValues":{"type":"array","description":"비교할 값들"},
-               "observations":{"type":"array","items":{"type":"string"}}},
+               "observations":{"type":"array","items":{"type":"string"}},
+               "request":{"type":"string","description":"사용자가 처음 한 요청 원문. 확인 화면이 설정 옆에 그대로 보여 준다 — 사용자는 자기 요청과 설정이 맞는지 보고 승인한다"}},
              "required":["values","variableAnswerKey","variableValues"]}
             """;
     }
@@ -116,7 +117,7 @@ public class BuildScenarioTool implements McpToolProvider {
                 shown.put(variableKey, List.copyOf(variableValues));
                 pes = new Pes(pes.sesId(), pes.sesVersion(), shown, origins);
             }
-            if (scenario.valid()) store.put(scenario, pes);
+            if (scenario.valid()) store.put(scenario, pes, args.path("request").asText(null));
 
             var root = mapper.createObjectNode();
             root.put("sesId", pes.sesId());

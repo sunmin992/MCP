@@ -68,4 +68,9 @@ class SubtaskPlanTest {
         assertThat(plan.complete()).isTrue();
         assertThat(plan.counts().get(SubtaskStatus.NOT_GENERATED)).isEqualTo(5);
     }
+
+    @Test
+    void 모든_템플릿에_확인_화면에_보일_이름이_있다() {
+        assertThat(catalog.all()).allSatisfy(t -> assertThat(t.label()).as(t.templateId()).isNotBlank());
+    }
 }

@@ -68,6 +68,9 @@ public class GetScenarioStatusTool implements McpToolProvider {
         }
         ScenarioStore.Entry e = found.get();
 
+        // 시나리오 id 를 붙여 화면이 그 시나리오를 바로 열게 한다. 없으면 사용자가 목록에서 자기 것을 찾아야 한다.
+        String confirmUrl = this.confirmUrl + "?id="
+                + java.net.URLEncoder.encode(scenarioId, java.nio.charset.StandardCharsets.UTF_8);
         try {
             var root = mapper.createObjectNode();
             root.put("scenarioId", scenarioId);

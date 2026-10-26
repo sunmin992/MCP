@@ -70,6 +70,14 @@ class TemplateCatalogTest {
     }
 
     @Test
+    void 모든_템플릿에_확인_화면에_보일_이름이_있다() {
+        for (SubtaskTemplate t : catalog.all()) {
+            assertNotNull(t.label(), t.templateId() + " 에 이름이 없다 — 확인 화면에 영문 키만 보인다");
+            assertFalse(t.label().isBlank(), t.templateId());
+        }
+    }
+
+    @Test
     void 답변키가_중복되지_않는다() {
         long distinct = catalog.all().stream().map(SubtaskTemplate::answerKey).distinct().count();
         assertEquals(catalog.all().size(), distinct, "같은 답변키를 두 템플릿이 쓰고 있다");

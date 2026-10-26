@@ -44,4 +44,12 @@ class ScenarioStoreTest {
         assertThat(store.beginExecution("scn-d", e)).isFalse();
         assertThat(store.beginExecution("scn-d", store.entry("scn-d").orElseThrow())).isFalse();
     }
+
+    @Test
+    void 요청_원문을_시나리오와_함께_보관한다() {
+        store.put(new Scenario("scn-e", List.of(), List.of(), List.of(), null), null, "주차장이 멀면 앱 효과가 클까?");
+        assertThat(store.request("scn-e")).contains("주차장이 멀면 앱 효과가 클까?");
+        store.put(new Scenario("scn-f", List.of(), List.of(), List.of(), null), null, " ");
+        assertThat(store.request("scn-f")).isEmpty();
+    }
 }

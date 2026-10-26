@@ -55,9 +55,21 @@ public class ScenarioStore {
         executing.remove(scenarioId);
     }
 
+    /** 시나리오를 만든 사용자 요청 원문. 확인 화면이 설정 옆에 보여 준다 — 같은 설정을 다시 만들면 마지막 요청이 남는다. */
+    private final Map<String, String> requests = new ConcurrentHashMap<>();
+
     public String put(Scenario scenario, Pes pes) {
         byId.put(scenario.scenarioId(), new Entry(scenario, pes, null));
         return scenario.scenarioId();
+    }
+
+    public String put(Scenario scenario, Pes pes, String request) {
+        if (request != null && !request.isBlank()) requests.put(scenario.scenarioId(), request);
+        return put(scenario, pes);
+    }
+
+    public Optional<String> request(String scenarioId) {
+        return Optional.ofNullable(requests.get(scenarioId));
     }
 
     /** 보관 중인 전부. 확인 화면이 목록을 세운다. */
