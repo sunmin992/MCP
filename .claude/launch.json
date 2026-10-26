@@ -26,6 +26,12 @@
       "port": 8092
     },
     {
+      "name": "counter-sim",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": ["/c", "cd /d counter-sim && chcp 65001 >nul && .\\mvnw.cmd -q spring-boot:run"],
+      "port": 8093
+    },
+    {
       "name": "waste-sim",
       "runtimeExecutable": "mvn",
       "runtimeArgs": [

@@ -1,0 +1,113 @@
+{
+  "_comment": "포항 행정복지센터 민원 창구 대기 시뮬레이터의 능력 카드. 브로커가 이 카드로 요청과 대조한다. 거주민(이용자) 유형 key 는 한 카드 안에서 겹치면 안 된다.",
+  "serverId": "pohang-counter-sim",
+  "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+  "endpoint": "http://localhost:8093/mcp",
+  "fictional": false,
+  "domain": ["civil-service-counter"],
+  "domainAliases": ["민원 창구", "민원실", "민원 대기", "창구 대기", "행정복지센터 창구", "주민센터 창구", "번호표", "대기 줄"],
+  "region": "포항시 행정복지센터 한 곳 (가정 배치)",
+  "analysisUnit": {
+    "scope": "facility",
+    "label": "행정복지센터 한 곳의 민원 창구 묶음",
+    "notDistrict": true,
+    "rationale": "창구 1~20개가 있는 민원실 하나를 본다. 여러 센터 사이의 분산이나 시 전체 민원량은 표현하지 못한다.",
+    "coherence": "기본 창구 3개 × 540분에 하루 180명(평균 8분)이면 수요가 공급의 약 89% 로, 오전 10시 · 오후 2시 무렵에 줄이 길어지는 구간이다.",
+    "matchKeys": ["행정복지센터", "주민센터", "동사무소", "민원실", "센터 한 곳", "구청 민원실"]
+  },
+  "populationTypes": [
+    {"key": "WalkIn", "matchKeys": ["방문 민원인", "그냥 오는", "현장 방문", "번호표 뽑"], "model": "09~18시 시간대 가중치대로 도착(10시 · 14시 많고 12시 적음), 대기 한도가 지나면 돌아감"},
+    {"key": "Reserved", "matchKeys": ["예약한 사람", "예약 방문", "예약 민원인", "사전 예약"], "model": "하루에 고르게 나뉜 예약 시각에 도착, 같은 줄의 방문 민원인보다 먼저 불림"}
+  ],
+  "sesDigest": {
+    "sesId": "pohang-counter-ses",
+    "sesVersion": "1.0.0",
+    "entities": ["창구 집합", "창구", "민원인 집합", "예약제 결합", "실험 프레임"],
+    "decisionPoints": [
+      {"path": "창구집합", "kind": "MULTI_ASPECT", "field": "counterCount", "matchKeys": ["창구 수", "창구 개수", "창구를 하나 더", "창구 늘", "창구 줄"], "range": {"min": 1, "max": 20}, "default": 3},
+      {"path": "창구집합/대기열방식", "kind": "SPECIALIZATION", "field": "queueDiscipline", "matchKeys": ["줄 서는 방식", "번호표", "창구마다 줄", "한 줄"], "choices": ["SINGLE_LINE", "PER_COUNTER"], "generateWhen": "counterCount >= 2", "default": "SINGLE_LINE"},
+      {"path": "민원인집합", "kind": "MULTI_ASPECT", "field": "dailyVisitors", "matchKeys": ["방문객", "민원인 수", "하루 방문", "몇 명", "수요"], "range": {"min": 1, "max": 5000}, "default": 180},
+      {"path": "창구집합/창구/처리시간", "kind": "ATTRIBUTE", "field": "serviceMinutes", "matchKeys": ["처리 시간", "한 건", "업무 시간", "응대 시간"], "range": {"min": 1, "max": 60}, "default": 8.0},
+      {"path": "예약제결합", "kind": "COUPLING_CONDITION", "field": "reservationEnabled", "matchKeys": ["예약제", "방문 예약", "사전 예약"], "default": false},
+      {"path": "예약제결합/예약비율", "kind": "ATTRIBUTE", "field": "reservationShare", "matchKeys": ["예약 비율", "예약하는 사람"], "generateWhen": "reservationEnabled", "default": null},
+      {"path": "민원인집합/민원인/대기한도", "kind": "ATTRIBUTE", "field": "maxWaitMinutes", "matchKeys": ["대기 한도", "기다리다", "참다가", "포기"], "range": {"min": 1, "max": 240}, "default": null},
+      {"path": "실험프레임/기간", "kind": "ATTRIBUTE", "field": "days", "matchKeys": ["기간", "며칠"], "range": {"min": 1, "max": 60}, "default": 5},
+      {"path": "실험프레임/반복", "kind": "ATTRIBUTE", "field": "seeds", "matchKeys": ["반복 횟수"], "range": {"min": 1, "max": 100}, "default": 30}
+    ]
+  },
+  "applicability": {
+    "spatialScale": {"counters": {"min": 1, "max": 20, "default": 3}},
+    "period": {"days": {"min": 1, "max": 60, "default": 5}},
+    "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
+    "environment": ["time-of-day-demand", "reservation", "queue-discipline"],
+    "answerableQuestions": ["wait-time", "renege", "utilization", "counter-count", "reservation-effect", "queue-discipline-effect", "overtime"],
+    "scenarioTypes": ["counter-sweep", "demand-sweep", "reservation-compare", "queue-discipline-compare", "service-time-sweep"],
+    "tools": [
+      {"name": "get_templates", "what": "서브태스크 템플릿", "status": "OK"},
+      {"name": "plan_subtasks", "what": "생성 조건 평가", "status": "OK"},
+      {"name": "validate_answers", "what": "답변 계약 대조", "status": "OK"},
+      {"name": "build_scenario", "what": "실행 설정 N벌 생성 · 검증", "status": "OK"},
+      {"name": "get_scenario_status", "what": "확인 상태 · 토큰 읽기", "status": "OK"},
+      {"name": "run_scenario_by_token", "what": "확인된 시나리오 실행", "status": "OK"}
+    ],
+    "environmentMatchKeys": [
+      {"key": "time-of-day-demand", "matchKeys": ["오전", "오후", "점심", "시간대", "몰리는", "붐비는", "피크"],
+       "model": "시간대(09~17시) 가중치로 방문을 만들고 hourlyMeanWait 로 도착 시간대별 대기를 본다. 요일별 수요는 따로 두지 않으므로 월요일 · 월말은 하루 방문객 수로 표현한다"},
+      {"key": "reservation", "matchKeys": ["예약제", "예약", "사전 예약"]},
+      {"key": "queue-discipline", "matchKeys": ["번호표", "한 줄", "창구마다 줄", "줄 서는"]}
+    ],
+    "objectiveMatchKeys": [
+      {"key": "wait-time", "label": "민원 대기 시간", "matchKeys": ["대기 시간", "기다리는 시간", "얼마나 기다", "대기", "기다려"]},
+      {"key": "renege", "label": "기다리다 돌아간 민원인", "matchKeys": ["돌아가", "포기", "그냥 가", "이탈"]},
+      {"key": "utilization", "label": "창구 가동률", "matchKeys": ["가동률", "바쁜 정도", "놀고 있", "일이 몰"]},
+      {"key": "counter-count", "label": "창구 수", "matchKeys": ["창구를 하나 더", "창구 수", "창구 늘", "창구 줄", "몇 개"]},
+      {"key": "reservation-effect", "label": "예약제 효과", "matchKeys": ["예약제", "예약"]},
+      {"key": "queue-discipline-effect", "label": "줄 서는 방식 효과", "matchKeys": ["번호표", "한 줄", "창구마다 줄"]},
+      {"key": "overtime", "label": "마감 뒤 초과 근무", "matchKeys": ["초과 근무", "야근", "마감 뒤", "늦게 끝"]}
+    ]
+  },
+  "quality": {
+    "fidelity": "event-driven-stochastic",
+    "engine": "다음 사건 시각으로 건너뛰는 이산사건 시뮬레이션 (DEVS 형식 모델 아님)",
+    "calibration": [
+      {"what": "시간대별 방문 가중치", "source": "가정값 — 10시 · 14시 많고 12시 적음", "measured": false},
+      {"what": "처리 시간 분포", "source": "가정값 — 평균 serviceMinutes 의 지수분포", "measured": false},
+      {"what": "예약 시각", "source": "가정값 — 하루에 고르게 나눔, 예약자는 정시 도착", "measured": false}
+    ]
+  },
+  "resultFields": {
+    "judgement": ["meanWaitMinutesAll", "stdWaitMinutesAll", "meanWaitMinutesServed", "renegesPerDay", "stdRenegesPerDay", "renegeRate", "byVisitorType"],
+    "judgementNote": "대기 시간은 meanWaitMinutesAll(처리 + 이탈)로 비교하되 renegesPerDay 와 함께 읽는다. 이탈이 늘면 줄이 짧아져 평균 대기가 낮아 보일 수 있다(예: 창구마다 줄). Served 는 이탈이 많을수록 오래 기다리던 사람이 빠져 더 낮게 나온다",
+    "explanation": ["utilization", "hourlyMeanWait", "peakQueueLength", "overtimeMinutesPerDay"],
+    "reference": ["servedPerCounterPerDay"],
+    "integrity": ["seeds", "visitorBalanceErrorMax", "allReneges", "dataQualityFlags", "assumptionNotes"],
+    "note": "reference 항목은 처리 시간 가정에 크게 기대므로 판정 근거로 쓰지 않는다"
+  },
+  "cost": {"currency": "none", "perRun": 0, "compute": "local"},
+  "performance": {"model": "dailyVisitors × days × seeds 에 비례", "typicalSeconds": 1, "maxSeconds": 60},
+  "conditional": [
+    {"capability": "줄 서는 방식 비교", "requires": "counterCount >= 2", "ifUnmet": "DO_NOT_GENERATE", "message": "창구가 하나면 줄도 하나뿐이라 줄 서는 방식이 결과를 바꾸지 않습니다."},
+    {"capability": "방문 예약제", "requires": "reservationShare 명시", "ifUnmet": "REJECT", "message": "예약 비율을 정하지 않으면 실행하지 않습니다 — 0% 로 조용히 돌리지 않습니다."},
+    {"capability": "대기 이탈", "requires": "maxWaitMinutes 명시", "ifUnmet": "REJECT", "message": "민원인이 언제 돌아가는지는 결과를 크게 바꾸므로 기본값을 두지 않습니다."}
+  ],
+  "unsupported": [
+    {"code": "UNSUPPORTED_METRIC", "capability": "인건비 · 예산 산출", "matchKeys": ["인건비", "예산", "비용편익", "채용 비용"], "reasonType": "NOT_IN_MODEL", "reason": "창구 인력 비용 항이 모델에 없다", "alternatives": ["metric:waitTime", "metric:utilization"], "message": "인건비 · 예산은 산출하지 않습니다. 대기 시간 · 창구 가동률로 비교하실 수 있습니다."},
+    {"code": "UNSUPPORTED_FEATURE", "capability": "민원 종류별 전담 창구", "matchKeys": ["전담 창구", "여권 창구", "민원 종류별", "업무별 창구"], "reasonType": "NOT_IN_MODEL", "reason": "모든 창구가 모든 민원을 같은 평균 시간에 처리한다고 본다", "alternatives": ["평균 처리 시간 변경"], "message": "민원 종류별 전담 창구는 다루지 않습니다. 평균 처리 시간을 바꿔 보는 실험은 할 수 있습니다."},
+    {"code": "UNSUPPORTED_FEATURE", "capability": "무인 발급기 · 온라인 민원", "matchKeys": ["무인 발급기", "무인민원", "온라인 민원", "정부24"], "reasonType": "NOT_IN_MODEL", "reason": "창구 밖으로 빠지는 민원 경로가 없다", "alternatives": ["하루 방문객 수를 줄여 표현"], "message": "무인 발급기 · 온라인 민원은 모델에 없습니다. 창구로 오는 방문객 수를 줄여 표현하실 수 있습니다."},
+    {"code": "UNSUPPORTED_SCALE", "capability": "여러 센터 · 시 전체", "matchKeys": ["모든 센터", "시 전체", "포항 전체", "여러 주민센터"], "reasonType": "NOT_IN_MODEL", "reason": "센터 한 곳의 창구 묶음만 표현한다", "alternatives": ["센터 한 곳 창구 1~20개"], "message": "여러 센터나 시 전체는 다루지 않습니다. 센터 한 곳의 창구 1~20개로 실험하실 수 있습니다."},
+    {"code": "UNSUPPORTED_METRIC", "capability": "실시간 운영 예측", "matchKeys": ["지금 대기", "오늘 몇 명", "실시간 예측"], "reasonType": "OUT_OF_SCOPE", "reason": "실측 입력이 없는 설정 비교 실험이다", "alternatives": ["설정 간 비교"], "message": "지금의 대기 인원을 예측하지 않습니다. 설정을 바꿔 가며 비교하는 실험입니다."}
+  ],
+  "neverDo": [
+    "기본값이 없는 값(대기 한도 · 예약 비율)을 대신 채워 실행한다",
+    "잘못된 선택지를 가까운 값으로 보정한다",
+    "사용자가 승인하지 않은 설정으로 실행한다"
+  ],
+  "alwaysAttachToResult": [
+    "dataQualityFlags — DEMAND_ASSUMED · SERVICE_TIME_ASSUMED",
+    "assumptionNotes — 기본값으로 승인된 값, PES 에 없어 초기값으로 돈 값",
+    "visitorBalanceErrorMax — 방문 = 처리 + 이탈 인지",
+    "seeds, allReneges — 재현 정보",
+    "전제: 시간대별 방문 분포 · 처리 시간 분포는 가정값이다",
+    "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
+  ]
+}

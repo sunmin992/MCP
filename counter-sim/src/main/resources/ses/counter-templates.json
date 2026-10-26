@@ -1,0 +1,69 @@
+{
+  "sesId": "pohang-counter-ses",
+  "sesVersion": "1.0.0",
+  "templates": [
+    {
+      "templateId": "ct.counterCount", "answerKey": "counterCount", "label": "창구 수", "valueType": "INTEGER", "generateWhen": "ALWAYS",
+      "allowed": [], "min": 1.0, "max": 20.0, "unit": null,
+      "defaultValue": 3, "defaultBasis": "counterCount 초기값 — 행정복지센터 한 곳의 민원 창구 수 가정",
+      "question": "민원 창구를 몇 개 열어 둘까요? (1~20개)",
+      "configField": "counterCount", "sesPath": "창구집합", "nodeKind": "MULTI_ASPECT"
+    },
+    {
+      "templateId": "ct.queueDiscipline", "answerKey": "queueDiscipline", "label": "줄 서는 방식", "valueType": "ENUM", "generateWhen": "MULTIPLE_COUNTERS",
+      "allowed": ["SINGLE_LINE", "PER_COUNTER"], "min": null, "max": null, "unit": null,
+      "defaultValue": "SINGLE_LINE", "defaultBasis": "queueDiscipline 초기값 — 번호표 한 줄",
+      "question": "줄은 어떻게 서나요? (번호표 한 줄 — 비는 창구가 부름 / 창구마다 줄 — 도착 때 가장 짧은 줄에 섬)",
+      "configField": "queueDiscipline", "sesPath": "창구집합/대기열방식", "nodeKind": "SPECIALIZATION"
+    },
+    {
+      "templateId": "ct.dailyVisitors", "answerKey": "dailyVisitors", "label": "하루 방문객 수", "valueType": "INTEGER", "generateWhen": "ALWAYS",
+      "allowed": [], "min": 1.0, "max": 5000.0, "unit": null,
+      "defaultValue": 180, "defaultBasis": "dailyVisitors 초기값 — 창구 3개 × 540분에 평균 8분이면 하루 수요가 공급의 약 89%인 바쁜 구간",
+      "question": "하루에 민원인이 몇 명 오나요? (예약한 사람 포함)",
+      "configField": "dailyVisitors", "sesPath": "민원인집합", "nodeKind": "MULTI_ASPECT"
+    },
+    {
+      "templateId": "ct.serviceMinutes", "answerKey": "serviceMinutes", "label": "평균 처리 시간(분)", "valueType": "NUMBER", "generateWhen": "ALWAYS",
+      "allowed": [], "min": 1.0, "max": 60.0, "unit": "minute",
+      "defaultValue": 8.0, "defaultBasis": "serviceMinutes 초기값 — 등·초본 · 전입신고 섞인 평균 가정",
+      "question": "민원 한 건을 처리하는 데 평균 몇 분 걸리나요? (1~60분)",
+      "configField": "serviceMinutes", "sesPath": "창구집합/창구/처리시간", "nodeKind": "ATTRIBUTE"
+    },
+    {
+      "templateId": "ct.reservationMode", "answerKey": "reservationMode", "label": "방문 예약제", "valueType": "ENUM", "generateWhen": "ALWAYS",
+      "allowed": ["APPLY", "IGNORE"], "min": null, "max": null, "unit": null,
+      "defaultValue": "IGNORE", "defaultBasis": "reservationEnabled = false",
+      "question": "방문 예약제를 쓸까요? (예약한 사람은 예약 시각에 와서 먼저 불립니다)",
+      "configField": "reservationEnabled", "sesPath": "예약제결합", "nodeKind": "COUPLING_CONDITION"
+    },
+    {
+      "templateId": "ct.reservationShare", "answerKey": "reservationShare", "label": "예약 비율", "valueType": "NUMBER", "generateWhen": "RESERVATION_APPLIED",
+      "allowed": [], "min": 0.0, "max": 1.0, "unit": null,
+      "defaultValue": null, "defaultBasis": null,
+      "question": "방문객 가운데 몇 %가 예약하고 오나요? (0~1, 0.3 = 30%) 기본값이 없어 정해 주셔야 합니다",
+      "configField": "reservationShare", "sesPath": "예약제결합/예약비율", "nodeKind": "ATTRIBUTE"
+    },
+    {
+      "templateId": "ct.maxWait", "answerKey": "maxWaitMinutes", "label": "대기 한도(분)", "valueType": "INTEGER", "generateWhen": "ALWAYS",
+      "allowed": [], "min": 1.0, "max": 240.0, "unit": "minute",
+      "defaultValue": null, "defaultBasis": null,
+      "question": "민원인은 몇 분까지 기다리다 돌아가나요? (1~240분) 기본값이 없어 정해 주셔야 합니다",
+      "configField": "maxWaitMinutes", "sesPath": "민원인집합/민원인/대기한도", "nodeKind": "ATTRIBUTE"
+    },
+    {
+      "templateId": "ct.days", "answerKey": "days", "label": "기간(일)", "valueType": "INTEGER", "generateWhen": "ALWAYS",
+      "allowed": [], "min": 1.0, "max": 60.0, "unit": null,
+      "defaultValue": 5, "defaultBasis": "days 초기값 — 평일 한 주",
+      "question": "며칠치를 볼까요? (1~60일, 하루는 09~18시)",
+      "configField": "days", "sesPath": "실험프레임/기간", "nodeKind": "ATTRIBUTE"
+    },
+    {
+      "templateId": "ct.seeds", "answerKey": "seeds", "label": "반복 횟수", "valueType": "INTEGER", "generateWhen": "ALWAYS",
+      "allowed": [], "min": 1.0, "max": 100.0, "unit": null,
+      "defaultValue": 30, "defaultBasis": "seeds 초기값",
+      "question": "몇 번 반복할까요? (1~100회)",
+      "configField": "seeds", "sesPath": "실험프레임/반복", "nodeKind": "ATTRIBUTE"
+    }
+  ]
+}
