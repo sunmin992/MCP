@@ -42,6 +42,18 @@ public class ScenarioStore {
     }
 
     private final Map<String, Entry> byId = new ConcurrentHashMap<>();
+    private final java.util.Set<String> executing = new java.util.HashSet<>();
+
+    /** 검증한 항목이 그대로일 때만 실행권을 얻는다. 확인 갱신과도 원자적으로 경쟁한다. */
+    public synchronized boolean beginExecution(String scenarioId, Entry expected) {
+        if (byId.get(scenarioId) != expected || expected.executedAt() != null
+                || expected.scenario().confirmToken() == null) return false;
+        return executing.add(scenarioId);
+    }
+
+    public synchronized void endExecution(String scenarioId) {
+        executing.remove(scenarioId);
+    }
 
     public String put(Scenario scenario, Pes pes) {
         byId.put(scenario.scenarioId(), new Entry(scenario, pes, null));
@@ -73,9 +85,11 @@ public class ScenarioStore {
     }
 
     /** 확인된 시나리오로 갈아 끼운다. 실행 이력은 지운다 — 다시 확인했으면 다시 돌릴 수 있다. */
-    public void confirm(Scenario confirmed) {
+    public synchronized boolean confirm(Scenario confirmed) {
+        if (executing.contains(confirmed.scenarioId())) return false;
         byId.computeIfPresent(confirmed.scenarioId(),
                 (k, e) -> new Entry(confirmed, e.pes(), null));
+        return byId.containsKey(confirmed.scenarioId());
     }
 
     public void markExecuted(String scenarioId) {

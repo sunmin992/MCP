@@ -51,7 +51,9 @@ public class ConfirmScenarioTool {
 
         Scenario confirmed = new Scenario(scenario.scenarioId(), scenario.runs(),
                 scenario.blocks(), scenario.backVerificationBlocks(), builder.tokenFor(scenario));
-        store.confirm(confirmed);
+        if (!store.confirm(confirmed)) {
+            return ToolFailure.of("scenarioId", "실행 중인 시나리오는 다시 확인할 수 없습니다: " + scenarioId);
+        }
 
         try {
             var root = mapper.createObjectNode();
