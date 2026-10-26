@@ -58,11 +58,11 @@
     ],
     "objectiveMatchKeys": [
       {"key": "wait-time", "label": "민원 대기 시간", "matchKeys": ["대기 시간", "기다리는 시간", "얼마나 기다", "대기", "기다려"]},
-      {"key": "renege", "label": "기다리다 돌아간 민원인", "matchKeys": ["돌아가", "포기", "그냥 가", "이탈"]},
+      {"key": "renege", "label": "기다리다 돌아간 민원인", "matchKeys": ["돌아가", "돌아간", "포기", "그냥 가", "이탈"]},
       {"key": "utilization", "label": "창구 가동률", "matchKeys": ["가동률", "바쁜 정도", "놀고 있", "일이 몰"]},
       {"key": "counter-count", "label": "창구 수", "matchKeys": ["창구를 하나 더", "창구 수", "창구 늘", "창구 줄", "몇 개"]},
       {"key": "reservation-effect", "label": "예약제 효과", "matchKeys": ["예약제", "예약"]},
-      {"key": "queue-discipline-effect", "label": "줄 서는 방식 효과", "matchKeys": ["번호표", "한 줄", "창구마다 줄"]},
+      {"key": "queue-discipline-effect", "label": "줄 서는 방식 효과", "matchKeys": ["줄 서는 방식", "번호표", "한 줄", "창구마다 줄"]},
       {"key": "overtime", "label": "마감 뒤 초과 근무", "matchKeys": ["초과 근무", "야근", "마감 뒤", "늦게 끝"]}
     ]
   },
