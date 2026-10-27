@@ -32,6 +32,34 @@ class ParkingApiClientTest {
         assertThatThrownBy(() -> new ParkingApiClient("", mapper).fetch("PrkSttusInfo", "47113"))
                 .hasMessageContaining("PARKING_API_SERVICE_KEY");
     }
+    @Test void xmlErrorShowsOnlyThePortalReasonCode() {
+        String xml = "<OpenAPI_ServiceResponse><cmmMsgHeader><errMsg>SERVICE ERROR</errMsg>"
+                + "<returnAuthMsg>LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR</returnAuthMsg>"
+                + "<returnReasonCode>22</returnReasonCode><secret>serviceKey=abc%2Bdef</secret></cmmMsgHeader></OpenAPI_ServiceResponse>";
+        assertThatThrownBy(() -> ParkingApiClient.parse(xml, "PrkSttusInfo", mapper))
+                .hasMessageContaining("LIMITED_NUMBER_OF_SERVICE_REQUESTS_EXCEEDS_ERROR")
+                .hasMessageContaining("22").hasMessageNotContaining("abc").hasMessageNotContaining("serviceKey");
+        // 새 게이트웨이는 header 의 resultCode · resultMsg 로 알린다.
+        assertThatThrownBy(() -> ParkingApiClient.parse("<response><header><resultCode>30</resultCode>"
+                + "<resultMsg>SERVICE_KEY_IS_NOT_REGISTERED_ERROR</resultMsg></header></response>", "PrkSttusInfo", mapper))
+                .hasMessageContaining("SERVICE_KEY_IS_NOT_REGISTERED_ERROR").hasMessageContaining("30");
+    }
+    @Test void followsTotalCountPastFiftyPagesAndStopsWhenEnough() {
+        // 포항 북구 시설 목록은 77쪽이다. 50쪽에서 끊으면 공영을 가리기 전에 조회가 실패한다.
+        var requested = new ArrayList<URI>();
+        var api = new ParkingApiClient("dummy", mapper) {
+            protected String request(URI uri) {
+                requested.add(uri);
+                return "{\"resultCode\":\"0\",\"totalCount\":\"77\",\"PrkSttusInfo\":[{\"prk_center_id\":\"p"
+                        + requested.size() + "\"}]}";
+            }
+        };
+        assertThat(api.fetch("PrkSttusInfo", "47113")).hasSize(77);
+        requested.clear();
+        assertThat(api.fetch("PrkSttusInfo", "47113",
+                rows -> rows.stream().anyMatch(r -> r.path("prk_center_id").asText().equals("p3")))).hasSize(3);
+        assertThat(requested).hasSize(3);
+    }
     @Test void refusesRepeatedPages() {
         var api = new ParkingApiClient("dummy", mapper) {
             protected String request(URI uri) {

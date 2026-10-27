@@ -61,7 +61,7 @@
       {"name": "run_scenario_by_token", "what": "확인된 시나리오 실행", "status": "OK"}
     ],
     "environmentMatchKeys": [
-      {"key": "api-initial-occupancy", "matchKeys": ["실시간 잔여면수", "실제 빈자리", "API 데이터", "공공데이터"], "model": "인증키와 지역별 제공 여부에 따라 시설·실시간 정보를 조회하고 초기 점유만 고정한다. 관측 시각은 미제공이다"},
+      {"key": "api-initial-occupancy", "matchKeys": ["잔여면수", "실제 빈자리", "API 데이터", "공공데이터", "실제 데이터", "실데이터", "지금 상태", "현재 상태", "현재 점유", "지금 점유", "실제 점유"], "model": "인증키와 지역별 제공 여부에 따라 시설·실시간 정보를 조회하고 초기 점유만 고정한다. 관측 시각은 미제공이다"},
       {"key": "road-congestion", "matchKeys": ["혼잡", "교통", "도로 혼잡", "정체"]},
       {"key": "time-of-day-demand", "matchKeys": ["주말", "평일", "오전", "오후", "저녁", "야간", "점심", "출근", "퇴근", "시간대", "피크", "첨두"],
        "model": "이용자 유형별 도착 시각 분포(userMix)로 시간대 수요를 만들고 hourlyOccupancy 로 시간대별 점유를 본다. 평일 · 주말 수요를 따로 두지 않으므로 주말은 이용자 구성 · 하루 도착 대수로 표현한다"},

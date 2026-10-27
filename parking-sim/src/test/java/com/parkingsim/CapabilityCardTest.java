@@ -40,6 +40,22 @@ class CapabilityCardTest {
         }
     }
 
+    @Test
+    void realDataPhrasesMatchApiOccupancyAndAreNotDeclaredUnsupported() throws Exception {
+        // 에이전트가 실제로 보낸 구절(2026-10-27 AP-A1 · A2 · A3). 걸리지 않으면 브로커가 "이 조건을 빼면 됩니다" 라고
+        // 해, 서버가 할 수 있는 API 모드를 사용자 요청에서 지우게 만든다.
+        try (var input = getClass().getResourceAsStream("/mcp/parking-capability-card.json")) {
+            JsonNode card = new ObjectMapper().readTree(input);
+            for (String phrase : new String[]{"공영주차장 실제 잔여면수", "실제 잔여면수", "지금 상태", "실제 데이터",
+                    "공영주차장 실시간 잔여면수", "현재 점유 상태"}) {
+                for (JsonNode u : card.path("unsupported")) {
+                    assertFalse(matches(u, phrase), phrase + " 이 미지원 " + u.path("capability").asText() + " 에 걸린다");
+                }
+                assertEquals("api-initial-occupancy", firstMatch(card, phrase), phrase);
+            }
+        }
+    }
+
     private String firstMatch(JsonNode card, String phrase) {
         for (JsonNode environment : card.path("applicability").path("environmentMatchKeys")) {
             if (matches(environment, phrase)) return environment.path("key").asText();
