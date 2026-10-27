@@ -6,12 +6,12 @@
   "fictional": false,
   "domain": ["public-parking"],
   "domainAliases": ["공영주차장", "주차장", "주차", "주차난", "주차 공간", "주차면"],
-  "region": "포항시 도심 (가정 배치)",
+  "region": "포항시 도심 (가정 배치, 선택 시 공공데이터 시설·실시간 면수 적용)",
   "analysisUnit": {
     "scope": "area",
     "label": "도심 한 구역의 공영주차장 묶음",
     "notDistrict": true,
-    "rationale": "주차장 1~12곳을 한 줄로 늘어선 것으로 본다. 도로망 · 실제 좌표가 없어 도시 전체나 노상 주차는 표현하지 못한다.",
+    "rationale": "주차장 1~12곳을 한 줄로 늘어선 것으로 본다. Parking_v1 시설·실시간 정보로 주차장별 면수와 초기 점유를 적용할 수 있다. API 좌표는 참고용이며 도로망·노상 주차는 표현하지 못한다.",
     "coherence": "기본 4곳 × 80면 = 320면에 하루 900대(평균 체류 약 4시간)면 수요가 공급의 약 80% 로, 출근 · 점심 시간대에 만차가 생기는 구간이다.",
     "matchKeys": ["도심", "시내", "한 구역", "상업지역", "번화가", "구도심", "역 주변", "동네", "상가 주변"]
   },
@@ -48,10 +48,11 @@
     "spatialScale": {"lots": {"min": 1, "max": 12, "default": 4}, "spacesPerLot": {"min": 10, "max": 1000, "default": 80}},
     "period": {"days": {"min": 1, "max": 90, "default": 14}},
     "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
-    "environment": ["road-congestion", "time-of-day-demand", "guidance", "pricing", "resident-priority", "lot-spacing"],
+    "environment": ["road-congestion", "time-of-day-demand", "guidance", "pricing", "resident-priority", "lot-spacing", "api-initial-occupancy"],
     "answerableQuestions": ["search-time", "give-up", "occupancy", "pricing-effect", "guidance-effect", "resident-priority", "lot-count", "congestion-effect"],
     "scenarioTypes": ["guidance-compare", "pricing-compare", "capacity-sweep", "demand-sweep", "user-mix"],
     "tools": [
+      {"name": "fetch_parking_snapshot", "what": "공영 시설·실시간 잔여면수 조회 및 선택 스냅샷 생성(인증키 필요)", "status": "CONDITIONAL"},
       {"name": "get_templates", "what": "서브태스크 템플릿", "status": "OK"},
       {"name": "plan_subtasks", "what": "생성 조건 평가", "status": "OK"},
       {"name": "validate_answers", "what": "답변 계약 대조", "status": "OK"},
@@ -60,6 +61,7 @@
       {"name": "run_scenario_by_token", "what": "확인된 시나리오 실행", "status": "OK"}
     ],
     "environmentMatchKeys": [
+      {"key": "api-initial-occupancy", "matchKeys": ["실시간 잔여면수", "실제 빈자리", "API 데이터", "공공데이터"], "model": "인증키와 지역별 제공 여부에 따라 시설·실시간 정보를 조회하고 초기 점유만 고정한다. 관측 시각은 미제공이다"},
       {"key": "road-congestion", "matchKeys": ["혼잡", "교통", "도로 혼잡", "정체"]},
       {"key": "time-of-day-demand", "matchKeys": ["주말", "평일", "오전", "오후", "저녁", "야간", "점심", "출근", "퇴근", "시간대", "피크", "첨두"],
        "model": "이용자 유형별 도착 시각 분포(userMix)로 시간대 수요를 만들고 hourlyOccupancy 로 시간대별 점유를 본다. 평일 · 주말 수요를 따로 두지 않으므로 주말은 이용자 구성 · 하루 도착 대수로 표현한다"},
@@ -109,9 +111,9 @@
   "unsupported": [
     {"code": "UNSUPPORTED_METRIC", "capability": "비용편익 · 건설비 산출", "matchKeys": ["건설비", "공사비", "비용편익", "예산", "투자"], "reasonType": "NOT_IN_MODEL", "reason": "주차장 건설 · 운영 비용 항이 모델에 없다", "alternatives": ["metric:giveUps", "metric:searchTime", "metric:revenue"], "message": "건설비 · 비용편익은 산출하지 않습니다. 포기 차량 · 탐색 시간 · 요금 수입(참고)으로 비교하실 수 있습니다."},
     {"code": "UNSUPPORTED_SCOPE", "capability": "노상 · 불법 주차", "matchKeys": ["노상", "불법 주차", "불법주차", "갓길", "단속"], "reasonType": "NOT_IN_MODEL", "reason": "노외 공영주차장만 표현한다", "alternatives": ["공영주차장 면수 · 요금 변경"], "message": "노상 · 불법 주차는 다루지 않습니다. 공영주차장 면수와 요금을 바꿔 보는 실험은 할 수 있습니다."},
-    {"code": "UNSUPPORTED_SCALE", "capability": "도시 전체 · 실제 지도", "matchKeys": ["도시 전체", "포항 전체", "시 전체", "지도", "길안내", "실제 위치"], "reasonType": "NO_DATA", "reason": "실제 주차장 좌표와 도로망이 없다 — 주차장을 한 줄로 늘어선 것으로 가정한다", "alternatives": ["도심 한 구역 1~12곳"], "message": "도시 전체나 실제 지도 위 길안내는 할 수 없습니다. 도심 한 구역의 주차장 1~12곳으로 실험하실 수 있습니다."},
+    {"code": "UNSUPPORTED_SCALE", "capability": "도시 전체 · 실제 지도", "matchKeys": ["도시 전체", "포항 전체", "시 전체", "지도", "길안내"], "reasonType": "NOT_IN_MODEL", "reason": "API 좌표는 참고 정보이며 엔진은 실제 도로망 대신 한 줄 배치를 사용한다", "alternatives": ["도심 한 구역 1~12곳"], "message": "도시 전체나 실제 지도 위 길안내는 할 수 없습니다. 도심 한 구역의 주차장 1~12곳으로 실험하실 수 있습니다."},
     {"code": "UNSUPPORTED_FEATURE", "capability": "전기차 충전", "matchKeys": ["전기차", "충전"], "reasonType": "NOT_IN_MODEL", "reason": "충전면 · 충전 시간 항이 없다", "alternatives": [], "message": "전기차 충전은 모델에 없습니다."},
-    {"code": "UNSUPPORTED_METRIC", "capability": "실시간 운영 예측", "matchKeys": ["지금 빈자리", "실시간 예측", "오늘 몇 시"], "reasonType": "OUT_OF_SCOPE", "reason": "실측 입력이 없는 설정 비교 실험이다", "alternatives": ["설정 간 비교"], "message": "실제 지금의 빈자리를 예측하지 않습니다. 설정을 바꿔 가며 비교하는 실험입니다."}
+    {"code": "UNSUPPORTED_METRIC", "capability": "실시간 운영 예측", "matchKeys": ["실시간 예측", "오늘 몇 시"], "reasonType": "OUT_OF_SCOPE", "reason": "API 초기 점유는 적용할 수 있으나 이후 도착·출차는 가정에 따른 설정 비교 실험이다", "alternatives": ["API 잔여면수 조회", "설정 간 비교"], "message": "API가 제공하는 잔여면수는 조회할 수 있습니다. 미래 빈자리의 실시간 운영 예측은 하지 않습니다."}
   ],
   "neverDo": [
     "기본값이 없는 값(할증률 · 거주자 우선 비율 · 탐색 포기 시간)을 대신 채워 실행한다",

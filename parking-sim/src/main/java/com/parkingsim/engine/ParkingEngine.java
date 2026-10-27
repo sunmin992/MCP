@@ -71,14 +71,19 @@ public class ParkingEngine {
     public SeedResult run(ParkingConfig c, long seed) {
         Random rnd = new Random(seed);
         final int lots = c.getLotCount();
-        final int spaces = c.getSpacesPerLot();
+        final int[] spaces = new int[lots];
+        final int[] reserved = new int[lots];
+        final int[] general = new int[lots];
         final List<UserType> mix = c.resolveUserMix();
         final PricingPolicy pricing = c.resolvePricingPolicy();
         final GuidanceMode guidance = c.resolveGuidanceMode();
         final double share = c.residentsPresent() && c.getResidentPriorityShare() != null
                 ? c.getResidentPriorityShare() : 0.0;
-        final int reserved = (int) Math.floor(spaces * share);
-        final int general = spaces - reserved;
+        for (int l = 0; l < lots; l++) {
+            spaces[l] = c.spacesAt(l);
+            reserved[l] = (int) Math.floor(spaces[l] * share);
+            general[l] = spaces[l] - reserved[l];
+        }
         final double[] mult = c.isCongestionEnabled()
                 ? profiles.multipliers(c.getCongestionProfileId()).orElseThrow(
                         () -> new IllegalStateException("혼잡 프로파일이 없습니다: " + c.getCongestionProfileId()))
@@ -111,20 +116,31 @@ public class ParkingEngine {
             return cmp != 0 ? cmp : Long.compare(a.seq(), b.seq());
         });
         long seq = 0;
+        // Existing vehicles are not new arrivals and therefore not counted in vehicle balance or revenue.
+        if (c.getParkingSnapshot() != null) {
+            for (int l = 0; l < lots; l++) {
+                genOcc[l] = c.getParkingSnapshot().lots().get(l).occupied();
+                snapGeneral[l] = genOcc[l] < general[l];
+                snapResident[l] = snapGeneral[l];
+                for (int i = 0; i < genOcc[l]; i++)
+                    pq.add(new Event(c.getInitialVehicleRemainingMinutes(), DEPART, seq++, null, l, false));
+            }
+        }
 
         int arrivals = 0, priceAvoided = 0;
-        for (int d = 0; d < c.getDays(); d++) {
+        for (int d = 0; d < c.getDays() + (c.startMinute() > 0 ? 1 : 0); d++) {
             for (int i = 0; i < c.getDailyArrivals(); i++) {
                 UserType type = mix.get(i % mix.size());
                 double tod = type.uniformArrival
                         ? type.arrivalMeanMinutes + rnd.nextDouble() * type.arrivalSpreadMinutes
                         : type.arrivalMeanMinutes + rnd.nextGaussian() * type.arrivalSpreadMinutes;
                 tod = Math.max(0, Math.min(1439, tod));
-                double t = d * 1440.0 + tod;
+                double t = d * 1440.0 + tod - c.startMinute();
+                if (t < 0 || t >= horizon) continue;
                 arrivals++;
                 arrivalsByType.merge(type, 1, Integer::sum);
 
-                double fee = feePer30(c, pricing, hourOf(t));
+                double fee = feePer30(c, pricing, hourOf(t + c.startMinute()));
                 double pAvoid = Math.min(0.95, type.priceElasticity * fee / 1000.0);
                 if (rnd.nextDouble() < pAvoid) {
                     priceAvoided++;
@@ -133,7 +149,7 @@ public class ParkingEngine {
                 int dest = pickDestination(rnd, lots);
                 int stay;
                 if (type == UserType.Resident) {
-                    double leave = (d + 1) * 1440.0 + 7 * 60 + 30 + rnd.nextGaussian() * 30;
+                    double leave = (d + 1) * 1440.0 + 7 * 60 + 30 + rnd.nextGaussian() * 30 - c.startMinute();
                     stay = (int) Math.max(60, leave - t);
                 } else {
                     stay = (int) Math.max(10, type.meanStayMinutes * (0.5 + rnd.nextDouble()));
@@ -169,19 +185,19 @@ public class ParkingEngine {
                 }
                 case REFRESH -> {
                     for (int l = 0; l < lots; l++) {
-                        snapGeneral[l] = genOcc[l] < general;
-                        snapResident[l] = resOcc[l] < reserved || genOcc[l] < general;
+                        snapGeneral[l] = genOcc[l] < general[l];
+                        snapResident[l] = resOcc[l] < reserved[l] || genOcc[l] < general[l];
                     }
                 }
                 case SAMPLE -> {
                     int occ = 0;
                     for (int l = 0; l < lots; l++) {
                         occ += genOcc[l] + resOcc[l];
-                        lotPeak[l] = Math.max(lotPeak[l], (genOcc[l] + resOcc[l]) / (double) spaces);
-                        if (genOcc[l] >= general) fullMinutes[l] += SAMPLE_MINUTES;
+                        lotPeak[l] = Math.max(lotPeak[l], (genOcc[l] + resOcc[l]) / (double) spaces[l]);
+                        if (genOcc[l] >= general[l]) fullMinutes[l] += SAMPLE_MINUTES;
                     }
-                    int h = hourOf(e.t());
-                    hourSum[h] += occ / (double) (lots * spaces);
+                    int h = hourOf(e.t() + c.startMinute());
+                    hourSum[h] += occ / (double) c.totalSpaces();
                     hourCount[h]++;
                 }
                 case ARRIVE -> {
@@ -211,15 +227,15 @@ public class ParkingEngine {
                     }
                     v.first = false;
 
-                    boolean useReserved = resident && resOcc[lot] < reserved;
-                    if (useReserved || genOcc[lot] < general) {
+                    boolean useReserved = resident && resOcc[lot] < reserved[lot];
+                    if (useReserved || genOcc[lot] < general[lot]) {
                         if (useReserved) resOcc[lot]++; else genOcc[lot]++;
                         double search = t - v.start;
                         parked++;
                         searchSum += search;
                         parkedByType.merge(v.type, 1, Integer::sum);
                         searchByType.merge(v.type, search, Double::sum);
-                        revenue += (long) (feePer30(c, pricing, hourOf(t)) * Math.ceil(v.stay / 30.0));
+                        revenue += (long) (feePer30(c, pricing, hourOf(t + c.startMinute())) * Math.ceil(v.stay / 30.0));
                         pq.add(new Event(t + v.stay, DEPART, seq++, v, lot, useReserved));
                         continue;
                     }
@@ -296,7 +312,7 @@ public class ParkingEngine {
 
     static double travel(ParkingConfig c, double[] mult, int from, int to, double t) {
         double base = Math.abs(to - from) * c.getLotSpacingMinutes();
-        return mult == null ? base : base * mult[hourOf(t)];
+        return mult == null ? base : base * mult[hourOf(t + c.startMinute())];
     }
 
     static int hourOf(double t) {

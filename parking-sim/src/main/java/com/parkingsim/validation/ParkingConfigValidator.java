@@ -40,8 +40,20 @@ public class ParkingConfigValidator {
         if (c.getLotCount() < 1 || c.getLotCount() > 12) {
             errs.add(range("lotCount", "주차장 수는 1~12 곳이어야 합니다. 받은 값: " + c.getLotCount()));
         }
-        if (c.getSpacesPerLot() < 10 || c.getSpacesPerLot() > 1000) {
+        if (c.getParkingSnapshot() == null && (c.getSpacesPerLot() < 10 || c.getSpacesPerLot() > 1000)) {
             errs.add(range("spacesPerLot", "주차장 면수는 10~1000 이어야 합니다. 받은 값: " + c.getSpacesPerLot()));
+        }
+        if (c.getParkingSnapshot() != null) {
+            var snapshot = c.getParkingSnapshot();
+            if (snapshot.lots().size() != c.getLotCount()) errs.add(range("parkingSnapshot", "선택 주차장 수가 설정과 다릅니다."));
+            for (var lot : snapshot.lots()) {
+                if (lot.totalSpaces() < 1 || lot.totalSpaces() > 10000 || lot.availableSpaces() < 0 || lot.availableSpaces() > lot.totalSpaces())
+                    errs.add(range("parkingSnapshot", "API 총면수·잔여면수가 잘못됐습니다."));
+            }
+            if (c.getInitialVehicleRemainingMinutes() == null || c.getInitialVehicleRemainingMinutes() < 1 || c.getInitialVehicleRemainingMinutes() > 1440)
+                errs.add(range("initialVehicleRemainingMinutes", "기존 차량의 잔여 체류시간 가정을 1~1440분으로 정하십시오."));
+            if (c.getResidentPriorityShare() != null && c.getResidentPriorityShare() != 0)
+                errs.add(range("residentPriorityShare", "API는 기존 점유의 거주자 구획을 구분하지 않습니다. 스냅샷 실험에서는 거주자 우선 비율을 0으로 정하십시오."));
         }
         if (c.getDailyArrivals() < 1 || c.getDailyArrivals() > 20000) {
             errs.add(range("dailyArrivals", "하루 도착 차량은 1~20000 대여야 합니다. 받은 값: " + c.getDailyArrivals()));

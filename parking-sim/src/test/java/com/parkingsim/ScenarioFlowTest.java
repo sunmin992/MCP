@@ -43,7 +43,7 @@ class ScenarioFlowTest {
     void 장량동과_같은_도구_이름을_낸다() {
         assertThat(registry.all().stream().map(p -> p.toolName()).toList()).containsExactlyInAnyOrder(
                 "get_capability", "get_templates", "plan_subtasks", "validate_answers",
-                "build_scenario", "get_scenario_status", "run_scenario_by_token");
+                "build_scenario", "get_scenario_status", "run_scenario_by_token", "fetch_parking_snapshot");
     }
 
     @Test

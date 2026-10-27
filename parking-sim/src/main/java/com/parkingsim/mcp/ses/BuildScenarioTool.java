@@ -33,13 +33,15 @@ public class BuildScenarioTool implements McpToolProvider {
     private final ScenarioStore store;
     private final TemplateCatalog catalog;
     private final ObjectMapper mapper;
+    private final com.parkingsim.data.ParkingDataService parkingData;
 
     public BuildScenarioTool(ScenarioBuilder builder, ScenarioStore store,
-                             TemplateCatalog catalog, ObjectMapper mapper) {
+                             TemplateCatalog catalog, ObjectMapper mapper, com.parkingsim.data.ParkingDataService parkingData) {
         this.builder = builder;
         this.store = store;
         this.catalog = catalog;
         this.mapper = mapper;
+        this.parkingData = parkingData;
     }
 
     private static final java.util.Set<String> KNOWN_ORIGINS = java.util.Set.of("USER", "MODEL_DEFAULT", "DERIVED");
@@ -50,6 +52,7 @@ public class BuildScenarioTool implements McpToolProvider {
     public String description() {
         return "PES 와 실험 프레임으로 실행 설정 N벌을 만들고 검증한다. 실행 설정마다 서브태스크 생성 조건을 다시 "
                 + "평가해, 물어야 할 결정이 비어 있으면 막는다 — 기본값을 받아들인 결정도 그 값을 values 에 넣어야 한다. "
+                + "API 데이터는 parkingSnapshotId와 initialVehicleRemainingMinutes를 지정한다. 이때 lotCount·spacesPerLot는 생략한다. "
                 + "통과하면 UNCONFIRMED 로 보관되고, 사람이 확인 화면에서 승인해야 토큰이 나온다. " + ORIGIN_RULE;
     }
 
@@ -66,6 +69,8 @@ public class BuildScenarioTool implements McpToolProvider {
             {"type":"object",
              "properties":{
                "values":{"type":"object","description":"답변키 → 확정값"},
+               "parkingSnapshotId":{"type":"string","description":"fetch_parking_snapshot이 발급한 스냅샷 ID"},
+               "initialVehicleRemainingMinutes":{"type":"integer","minimum":1,"maximum":1440,"description":"기존 점유 차량이 모두 출차할 때까지의 시간(분). API에 없는 사용자 가정이며 모든 기존 차량에 동일하게 적용"},
                "origins":{"type":"object","description":"답변키 → USER / MODEL_DEFAULT / DERIVED. 사용자가 값을 직접 말했을 때만 USER, '기본값으로' 처럼 값 없이 넘긴 것은 MODEL_DEFAULT. 적지 않으면 MODEL_DEFAULT"},
                "variableAnswerKey":{"type":"string","description":"실험 변수의 답변키"},
                "variableValues":{"type":"array","description":"비교할 값들"},
@@ -110,7 +115,23 @@ public class BuildScenarioTool implements McpToolProvider {
             ExperimentFrame frame = new ExperimentFrame(
                     args.path("variableAnswerKey").asText(), variableValues, observations);
 
-            Scenario scenario = builder.build(pes, frame);
+            com.parkingsim.data.ParkingSnapshot snapshot = null;
+            Integer remaining = null;
+            if (args.has("parkingSnapshotId")) {
+                snapshot = parkingData.require(args.path("parkingSnapshotId").asText());
+                if (values.containsKey("lotCount") || values.containsKey("spacesPerLot"))
+                    throw new IllegalArgumentException("API 모드에서는 lotCount·spacesPerLot를 생략하십시오. 선택한 주차장별 면수를 사용합니다.");
+                if (!args.path("initialVehicleRemainingMinutes").isIntegralNumber()
+                        || !args.path("initialVehicleRemainingMinutes").canConvertToInt())
+                    throw new IllegalArgumentException("기존 차량의 잔여 체류시간 가정(initialVehicleRemainingMinutes)을 사용자에게 받아 넣으십시오.");
+                remaining = args.path("initialVehicleRemainingMinutes").intValue();
+                values.put("lotCount", snapshot.lots().size());
+                origins.put("lotCount", "DERIVED");
+                pes = new Pes(catalog.sesId(), catalog.sesVersion(), values, origins);
+            } else if (args.has("initialVehicleRemainingMinutes")) {
+                throw new IllegalArgumentException("잔여 체류시간은 parkingSnapshotId와 함께 지정하십시오.");
+            }
+            Scenario scenario = builder.build(pes, frame, snapshot, remaining);
 
             // 실험 변수는 값이 여럿이라 기본 PES 에 들어 있지 않다. LLM 이 그 값들을 제안했으면
             // (출처 MODEL_DEFAULT) 확인 화면이 경고할 수 있도록, 보관할 PES 에 비교할 값 목록을

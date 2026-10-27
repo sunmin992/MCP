@@ -13,6 +13,14 @@ import java.util.List;
  * 시작하지 않게 짓는다 — 그러면 해시와 화면에 섞인다.
  */
 public class ParkingConfig {
+    private com.parkingsim.data.ParkingSnapshot parkingSnapshot;
+    private Integer initialVehicleRemainingMinutes;
+    public com.parkingsim.data.ParkingSnapshot getParkingSnapshot() { return parkingSnapshot; }
+    public void setParkingSnapshot(com.parkingsim.data.ParkingSnapshot snapshot) { this.parkingSnapshot = snapshot; }
+    public Integer getInitialVehicleRemainingMinutes() { return initialVehicleRemainingMinutes; }
+    public void setInitialVehicleRemainingMinutes(Integer minutes) { this.initialVehicleRemainingMinutes = minutes; }
+    public int spacesAt(int lot) { return parkingSnapshot == null ? spacesPerLot : parkingSnapshot.lots().get(lot).totalSpaces(); }
+    public int startMinute() { return parkingSnapshot == null ? 0 : parkingSnapshot.startMinute(); }
 
     /** 주차장 수. 주차장은 한 줄로 늘어서 있고 이웃한 두 곳 사이를 {@link #lotSpacingMinutes} 에 간다. */
     private int lotCount = 4;
@@ -117,5 +125,6 @@ public class ParkingConfig {
         return userMix != null && userMix.stream().anyMatch(s -> "resident".equalsIgnoreCase(s));
     }
 
-    public int totalSpaces() { return lotCount * spacesPerLot; }
+    public int totalSpaces() { return parkingSnapshot == null ? lotCount * spacesPerLot
+            : parkingSnapshot.lots().stream().mapToInt(com.parkingsim.data.ParkingSnapshot.Lot::totalSpaces).sum(); }
 }

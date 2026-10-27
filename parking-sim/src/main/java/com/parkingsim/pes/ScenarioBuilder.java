@@ -51,6 +51,14 @@ public class ScenarioBuilder {
     }
 
     public Scenario build(Pes pes, ExperimentFrame frame) {
+        return build(pes, frame, null, null);
+    }
+
+    public Scenario build(Pes pes, ExperimentFrame frame, com.parkingsim.data.ParkingSnapshot snapshot,
+                          Integer initialVehicleRemainingMinutes) {
+        if (snapshot != null && (java.util.Set.of("lotCount", "spacesPerLot").contains(frame.variableAnswerKey())
+                || pes.values().containsKey("spacesPerLot")))
+            throw new IllegalArgumentException("API 스냅샷의 주차장 수·면수는 고정값입니다. 면수 실험은 스냅샷 없이 만드십시오.");
         List<ParkingConfig> runs = new ArrayList<>();
         List<String> blocks = new ArrayList<>();
         List<String> backBlocks = new ArrayList<>();
@@ -70,6 +78,7 @@ public class ScenarioBuilder {
             String run = frame.variableAnswerKey() + "=" + value + ": ";
             List<SubtaskInstance> instances = planner.plan(values).instances();
             for (SubtaskInstance i : instances) {
+                if (snapshot != null && i.answerKey().equals("spacesPerLot")) continue;
                 if (i.status() == SubtaskStatus.UNFILLED) {
                     // 기본값이 없는 결정에 "기본값을 받아들였으면" 이라고 쓰면, LLM 이 질문 문구의 예시 값을
                     // 기본값처럼 넣는다(2026-10-19 재실행 R10). 없으면 없다고, 있으면 그 값을 적는다.
@@ -89,6 +98,8 @@ public class ScenarioBuilder {
             }
 
             ParkingConfig cfg = flattener.flatten(runPes);
+            cfg.setParkingSnapshot(snapshot);
+            cfg.setInitialVehicleRemainingMinutes(initialVehicleRemainingMinutes);
             runs.add(cfg);
 
             ValidationResult result = validator.validate(cfg);
@@ -110,6 +121,7 @@ public class ScenarioBuilder {
         // 시나리오 둘이 같은 id 를 갖고 보관소에서 서로를 덮는다.
         String scenarioId = "scn-" + Integer.toHexString(
                 Objects.hash(pes.values(), frame.variableAnswerKey(), frame.values()));
+        if (snapshot != null) scenarioId += "-" + hashOf(runs);
 
         // 토큰은 여기서 주지 않는다. 검증 통과는 "돌릴 수 있다" 이지 "사용자가 확인했다"가
         // 아니다. 확인 단계(confirm)가 발급하며, 그래서 토큰 없음 = 미확인이 된다.

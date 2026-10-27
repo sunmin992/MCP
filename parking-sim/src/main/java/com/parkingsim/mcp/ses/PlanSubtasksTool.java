@@ -23,10 +23,12 @@ public class PlanSubtasksTool implements McpToolProvider {
 
     private final SubtaskPlanner planner;
     private final ObjectMapper mapper;
+    private final com.parkingsim.data.ParkingDataService parkingData;
 
-    public PlanSubtasksTool(SubtaskPlanner planner, ObjectMapper mapper) {
+    public PlanSubtasksTool(SubtaskPlanner planner, ObjectMapper mapper, com.parkingsim.data.ParkingDataService parkingData) {
         this.planner = planner;
         this.mapper = mapper;
+        this.parkingData = parkingData;
     }
 
     @Override public String toolName() { return "plan_subtasks"; }
@@ -38,7 +40,7 @@ public class PlanSubtasksTool implements McpToolProvider {
                 + "먼저 정해야 할 답변키를 적는다 — UNFILLED 를 먼저 묻고, 보류는 그 뒤 다시 계산하면 풀린다. "
                 + "비교할 실험 변수가 정해졌으면 build_scenario 와 같은 variableAnswerKey · variableValues 를 함께 준다 — "
                 + "비교 값마다 계산해 합치므로 어떤 값에서만 생기는 결정도 한 번에 드러난다(onlyFor). "
-                + "mustAskNoDefault 의 결정은 기본값이 없어 사용자에게 물어 값을 받아야 한다.";
+                + "API 모드는 parkingSnapshotId를 함께 보내며 면수 질문을 생략한다. mustAskNoDefault 의 결정은 사용자에게 물어 값을 받아야 한다.";
     }
 
     @Override
@@ -46,6 +48,8 @@ public class PlanSubtasksTool implements McpToolProvider {
         return """
             {"type":"object",
              "properties":{
+               "parkingSnapshotId":{"type":"string"},
+               "initialVehicleRemainingMinutes":{"type":"integer","minimum":1,"maximum":1440},
                "answers":{"type":"object",
                  "description":"답변키 → 확정값. 예: {\\"lotCount\\":4,\\"pricingPolicy\\":\\"FLAT\\"}. 실험 변수는 여기에 넣지 않고 variableValues 로 준다"},
                "origins":{"type":"object",
@@ -66,10 +70,20 @@ public class PlanSubtasksTool implements McpToolProvider {
             args.path("origins").fields().forEachRemaining(
                     e -> origins.put(e.getKey(), e.getValue().asText().trim().toUpperCase(java.util.Locale.ROOT)));
             String variableKey = args.path("variableAnswerKey").asText(null);
+            boolean apiMode = args.has("parkingSnapshotId");
+            if (apiMode) {
+                var snapshot = parkingData.require(args.path("parkingSnapshotId").asText());
+                if (answers.containsKey("lotCount") || answers.containsKey("spacesPerLot")
+                        || "lotCount".equals(variableKey) || "spacesPerLot".equals(variableKey))
+                    throw new IllegalArgumentException("API 모드에서는 lotCount·spacesPerLot를 생략하고 다른 항목을 비교하십시오.");
+                answers.put("lotCount", snapshot.lots().size());
+                origins.put("lotCount", "DERIVED");
+            }
             java.util.List<Object> variableValues = new java.util.ArrayList<>();
             args.path("variableValues").forEach(v -> variableValues.add(JsonValues.plain(v)));
             SubtaskPlanner.Across across = planner.planAcross(answers, origins, variableKey, variableValues);
             SubtaskPlan plan = across.plan();
+            if (apiMode) plan = new SubtaskPlan(plan.instances().stream().filter(i -> !i.answerKey().equals("spacesPerLot")).toList());
 
             var root = mapper.createObjectNode();
             root.set("instances", mapper.valueToTree(plan.instances()));
@@ -84,6 +98,13 @@ public class PlanSubtasksTool implements McpToolProvider {
                     planner.unusedUserAnswers(answers, origins, variableKey, variableValues)));
             // 기본값이 없는 결정. 예시 값을 대신 넣지 말고 사용자에게 물어야 한다.
             var noDefault = root.putArray("mustAskNoDefault");
+            if (apiMode) {
+                var remaining = args.path("initialVehicleRemainingMinutes");
+                boolean answered = remaining.isIntegralNumber() && remaining.canConvertToInt()
+                        && remaining.intValue() >= 1 && remaining.intValue() <= 1440;
+                if (!answered) { noDefault.add("initialVehicleRemainingMinutes"); root.put("complete", false); }
+                root.put("apiInputNote", "주차장 수·면수는 API에서 결정됩니다. 초기 점유 차량 전체가 몇 분 후 출차할지 1~1440분으로 정하십시오. build_scenario의 최상위 initialVehicleRemainingMinutes에 넣습니다.");
+            }
             for (var i : plan.instances()) {
                 if (i.status() == com.parkingsim.template.SubtaskStatus.UNFILLED
                         && planner.template(i.answerKey()).map(t -> t.requiresExplicitAnswer()).orElse(false)) {
