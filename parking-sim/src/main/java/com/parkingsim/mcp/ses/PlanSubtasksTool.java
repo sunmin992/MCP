@@ -79,6 +79,9 @@ public class PlanSubtasksTool implements McpToolProvider {
             root.set("waitingOn", mapper.valueToTree(across.waitingOn()));
             // 어떤 비교 값에서만 필요한 결정 — 그 값으로 돌 실행에만 쓰인다고 사용자에게 알릴 수 있다.
             root.set("onlyFor", mapper.valueToTree(across.onlyFor()));
+            // 사용자가 말했지만 쓰이지 않는 값 — 요청이 서로 맞지 않을 수 있다. build_scenario 는 이것을 막는다.
+            root.set("unusedUserAnswers", mapper.valueToTree(
+                    planner.unusedUserAnswers(answers, origins, variableKey, variableValues)));
             // 기본값이 없는 결정. 예시 값을 대신 넣지 말고 사용자에게 물어야 한다.
             var noDefault = root.putArray("mustAskNoDefault");
             for (var i : plan.instances()) {

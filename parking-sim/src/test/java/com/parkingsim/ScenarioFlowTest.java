@@ -155,6 +155,36 @@ class ScenarioFlowTest {
     }
 
     @Test
+    void 무료인데_할증을_말하면_쓰이지_않는_값으로_막는다() throws Exception {
+        String free = """
+            {"values":{"lotCount":4,"spacesPerLot":80,"pricingPolicy":"FREE","peakSurchargeRate":0.5,
+                       "userMix":["Commuter","Shopper"],"dailyArrivals":800,"guidanceMode":"NONE",
+                       "congestionMode":"IGNORE","maxSearchMinutes":15,"lotSpacingMinutes":3.0,"seeds":2},
+             "origins":{"pricingPolicy":"USER","peakSurchargeRate":"USER"},
+             "variableAnswerKey":"days","variableValues":[3]}
+            """;
+        JsonNode built = call("build_scenario", free);
+        assertThat(built.path("valid").asBoolean()).isFalse();
+        assertThat(built.path("blocks").toString()).contains("쓰이지 않는 값 peakSurchargeRate", "pricingPolicy=FREE");
+
+        JsonNode plan = call("plan_subtasks", free.replace("\"values\"", "\"answers\""));
+        assertThat(plan.path("unusedUserAnswers").has("peakSurchargeRate")).isTrue();
+    }
+
+    @Test
+    void 무료와_시간대_차등을_비교하면_할증률은_쓰이는_값이다() throws Exception {
+        JsonNode built = call("build_scenario", """
+            {"values":{"lotCount":4,"spacesPerLot":80,"baseFeePer30Min":500,"peakSurchargeRate":0.5,
+                       "userMix":["Commuter","Shopper"],"dailyArrivals":800,"guidanceMode":"NONE",
+                       "congestionMode":"IGNORE","maxSearchMinutes":15,"lotSpacingMinutes":3.0,"days":3,"seeds":2},
+             "origins":{"peakSurchargeRate":"USER","baseFeePer30Min":"USER"},
+             "variableAnswerKey":"pricingPolicy","variableValues":["FREE","TIME_OF_DAY"]}
+            """);
+        assertThat(built.path("blocks").toString()).doesNotContain("쓰이지 않는 값");
+        assertThat(built.path("valid").asBoolean()).as(built.toString()).isTrue();
+    }
+
+    @Test
     void 요청_원문이_없으면_시나리오를_만들지_않는다() throws Exception {
         ToolResult r = registry.byToolName("build_scenario").call(mapper.readTree(
                 "{\"values\":{},\"variableAnswerKey\":\"days\",\"variableValues\":[7]}"));

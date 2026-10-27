@@ -118,6 +118,29 @@ public class SubtaskPlanner {
         return new Across(new SubtaskPlan(merged), onlyFor, waiting);
     }
 
+    /**
+     * 사용자가 말했는데 어느 비교 값에서도 쓰이지 않는 값 → 그 값을 지운 조건("pricingPolicy=FREE").
+     *
+     * <p>"무료인데 출퇴근 시간에 할증" 처럼 서로 맞지 않는 요청은 값 하나하나는 범위 안이라 검증을 지나간다.
+     * 할증률은 생성되지 않은 결정이 되어 조용히 버려지고, 사용자는 자기가 말한 조건으로 돈 줄 안다
+     * (2026-10-27 NT-P7). 비교 값 가운데 하나에서라도 쓰이면 모순이 아니다 — 무료 · 차등 비교의 할증률처럼.
+     * 사용자가 말하지 않은 값(기본값)은 버려져도 사용자가 잃는 것이 없어 싣지 않는다.
+     */
+    public Map<String, String> unusedUserAnswers(Map<String, Object> answers, Map<String, String> origins,
+                                                 String variableKey, List<Object> values) {
+        Map<String, String> out = new java.util.LinkedHashMap<>();
+        for (SubtaskInstance i : planAcross(answers, origins, variableKey, values).plan().instances()) {
+            if (i.status() != SubtaskStatus.NOT_GENERATED || !answers.containsKey(i.answerKey())) continue;
+            if (!"USER".equals(origins.get(i.answerKey()))) continue;
+            List<String> because = new ArrayList<>();
+            for (String k : catalog.byAnswerKey(i.answerKey()).orElseThrow().generateWhen().inputs()) {
+                because.add(k + "=" + (k.equals(variableKey) ? values : answers.get(k)));
+            }
+            out.put(i.answerKey(), String.join(", ", because));
+        }
+        return out;
+    }
+
     private Map<String, List<String>> waitingOf(SubtaskPlan p, Map<String, Object> answers) {
         Map<String, List<String>> out = new java.util.LinkedHashMap<>();
         for (SubtaskInstance i : p.instances()) {

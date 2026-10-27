@@ -100,6 +100,12 @@ public class ScenarioBuilder {
             backBlocks.addAll(backVerifier.verify(runPes, cfg));
         }
 
+        // 사용자가 말한 값이 어느 실행에서도 쓰이지 않으면 막는다 — 돌리면 그 말을 버린 결과가 나온다.
+        planner.unusedUserAnswers(pes.values(), pes.origins(), frame.variableAnswerKey(), frame.values())
+                .forEach((key, because) -> blocks.add("쓰이지 않는 값 " + key + " — " + because
+                        + " 이면 어느 실행에서도 쓰이지 않습니다. 사용자가 말한 조건끼리 맞지 않을 수 있습니다"
+                        + "(예: 무료인데 할증). 사용자에게 어느 쪽인지 물어 고치거나, 그 값을 빼십시오."));
+
         // 실험 프레임까지 넣어야 식별자가 된다. 값을 빼면 같은 PES 에 조건만 다른
         // 시나리오 둘이 같은 id 를 갖고 보관소에서 서로를 덮는다.
         String scenarioId = "scn-" + Integer.toHexString(

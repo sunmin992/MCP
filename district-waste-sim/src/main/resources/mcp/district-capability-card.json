@@ -62,7 +62,8 @@
     ],
     "environmentMatchKeys": [
       {"key": "weekday-schedule", "matchKeys": ["요일", "수거 요일", "격일", "주말", "매일"]},
-      {"key": "holidays", "matchKeys": ["공휴일", "휴일", "명절", "추석", "설날", "연휴"]},
+      {"key": "holidays", "matchKeys": ["공휴일", "휴일", "명절", "추석", "연휴", "개천절", "한글날", "성탄절", "크리스마스"],
+       "model": "기간은 2026-09-21(월)부터라 들어오는 공휴일은 추석 연휴(9/24~26) · 개천절(10/3, 대체 10/5) · 한글날(10/9) · 성탄절(12/25)뿐이다. 2027년 날짜는 공휴일 없이 계산된다"},
       {"key": "transfer-station", "matchKeys": ["적환장", "중간 처리", "중계"]}
     ],
     "objectiveMatchKeys": [
@@ -108,6 +109,7 @@
     {"code": "UNSUPPORTED_METRIC", "capability": "수거장별 적재 · 민원", "matchKeys": ["민원", "악취", "넘침", "넘치", "수거장별", "지점별", "배출장소별"], "reasonType": "NOT_IN_MODEL", "reason": "구역 합계만 본다 — 수거 지점 하나하나가 없다", "alternatives": ["metric:leftoverKg", "metric:waitDays"], "message": "수거장별 적재와 민원은 다루지 않습니다. 구역에 남는 양과 기다린 날 수로 비교하실 수 있습니다."},
     {"code": "UNSUPPORTED_SCALE", "capability": "시 · 구 전체", "matchKeys": ["포항 전체", "포항시 전체", "시 전체", "구 전체", "북구 전체", "남구 전체"], "reasonType": "OUT_OF_RANGE", "reason": "행정동 하나(최대 40구역)까지만 표현한다", "alternatives": ["행정동 하나를 1~40구역으로"], "message": "시 · 구 전체는 다루지 않습니다. 행정동 하나로 실험하실 수 있습니다."},
     {"code": "UNSUPPORTED_METRIC", "capability": "비용 · 예산", "matchKeys": ["비용", "예산", "인건비", "연료비", "돈"], "reasonType": "NOT_IN_MODEL", "reason": "연료 · 인건비 · 차량 운영비 항이 없다", "alternatives": ["metric:leftoverKg", "metric:truckUtilization"], "message": "비용은 산출하지 않습니다."},
+    {"code": "UNSUPPORTED_SCOPE", "capability": "모의 기간 밖의 공휴일", "matchKeys": ["설 연휴", "설날", "설 명절", "구정", "신정", "삼일절", "어린이날", "부처님오신날", "석가탄신일", "현충일", "광복절", "지방선거"], "reasonType": "OUT_OF_SCOPE", "reason": "기간이 2026-09-21 부터 시작해 그 앞의 공휴일(설날 · 어린이날 · 광복절 등)은 들어오지 않고, 2027년 공휴일 달력은 없다", "alternatives": ["추석 연휴가 낀 4주", "개천절 · 한글날이 낀 10월"], "message": "설날 등 9월 21일 이전의 공휴일은 모의 기간 밖이라 넣을 수 없습니다. 추석 연휴(+개천절 · 한글날)가 낀 기간으로 공휴일 효과를 보실 수 있습니다."},
     {"code": "UNSUPPORTED_SCOPE", "capability": "재활용 · 음식물", "matchKeys": ["재활용", "음식물", "분리수거", "분리배출"], "reasonType": "NOT_IN_MODEL", "reason": "생활쓰레기(일반) 한 종류만 다룬다", "alternatives": [], "message": "재활용품 · 음식물은 다루지 않습니다."}
   ],
   "neverDo": [

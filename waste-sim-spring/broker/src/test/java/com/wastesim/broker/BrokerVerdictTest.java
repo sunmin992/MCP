@@ -98,6 +98,20 @@ class BrokerVerdictTest {
     }
 
     @Test
+    void 비교_축이_둘이면_하나만_고르라고_안내한다() throws Exception {
+        ObjectNode two = 그림의_요청();
+        two.putArray("comparisonAxes").add("수거 시각").add("차량 대수");
+        JsonNode out = find(two);
+        assertEquals("MATCH", out.path("verdict").asText(), out.toString());
+        assertTrue(out.path("comparisonWarning").asText().contains("한 가지만"), out.toString());
+        assertTrue(out.path("nextStep").asText().startsWith("비교 축이 2개"), "LLM 이 먼저 읽게 앞에 둔다");
+
+        ObjectNode one = 그림의_요청();
+        one.putArray("comparisonAxes").add("수거 시각");
+        assertTrue(find(one).path("comparisonWarning").isMissingNode(), "축이 하나면 안내하지 않는다");
+    }
+
+    @Test
     void 매칭되면_이_대화에서는_브로커를_다시_부르지_말고_시뮬레이터만_쓰라고_안내한다() throws Exception {
         JsonNode out = find(그림의_요청());
         String next = out.path("nextStep").asText();

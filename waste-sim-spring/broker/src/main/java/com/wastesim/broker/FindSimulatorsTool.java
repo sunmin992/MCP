@@ -188,6 +188,18 @@ public class FindSimulatorsTool implements McpToolProvider {
                             + "사용자에게 전하고 고칠지 물으십시오.");
                 }
             }
+            // 시뮬레이터의 build_scenario 는 실험 변수를 하나만 받는다. 비교 축이 여럿인데 그대로 넘기면
+            // LLM 은 시뮬레이터 도구 스키마를 읽고서야 알게 되고, 그 사이 하나를 몰래 고르기 쉽다(2026-10-27 NT-D7).
+            String verdict = root.path("verdict").asText();
+            List<String> axes = profile.comparisonAxes();
+            if (axes != null && axes.size() > 1 && (verdict.equals("MATCH") || verdict.equals("CHOOSE"))) {
+                String warning = "비교 축이 " + axes.size() + "개입니다(" + String.join(", ", axes) + "). 시뮬레이터는 "
+                        + "시나리오 하나에서 한 가지만 바꿔 비교합니다 — 사용자에게 무엇을 바꿔 볼지 하나를 고르게 하고, "
+                        + "나머지는 어떤 값으로 고정할지 물으십시오. 둘 다 보려면 시나리오를 따로 만듭니다.";
+                root.put("comparisonWarning", warning);
+                root.put("nextStep", warning + " " + root.path("nextStep").asText());
+                callLog.info("[4 매칭] 비교 축 {}개 → 하나만 고르라고 안내", axes.size());
+            }
             if (!down.isEmpty()) {
                 // 사용자에게 "그 서버는 지금 꺼져 있다" 고 말할 수 있게 남긴다 — 조용히 빼면 왜 다른
                 // 서버로 갔는지, 왜 맞는 서버가 없다는지 알 수 없다.
