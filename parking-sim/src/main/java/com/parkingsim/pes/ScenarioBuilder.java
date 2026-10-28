@@ -50,6 +50,11 @@ public class ScenarioBuilder {
         this.planner = planner;
     }
 
+    /** 비교 변수가 어느 실행에서도 쓰이지 않으면 그 조건, 아니면 null. 막지는 않고 알린다. */
+    public String unusedVariable(Pes pes, ExperimentFrame frame) {
+        return planner.unusedVariable(pes.values(), frame.variableAnswerKey(), frame.values());
+    }
+
     public Scenario build(Pes pes, ExperimentFrame frame) {
         return build(pes, frame, null, null);
     }
@@ -62,6 +67,16 @@ public class ScenarioBuilder {
         List<ParkingConfig> runs = new ArrayList<>();
         List<String> blocks = new ArrayList<>();
         List<String> backBlocks = new ArrayList<>();
+
+        // 기본값이 없는 결정에 MODEL_DEFAULT 가 오면 그 값은 LLM 이 지어낸 것이다 — 사용자가 "기본값으로" 라고
+        // 하자 탐색 포기 10분을 넣었다(2026-10-27 ST-S5). 확인 화면의 "미승인 기본값" 으로 보이면 기본값처럼 읽힌다.
+        pes.origins().forEach((key, origin) -> {
+            if ("MODEL_DEFAULT".equals(origin) && !key.equals(frame.variableAnswerKey())
+                    && planner.template(key).map(t -> t.requiresExplicitAnswer()).orElse(false))
+                blocks.add("기본값이 없는 결정 " + key + " 에 MODEL_DEFAULT 값(" + pes.values().get(key) + ")이 들어왔습니다. "
+                        + "서버에 기본값이 없어 이 값은 지어낸 값이 됩니다. 사용자에게 물어 받은 값을 USER 출처로 넣으십시오. "
+                        + "사용자가 '기본값으로'라고 했다면 기본값이 없다고 알리고 값을 다시 물으십시오.");
+        });
 
         for (Object value : frame.values()) {
             Map<String, Object> values = new LinkedHashMap<>(pes.values());
@@ -82,7 +97,7 @@ public class ScenarioBuilder {
                 if (i.status() == SubtaskStatus.UNFILLED) {
                     // 기본값이 없는 결정에 "기본값을 받아들였으면" 이라고 쓰면, LLM 이 질문 문구의 예시 값을
                     // 기본값처럼 넣는다(2026-10-19 재실행 R10). 없으면 없다고, 있으면 그 값을 적는다.
-                    Object dflt = planner.template(i.answerKey()).map(t -> t.defaultValue()).orElse(null);
+                    Object dflt = planner.defaultFor(i.answerKey(), snapshot);
                     String how = dflt == null
                             ? " (기본값이 없습니다 — 사용자에게 물어 값을 받으십시오. 질문의 예시 값을 대신 넣지 마십시오)"
                             : " (사용자가 기본값 " + dflt + " 을(를) 받아들였으면 그 값을 MODEL_DEFAULT 출처로 넣으십시오)";

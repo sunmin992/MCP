@@ -56,6 +56,16 @@ class CapabilityCardTest {
         }
     }
 
+    @Test
+    void standardDataPhrasesMatchStandardFacility() throws Exception {
+        try (var input = getClass().getResourceAsStream("/mcp/parking-capability-card.json")) {
+            JsonNode card = new ObjectMapper().readTree(input);
+            for (String phrase : new String[]{"전국주차장 표준데이터로", "포항 북구 공영주차장 실제 면수", "시설면수 기준"}) {
+                assertEquals("standard-parking-facility", firstMatch(card, phrase), phrase);
+            }
+        }
+    }
+
     private String firstMatch(JsonNode card, String phrase) {
         for (JsonNode environment : card.path("applicability").path("environmentMatchKeys")) {
             if (matches(environment, phrase)) return environment.path("key").asText();

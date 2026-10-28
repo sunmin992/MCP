@@ -26,6 +26,7 @@ public class ParkingApiClient {
      * 2026-10-27 실측) — 쪽 수는 totalCount 가 정하고, 이 한도는 그것이 터무니없을 때만 막는다.
      */
     static final int MAX_PAGES = 200;
+    static final int ROWS = 100;
 
     public List<JsonNode> fetch(String dataset, String sigunguCd) {
         return fetch(dataset, sigunguCd, rows -> false);
@@ -33,29 +34,54 @@ public class ParkingApiClient {
 
     /** {@code enough} 가 참이 되면 남은 쪽을 받지 않는다 — 찾던 관리번호를 다 모았을 때처럼. */
     public List<JsonNode> fetch(String dataset, String sigunguCd, java.util.function.Predicate<List<JsonNode>> enough) {
+        var chunk = fetchFrom(dataset, sigunguCd, 1, List.of(), enough);
+        if (!chunk.stopped()) throw new IllegalArgumentException("API 페이지 조회 시간 한도를 넘었습니다. 다시 조회하십시오.");
+        return chunk.rows();
+    }
+
+    /** 이어 받을 수 있는 조회 결과. complete 는 totalCount 까지 다 받았다는 뜻, stopped 는 다 받았거나 enough 가 참이 됐다는 뜻이다. */
+    public record Chunk(List<JsonNode> rows, int nextPage, boolean complete, boolean stopped) {}
+
+    /** 쪽이 빠지거나 겹쳤다 — 받아 둔 쪽과 이어 붙이면 안 된다. */
+    public static class InconsistentPages extends IllegalArgumentException {
+        InconsistentPages(String message) { super(message); }
+    }
+
+    /** {@code seed} 뒤에 {@code startPage} 부터 이어 받는다. 시간 한도에 걸리면 예외 대신 받은 데까지 돌려준다. */
+    public Chunk fetchFrom(String dataset, String sigunguCd, int startPage, List<JsonNode> seed,
+                           java.util.function.Predicate<List<JsonNode>> enough) {
         if (!Set.of("PrkSttusInfo", "PrkRealtimeInfo").contains(dataset))
             throw new IllegalArgumentException("지원하지 않는 API입니다.");
         if (sigunguCd == null || !sigunguCd.matches("[0-9]{5}"))
             throw new IllegalArgumentException("sigunguCd 는 5자리 시군구 코드여야 합니다.");
         if (key.isBlank()) throw new IllegalArgumentException("서버 환경변수 PARKING_API_SERVICE_KEY 를 설정하고 재시작하십시오.");
-        List<JsonNode> all = new ArrayList<>();
+        List<JsonNode> all = new ArrayList<>(seed);
         Set<String> ids = new HashSet<>();
+        seed.forEach(r -> ids.add(r.path("prk_center_id").asText()));
         long deadline = System.nanoTime() + Duration.ofSeconds(45).toNanos();
-        for (int page = 1; page <= MAX_PAGES; page++) {
-            if (System.nanoTime() > deadline) throw new IllegalArgumentException("API 페이지 조회 시간 한도를 넘었습니다. 다시 조회하십시오.");
+        int lastPageRows = seed.isEmpty() ? 0 : ROWS;
+        for (int page = startPage; page <= MAX_PAGES; page++) {
+            if (System.nanoTime() > deadline) return new Chunk(List.copyOf(all), page, false, false);
             try {
                 URI uri = URI.create(SOURCE + "/" + dataset + "_v1?serviceKey=" + encodedKey(key)
-                        + "&format=2&numOfRows=100&pageNo=" + page + "&sigunguCd=" + sigunguCd);
+                        + "&format=2&numOfRows=" + ROWS + "&pageNo=" + page + "&sigunguCd=" + sigunguCd);
                 JsonNode root = parse(request(uri), dataset, mapper);
                 JsonNode rows = root.path(dataset);
                 int total = integer(root, "totalCount");
-                if (rows.size() == 0 && all.size() < total) throw new IllegalArgumentException("API 페이지가 누락되었습니다.");
+                if (rows.size() == 0 && all.size() < total) {
+                    // totalCount 가 실제보다 클 때가 있다(경주 15,022 건이라 하나 151쪽 14행으로 끝, 2026-10-27).
+                    // 앞 쪽이 덜 찼으면 거기가 끝이다. 꽉 찬 쪽 뒤의 빈 쪽은 정말 빠진 것일 수 있어 막는다.
+                    if (lastPageRows > 0 && lastPageRows < ROWS) return new Chunk(List.copyOf(all), page, true, true);
+                    throw new InconsistentPages("API 페이지가 누락되었습니다(" + all.size() + "/" + total + "건, " + page + "쪽).");
+                }
+                lastPageRows = rows.size();
                 for (JsonNode row : rows) {
                     String id = row.path("prk_center_id").asText("");
-                    if (id.isBlank() || !ids.add(id)) throw new IllegalArgumentException("API 관리번호가 없거나 중복됩니다. 다시 조회하십시오.");
+                    if (id.isBlank() || !ids.add(id)) throw new InconsistentPages("API 관리번호가 없거나 중복됩니다. 다시 조회하십시오.");
                     all.add(row);
                 }
-                if (all.size() >= total || enough.test(all)) return List.copyOf(all);
+                boolean complete = all.size() >= total;
+                if (complete || enough.test(all)) return new Chunk(List.copyOf(all), page + 1, complete, true);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 throw new IllegalArgumentException("주차 API 조회가 중단되었습니다.");

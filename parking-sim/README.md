@@ -2,6 +2,53 @@
 
 Java 21 / Spring Boot MCP 서버. 기본 포트는 8092이며 `/mcp`와 `/confirm.html`을 제공한다.
 
+## 전국주차장정보표준데이터 추가 연결
+
+[공식 표준데이터 명세](https://www.data.go.kr/data/15012896/standard.do)의
+`https://api.data.go.kr/openapi/tn_pubr_prkplce_info_api`도 지원한다.
+기존 Parking_v1과 별도 서비스이므로 **전국주차장정보표준데이터 활용신청**이 필요하다.
+`PARKING_STANDARD_API_SERVICE_KEY`를 지정하며, 없으면 `PARKING_API_SERVICE_KEY`를 사용한다.
+키를 바꾸면 해당 환경변수를 설정한 창에서 서버를 재시작한다.
+
+새 MCP 도구 `fetch_standard_parking` 사용 예:
+
+```json
+{"institutionName":"포항시시설관리공단"}
+```
+
+`institutionName`은 공식 요청 필드 `institutionNm`(관리기관명)에 전달한다. 결과가 없으면 실제 등록된 관리기관명을 확인한다.
+공영·노외 조건으로 조회하며 응답도 다시 검사한다. 반환된 `candidates`에서 관리번호를 고른 후:
+
+```json
+{
+  "institutionName":"포항시시설관리공단",
+  "lotIds":["조회한 관리번호"],
+  "initialAvailableSpaces":{"조회한 관리번호":20}
+}
+```
+
+위 20은 **사용자가 정할 초기 빈자리 가정의 예시**다. 표준데이터에는 실시간 잔여면수가 없으므로,
+이를 생략하거나 총면수를 넘기면 스냅샷을 만들지 않는다. 후보 목록의 `availableSpaces`는 `null`로 반환한다.
+표준 `prkplceNo`를 Parking_v1의 `prk_center_id`로 간주하거나 이름이 비슷하다는 이유로 자동 결합하지 않는다.
+
+선택 후 반환된 `snapshotId`는 기존과 동일하게 `plan_subtasks`·`build_scenario`의 `parkingSnapshotId`로 전달한다.
+`lotCount`·`spacesPerLot`는 생략하고 기존 차량 출차 가정인 `initialVehicleRemainingMinutes`를 지정한다.
+동일한 사용자 확인·토큰 실행 절차를 거치며 표준데이터의 면수가 엔진에 적용된다.
+
+| 정보 | 적용 방식 |
+|---|---|
+| `prkcmprt`, 관리번호·명칭·주소 | 주차장별 시설면수, 식별 정보 |
+| `prkplceSe`, `prkplceType` | 공영·노외 필터 |
+| `referenceDate` | 데이터 기준일 표시. 조회 시각과 구분 |
+| 요금·운영요일·시간·좌표·특기사항 | 원 필드를 스냅샷과 결과에 보존, 확인 화면에 참고용 표시 |
+| 초기 빈자리 | 사용자가 지정한 가정. `occupancySource=USER_ASSUMED` |
+
+요금·운영시간을 수집했다는 이유로 실험의 요금·24시간 운영 가정을 덮어쓰지 않는다.
+결과에는 `STANDARD_API_CAPACITY`, `INITIAL_OCCUPANCY_ASSUMED`, `REALTIME_NOT_PROVIDED`를 표시한다.
+따라서 Parking_v1 실시간 제공 지역이 아니어도 표준 시설면수와 명시적 점유 가정으로 실험할 수 있다.
+목록 조회와 선택 사이 5분 캐시를 사용하며 원래 조회 시각을 유지한다. 페이지당 100건·최대 50페이지이고
+중복·누락·오류가 있으면 부분 결과로 스냅샷을 만들지 않는다.
+
 ## 인증키와 실행
 
 [한국교통안전공단 주차정보 API](https://www.data.go.kr/data/15099883/openapi.do)를 활용신청한 뒤,
@@ -75,3 +122,4 @@ API 모드에서는 `answers`/`values`의 `lotCount`, `spacesPerLot`를 생략�
 ```
 
 API 응답 fixture로 페이지 처리·키 인코딩·오류·결측·공영 필터를 검증하고, 비균일 면수·초기 점유·출차·차량 수지와 계획→확인→실행 흐름을 시험한다. fixture 시험은 실서비스 연결 성공을 의미하지 않는다.
+

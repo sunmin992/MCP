@@ -43,7 +43,7 @@ class ScenarioFlowTest {
     void 장량동과_같은_도구_이름을_낸다() {
         assertThat(registry.all().stream().map(p -> p.toolName()).toList()).containsExactlyInAnyOrder(
                 "get_capability", "get_templates", "plan_subtasks", "validate_answers",
-                "build_scenario", "get_scenario_status", "run_scenario_by_token", "fetch_parking_snapshot");
+                "build_scenario", "get_scenario_status", "run_scenario_by_token", "fetch_parking_snapshot", "fetch_standard_parking");
     }
 
     @Test
@@ -63,7 +63,7 @@ class ScenarioFlowTest {
             {"values":{"spacesPerLot":80,"pricingPolicy":"FLAT","baseFeePer30Min":500,"userMix":["Commuter","Shopper"],
                        "dailyArrivals":900,"guidanceMode":"REALTIME_APP","guidanceRefreshMinutes":5,
                        "congestionMode":"IGNORE","maxSearchMinutes":10,"lotSpacingMinutes":3.0,"days":1,"seeds":1},
-             "origins":{"lotCount":"USER"},
+             "origins":{"lotCount":"USER","maxSearchMinutes":"USER"},
              "variableAnswerKey":"lotCount","variableValues":[4,6]}
             """);
         assertThat(built.path("valid").asBoolean()).as(built.toString()).isTrue();
@@ -177,7 +177,7 @@ class ScenarioFlowTest {
             {"values":{"lotCount":4,"spacesPerLot":80,"baseFeePer30Min":500,"peakSurchargeRate":0.5,
                        "userMix":["Commuter","Shopper"],"dailyArrivals":800,"guidanceMode":"NONE",
                        "congestionMode":"IGNORE","maxSearchMinutes":15,"lotSpacingMinutes":3.0,"days":3,"seeds":2},
-             "origins":{"peakSurchargeRate":"USER","baseFeePer30Min":"USER"},
+             "origins":{"peakSurchargeRate":"USER","baseFeePer30Min":"USER","maxSearchMinutes":"USER"},
              "variableAnswerKey":"pricingPolicy","variableValues":["FREE","TIME_OF_DAY"]}
             """);
         assertThat(built.path("blocks").toString()).doesNotContain("쓰이지 않는 값");

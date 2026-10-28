@@ -184,7 +184,12 @@ public class RunScenarioByTokenTool implements McpToolProvider {
     private List<String> flags(ParkingConfig cfg) {
         List<String> out = new ArrayList<>(List.of("DEMAND_ASSUMED", "LOT_LAYOUT_ASSUMED"));
         if (cfg.getParkingSnapshot() != null) {
-            out.addAll(List.of("API_CAPACITY_AND_INITIAL_OCCUPANCY", "SOURCE_TIMESTAMP_UNAVAILABLE", "INITIAL_DEPARTURE_ASSUMED", "PRICING_AND_HOURS_NOT_IMPORTED"));
+            if ("USER_ASSUMED".equals(cfg.getParkingSnapshot().occupancySource())) {
+                out.addAll(List.of("STANDARD_API_CAPACITY", "INITIAL_OCCUPANCY_ASSUMED", "REALTIME_NOT_PROVIDED"));
+            } else {
+                out.addAll(List.of("API_CAPACITY_AND_INITIAL_OCCUPANCY", "SOURCE_TIMESTAMP_UNAVAILABLE"));
+            }
+            out.addAll(List.of("INITIAL_DEPARTURE_ASSUMED", "PRICING_AND_HOURS_NOT_IMPORTED"));
             if (cfg.getParkingSnapshot().lots().stream().anyMatch(l -> l.facilitySpaces() != l.totalSpaces())) out.add("API_CAPACITY_MISMATCH_REALTIME_USED");
         }
         if (cfg.isCongestionEnabled() && !profiles.isMeasured(cfg.getCongestionProfileId())) {
@@ -202,7 +207,9 @@ public class RunScenarioByTokenTool implements McpToolProvider {
     private List<String> assumptionNotes(Pes pes, ParkingConfig cfg, List<String> swept) {
         List<String> notes = new ArrayList<>();
         if (cfg.getParkingSnapshot() != null) {
-            notes.add("조회 시점 잔여면수로 초기 점유를 고정했습니다. 이후 API 재조회 없이 모의 차량만 변합니다. 기존 차량은 모두 "
+            notes.add(("USER_ASSUMED".equals(cfg.getParkingSnapshot().occupancySource())
+                    ? "표준데이터의 실제 시설면수에 사용자가 가정한 초기 빈자리를 적용했습니다. 실시간 잔여면수가 아닙니다. 시작 시각도 사용자가 정한 그 상태의 시각입니다. "
+                    : "조회 시점 잔여면수로 초기 점유를 고정했습니다. ") + "이후 API 재조회 없이 모의 차량만 변합니다. 기존 차량은 모두 "
                     + cfg.getInitialVehicleRemainingMinutes() + "분 뒤 출차한다고 가정합니다. 실제 관측 시각·잔여 체류시간은 API에 없습니다. 요금·운영시간은 수입하지 않았습니다.");
         }
         if (!pes.unapprovedDefaults().isEmpty()) {

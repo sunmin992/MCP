@@ -44,7 +44,7 @@ public class GetTemplatesTool implements McpToolProvider {
             root.put("sesId", catalog.sesId());
             root.put("sesVersion", catalog.sesVersion());
             root.set("templates", mapper.valueToTree(catalog.all()));
-            root.put("apiMode", "실제 면수를 쓰려면 fetch_parking_snapshot으로 선택하고 plan_subtasks와 build_scenario에 parkingSnapshotId를 전달하십시오. lotCount·spacesPerLot는 생략하며 initialVehicleRemainingMinutes(기존 차량 잔여 체류시간 가정)를 별도로 묻습니다.");
+            root.put("apiMode", "실제 면수를 쓰려면 fetch_parking_snapshot(실시간) 또는 fetch_standard_parking(표준 시설정보+초기 빈자리 사용자 가정)으로 선택하고 plan_subtasks와 build_scenario에 parkingSnapshotId를 전달하십시오. lotCount·spacesPerLot는 생략하며 initialVehicleRemainingMinutes(기존 차량 잔여 체류시간 가정)를 별도로 묻습니다.");
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("templates", "템플릿을 직렬화하지 못했습니다: " + e.getMessage());

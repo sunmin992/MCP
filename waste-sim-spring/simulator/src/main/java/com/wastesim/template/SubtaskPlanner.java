@@ -58,6 +58,23 @@ public class SubtaskPlanner {
         return new SubtaskPlan(out);
     }
 
+    /**
+     * 이 답에서의 기본값. 템플릿 기본값과 같되, 블록 적재 몫은 차종에 따라 달라 고정값을 둘 수 없다 — 엔진이
+     * 빈 값에 쓰는 차종 정격용량을 기본값으로 제안한다. 템플릿을 언제나 묻는 필수값으로 두었더니 사용자가
+     * 배정 몫을 몰라 "기본값으로" 라고 하자 시나리오가 막혔다(2026-10-28 UT-B02 · J01 · B12).
+     */
+    public Object defaultFor(String answerKey, Map<String, Object> answers) {
+        if (!"routeAvailableCapacityKg".equals(answerKey))
+            return template(answerKey).map(SubtaskTemplate::defaultValue).orElse(null);
+        Object type = answers.get("truckType");
+        if (type == null) type = template("truckType").map(SubtaskTemplate::defaultValue).orElse(null);
+        try {
+            return com.wastesim.model.TruckType.fromName(String.valueOf(type)).capacityKg;
+        } catch (RuntimeException e) {
+            return null;
+        }
+    }
+
     public java.util.Optional<SubtaskTemplate> template(String answerKey) {
         return catalog.byAnswerKey(answerKey);
     }

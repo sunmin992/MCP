@@ -70,7 +70,7 @@ public class BuildScenarioTool implements McpToolProvider {
              "properties":{
                "values":{"type":"object","description":"답변키 → 확정값"},
                "parkingSnapshotId":{"type":"string","description":"fetch_parking_snapshot이 발급한 스냅샷 ID"},
-               "initialVehicleRemainingMinutes":{"type":"integer","minimum":1,"maximum":1440,"description":"기존 점유 차량이 모두 출차할 때까지의 시간(분). API에 없는 사용자 가정이며 모든 기존 차량에 동일하게 적용"},
+               "initialVehicleRemainingMinutes":{"type":"integer","minimum":1,"maximum":1440,"description":"기존 점유 차량이 모두 출차할 때까지의 시간(분). API에 없는 사용자 가정이며 모든 기존 차량에 동일하게 적용. 기본값이 없어 origins 에 USER 로 적어야 한다"},
                "origins":{"type":"object","description":"답변키 → USER / MODEL_DEFAULT / DERIVED. 사용자가 값을 직접 말했을 때만 USER, '기본값으로' 처럼 값 없이 넘긴 것은 MODEL_DEFAULT. 적지 않으면 MODEL_DEFAULT"},
                "variableAnswerKey":{"type":"string","description":"실험 변수의 답변키"},
                "variableValues":{"type":"array","description":"비교할 값들"},
@@ -125,6 +125,10 @@ public class BuildScenarioTool implements McpToolProvider {
                         || !args.path("initialVehicleRemainingMinutes").canConvertToInt())
                     throw new IllegalArgumentException("기존 차량의 잔여 체류시간 가정(initialVehicleRemainingMinutes)을 사용자에게 받아 넣으십시오.");
                 remaining = args.path("initialVehicleRemainingMinutes").intValue();
+                // 기본값이 없는 가정이다. 사용자가 "기본값으로" 라고 하자 LLM 이 60분을 넣어 통과했다(2026-10-28 ST-S5-r2).
+                if (!"USER".equals(origins.remove("initialVehicleRemainingMinutes")))
+                    throw new IllegalArgumentException("initialVehicleRemainingMinutes 는 기본값이 없는 사용자 가정입니다. 사용자에게 물어 받은 값이면 "
+                            + "origins 에 \"initialVehicleRemainingMinutes\":\"USER\" 로 적으십시오. 사용자가 '기본값으로'라고 했다면 기본값이 없다고 알리고 다시 물으십시오.");
                 values.put("lotCount", snapshot.lots().size());
                 origins.put("lotCount", "DERIVED");
                 pes = new Pes(catalog.sesId(), catalog.sesVersion(), values, origins);
@@ -154,6 +158,11 @@ public class BuildScenarioTool implements McpToolProvider {
             root.set("backVerificationBlocks",
                     mapper.valueToTree(scenario.backVerificationBlocks()));
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
+            var warnings = root.putArray("warnings");
+            String unused = builder.unusedVariable(pes, frame);
+            if (unused != null)
+                warnings.add("비교 변수 " + variableKey + " 은(는) " + unused + " 에서는 쓰이지 않아 실행마다 결과가 같거나 거의 같을 수 있습니다"
+                        + " (예: 주차장 1곳이면 안내가 돌려보낼 다른 주차장이 없음). 확인 전에 사용자에게 알리고, 주차장을 늘리거나 다른 비교를 고를지 물으십시오.");
             // 토큰은 여기서 나오지 않는다. 검증을 통과해도 아직 미확인이며,
             // 사람이 확인 화면에서 승인해야 발급된다(ScenarioConfirmController → ConfirmScenarioTool).
             root.put("state", store.entry(scenario.scenarioId())

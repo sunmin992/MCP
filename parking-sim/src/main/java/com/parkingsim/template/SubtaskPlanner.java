@@ -141,6 +141,39 @@ public class SubtaskPlanner {
         return out;
     }
 
+    /**
+     * 비교 변수가 어느 비교 값에서도 생성되지 않으면 그 조건 → 아니면 null. 주차장 1곳으로 안내 방식을 비교하면
+     * 안내가 돌려보낼 다른 주차장이 없어 비교가 뜻을 잃는다(2026-10-27 ST-S2). 결과가 같을 수 있다고 알릴 근거다.
+     */
+    public String unusedVariable(Map<String, Object> answers, String variableKey, List<Object> values) {
+        if (variableKey == null || values == null || values.isEmpty()) return null;
+        for (Object v : values) {
+            Map<String, Object> a = new java.util.LinkedHashMap<>(answers);
+            a.put(variableKey, v);
+            boolean generated = plan(a, Map.of()).instances().stream()
+                    .anyMatch(i -> i.answerKey().equals(variableKey) && i.status() != SubtaskStatus.NOT_GENERATED);
+            if (generated) return null;
+        }
+        List<String> because = new ArrayList<>();
+        for (String k : catalog.byAnswerKey(variableKey).orElseThrow().generateWhen().inputs())
+            because.add(k + "=" + answers.get(k));
+        return String.join(", ", because);
+    }
+
+    /** 기본값 근거의 면수 — dailyArrivals 900 은 4곳 × 80면에 하루 약 2.8회전. */
+    static final int DEFAULT_TOTAL_SPACES = 4 * 80;
+
+    /**
+     * 스냅샷을 쓸 때의 기본값. 도착 차량 기본값은 가정 배치의 면수에 맞춘 것이라, 실제 면수로 바꾸면 같은 회전율로
+     * 다시 잰다 — 21면에 900대를 받으면 수요가 744% 라 서버가 거절했다(2026-10-27 ST-S2).
+     */
+    public Object defaultFor(String answerKey, com.parkingsim.data.ParkingSnapshot snapshot) {
+        Object dflt = template(answerKey).map(SubtaskTemplate::defaultValue).orElse(null);
+        if (snapshot == null || !"dailyArrivals".equals(answerKey) || !(dflt instanceof Number n)) return dflt;
+        int spaces = snapshot.lots().stream().mapToInt(l -> l.totalSpaces()).sum();
+        return (int) Math.max(1, Math.round(n.doubleValue() * spaces / DEFAULT_TOTAL_SPACES));
+    }
+
     private Map<String, List<String>> waitingOf(SubtaskPlan p, Map<String, Object> answers) {
         Map<String, List<String>> out = new java.util.LinkedHashMap<>();
         for (SubtaskInstance i : p.instances()) {

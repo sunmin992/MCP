@@ -71,8 +71,9 @@ public class PlanSubtasksTool implements McpToolProvider {
                     e -> origins.put(e.getKey(), e.getValue().asText().trim().toUpperCase(java.util.Locale.ROOT)));
             String variableKey = args.path("variableAnswerKey").asText(null);
             boolean apiMode = args.has("parkingSnapshotId");
+            com.parkingsim.data.ParkingSnapshot snapshot = null;
             if (apiMode) {
-                var snapshot = parkingData.require(args.path("parkingSnapshotId").asText());
+                snapshot = parkingData.require(args.path("parkingSnapshotId").asText());
                 if (answers.containsKey("lotCount") || answers.containsKey("spacesPerLot")
                         || "lotCount".equals(variableKey) || "spacesPerLot".equals(variableKey))
                     throw new IllegalArgumentException("API 모드에서는 lotCount·spacesPerLot를 생략하고 다른 항목을 비교하십시오.");
@@ -101,9 +102,17 @@ public class PlanSubtasksTool implements McpToolProvider {
             if (apiMode) {
                 var remaining = args.path("initialVehicleRemainingMinutes");
                 boolean answered = remaining.isIntegralNumber() && remaining.canConvertToInt()
-                        && remaining.intValue() >= 1 && remaining.intValue() <= 1440;
+                        && remaining.intValue() >= 1 && remaining.intValue() <= 1440
+                        && "USER".equals(origins.get("initialVehicleRemainingMinutes"));
                 if (!answered) { noDefault.add("initialVehicleRemainingMinutes"); root.put("complete", false); }
+                // 값은 넣고 출처를 빠뜨리면 왜 아직 물어야 하는지 알 수 없다(2026-10-28 ST-S1-r3).
+                if (!answered && remaining.isIntegralNumber())
+                    root.put("originNote", "initialVehicleRemainingMinutes 값은 받았지만 origins 에 USER 로 적혀 있지 않습니다. 사용자가 말한 값이면 origins 에 \"initialVehicleRemainingMinutes\":\"USER\" 를 넣으십시오.");
                 root.put("apiInputNote", "주차장 수·면수는 API에서 결정됩니다. 초기 점유 차량 전체가 몇 분 후 출차할지 1~1440분으로 정하십시오. build_scenario의 최상위 initialVehicleRemainingMinutes에 넣습니다.");
+                // 템플릿 기본값은 가정 배치(4곳 × 80면) 기준이다. 스냅샷 면수에 맞춘 값을 사용자에게 제안한다.
+                var snapshotDefaults = root.putObject("snapshotDefaults");
+                snapshotDefaults.putPOJO("dailyArrivals", planner.defaultFor("dailyArrivals", snapshot));
+                root.put("snapshotDefaultsNote", "스냅샷 면수 기준 기본값입니다. 템플릿의 dailyArrivals 기본값(4곳 × 80면 기준) 대신 이 값을 제안하십시오.");
             }
             for (var i : plan.instances()) {
                 if (i.status() == com.parkingsim.template.SubtaskStatus.UNFILLED
@@ -111,6 +120,10 @@ public class PlanSubtasksTool implements McpToolProvider {
                     noDefault.add(i.answerKey());
                 }
             }
+            String unused = planner.unusedVariable(answers, variableKey, variableValues);
+            if (unused != null)
+                root.put("unusedVariableWarning", "비교 변수 " + variableKey + " 은(는) " + unused
+                        + " 에서는 쓰이지 않아 실행마다 결과가 같거나 거의 같을 수 있습니다. 사용자에게 알리고 주차장을 늘리거나 다른 비교를 고를지 물으십시오.");
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("answers", "서브태스크 계획에 실패했습니다: " + e.getMessage());

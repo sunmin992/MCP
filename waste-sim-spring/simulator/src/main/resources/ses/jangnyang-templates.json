@@ -259,8 +259,8 @@
       "max": null,
       "unit": "kg",
       "defaultValue": null,
-      "defaultBasis": null,
-      "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다)",
+      "defaultBasis": "고정 기본값 없음 — 선택 차종의 정격용량(5톤 5000kg · 2.5톤 2500kg · 1톤 1000kg)을 기본값으로 제안한다(plan_subtasks 의 derivedDefaults). 정격 전체면 이 블록 규모에서 가동률·미수거 축이 작동하지 않는다",
+      "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
       "configField": "routeAvailableCapacityKg",
       "sesPath": "수거차량집합/경로적재몫",
       "nodeKind": "ATTRIBUTE"

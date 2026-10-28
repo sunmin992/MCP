@@ -83,10 +83,15 @@ public class PlanSubtasksTool implements McpToolProvider {
             var noDefault = root.putArray("mustAskNoDefault");
             for (var i : plan.instances()) {
                 if (i.status() == com.wastesim.template.SubtaskStatus.UNFILLED
-                        && planner.template(i.answerKey()).map(t -> t.requiresExplicitAnswer()).orElse(false)) {
+                        && planner.defaultFor(i.answerKey(), answers) == null) {
                     noDefault.add(i.answerKey());
                 }
             }
+            // 차종에 따라 정해지는 기본값. 템플릿 목록에는 고정값이 없어 여기서 알린다.
+            var derived = root.putObject("derivedDefaults");
+            derived.putPOJO("routeAvailableCapacityKg", planner.defaultFor("routeAvailableCapacityKg", answers));
+            root.put("derivedDefaultsNote", "routeAvailableCapacityKg 의 기본값은 선택 차종의 정격용량입니다. 이 블록 규모에서는 가동률이 1~2%로 고정되고 "
+                    + "미수거가 0이라 용량·가동률 비교에는 쓸 수 없습니다. 사용자가 배정 몫을 모르면 이 값을 MODEL_DEFAULT 로 제안하십시오.");
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("answers", "서브태스크 계획에 실패했습니다: " + e.getMessage());

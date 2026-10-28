@@ -48,10 +48,11 @@
     "spatialScale": {"lots": {"min": 1, "max": 12, "default": 4}, "spacesPerLot": {"min": 10, "max": 1000, "default": 80}},
     "period": {"days": {"min": 1, "max": 90, "default": 14}},
     "replication": {"seeds": {"min": 1, "max": 100, "default": 30}},
-    "environment": ["road-congestion", "time-of-day-demand", "guidance", "pricing", "resident-priority", "lot-spacing", "api-initial-occupancy"],
+    "environment": ["road-congestion", "time-of-day-demand", "guidance", "pricing", "resident-priority", "lot-spacing", "api-initial-occupancy", "standard-parking-facility"],
     "answerableQuestions": ["search-time", "give-up", "occupancy", "pricing-effect", "guidance-effect", "resident-priority", "lot-count", "congestion-effect"],
     "scenarioTypes": ["guidance-compare", "pricing-compare", "capacity-sweep", "demand-sweep", "user-mix"],
     "tools": [
+      {"name": "fetch_standard_parking", "what": "전국주차장 표준데이터의 공영·노외 시설면수 및 요금·운영시간 참고정보 조회(초기 빈자리는 사용자 가정)", "status": "CONDITIONAL"},
       {"name": "fetch_parking_snapshot", "what": "공영 시설·실시간 잔여면수 조회 및 선택 스냅샷 생성(인증키 필요)", "status": "CONDITIONAL"},
       {"name": "get_templates", "what": "서브태스크 템플릿", "status": "OK"},
       {"name": "plan_subtasks", "what": "생성 조건 평가", "status": "OK"},
@@ -61,6 +62,7 @@
       {"name": "run_scenario_by_token", "what": "확인된 시나리오 실행", "status": "OK"}
     ],
     "environmentMatchKeys": [
+      {"key": "standard-parking-facility", "matchKeys": ["전국주차장", "표준데이터", "표준 데이터", "실제 시설면수", "실제 면수", "시설면수"], "model": "표준 API 시설면수를 적용하고 초기 빈자리는 사용자 가정으로 명시한다. 요금·운영시간은 참고정보로 보존하며 자동 적용하지 않는다"},
       {"key": "api-initial-occupancy", "matchKeys": ["잔여면수", "실제 빈자리", "API 데이터", "공공데이터", "실제 데이터", "실데이터", "지금 상태", "현재 상태", "현재 점유", "지금 점유", "실제 점유"], "model": "인증키와 지역별 제공 여부에 따라 시설·실시간 정보를 조회하고 초기 점유만 고정한다. 관측 시각은 미제공이다"},
       {"key": "road-congestion", "matchKeys": ["혼잡", "교통", "도로 혼잡", "정체"]},
       {"key": "time-of-day-demand", "matchKeys": ["주말", "평일", "오전", "오후", "저녁", "야간", "점심", "출근", "퇴근", "시간대", "피크", "첨두"],

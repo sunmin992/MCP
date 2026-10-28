@@ -154,12 +154,25 @@ class CompletenessAndOriginTest {
     @Test
     void 기본값이_없는_결정은_사용자에게_물으라고_하고_있는_결정은_그_기본값을_알린다() throws Exception {
         ObjectNode args = complete();
-        ((ObjectNode) args.get("values")).remove("routeAvailableCapacityKg");
+        // 기본값이 없는 결정: 5동 이상 교통구역 근사의 구역 배정 규칙.
+        ((ObjectNode) args.get("values")).put("travelTimeMode", "ZONE_PROXY_HYBRID").put("numBuildings", 8);
+        ((ObjectNode) args.get("values")).remove("zoneAssignmentRule");
         ((ObjectNode) args.get("values")).remove("truckType");
         String blocks = call(args).path("blocks").toString();
-        assertTrue(blocks.contains("routeAvailableCapacityKg") && blocks.contains("기본값이 없습니다"), blocks);
+        assertTrue(blocks.contains("zoneAssignmentRule") && blocks.contains("기본값이 없습니다"), blocks);
         assertTrue(blocks.contains("예시 값을 대신 넣지 마십시오"), "질문 문구의 예시를 기본값처럼 넣지 않게 한다");
         assertTrue(blocks.contains("기본값 LARGE_5TON"), "기본값이 있으면 그 값을 알려야 한다: " + blocks);
+    }
+
+    @Test
+    void 적재_몫은_차종_정격용량을_기본값으로_제안하고_빠지면_막는다() throws Exception {
+        // 언제나 묻는 필수값인데 기본값이 없어, 사용자가 "기본값으로" 라고 하자 막혔다(2026-10-28 UT-B02 · J01 · B12).
+        ObjectNode args = complete();
+        ((ObjectNode) args.get("values")).remove("routeAvailableCapacityKg");
+        ((ObjectNode) args.get("values")).put("truckType", "SMALL_1TON");
+        JsonNode out = call(args);
+        assertFalse(out.path("valid").asBoolean(), "빠진 값이 확인 화면에 보이지 않은 채 정격으로 돌면 안 된다");
+        assertTrue(out.path("blocks").toString().contains("기본값 1000"), out.path("blocks").toString());
     }
 
     @Test
@@ -180,7 +193,8 @@ class CompletenessAndOriginTest {
         assertEquals("UNFILLED", dispatch.path("status").asText(), "3대 실행에서 필요하면 한 번에 물어야 한다");
         assertEquals("[3]", out.path("onlyFor").path("dispatchIntervalMinutes").toString());
         assertEquals("FILLED", trucks.path("status").asText(), "실험 변수 자체는 비교 값으로 채워진 것이다");
-        assertTrue(out.path("mustAskNoDefault").toString().contains("routeAvailableCapacityKg"));
+        assertFalse(out.path("mustAskNoDefault").toString().contains("routeAvailableCapacityKg"), "차종 정격용량이 기본값이다");
+        assertEquals(5000.0, out.path("derivedDefaults").path("routeAvailableCapacityKg").asDouble());
         assertFalse(out.path("mustAskNoDefault").toString().contains("truckType"), "기본값이 있는 결정은 넣지 않는다");
     }
 

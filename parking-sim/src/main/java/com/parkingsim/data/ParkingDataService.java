@@ -20,6 +20,14 @@ public class ParkingDataService {
     private record Fetched(Instant at, List<JsonNode> realtime, List<JsonNode> facilities) {}
     private final Map<String, Fetched> cache = new HashMap<>();
 
+    /**
+     * 시설 목록은 거의 바뀌지 않는데 길다 — 경주 · 강남은 45초 안에 실시간 관리번호를 다 찾지 못했다(2026-10-27).
+     * 하루 동안 두고, 한 번에 다 못 받으면 받은 데까지 두었다가 다음 조회가 다음 쪽부터 이어 받는다.
+     */
+    static final Duration FACILITY_TTL = Duration.ofDays(1);
+    private record Facilities(Instant at, List<JsonNode> rows, int nextPage, boolean complete) {}
+    private final Map<String, Facilities> facilityCache = new HashMap<>();
+
     @org.springframework.beans.factory.annotation.Autowired
     public ParkingDataService(ParkingApiClient api) { this(api, Clock.systemUTC()); }
     ParkingDataService(ParkingApiClient api, Clock clock) { this.api = api; this.clock = clock; }
@@ -36,13 +44,33 @@ public class ParkingDataService {
         if (!realtime.isEmpty()) {
             Set<String> ids = new HashSet<>();
             realtime.forEach(r -> ids.add(r.path("prk_center_id").asText()));
-            // 시설 목록은 민영 · 부설까지 들어 있어 길다. 실시간 관리번호를 모두 찾으면 남은 쪽은 받지 않는다.
-            facilities = api.fetch("PrkSttusInfo", region, rows ->
-                    rows.stream().filter(f -> ids.contains(f.path("prk_center_id").asText())).count() >= ids.size());
+            facilities = facilities(region, ids);
         }
         Fetched fetched = new Fetched(at, realtime, facilities);
         cache.put(region, fetched);
         return fetched;
+    }
+
+    private List<JsonNode> facilities(String region, Set<String> ids) {
+        // 시설 목록은 민영 · 부설까지 들어 있어 길다. 실시간 관리번호를 모두 찾으면 남은 쪽은 받지 않는다.
+        java.util.function.Predicate<List<JsonNode>> enough = rows ->
+                rows.stream().filter(f -> ids.contains(f.path("prk_center_id").asText())).count() >= ids.size();
+        var cached = facilityCache.get(region);
+        if (cached == null || Duration.between(cached.at(), clock.instant()).compareTo(FACILITY_TTL) >= 0)
+            cached = new Facilities(clock.instant(), List.of(), 1, false);
+        if (cached.complete() || enough.test(cached.rows())) return cached.rows();
+        ParkingApiClient.Chunk chunk;
+        try {
+            chunk = api.fetchFrom("PrkSttusInfo", region, cached.nextPage(), cached.rows(), enough);
+        } catch (ParkingApiClient.InconsistentPages e) {
+            facilityCache.remove(region); // 쪽이 어긋났으면 받아 둔 것과 잇지 않고 처음부터 다시 받는다.
+            throw e;
+        }
+        facilityCache.put(region, new Facilities(cached.at(), chunk.rows(), chunk.nextPage(), chunk.complete()));
+        if (!chunk.stopped())
+            throw new IllegalArgumentException("이 지역은 시설 목록이 길어 한 번에 다 받지 못했습니다(" + chunk.rows().size()
+                    + "건까지 받음). 받은 데까지 하루 동안 두므로 같은 지역으로 다시 조회하면 이어서 받습니다.");
+        return chunk.rows();
     }
 
     /** An empty selection only lists candidates. No lot is silently selected. */
@@ -53,7 +81,8 @@ public class ParkingDataService {
         var realtime = fetched.realtime();
         if (realtime.isEmpty()) {
             String why = "이 지역(" + region + ")은 실시간 주차 정보를 제공하지 않아 API 모드를 쓸 수 없습니다. "
-                    + "가정값 모드로 실험하거나 실시간을 제공하는 다른 지역을 고르십시오.";
+                    + "fetch_standard_parking 으로 표준데이터 시설면수를 쓰고 초기 빈자리를 사용자 가정으로 받거나, "
+                    + "가정값 모드로 실험하거나, 실시간을 제공하는 다른 지역을 고르십시오.";
             if (!selected.isEmpty()) throw new IllegalArgumentException(why);
             Map<String, Object> none = new LinkedHashMap<>();
             none.put("candidates", List.of());
@@ -123,8 +152,9 @@ public class ParkingDataService {
     }
     public synchronized ParkingSnapshot require(String id) {
         var snapshot = snapshots.get(id);
-        if (snapshot == null) throw new IllegalArgumentException("주차 스냅샷이 없습니다. fetch_parking_snapshot 으로 다시 조회하십시오.");
-        if (Duration.between(Instant.parse(snapshot.fetchedAt()), clock.instant()).toMinutes() >= 10)
+        if (snapshot == null) throw new IllegalArgumentException("주차 스냅샷이 없습니다. 원래 사용한 fetch_parking_snapshot 또는 fetch_standard_parking으로 다시 조회하십시오.");
+        // 표준 모드는 정적 시설정보와 사용자 가정이라 시간이 지나도 낡지 않는다.
+        if (!"USER_ASSUMED".equals(snapshot.occupancySource()) && Duration.between(Instant.parse(snapshot.fetchedAt()), clock.instant()).toMinutes() >= 10)
             throw new IllegalArgumentException("조회한 지 10분이 지난 스냅샷입니다. 다시 조회한 뒤 시나리오를 만드십시오.");
         return snapshot;
     }

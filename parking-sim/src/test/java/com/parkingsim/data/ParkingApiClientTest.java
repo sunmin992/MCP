@@ -68,4 +68,22 @@ class ParkingApiClientTest {
         };
         assertThatThrownBy(() -> api.fetch("PrkSttusInfo", "47113")).hasMessageContaining("중복");
     }
+    /** 쪽마다 행 수를 정해 주는 가짜 API. totalCount 는 실제보다 크게 준다. */
+    private ParkingApiClient pages(int total, int... sizes) {
+        return new ParkingApiClient("dummy", mapper) {
+            protected String request(URI uri) {
+                int page = Integer.parseInt(uri.toString().replaceAll(".*pageNo=(\\d+).*", "$1"));
+                int size = page <= sizes.length ? sizes[page - 1] : 0;
+                var rows = new StringBuilder();
+                for (int i = 0; i < size; i++) rows.append(i == 0 ? "" : ",").append("{\"prk_center_id\":\"p").append(page).append('-').append(i).append("\"}");
+                return "{\"resultCode\":\"0\",\"totalCount\":\"" + total + "\",\"PrkSttusInfo\":[" + rows + "]}";
+            }
+        };
+    }
+    @Test void overstatedTotalCountEndsAtTheShortPage() {
+        // 경주: totalCount 15,022 건이라 하나 151쪽 14행으로 끝나고 152쪽은 비어 있다(2026-10-27 실측).
+        assertThat(pages(122, 100, 14).fetch("PrkSttusInfo", "47130")).hasSize(114);
+        assertThatThrownBy(() -> pages(250, 100, 100).fetch("PrkSttusInfo", "47130"))
+                .as("꽉 찬 쪽 뒤의 빈 쪽은 빠진 것일 수 있다").hasMessageContaining("누락").hasMessageContaining("200/250");
+    }
 }

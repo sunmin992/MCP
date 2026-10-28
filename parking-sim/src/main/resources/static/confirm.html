@@ -140,13 +140,20 @@ async function loadDetail(id) {
       <p>${d.request ? esc(d.request) : '<span style="color:#666">요청 원문이 함께 전달되지 않았습니다.</span>'}</p></div>
 
     ${d.runs[0]?.parkingSnapshot ? `<div class="warn"><strong>공공데이터 API 초기 상태</strong>
+      ${d.runs[0].parkingSnapshot.occupancySource === 'USER_ASSUMED' ? '<p><strong>표준데이터 모드: 총면수는 시설정보이고 아래 초기 빈자리 수는 사용자 가정입니다. 실시간 잔여면수가 아닙니다.</strong></p>' : ''}
       <p>조회 시각: ${esc(d.runs[0].parkingSnapshot.fetchedAt)} (UTC). 실제 관측 시각은 제공되지 않습니다.
       조회 상태를 고정하여 비교하며 실행 중 API로 덮어쓰지 않습니다.</p>
       <p>출처: ${esc(d.runs[0].parkingSnapshot.source)}</p>
-      <table><tr><th>주차장 / 관리번호</th><th>주소</th><th>시설면수</th><th>적용 총면수</th><th>잔여면수</th></tr>
+      <table><tr><th>주차장 / 관리번호</th><th>주소</th><th>시설면수</th><th>적용 총면수</th><th>${d.runs[0].parkingSnapshot.occupancySource === 'USER_ASSUMED' ? '초기 빈자리(가정)' : '잔여면수'}</th></tr>
       ${d.runs[0].parkingSnapshot.lots.map(l => `<tr><td>${esc(l.name)}<br>${esc(l.id)}</td><td>${esc(l.address)}</td><td>${esc(l.facilitySpaces)}</td><td>${esc(l.totalSpaces)}</td><td>${esc(l.availableSpaces)}</td></tr>`).join('')}</table>
-      <p>총면수가 다르면 실시간 응답의 총면수를 적용합니다. 기존 차량은 모두 ${esc(d.runs[0].initialVehicleRemainingMinutes)}분 후 출차한다고 가정합니다.
-      시작 시간대는 조회 시각의 한국 시간입니다. 요금·운영시간·실제 도로망은 API에서 적용하지 않습니다.
+      ${Object.entries(d.runs[0].parkingSnapshot.facilityDetails || {}).map(([id, f]) => `<details><summary>${esc(f.prkplceNm || id)} · 데이터 기준일 ${esc(f.referenceDate || '미제공')} · 요금·운영시간(참고)</summary>
+        <p>${esc(f.institutionNm)} / ${esc(f.prkplceSe)} / ${esc(f.prkplceType)} · 제공기관 ${esc(f.insttNm || '')}</p>
+        ${f._versionNote ? `<p>${esc(f._versionNote)}</p>` : ''}
+        <p>요금: ${esc(f.parkingchrgeInfo)} · 기본 ${esc(f.basicTime)}분 ${esc(f.basicCharge)}원 · 추가 ${esc(f.addUnitTime)}분 ${esc(f.addUnitCharge)}원 · 일일권 ${esc(f.dayCmmtkt)}원</p>
+        <p>운영요일: ${esc(f.operDay)} · 평일 ${esc(f.weekdayOperOpenHhmm)}~${esc(f.weekdayOperColseHhmm)} · 토요일 ${esc(f.satOperOperOpenHhmm)}~${esc(f.satOperCloseHhmm)} · 공휴일 ${esc(f.holidayOperOpenHhmm)}~${esc(f.holidayCloseOpenHhmm)}</p>
+        <p>위도·경도: ${esc(f.latitude)}, ${esc(f.longitude)} · 특기사항: ${esc(f.spcmnt)}</p></details>`).join('')}
+      <p>${d.runs[0].parkingSnapshot.occupancySource === 'USER_ASSUMED' ? '표준데이터의 시설면수를 적용합니다.' : '총면수가 다르면 실시간 응답의 총면수를 적용합니다.'} 기존 차량은 모두 ${esc(d.runs[0].initialVehicleRemainingMinutes)}분 후 출차한다고 가정합니다.
+      ${d.runs[0].parkingSnapshot.assumedStartMinute != null ? `시작 시각은 사용자가 초기 빈자리를 가정한 ${String(Math.floor(d.runs[0].parkingSnapshot.assumedStartMinute / 60)).padStart(2, '0')}:${String(d.runs[0].parkingSnapshot.assumedStartMinute % 60).padStart(2, '0')}(한국 시간)입니다.` : '시작 시간대는 조회 시각의 한국 시간입니다.'} 요금·운영시간·실제 도로망은 API에서 적용하지 않습니다.
       아래 실험 요금을 사용하며 주차장은 24시간 이용 가능한 것으로 가정합니다. 선택한 주차장이 노외 주차장인지 확인하십시오.</p></div>` : ''}
 
     ${unapproved.length ? (d.state === 'UNCONFIRMED'
