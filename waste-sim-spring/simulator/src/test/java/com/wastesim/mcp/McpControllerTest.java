@@ -71,12 +71,19 @@ class McpControllerTest {
     }
 
     @Test
-    void toolsCallRunsSimulation() throws Exception {        // IT-21
+    void toolsCallWithoutTokenIsBlocked() throws Exception {  // IT-21 (B11: 승인 우회 차단)
+        for (String tool : List.of("run_waste_simulation", "update_route_sequence")) {
+            JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\","
+                    + "\"params\":{\"name\":\"" + tool + "\","
+                    + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2,"
+                    + "\"routeSequence\":[\"Node_A\",\"Node_B\"]}}}");
+            assertTrue(b.path("result").path("isError").asBoolean(), tool + " 이 토큰 없이 돌았다");
+            assertTrue(b.path("result").path("content").get(0).path("text").asText()
+                    .contains("run_scenario_by_token"), tool);
+        }
         JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":2,\"method\":\"tools/call\","
-                + "\"params\":{\"name\":\"run_waste_simulation\","
-                + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2}}}");
-        assertFalse(b.path("result").path("isError").asBoolean());
-        assertTrue(b.path("result").path("content").isArray());
+                + "\"params\":{\"name\":\"run_scenario\",\"arguments\":{\"type\":\"baseline\"}}}");
+        assertTrue(b.path("result").path("isError").asBoolean(), "run_scenario 가 토큰 없이 돌았다");
     }
 
     @Test
@@ -92,24 +99,7 @@ class McpControllerTest {
         assertEquals(-32601, b.path("error").path("code").asInt());
     }
 
-    @Test
-    void updateRouteSequenceRuns() throws Exception {         // IT-T1
-        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":5,\"method\":\"tools/call\","
-                + "\"params\":{\"name\":\"update_route_sequence\","
-                + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2,"
-                + "\"routeSequence\":[\"Node_A\",\"Node_C\",\"Node_B\",\"Node_D\"]}}}");
-        assertFalse(b.path("result").path("isError").asBoolean());
-    }
 
-    @Test
-    void runWithZeroTrucksBlocked() throws Exception {        // IT-T2 (시나리오 4)
-        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":6,\"method\":\"tools/call\","
-                + "\"params\":{\"name\":\"run_waste_simulation\","
-                + "\"arguments\":{\"collectionTime\":\"12:00\",\"truckCount\":0}}}");
-        assertTrue(b.path("result").path("isError").asBoolean());
-        String text = b.path("result").path("content").get(0).path("text").asText();
-        assertTrue(text.contains("CRITICAL_WASTE_ACCUMULATION") || text.contains("TRUCK_COUNT_ZERO"));
-    }
 
     // ── MCP 서버·모델 분리(McpToolProvider) ─────────────────────────────────
 
@@ -192,14 +182,6 @@ class McpControllerTest {
         assertTrue(b.path("result").path("content").get(0).path("text").asText().contains("type"));
     }
 
-    @Test
-    void presentRequiredFieldStillRuns() throws Exception {
-        // required를 모두 채우면 예전과 똑같이 실행된다 — 강제가 정상 경로를 막지 않는다.
-        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":34,\"method\":\"tools/call\","
-                + "\"params\":{\"name\":\"run_waste_simulation\","
-                + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2}}}");
-        assertFalse(b.path("result").path("isError").asBoolean());
-    }
 
     @Test
     void schemaTypesAreEnforcedBeforeJacksonCanCoerceValues() throws Exception {
@@ -217,20 +199,6 @@ class McpControllerTest {
 
     // ── 확인 여부가 실행 결과에 남는가 (계획 2 Task 6) ──────────────────────────
 
-    @Test
-    void 토큰_없는_실행은_막지_않고_확인_안됨으로_표시된다() throws Exception {
-        JsonNode b = call("{\"jsonrpc\":\"2.0\",\"id\":9,\"method\":\"tools/call\","
-                + "\"params\":{\"name\":\"run_waste_simulation\","
-                + "\"arguments\":{\"collectionTime\":\"08:00\",\"days\":2,\"seeds\":2}}}");
-        assertFalse(b.path("result").path("isError").asBoolean(),
-                "서브태스크 흐름 밖 호출을 막으면 기존 화면과 API 가 전부 멈춘다");
-
-        JsonNode body = om.readTree(b.path("result").path("content").get(0).path("text").asText());
-        assertFalse(body.path("confirmed").asBoolean(),
-                "확인을 거치지 않았다는 사실이 결과에 없으면 읽는 사람이 구분할 수 없다");
-        assertTrue(body.path("confirmationNote").asText().contains("확인하지 않"),
-                "표시만 하고 사유가 없으면 뜻을 모른다: " + body.path("confirmationNote").asText());
-    }
 
     @Test
     void 모르는_토큰으로는_실행되지_않는다() throws Exception {

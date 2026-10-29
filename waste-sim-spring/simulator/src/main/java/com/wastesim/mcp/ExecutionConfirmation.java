@@ -11,13 +11,13 @@ import java.util.Optional;
 /**
  * 실행 도구가 확인을 거쳤는지 판정한다.
  *
- * <p>{@code run_waste_simulation}·{@code run_scenario}·{@code update_route_sequence} 는
- * 서브태스크 흐름 <b>밖에서도</b> 쓰인다(REST 화면, 기존 시나리오 API). 토큰을 무조건
- * 요구하면 그 경로가 전부 막히므로 막지 않는다 — 대신 확인을 거쳤는지를 결과에 남긴다.
- * "무엇으로 계산한 값인가" 를 결과가 말하게 하는 것과 같은 방식이다.
+ * <p>{@code run_waste_simulation}·{@code run_scenario}·{@code update_route_sequence} 도
+ * <b>토큰 없이는 돌지 않는다.</b> 예전에는 "확인 안 됨" 표시만 붙여 통과시켰는데, 그러면
+ * MCP 클라이언트가 승인 절차를 건너뛰는 지름길이 된다(사용자 요청 시험 B11). REST 화면은
+ * MCP 를 거치지 않고 {@code SimulationTool} 을 직접 부르므로 이 검사에 막히지 않는다.
  *
- * <p>다만 <b>틀린 토큰은 통과시키지 않는다.</b> 토큰을 줬다는 것은 확인을 주장한 것이고,
- * 틀린 주장을 통과시키면 확인 절차가 아무것도 보장하지 못한다. 없는 것과 틀린 것은 다르다.
+ * <p>틀린 토큰도 통과시키지 않는다. 토큰을 줬다는 것은 확인을 주장한 것이고,
+ * 틀린 주장을 통과시키면 확인 절차가 아무것도 보장하지 못한다.
  */
 @Component
 public class ExecutionConfirmation {
@@ -30,8 +30,10 @@ public class ExecutionConfirmation {
      */
     public record Check(boolean allowed, boolean confirmed, String scenarioId, String note) {}
 
-    private static final String OUTSIDE =
-            "서브태스크 흐름 밖에서 실행됐습니다 — 사용자가 이 설정을 확인하지 않았습니다.";
+    private static final String NO_TOKEN =
+            "확인 토큰이 없습니다 — 사용자가 확인 화면에서 승인한 설정만 실행합니다. "
+                    + "plan_subtasks → build_scenario 로 시나리오를 만들고, 사용자가 확인한 뒤 "
+                    + "run_scenario_by_token 으로 실행하십시오.";
 
     private final ScenarioStore store;
     private final ScenarioBuilder builder;
@@ -44,7 +46,7 @@ public class ExecutionConfirmation {
     public Check check(JsonNode args) {
         String token = args == null ? null : args.path("confirmToken").asText(null);
         if (token == null || token.isBlank()) {
-            return new Check(true, false, "", OUTSIDE);
+            return new Check(false, false, "", NO_TOKEN);
         }
 
         Optional<ScenarioStore.Entry> found = store.byToken(token);
