@@ -50,6 +50,8 @@ class ExecutionConfirmationTest {
         values.put("travelTimeMode", "LEGACY_CONSTANT");
         values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(720);
         String id = mapper.readTree(build.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString()).path("scenarioId").asText();
@@ -75,6 +77,8 @@ class ExecutionConfirmationTest {
         args.put("routeTravelMinutes", 15);
         args.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         args.put("routeAvailableCapacityKg", 150);
+        args.put("capacity", 30.0);
+        args.put("threshold", 0.8);
         return args;
     }
 

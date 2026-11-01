@@ -57,6 +57,26 @@ class ScenarioFlowTest {
     }
 
     @Test
+    void 발화가_오면_근거_검사로_다른_숫자를_막는다() throws Exception {
+        String base = """
+            {"values":{"spacesPerLot":80,"pricingPolicy":"FREE","userMix":["Commuter","Shopper"],"dailyArrivals":900,
+                       "guidanceMode":"NONE","congestionMode":"IGNORE","maxSearchMinutes":10,"lotSpacingMinutes":3.0,
+                       "days":14,"seeds":%d},
+             "origins":{"seeds":"USER","maxSearchMinutes":"USER","lotCount":"USER","guidanceMode":"MODEL_DEFAULT","lotSpacingMinutes":"MODEL_DEFAULT"},
+             "evidence":{"seeds":"3회 반복","maxSearchMinutes":"10분","lotCount":"4곳, 6곳","guidanceMode":"기본값으로","lotSpacingMinutes":"기본값으로"},
+             "userUtterances":["주차장 4곳, 6곳 비교. 14일을 3회 반복해줘","탐색은 10분까지","나머지는 기본값으로"],
+             "variableAnswerKey":"lotCount","variableValues":[4,6],"request":"시험 요청"}
+            """;
+        ToolResult wrong = registry.byToolName("build_scenario").call(mapper.readTree(base.formatted(30)));
+        assertThat(wrong.ready()).isFalse();
+        assertThat(wrong.errors().toString()).contains("GUARD").contains("seeds");
+
+        JsonNode ok = call("build_scenario", base.formatted(3));
+        assertThat(ok.path("valid").asBoolean()).as(ok.toString()).isTrue();
+        assertThat(ok.has("guardUnverified")).isTrue();
+    }
+
+    @Test
     void 실험_변수에_출처를_적어도_변수에_걸린_결정을_빠졌다고_적지_않는다() throws Exception {
         // 변수 출처를 적으면 보관 PES 에 비교 값 목록이 실린다(2026-10-19 scn-81c02bb3).
         JsonNode built = call("build_scenario", """

@@ -40,6 +40,8 @@ class ScenarioBuilderTest {
         v.put("dispatchIntervalMinutes", 15);
         v.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
         v.put("routeAvailableCapacityKg", 150);
+        v.put("binCapacityKg", 30.0);
+        v.put("complaintThreshold", 0.8);
         v.put("dischargeTimeMode", "PAPER_BASELINE");
         Map<String, String> origins = new LinkedHashMap<>();
         v.keySet().forEach(k -> origins.put(k, "USER"));

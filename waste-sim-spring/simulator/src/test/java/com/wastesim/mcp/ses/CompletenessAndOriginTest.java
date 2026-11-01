@@ -46,6 +46,8 @@ class CompletenessAndOriginTest {
         v.put("travelTimeMode", "LEGACY_CONSTANT");
         v.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         v.put("routeAvailableCapacityKg", 150);
+        v.put("binCapacityKg", 30.0);
+        v.put("complaintThreshold", 0.8);
         v.put("dischargeTimeMode", "PAPER_BASELINE");
         v.put("days", 7);
         v.put("seeds", 2);

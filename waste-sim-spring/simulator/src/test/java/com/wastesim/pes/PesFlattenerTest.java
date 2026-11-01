@@ -88,10 +88,25 @@ class PesFlattenerTest {
         // argument type mismatch 로 거절하고, 그 설정으로는 시나리오를 영영 만들 수 없다.
         Map<String, Object> v = new LinkedHashMap<>();
         v.put("routeAvailableCapacityKg", 150);
+        v.put("binCapacityKg", 30.0);
+        v.put("complaintThreshold", 0.8);
         Pes p = pes(v);
         SimulationConfig cfg = flattener.flatten(p);
         assertEquals(150.0, cfg.getRouteAvailableCapacityKg());
         assertEquals(List.of(), verifier.verify(p, cfg), "150 과 150.0 은 같은 값이다");
+    }
+
+    @Test
+    void 수거장_용량과_민원_임계가_실린다() {
+        // 예전엔 토큰 없는 직접 실행만 이 두 값을 바꿀 수 있었다(J11). 그 길이 닫혔으니 템플릿이 유일한 길이다.
+        Map<String, Object> v = new LinkedHashMap<>();
+        v.put("binCapacityKg", 60);
+        v.put("complaintThreshold", 0.7);
+        Pes p = pes(v);
+        SimulationConfig cfg = flattener.flatten(p);
+        assertEquals(60.0, cfg.getCapacity());
+        assertEquals(0.7, cfg.getThreshold());
+        assertEquals(List.of(), verifier.verify(p, cfg));
     }
 
     @Test

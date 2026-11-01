@@ -39,6 +39,8 @@ class SubtaskPlannerTest {
         answers.put("days", 30);
         answers.put("seeds", 30);
         answers.put("routeAvailableCapacityKg", 150);
+        answers.put("binCapacityKg", 30.0);
+        answers.put("complaintThreshold", 0.8);
         answers.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
         answers.put("dischargeTimeMode", "PAPER_BASELINE");
         SubtaskPlan plan = planner.plan(answers);
@@ -157,6 +159,8 @@ class SubtaskPlannerTest {
         answers.put("seeds", 30);
         // 경로 배정용량은 ALWAYS 라 항상 생성된다 — 채우지 않으면 계획이 완결이 아니다.
         answers.put("routeAvailableCapacityKg", 150.0);
+        answers.put("binCapacityKg", 30.0);
+        answers.put("complaintThreshold", 0.8);
         answers.put("occupationMix", List.of("BlueCollar", "Student", "Housewife"));
         answers.put("dischargeTimeMode", "PAPER_BASELINE");
         // travelTimeMode 가 ZONE_PROXY_HYBRID 가 아니므로 zoneAssignmentRule 자체는 NOT_GENERATED 지만,
@@ -215,9 +219,9 @@ class SubtaskPlannerTest {
     void 상태별_개수가_섞인_계획에서_맞게_집계된다() {
         // FILLED 4개(truckType,truckCount,numBuildings,trafficMode) · NOT_GENERATED 2개(trafficProfile,
         // collectionTimes — 다회 수거를 말하지 않았다)
-        // · DEFERRED 2개(zoneAssignmentRule,intraZoneTravel) · UNFILLED 나머지 9개
+        // · DEFERRED 2개(zoneAssignmentRule,intraZoneTravel) · UNFILLED 나머지 11개
         // (collectionTime·dispatchInterval·travelTimeMode·residentsPerBuilding·days·seeds
-        //  ·routeAvailableCapacity·occupationMix·dischargeTimeMode).
+        //  ·routeAvailableCapacity·occupationMix·dischargeTimeMode·binCapacity·complaintThreshold).
         Map<String, Object> answers = new HashMap<>();
         answers.put("truckType", "SMALL_1TON");
         answers.put("truckCount", 3);
@@ -228,7 +232,7 @@ class SubtaskPlannerTest {
         Map<SubtaskStatus, Integer> counts = plan.counts();
         assertEquals(4, counts.size(), "네 상태 키가 다 있어야 한다 — 없으면 counts().get(DEFERRED) 가 null 이 된다");
         assertEquals(4, counts.get(SubtaskStatus.FILLED));
-        assertEquals(9, counts.get(SubtaskStatus.UNFILLED));
+        assertEquals(11, counts.get(SubtaskStatus.UNFILLED));
         assertEquals(2, counts.get(SubtaskStatus.DEFERRED));
         assertEquals(2, counts.get(SubtaskStatus.NOT_GENERATED));
     }

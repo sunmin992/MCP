@@ -75,7 +75,9 @@ public class BuildScenarioTool implements McpToolProvider {
                "variableAnswerKey":{"type":"string","description":"실험 변수의 답변키"},
                "variableValues":{"type":"array","description":"비교할 값들"},
                "observations":{"type":"array","items":{"type":"string"}},
-               "request":{"type":"string","description":"사용자가 처음 한 요청 원문(요약하거나 바꿔 쓰지 않는다). 확인 화면이 설정 옆에 그대로 보여 준다 — 사용자는 자기 요청과 설정이 맞는지 보고 승인한다"}},
+               "request":{"type":"string","description":"사용자가 처음 한 요청 원문(요약하거나 바꿔 쓰지 않는다). 확인 화면이 설정 옆에 그대로 보여 준다 — 사용자는 자기 요청과 설정이 맞는지 보고 승인한다"},
+               "userUtterances":{"type":"array","items":{"type":"string"},"description":"근거 검사용 사용자 발화 원문 목록. 클라이언트가 대화 기록에서 넣는다. 있으면 evidence 를 검사한다"},
+               "evidence":{"type":"object","description":"답변키 → 그 값의 근거가 된 사용자 발화 구절(그대로 옮긴다). USER 값과, 조건부 결정에 기본값을 쓸 때 필요하다"}},
              "required":["values","variableAnswerKey","variableValues","request"]}
             """;
     }
@@ -110,6 +112,21 @@ public class BuildScenarioTool implements McpToolProvider {
 
             List<String> observations = new ArrayList<>();
             args.path("observations").forEach(v -> observations.add(v.asText()));
+
+            List<String> guardUnverified = List.of();
+            if (args.has("userUtterances")) {
+                List<String> said = new ArrayList<>();
+                args.path("userUtterances").forEach(v -> said.add(v.asText()));
+                Map<String, String> evidence = new LinkedHashMap<>();
+                args.path("evidence").fields().forEachRemaining(e -> evidence.put(e.getKey(), e.getValue().asText()));
+                Map<String, List<Object>> submitted = new LinkedHashMap<>();
+                values.forEach((k, v) -> submitted.put(k, List.of(v)));
+                submitted.put(args.path("variableAnswerKey").asText(), variableValues);
+                var guard = EvidenceGuard.check(submitted, origins, evidence, said, catalog);
+                if (!guard.blocks().isEmpty())
+                    return ToolFailure.of("evidence", "근거 검사(GUARD): " + String.join("; ", guard.blocks()));
+                guardUnverified = guard.unverified();
+            }
 
             Pes pes = new Pes(catalog.sesId(), catalog.sesVersion(), values, origins);
             ExperimentFrame frame = new ExperimentFrame(
@@ -158,6 +175,7 @@ public class BuildScenarioTool implements McpToolProvider {
             root.set("backVerificationBlocks",
                     mapper.valueToTree(scenario.backVerificationBlocks()));
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
+            if (args.has("userUtterances")) root.set("guardUnverified", mapper.valueToTree(guardUnverified));
             var warnings = root.putArray("warnings");
             String unused = builder.unusedVariable(pes, frame);
             if (unused != null)

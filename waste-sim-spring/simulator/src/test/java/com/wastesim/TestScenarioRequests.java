@@ -41,6 +41,8 @@ public final class TestScenarioRequests {
         FILL.put("days", 30);
         FILL.put("seeds", 30);
         FILL.put("routeAvailableCapacityKg", 150);
+        FILL.put("binCapacityKg", 30.0);
+        FILL.put("complaintThreshold", 0.8);
         FILL.put("dischargeTimeMode", "PAPER_BASELINE");
     }
 

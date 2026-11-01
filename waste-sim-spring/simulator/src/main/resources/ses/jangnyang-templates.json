@@ -264,6 +264,34 @@
       "configField": "routeAvailableCapacityKg",
       "sesPath": "수거차량집합/경로적재몫",
       "nodeKind": "ATTRIBUTE"
+    },
+    {
+      "templateId": "jn.binCapacity",
+      "answerKey": "binCapacityKg", "label": "수거장 용량(kg)",
+      "valueType": "NUMBER",
+      "generateWhen": "ALWAYS",
+      "min": 0,
+      "unit": "kg",
+      "defaultValue": 30.0,
+      "defaultBasis": "capacity 초기값 — 원룸 건물 하나의 쓰레기장 용량",
+      "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+      "configField": "capacity",
+      "sesPath": "수거장/용량",
+      "nodeKind": "ATTRIBUTE"
+    },
+    {
+      "templateId": "jn.complaintThreshold",
+      "answerKey": "complaintThreshold", "label": "민원 임계(적재율)",
+      "valueType": "NUMBER",
+      "generateWhen": "ALWAYS",
+      "min": 0,
+      "max": 1,
+      "defaultValue": 0.8,
+      "defaultBasis": "threshold 초기값",
+      "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+      "configField": "threshold",
+      "sesPath": "민원감시/임계",
+      "nodeKind": "ATTRIBUTE"
     }
   ]
 }

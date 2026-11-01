@@ -54,6 +54,8 @@ class RunScenarioByTokenToolTest {
         values.put("travelTimeMode", "LEGACY_CONSTANT");
         values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360).add(1080);
         var built = mapper.readTree(buildTool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
@@ -77,6 +79,8 @@ class RunScenarioByTokenToolTest {
         values.put("travelTimeMode", "LEGACY_CONSTANT");
         values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(540);
         return mapper.readTree(buildTool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString())
@@ -282,6 +286,8 @@ class RunScenarioByTokenToolTest {
         values.put("days", 5);
         values.put("seeds", 2);
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         args.putObject("origins").put("truckType", "MODEL_DEFAULT");
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360);
@@ -337,6 +343,8 @@ class RunScenarioByTokenToolTest {
         values.put("days", 3);
         values.put("seeds", 2);
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360);
         com.wastesim.TestScenarioRequests.completed(args).remove("request");
@@ -356,6 +364,8 @@ class RunScenarioByTokenToolTest {
         values.put("days", 3);
         values.put("seeds", 2);
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360);
         args.put("request", "원룸촌에서 새벽 6시에 걷으면 민원이 줄어?");

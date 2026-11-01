@@ -111,6 +111,8 @@ class SesMcpToolsTest {
         values.put("travelTimeMode", "LEGACY_CONSTANT");
         values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         args.put("variableAnswerKey", "collectionTimeMinutes");
         args.putArray("variableValues").add(360).add(720).add(1080);
 
@@ -136,6 +138,8 @@ class SesMcpToolsTest {
         values.put("travelTimeMode", "LEGACY_CONSTANT");
         values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         values.put("days", 7);
         values.put("seeds", 2);
         args.put("variableAnswerKey", "collectionTimeMinutes");
@@ -170,6 +174,8 @@ class SesMcpToolsTest {
         values.put("travelTimeMode", "LEGACY_CONSTANT");
         values.putArray("occupationMix").add("BlueCollar").add("Student").add("Housewife");
         values.put("routeAvailableCapacityKg", 150);
+        values.put("binCapacityKg", 30.0);
+        values.put("complaintThreshold", 0.8);
         values.put("days", 7);
         values.put("seeds", 2);
         args.put("variableAnswerKey", "days");
@@ -197,6 +203,8 @@ class SesMcpToolsTest {
         v.put("days", 30);
         v.put("seeds", 30);
         v.put("routeAvailableCapacityKg", 150);
+        v.put("binCapacityKg", 30.0);
+        v.put("complaintThreshold", 0.8);
         v.put("dischargeTimeMode", "PAPER_BASELINE");
         var o = args.putObject("origins");
         v.fieldNames().forEachRemaining(k -> o.put(k, "USER"));
