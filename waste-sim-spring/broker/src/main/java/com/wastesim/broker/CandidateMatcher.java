@@ -60,6 +60,15 @@ public class CandidateMatcher {
                 domainMatched ? List.of(text(card.path("domain"))) : List.of());
     }
 
+    /** 도메인 구절이 걸리는 등록 카드의 도메인 슬러그 집합. {@link #match} 의 도메인 대조와 같다. */
+    public java.util.Set<String> domainsOf(String domain) {
+        java.util.Set<String> out = new java.util.TreeSet<>();
+        for (JsonNode card : registry.cards()) {
+            if (domainMatches(card, domain)) card.path("domain").forEach(d -> out.add(d.asText()));
+        }
+        return out;
+    }
+
     private static final String UNWRITTEN ="적혀 있지 않음";
     private static final String UNDECIDABLE = "카드가 이 칸을 적지 않아 할 수 있는지 판단할 수 없습니다";
 
@@ -172,6 +181,11 @@ public class CandidateMatcher {
             if (blocked == null && anyKeyMatches(unit.path("matchKeys"), scale)) {
                 reasons.add("공간 규모: " + scale + " → " + unitLabel
                         + "(" + unit.path("scope").asText() + ")");
+            } else if (blocked == null && isEmptyList(unit.path("matchKeys"))) {
+                // 카드가 분석 단위의 말을 적지 않았다 — 못 한다고도 된다고도 할 수 없다.
+                ambiguities.add("공간 규모: " + scale + " — 이 카드는 분석 단위의 말을 적지 않았습니다");
+                adjustments.add(new RequestAdjustment("spatialScale", scale, Classification.AMBIGUOUS,
+                        "카드가 분석 단위를 적으면 판단할 수 있습니다", UNDECIDABLE, false));
             } else {
                 mismatches.add("공간 규모: " + scale + " 는 이 서버의 분석 단위("
                         + unitLabel + ")와 맞지 않습니다");
@@ -232,6 +246,10 @@ public class CandidateMatcher {
                     adjustments.add(new RequestAdjustment("environmentConditions", cond, Classification.AMBIGUOUS,
                             "'" + cond + "' 이 " + keys + " 가운데 무엇인지 정하면 됩니다",
                             "한 구절이 서로 다른 환경 조건에 걸립니다", false));
+                } else if (isEmptyList(card.path("applicability").path("environmentMatchKeys"))) {
+                    ambiguities.add("환경 조건: " + cond + " — 이 카드는 다루는 환경 조건을 적지 않았습니다");
+                    adjustments.add(new RequestAdjustment("environmentConditions", cond, Classification.AMBIGUOUS,
+                            "'" + cond + "' 조건을 빼면 됩니다", UNDECIDABLE, false));
                 } else {
                     mismatches.add("환경 조건: " + cond + " — 이 카드가 다루는지 적혀 있지 않습니다");
                     adjustments.add(new RequestAdjustment("environmentConditions", cond, Classification.MISMATCH,
@@ -332,8 +350,8 @@ public class CandidateMatcher {
 
     /**
      * 구절에 걸린 환경 조건 전부에서 포섭된 것을 뺀 결과. 항목 A 의 가장 긴 걸린 어휘가
-     * 항목 B 의 것의 부분 문자열이고 더 짧으면 A 를 뺀다 — "평일 교통량" 은 "교통량"(교통)이
-     * "평일"(수거 요일)을 포섭한다.
+     * 항목 B 의 것의 부분 문자열이고 더 짧으면 A 를 뺀다 — 교통 항목의 어휘 "평일 교통량" 이
+     * "평일"(수거 요일)을 포함하므로, "평일 교통량" 구절에서 교통이 수거 요일을 포섭한다.
      */
     static List<JsonNode> findEnvironments(JsonNode card, String phrase) {
         List<JsonNode> hit = new ArrayList<>();
@@ -367,6 +385,11 @@ public class CandidateMatcher {
             if (!key.isBlank() && haystack.contains(key) && (best == null || key.length() > best.length())) best = key;
         }
         return best;
+    }
+
+    /** 없거나 비었거나 배열이 아니다 — 카드가 그 칸을 적지 않았다. */
+    private static boolean isEmptyList(JsonNode node) {
+        return !node.isArray() || node.isEmpty();
     }
 
     private static String envKeys(List<JsonNode> envs) {

@@ -72,7 +72,10 @@ public class FindSimulatorsTool implements McpToolProvider {
                 + "채우면 그 추정으로 서버가 골라진다. "
                 + "응답의 round.matchId 는 이 매칭의 이름이다 — 요청을 고쳐 다시 조회할 때 matchId 로 넘긴다. "
                 + "고친 요청으로 쓰려는 서버가 정해졌으면 targetServerId 로 함께 넘겨 그 서버하고만 대조한다. "
-                + "고친 조회는 5번까지 센다 — 넘기면 대조 없이 NONE 이다.";
+                + "고친 조회는 5번까지 센다 — 넘기면 대조 없이 NONE 이다. "
+                + "adjustments 의 classification 이 AMBIGUOUS 면 카드가 적지 않아 판단하지 못한 것이니 사용자에게 묻고, "
+                + "MISMATCH 면 그 서버가 해 주지 못하는 것이다. "
+                + "전혀 새로운 시뮬레이션 요청은 matchId 없이 보낸다.";
     }
 
     @Override
@@ -125,23 +128,27 @@ public class FindSimulatorsTool implements McpToolProvider {
         List<String> removed = List.of();
         boolean purposeChanged = false;
         if (matchId == null) {
-            matchId = rounds.open(session, profile);
+            matchId = rounds.open(session, profile, matcher.domainsOf(profile.domain()));
             round = 1;
         } else {
-            var thread = rounds.next(matchId, session, profile, targetServerId);
+            var thread = rounds.next(matchId, session, profile, targetServerId,
+                    matcher.domainsOf(profile.domain()));
             if (thread.isEmpty()) {
                 return ToolFailure.of("matchId", "모르는 매칭 id 입니다 — 브로커가 다시 시작됐을 수 있습니다. "
                         + "matchId 없이 새 요청으로 조회하십시오");
             }
             round = thread.get().round();
+            targetServerId = thread.get().targetServerId();
             removed = thread.get().removedConditions();
             purposeChanged = thread.get().purposeChanged();
         }
 
         // 명세 3단계 — LLM 이 요청에서 뽑은 것. 여기서만 서버가 실제로 받은 값을 볼 수 있다.
-        callLog.info("[3 조회] domain={} · scale={} · population={} · env={} · objective={}",
+        callLog.info("[3 조회] domain={} · scale={} · population={} · env={} · objective={} · comparisonAxes={}"
+                        + " · matchId={} · targetServerId={}",
                 profile.domain(), profile.spatialScale(), profile.population(),
-                profile.environmentConditions(), profile.objective());
+                profile.environmentConditions(), profile.objective(), profile.comparisonAxes(),
+                matchId, targetServerId);
         try {
             var root = mapper.createObjectNode();
             root.put("domain", profile.domain());
@@ -155,7 +162,7 @@ public class FindSimulatorsTool implements McpToolProvider {
             roundNode.put("purposeChanged", purposeChanged);
             // 바퀴마다 한 줄 — 고친 조회가 어디서 조건을 덜어 냈는지 로그로 본다.
             final String roundLog = "바퀴 " + round + " · 고친 " + (round - 1) + " · 제거 " + removed
-                    + " · 목적변경 " + purposeChanged;
+                    + " · 목적변경 " + purposeChanged + " · matchId=" + matchId + " · targetServerId=" + targetServerId;
             if (round > MAX_REVISIONS + 1) {
                 // 고친 조회를 다 썼다. 맞는 요청이어도 대조하지 않는다.
                 root.put("verdict", "NONE");
@@ -250,10 +257,18 @@ public class FindSimulatorsTool implements McpToolProvider {
                     }
                 } else {
                     root.put("verdict", "ADJUST_REQUEST");
+                    int remaining = roundNode.path("remainingRevisions").asInt();
                     root.put("nextStep", "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 "
-                            + "고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 "
-                            + "targetServerId 를 넘깁니다. 남은 고친 조회: "
-                            + roundNode.path("remainingRevisions").asInt() + "번.");
+                            + "고친 요청을 함께 받으십시오. "
+                            + (remaining > 0
+                                    ? "고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. "
+                                            + "남은 고친 조회: " + remaining + "번."
+                                    : "이번이 허용된 마지막 고친 조회였습니다 — 또 조회하면 대조 없이 NONE 으로 답합니다. "
+                                            + "사용자가 고치기로 해도 이 매칭으로는 더 조회하지 말고, 새 시뮬레이션이면 matchId 없이 새로 조회하십시오."));
+                    callLog.info("[4 매칭] {} — ADJUST_REQUEST → 후보별 {}", roundLog,
+                            suggestions.stream().map(m -> m.serverId()
+                                    + " 불일치 " + countOf(m, Classification.MISMATCH)
+                                    + " · 애매 " + countOf(m, Classification.AMBIGUOUS)).toList());
                     for (MatchResult m : suggestions) {
                         callLog.info("[4 매칭] ADJUST_REQUEST → {} 쓰려면 고칠 것: {}", m.serverId(),
                                 m.requestAdjustments().stream()
@@ -298,6 +313,10 @@ public class FindSimulatorsTool implements McpToolProvider {
         } catch (Exception e) {
             return ToolFailure.of("profile", "후보를 찾지 못했습니다: " + e.getMessage());
         }
+    }
+
+    private static long countOf(MatchResult m, Classification c) {
+        return m.requestAdjustments().stream().filter(a -> a.classification() == c).count();
     }
 
     /** 없으면 {@code null} 로 남긴다 — 빈 목록("그런 조건 없음")과 구분해야 한다. */

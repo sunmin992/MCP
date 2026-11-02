@@ -282,6 +282,55 @@ class CandidateMatcherTest {
     }
 
     @Test
+    void 환경조건표가_없거나_비어_있으면_환경_조건은_애매다() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        for (String applicability : new String[]{"", ",\"applicability\":{\"environmentMatchKeys\":[]}"}) {
+            var card = mapper.readTree("""
+                    {"serverId":"bare","endpoint":"http://localhost:3/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"]%s}"""
+                    .formatted(applicability));
+            var m = new CandidateMatcher(new CandidateRegistry(card, "classpath*:/none/*.json"));
+            MatchResult r = m.match(new RequestProfile("쓰레기", null, List.of("평일 교통량"), null, null)).get(0);
+            assertEquals(1, r.ambiguities().size(), r.toString());
+            assertTrue(r.mismatches().isEmpty(), "적지 않은 칸을 못 한다고 하면 안 된다: " + r.mismatches());
+            assertEquals(Classification.AMBIGUOUS, r.requestAdjustments().get(0).classification());
+        }
+    }
+
+    @Test
+    void 환경조건표가_없어도_unsupported_는_불일치다() throws Exception {
+        var card = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
+                {"serverId":"bare","endpoint":"http://localhost:3/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"],
+                 "unsupported":[{"capability":"교통","matchKeys":["교통"],"reason":"못 한다"}]}""");
+        var m = new CandidateMatcher(new CandidateRegistry(card, "classpath*:/none/*.json"));
+        MatchResult r = m.match(new RequestProfile("쓰레기", null, List.of("평일 교통량"), null, null)).get(0);
+        assertEquals(1, r.mismatches().size(), r.toString());
+        assertTrue(r.ambiguities().isEmpty());
+    }
+
+    @Test
+    void 분석단위_키가_없거나_비어_있으면_공간_규모는_애매다() throws Exception {
+        var mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+        for (String unit : new String[]{"", ",\"analysisUnit\":{\"label\":\"동\",\"matchKeys\":[]}"}) {
+            var card = mapper.readTree("""
+                    {"serverId":"bare","endpoint":"http://localhost:3/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"]%s}"""
+                    .formatted(unit));
+            var m = new CandidateMatcher(new CandidateRegistry(card, "classpath*:/none/*.json"));
+            MatchResult r = m.match(new RequestProfile("쓰레기", "한 동네", null, null, null)).get(0);
+            assertEquals(1, r.ambiguities().size(), r.toString());
+            assertTrue(r.mismatches().isEmpty(), r.mismatches().toString());
+            assertEquals(Classification.AMBIGUOUS, r.requestAdjustments().get(0).classification());
+        }
+    }
+
+    @Test
+    void 도메인_구절이_걸리는_도메인_집합을_낸다() throws Exception {
+        var m = 쓰레기와_주차();
+        assertEquals(java.util.Set.of("waste-collection"), m.domainsOf("쓰레기 수거"));
+        assertEquals(java.util.Set.of("waste-collection", "public-parking"), m.domainsOf("주차장 쓰레기 수거"));
+        assertTrue(m.domainsOf("교통 신호").isEmpty());
+    }
+
+    @Test
     void unsupported_에_걸리면_지원어휘가_있어도_불일치다() throws Exception {
         var card = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
                 {"serverId":"x","endpoint":"http://localhost:4/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"],

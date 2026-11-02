@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 /**
@@ -36,10 +37,13 @@ public class MatchRounds {
         int round = 1;
         String targetServerId;
         final List<RequestProfile> profiles = new ArrayList<>();
+        /** profiles 와 같은 순서 — 그 바퀴의 도메인 구절이 걸린 등록 도메인 슬러그. */
+        final List<Set<String>> domains = new ArrayList<>();
 
-        Entry(String session, RequestProfile first) {
+        Entry(String session, RequestProfile first, Set<String> firstDomains) {
             this.session = session;
             this.profiles.add(first);
+            this.domains.add(firstDomains);
         }
 
         MatchThread snapshot() {
@@ -47,12 +51,23 @@ public class MatchRounds {
             for (int i = 1; i < profiles.size(); i++) {
                 removals(profiles.get(i - 1), profiles.get(i), removed);
             }
-            String domain = profiles.get(0).domain();
-            boolean domainChanged = profiles.stream().skip(1)
-                    .anyMatch(p -> !Objects.equals(domain, p.domain()));
+            boolean domainChanged = false;
+            for (int i = 1; i < profiles.size(); i++) {
+                domainChanged |= domainChanged(profiles.get(0).domain(), domains.get(0),
+                        profiles.get(i).domain(), domains.get(i));
+            }
             return new MatchThread(session, round, targetServerId, List.copyOf(profiles),
                     List.copyOf(removed), domainChanged || !removed.isEmpty());
         }
+    }
+
+    /**
+     * 도메인이 바뀌어 다른 질문이 됐는가. 등록 도메인 집합이 첫 바퀴의 부분집합이면 띄어쓰기를 고치거나
+     * 좁힌 것이다. 어느 등록 도메인에도 안 걸리면 비교할 집합이 없어 글자가 달라졌는지만 본다.
+     */
+    private static boolean domainChanged(String firstDomain, Set<String> first, String domain, Set<String> now) {
+        if (now.isEmpty()) return !Objects.equals(firstDomain, domain);
+        return !first.containsAll(now);
     }
 
     /** 바퀴 r → r+1 에서 빠진 구절. 칸의 구절 수가 줄어야 제거다 — 같은 수로 글만 바뀐 것은 고쳐 쓴 것이다. */
@@ -86,21 +101,27 @@ public class MatchRounds {
                 }
             });
 
-    public String open(String session, RequestProfile first) {
+    public String open(String session, RequestProfile first, Set<String> domains) {
         String id = UUID.randomUUID().toString();
-        threads.put(id, new Entry(session, first));
+        threads.put(id, new Entry(session, first, domains));
         return id;
     }
 
-    /** 세션이 다르거나 모르는 id 면 empty. 아니면 바퀴를 하나 늘린 매칭. */
-    public Optional<MatchThread> next(String matchId, String session,
-                                      RequestProfile revised, String targetServerId) {
+    /**
+     * 세션이 다르거나 모르는 id 면 empty. 아니면 바퀴를 하나 늘린 매칭.
+     * targetServerId 가 null 이면 저장된 목표를 그대로 쓰고, 값이 있으면 바꾼다.
+     */
+    public Optional<MatchThread> next(String matchId, String session, RequestProfile revised,
+                                      String targetServerId, Set<String> domains) {
         synchronized (threads) {
             Entry t = threads.get(matchId);
             if (t == null || !Objects.equals(t.session, session)) return Optional.empty();
             t.round++;
-            t.targetServerId = targetServerId;
-            if (t.round <= MAX_STORED_ROUND) t.profiles.add(revised);
+            if (targetServerId != null) t.targetServerId = targetServerId;
+            if (t.round <= MAX_STORED_ROUND) {
+                t.profiles.add(revised);
+                t.domains.add(domains);
+            }
             return Optional.of(t.snapshot());
         }
     }

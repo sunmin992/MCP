@@ -86,6 +86,20 @@ class BrokerServerTest {
                 output.getOut());
     }
 
+    @Test
+    void 조정_요청도_바퀴_줄에_매칭_id_와_후보별_불일치_애매_수를_남긴다(CapturedOutput output) throws Exception {
+        mvc.perform(post("/api/simulators").contentType(MediaType.APPLICATION_JSON)
+                .content(TestCards.jangnyang().toString())).andExpect(status().isOk());
+        JsonNode res = rpc("tools/call", "{\"name\":\"find_simulators\",\"arguments\":"
+                + "{\"domain\":\"쓰레기수거\",\"spatialScale\":\"장량동 전체\",\"comparisonAxes\":[\"수거 시각\"]}}");
+        String matchId = mapper.readTree(res.path("result").path("content").get(0).path("text").asText())
+                .path("round").path("matchId").asText();
+        String log = output.getOut();
+        assertTrue(log.contains("comparisonAxes=[수거 시각]") && log.contains("matchId=" + matchId), log);
+        assertTrue(log.contains("matchId=" + matchId + " · targetServerId=null — ADJUST_REQUEST"), log);
+        assertTrue(log.contains("jangnyang-waste-sim 불일치 1 · 애매 0"), log);
+    }
+
     private JsonNode rpcIn(String session, String method, String params) throws Exception {
         String body = "{\"jsonrpc\":\"2.0\",\"id\":1,\"method\":\"" + method + "\""
                 + (params == null ? "" : ",\"params\":" + params) + "}";
