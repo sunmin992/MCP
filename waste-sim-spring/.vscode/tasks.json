@@ -5,9 +5,9 @@
   // cmd)과 상관없이 같게 돌도록 작업 셸을 cmd.exe 로 고정한다.
   "tasks": [
     {
-      "label": "waste-sim: 두 서버 실행",
-      "detail": "브로커(8089)와 장량동 시뮬레이터(8090)를 함께 띄운다. 시뮬레이터가 뜨면 브로커에 스스로 등록한다.",
-      "dependsOn": ["waste-sim: 브로커 실행", "waste-sim: 시뮬레이터 실행"],
+      "label": "waste-sim: 서버 실행",
+      "detail": "브로커(8089) · 장량동 시뮬레이터(8090) · 주차 시뮬레이터(8092)를 함께 띄운다. 시뮬레이터가 뜨면 브로커에 스스로 등록한다.",
+      "dependsOn": ["waste-sim: 브로커 실행", "waste-sim: 시뮬레이터 실행", "waste-sim: 주차 시뮬레이터 실행"],
       "dependsOrder": "parallel",
       "group": { "kind": "build", "isDefault": true },
       "problemMatcher": []
@@ -31,6 +31,20 @@
       "command": "chcp 65001 >nul && .\\mvnw.cmd -q -pl simulator -am spring-boot:run",
       "options": {
         "cwd": "${workspaceFolder}",
+        "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] }
+      },
+      "presentation": { "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      // 공공데이터포털 키는 Windows 사용자 환경 변수 PARKING_API_SERVICE_KEY 에서 읽는다.
+      // 기동할 때 브로커에 능력 카드를 보내므로, 브로커 포트(8089)가 열릴 때까지 기다렸다가 띄운다.
+      "label": "waste-sim: 주차 시뮬레이터 실행",
+      "detail": "브로커(8089)가 뜬 뒤 포항 주차 시뮬레이터 MCP 서버를 띄운다 — http://127.0.0.1:8092/mcp",
+      "type": "shell",
+      "command": "chcp 65001 >nul && echo 브로커(8089)가 뜨기를 기다립니다... && powershell -NoProfile -Command \"do { $up = try { (New-Object Net.Sockets.TcpClient('127.0.0.1', 8089)).Close(); $true } catch { Start-Sleep 1; $false } } until ($up)\" && .\\mvnw.cmd -q spring-boot:run",
+      "options": {
+        "cwd": "${workspaceFolder}/../parking-sim",
         "shell": { "executable": "cmd.exe", "args": ["/d", "/c"] }
       },
       "presentation": { "panel": "dedicated", "clear": true },
