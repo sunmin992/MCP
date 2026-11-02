@@ -164,8 +164,7 @@ class EndToEndSubtaskFlowTest {
 
     /** 사용자가 설정을 보고 동의한 자리 — confirm_scenario 가 하는 일이다. */
     private Scenario confirmed(Scenario s) {
-        return new Scenario(s.scenarioId(), s.runs(), s.blocks(),
-                s.backVerificationBlocks(), s.branchBlocks(), builder.tokenFor(s));
+        return s.withToken(builder.tokenFor(s));
     }
 
     @Test

@@ -55,6 +55,7 @@ public class ScenarioBuilder {
         List<String> blocks = new ArrayList<>();
         List<String> backBlocks = new ArrayList<>();
         List<String> branchBlocks = new ArrayList<>();
+        Map<String, List<String>> droppedDefaults = new LinkedHashMap<>();
 
         for (Object value : frame.values()) {
             Map<String, Object> values = new LinkedHashMap<>(pes.values());
@@ -92,12 +93,18 @@ public class ScenarioBuilder {
             // 가지친(생성 조건이 거짓인) 결정에 실린 값. 기본값으로 실린 것은 LLM 이 일괄로 넣은
             // 것이라 평탄화 전에 조용히 뺀다. 사용자 · 파생 값은 무엇을 뜻했는지 알 수 없어 막는다.
             // 보류(DEFERRED)는 생길 수도 있는 결정이라 여기서 보지 않는다.
+            // 실험 변수 자체가 가지친 쪽이면 출처와 무관하게 막는다 — 빼면 같은 설정 N벌이 통과한다.
+            // 빼고 나서 다시 계획하지 않는다: 가지친 결정의 하위 결정은 생성 조건이 그 결정의 조건을
+            // AND 로 이어받아 같은 계획에서 이미 함께 거짓(NOT_GENERATED)으로 나온다.
             boolean dropped = false;
             for (SubtaskInstance i : instances) {
                 if (i.status() != SubtaskStatus.NOT_GENERATED || !values.containsKey(i.answerKey())) continue;
-                if ("MODEL_DEFAULT".equals(origins.get(i.answerKey()))) {
+                if ("MODEL_DEFAULT".equals(origins.get(i.answerKey()))
+                        && !i.answerKey().equals(frame.variableAnswerKey())) {
                     values.remove(i.answerKey());
                     origins.remove(i.answerKey());
+                    droppedDefaults.computeIfAbsent(i.answerKey(), k -> new ArrayList<>())
+                            .add(frame.variableAnswerKey() + "=" + value);
                     dropped = true;
                 } else {
                     branchBlocks.add(run + i.answerKey() + " — 가지친 쪽의 값입니다. 생성 조건 "
@@ -126,7 +133,7 @@ public class ScenarioBuilder {
 
         // 토큰은 여기서 주지 않는다. 검증 통과는 "돌릴 수 있다" 이지 "사용자가 확인했다"가
         // 아니다. 확인 단계(confirm)가 발급하며, 그래서 토큰 없음 = 미확인이 된다.
-        return new Scenario(scenarioId, runs, blocks, backBlocks, branchBlocks, null);
+        return new Scenario(scenarioId, runs, blocks, backBlocks, branchBlocks, null, droppedDefaults);
     }
 
     /** 이 시나리오의 현재 설정에 대한 확인 토큰. 확인 단계만 부른다. */

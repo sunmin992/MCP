@@ -129,6 +129,24 @@ public class BuildScenarioTool implements McpToolProvider {
 
             Scenario scenario = builder.build(pes, frame);
 
+            // 빌더가 가지친 쪽이라 실행 설정에서 뺀 기본값. 모든 실행에서 뺐으면 보관 PES 에서도 지운다 —
+            // 남기면 확인 화면 · 실행 결과 메모가 적용되지 않은 값에 사용자의 동의를 받는다.
+            // 일부 실행에서만 뺐으면 다른 실행에 쓰이므로 남기고, 어느 실행에서 뺐는지만 알린다.
+            var dropped = mapper.createObjectNode();
+            for (var d : scenario.droppedDefaults().entrySet()) {
+                Object v = values.get(d.getKey());
+                if (d.getValue().size() == scenario.runs().size()) {
+                    values.remove(d.getKey());
+                    origins.remove(d.getKey());
+                    dropped.set(d.getKey(), mapper.valueToTree(v));
+                } else {
+                    var n = dropped.putObject(d.getKey());
+                    n.set("value", mapper.valueToTree(v));
+                    n.set("droppedIn", mapper.valueToTree(d.getValue()));
+                }
+            }
+            pes = new Pes(pes.sesId(), pes.sesVersion(), values, origins);
+
             // 실험 변수는 값이 여럿이라 기본 PES 에 들어 있지 않다. LLM 이 그 값들을 제안했으면
             // (출처 MODEL_DEFAULT) 확인 화면이 경고할 수 있도록, 보관할 PES 에 비교할 값 목록을
             // 함께 싣는다. 식별자와 토큰은 builder 가 이미 계산했으므로 바뀌지 않는다.
@@ -151,6 +169,7 @@ public class BuildScenarioTool implements McpToolProvider {
                     mapper.valueToTree(scenario.backVerificationBlocks()));
             root.set("branchBlocks", mapper.valueToTree(scenario.branchBlocks()));
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
+            if (!dropped.isEmpty()) root.set("droppedDefaults", dropped);
             if (args.has("userUtterances")) root.set("guardUnverified", mapper.valueToTree(guardUnverified));
             // 토큰은 여기서 나오지 않는다. 검증을 통과해도 아직 미확인이며,
             // 사람이 확인 화면에서 승인해야 발급된다(ScenarioConfirmController → ConfirmScenarioTool).

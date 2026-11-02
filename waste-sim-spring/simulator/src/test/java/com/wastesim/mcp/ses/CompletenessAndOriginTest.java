@@ -28,11 +28,12 @@ class CompletenessAndOriginTest {
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final TemplateCatalog catalog = new TemplateCatalog();
+    private final ScenarioStore store = new ScenarioStore();
     private final BuildScenarioTool build = new BuildScenarioTool(
             new ScenarioBuilder(new PesFlattener(catalog), new PesBackVerifier(catalog),
                     new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
                     new SubtaskPlanner(catalog)),
-            new ScenarioStore(), catalog, mapper);
+            store, catalog, mapper);
 
     /** 물어야 할 결정이 모두 들어 있는 장량동 PES. 출처는 모두 USER. */
     private ObjectNode complete() {
@@ -214,5 +215,40 @@ class CompletenessAndOriginTest {
     void 설명에_출처_규칙이_있다() {
         assertTrue(build.description().contains("MODEL_DEFAULT"));
         assertTrue(build.description().contains("기본값으로"));
+    }
+
+    @Test
+    void 모든_실행에서_뺀_기본값은_보관_PES_와_승인_목록에서도_지운다() throws Exception {
+        // 1대면 배차 간격 결정이 생기지 않는다 — LLM 이 일괄로 넣은 기본값은 실행에 쓰이지 않는다.
+        ObjectNode args = complete();
+        ((ObjectNode) args.get("values")).put("dispatchIntervalMinutes", 15);
+        ((ObjectNode) args.get("origins")).put("dispatchIntervalMinutes", "MODEL_DEFAULT");
+        JsonNode out = call(args);
+        assertTrue(out.path("valid").asBoolean(), out.toString());
+        assertFalse(out.path("unapprovedDefaults").has("dispatchIntervalMinutes"),
+                "적용되지 않은 값에 사용자가 동의하게 하면 안 된다: " + out.path("unapprovedDefaults"));
+        assertEquals(15, out.path("droppedDefaults").path("dispatchIntervalMinutes").asInt(), out.toString());
+        var kept = store.entry(out.path("scenarioId").asText()).orElseThrow().pes();
+        assertFalse(kept.values().containsKey("dispatchIntervalMinutes"), "보관 PES 에도 남으면 확인 화면 · 실행 메모에 실린다");
+        assertFalse(kept.origins().containsKey("dispatchIntervalMinutes"));
+    }
+
+    @Test
+    void 일부_실행에서만_뺀_기본값은_남기고_어느_실행에서_뺐는지_알린다() throws Exception {
+        ObjectNode args = complete();
+        args.put("variableAnswerKey", "truckCount");
+        args.putArray("variableValues").add(1).add(3);
+        ((ObjectNode) args.get("values")).remove("truckCount");
+        ((ObjectNode) args.get("origins")).remove("truckCount");
+        ((ObjectNode) args.get("values")).put("collectionTimeMinutes", 720);
+        ((ObjectNode) args.get("origins")).put("collectionTimeMinutes", "USER");
+        ((ObjectNode) args.get("values")).put("dispatchIntervalMinutes", 15);
+        ((ObjectNode) args.get("origins")).put("dispatchIntervalMinutes", "MODEL_DEFAULT");
+        JsonNode out = call(args);
+        assertTrue(out.path("valid").asBoolean(), out.toString());
+        assertTrue(out.path("unapprovedDefaults").has("dispatchIntervalMinutes"), "3대 실행에는 쓰인다");
+        JsonNode d = out.path("droppedDefaults").path("dispatchIntervalMinutes");
+        assertEquals(15, d.path("value").asInt(), out.toString());
+        assertEquals("[\"truckCount=1\"]", d.path("droppedIn").toString());
     }
 }

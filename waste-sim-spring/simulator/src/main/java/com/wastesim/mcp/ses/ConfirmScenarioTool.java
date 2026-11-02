@@ -49,8 +49,7 @@ public class ConfirmScenarioTool {
                     "검증을 통과하지 못한 시나리오는 확인할 수 없습니다: " + scenario.blocks());
         }
 
-        Scenario confirmed = new Scenario(scenario.scenarioId(), scenario.runs(),
-                scenario.blocks(), scenario.backVerificationBlocks(), scenario.branchBlocks(), builder.tokenFor(scenario));
+        Scenario confirmed = scenario.withToken(builder.tokenFor(scenario));
         if (!store.confirm(confirmed)) {
             return ToolFailure.of("scenarioId", "실행 중인 시나리오는 다시 확인할 수 없습니다: " + scenarioId);
         }

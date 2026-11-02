@@ -45,7 +45,7 @@ class ScenarioBuilderTest {
         v.put("dischargeTimeMode", "PAPER_BASELINE");
         Map<String, String> origins = new LinkedHashMap<>();
         v.keySet().forEach(k -> origins.put(k, "USER"));
-        return new Pes("jangnyang-ses", "1.0.0", v, origins);
+        return new Pes("jangnyang-ses", "1.1.0", v, origins);
     }
 
     @Test
@@ -93,8 +93,7 @@ class ScenarioBuilderTest {
 
     /** 확인 단계가 하는 일 — 토큰을 실어 같은 시나리오를 다시 만든다. */
     private Scenario confirm(Scenario s) {
-        return new Scenario(s.scenarioId(), s.runs(), s.blocks(),
-                s.backVerificationBlocks(), s.branchBlocks(), builder.tokenFor(s));
+        return s.withToken(builder.tokenFor(s));
     }
 
     @Test
@@ -188,7 +187,21 @@ class ScenarioBuilderTest {
         v.put("numBuildings", 6);
         v.put("zoneAssignmentRule", "CONTIGUOUS");
         o.put("zoneAssignmentRule", "USER");
-        Scenario s = builder.build(new Pes("jangnyang-ses", "1.0.0", v, o), ONE_RUN);
+        Scenario s = builder.build(new Pes("jangnyang-ses", "1.1.0", v, o), ONE_RUN);
         assertTrue(s.branchBlocks().isEmpty(), "막힌 값: " + s.branchBlocks());
+    }
+
+    @Test
+    void 실험_변수가_가지친_쪽이면_기본값_출처여도_막는다() {
+        // 변수를 빼면 같은 설정 N벌이 valid 로 나온다 — 비교가 비교가 아니게 된다.
+        Pes pes = withValue(basePes(), "truckCount", 1, "USER");
+        pes = withValue(pes, "dispatchIntervalMinutes", 15, "MODEL_DEFAULT");
+        Scenario s = builder.build(pes, new ExperimentFrame(
+                "dispatchIntervalMinutes", List.of(10, 20), List.of("meanComplaints")));
+        assertEquals(2, s.branchBlocks().size(), "막힌 값: " + s.branchBlocks());
+        assertTrue(s.branchBlocks().get(0).startsWith("dispatchIntervalMinutes=10: dispatchIntervalMinutes"),
+                s.branchBlocks().get(0));
+        assertFalse(s.valid());
+        assertTrue(s.droppedDefaults().isEmpty(), "실험 변수는 빼지 않는다: " + s.droppedDefaults());
     }
 }
