@@ -12,21 +12,24 @@ import java.util.List;
  *
  * @param blocks                  설정 검증에서 막힌 사유
  * @param backVerificationBlocks  평탄화 결과와 PES 가 어긋난 자리
+ * @param branchBlocks            생성 조건이 거짓인(가지친) 결정에 실린 값
  */
 public record Scenario(
         String scenarioId,
         List<SimulationConfig> runs,
         List<String> blocks,
         List<String> backVerificationBlocks,
+        List<String> branchBlocks,
         String confirmToken) {
 
     public Scenario {
         runs = List.copyOf(runs);
         blocks = List.copyOf(blocks);
         backVerificationBlocks = List.copyOf(backVerificationBlocks);
+        branchBlocks = List.copyOf(branchBlocks);
     }
 
     public boolean valid() {
-        return blocks.isEmpty() && backVerificationBlocks.isEmpty();
+        return blocks.isEmpty() && backVerificationBlocks.isEmpty() && branchBlocks.isEmpty();
     }
 }

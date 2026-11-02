@@ -54,6 +54,7 @@ public class ScenarioBuilder {
         List<SimulationConfig> runs = new ArrayList<>();
         List<String> blocks = new ArrayList<>();
         List<String> backBlocks = new ArrayList<>();
+        List<String> branchBlocks = new ArrayList<>();
 
         for (Object value : frame.values()) {
             Map<String, Object> values = new LinkedHashMap<>(pes.values());
@@ -88,6 +89,24 @@ public class ScenarioBuilder {
                 }
             }
 
+            // 가지친(생성 조건이 거짓인) 결정에 실린 값. 기본값으로 실린 것은 LLM 이 일괄로 넣은
+            // 것이라 평탄화 전에 조용히 뺀다. 사용자 · 파생 값은 무엇을 뜻했는지 알 수 없어 막는다.
+            // 보류(DEFERRED)는 생길 수도 있는 결정이라 여기서 보지 않는다.
+            boolean dropped = false;
+            for (SubtaskInstance i : instances) {
+                if (i.status() != SubtaskStatus.NOT_GENERATED || !values.containsKey(i.answerKey())) continue;
+                if ("MODEL_DEFAULT".equals(origins.get(i.answerKey()))) {
+                    values.remove(i.answerKey());
+                    origins.remove(i.answerKey());
+                    dropped = true;
+                } else {
+                    branchBlocks.add(run + i.answerKey() + " — 가지친 쪽의 값입니다. 생성 조건 "
+                            + planner.template(i.answerKey()).map(t -> String.valueOf(t.generateWhen())).orElse("?")
+                            + " 이(가) 거짓입니다 — 빼십시오");
+                }
+            }
+            if (dropped) runPes = new Pes(pes.sesId(), pes.sesVersion(), values, origins);
+
             SimulationConfig cfg = flattener.flatten(runPes);
             runs.add(cfg);
 
@@ -107,7 +126,7 @@ public class ScenarioBuilder {
 
         // 토큰은 여기서 주지 않는다. 검증 통과는 "돌릴 수 있다" 이지 "사용자가 확인했다"가
         // 아니다. 확인 단계(confirm)가 발급하며, 그래서 토큰 없음 = 미확인이 된다.
-        return new Scenario(scenarioId, runs, blocks, backBlocks, null);
+        return new Scenario(scenarioId, runs, blocks, backBlocks, branchBlocks, null);
     }
 
     /** 이 시나리오의 현재 설정에 대한 확인 토큰. 확인 단계만 부른다. */

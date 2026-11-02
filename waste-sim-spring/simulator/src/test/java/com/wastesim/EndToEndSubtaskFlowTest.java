@@ -58,10 +58,6 @@ class EndToEndSubtaskFlowTest {
         a.put("trafficMode", "IGNORE");
         a.put("travelTimeMode", "LEGACY_CONSTANT");
         a.put("dispatchIntervalMinutes", 15);
-        // 구역 배정은 travelTimeMode 가 근사가 아니라 생성되지 않지만, 구역 내 이동시간의
-        // 생성 조건이 이 값을 직접 읽으므로 채워 둬야 보류(DEFERRED)가 아니라
-        // 미생성(NOT_GENERATED)으로 판정된다.
-        a.put("zoneAssignmentRule", "ROUND_ROBIN");
         // 이 블록에 배정된 적재 몫. 지정하지 않으면 가동률이 죽는다.
         a.put("routeAvailableCapacityKg", 150.0);
         a.put("binCapacityKg", 30.0);
@@ -169,7 +165,7 @@ class EndToEndSubtaskFlowTest {
     /** 사용자가 설정을 보고 동의한 자리 — confirm_scenario 가 하는 일이다. */
     private Scenario confirmed(Scenario s) {
         return new Scenario(s.scenarioId(), s.runs(), s.blocks(),
-                s.backVerificationBlocks(), builder.tokenFor(s));
+                s.backVerificationBlocks(), s.branchBlocks(), builder.tokenFor(s));
     }
 
     @Test

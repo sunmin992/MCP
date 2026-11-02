@@ -149,6 +149,7 @@ public class BuildScenarioTool implements McpToolProvider {
             root.set("blocks", mapper.valueToTree(scenario.blocks()));
             root.set("backVerificationBlocks",
                     mapper.valueToTree(scenario.backVerificationBlocks()));
+            root.set("branchBlocks", mapper.valueToTree(scenario.branchBlocks()));
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
             if (args.has("userUtterances")) root.set("guardUnverified", mapper.valueToTree(guardUnverified));
             // 토큰은 여기서 나오지 않는다. 검증을 통과해도 아직 미확인이며,

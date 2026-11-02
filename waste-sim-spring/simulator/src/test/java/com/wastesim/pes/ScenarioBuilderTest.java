@@ -94,7 +94,7 @@ class ScenarioBuilderTest {
     /** 확인 단계가 하는 일 — 토큰을 실어 같은 시나리오를 다시 만든다. */
     private Scenario confirm(Scenario s) {
         return new Scenario(s.scenarioId(), s.runs(), s.blocks(),
-                s.backVerificationBlocks(), builder.tokenFor(s));
+                s.backVerificationBlocks(), s.branchBlocks(), builder.tokenFor(s));
     }
 
     @Test
@@ -131,5 +131,64 @@ class ScenarioBuilderTest {
         Scenario s = confirm(builder.build(basePes(), frame));
         assertFalse(builder.tokenMatches(s, "cft-남의토큰"));
         assertFalse(builder.tokenMatches(s, null));
+    }
+
+    private Pes withValue(Pes base, String key, Object value, String origin) {
+        Map<String, Object> v = new LinkedHashMap<>(base.values());
+        Map<String, String> o = new LinkedHashMap<>(base.origins());
+        v.put(key, value);
+        o.put(key, origin);
+        return new Pes(base.sesId(), base.sesVersion(), v, o);
+    }
+
+    private static final ExperimentFrame ONE_RUN = new ExperimentFrame(
+            "collectionTimeMinutes", List.of(720), List.of("meanComplaints"));
+
+    @Test
+    void 가지친_쪽_사용자_값은_막는다() {
+        Pes pes = withValue(basePes(), "trafficProfileId", "jangryang-weekday", "USER");
+        Scenario s = builder.build(pes, ONE_RUN);
+        assertEquals(1, s.branchBlocks().size(), "막힌 값: " + s.branchBlocks());
+        assertTrue(s.branchBlocks().get(0).contains("trafficProfileId"));
+        assertTrue(s.branchBlocks().get(0).contains("가지친 쪽의 값입니다"));
+        assertFalse(s.valid());
+    }
+
+    @Test
+    void 기본값으로_실린_가지친_값은_빼고_통과한다() {
+        Pes pes = withValue(basePes(), "trafficProfileId", "jangryang-weekday", "MODEL_DEFAULT");
+        Scenario s = builder.build(pes, ONE_RUN);
+        assertTrue(s.branchBlocks().isEmpty(), "막힌 값: " + s.branchBlocks());
+        assertTrue(s.valid(), "검증 실패: " + s.blocks() + s.backVerificationBlocks());
+        assertNotEquals("jangryang-weekday", s.runs().get(0).getTrafficProfileId(),
+                "가지친 기본값이 실행 설정에 실리면 안 된다");
+    }
+
+    @Test
+    void 비교_값마다_따로_판정한다() {
+        Pes pes = withValue(basePes(), "dispatchIntervalMinutes", 10, "USER");
+        Map<String, Object> v = new LinkedHashMap<>(pes.values());
+        Map<String, String> o = new LinkedHashMap<>(pes.origins());
+        v.remove("truckCount");
+        o.remove("truckCount");
+        pes = new Pes(pes.sesId(), pes.sesVersion(), v, o);
+        Scenario s = builder.build(pes, new ExperimentFrame(
+                "truckCount", List.of(1, 3), List.of("meanComplaints")));
+        assertEquals(1, s.branchBlocks().size(), "막힌 값: " + s.branchBlocks());
+        assertTrue(s.branchBlocks().get(0).startsWith("truckCount=1: dispatchIntervalMinutes"),
+                s.branchBlocks().get(0));
+    }
+
+    @Test
+    void 보류인_결정의_값은_막지_않는다() {
+        Map<String, Object> v = new LinkedHashMap<>(basePes().values());
+        Map<String, String> o = new LinkedHashMap<>(basePes().origins());
+        v.remove("travelTimeMode");
+        o.remove("travelTimeMode");
+        v.put("numBuildings", 6);
+        v.put("zoneAssignmentRule", "CONTIGUOUS");
+        o.put("zoneAssignmentRule", "USER");
+        Scenario s = builder.build(new Pes("jangnyang-ses", "1.0.0", v, o), ONE_RUN);
+        assertTrue(s.branchBlocks().isEmpty(), "막힌 값: " + s.branchBlocks());
     }
 }
