@@ -111,4 +111,16 @@ final class SesDraft {
         }
         return out;
     }
+
+    /** kindDiff 결과("필드: 초안 X · 원본 Y")를 보고서 절로 만든다. */
+    static String kindDiffMarkdown(List<String> diff) {
+        StringBuilder sb = new StringBuilder("## 결정 종류 차이 (초안 · 원본)\n\n");
+        if (diff.isEmpty()) return sb.append("없음\n").toString();
+        sb.append("| configField | 초안 | 원본 |\n|---|---|---|\n");
+        for (String line : diff) {
+            String[] f = line.split(": 초안 | · 원본 ");
+            sb.append("| ").append(f[0]).append(" | ").append(f[1]).append(" | ").append(f[2]).append(" |\n");
+        }
+        return sb.toString();
+    }
 }

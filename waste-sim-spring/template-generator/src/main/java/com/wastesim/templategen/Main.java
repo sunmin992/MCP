@@ -44,10 +44,12 @@ public final class Main {
         if (out.getParent() != null) Files.createDirectories(out.getParent());
         mapper.writeValue(out.toFile(), TemplateJson.toJson(result, source, a.get("config")));
 
+        com.fasterxml.jackson.databind.node.ObjectNode draft = null;
         if (a.containsKey("ses-draft")) {
+            draft = SesDraft.draft(result);
             Path dp = Path.of(a.get("ses-draft"));
             if (dp.getParent() != null) Files.createDirectories(dp.getParent());
-            mapper.writeValue(dp.toFile(), SesDraft.draft(result));
+            mapper.writeValue(dp.toFile(), draft);
         }
 
         PrintStream console = new PrintStream(System.out, true, StandardCharsets.UTF_8);
@@ -67,6 +69,12 @@ public final class Main {
             }
             TemplateComparator.Report report = new TemplateComparator().compare(hand, result, dictionary);
             String md = ComparisonMarkdown.render(report, a.get("compare"), out.toString());
+            if (draft != null) {
+                List<String> diff = SesDraft.kindDiff(draft, hand);
+                console.println("결정 종류 차이 " + diff.size() + "개");
+                diff.forEach(console::println);
+                md = md + "\n" + SesDraft.kindDiffMarkdown(diff);
+            }
             if (a.containsKey("report")) {
                 Path rp = Path.of(a.get("report"));
                 if (rp.getParent() != null) Files.createDirectories(rp.getParent());

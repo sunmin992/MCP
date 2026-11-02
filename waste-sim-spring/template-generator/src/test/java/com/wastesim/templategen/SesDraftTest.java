@@ -61,7 +61,15 @@ class SesDraftTest {
     void 원본과_종류가_다른_결정을_보고한다() throws Exception {
         JsonNode tpl = M.readTree(Path.of("../simulator/src/main/resources/ses/jangnyang-templates.json").toFile());
         List<String> diff = SesDraft.kindDiff(SesDraft.draft(result), tpl);
-        diff.forEach(System.out::println);
         assertTrue(diff.stream().anyMatch(s -> s.startsWith("residentsPerBuilding")), diff.toString());
+    }
+
+    @Test
+    void 종류_차이를_보고서_표로_만든다() {
+        String md = SesDraft.kindDiffMarkdown(List.of("residentsPerBuilding: 초안 ATTRIBUTE · 원본 MULTI_ASPECT"));
+        assertTrue(md.startsWith("## 결정 종류 차이 (초안 · 원본)"));
+        assertTrue(md.contains("| configField | 초안 | 원본 |"));
+        assertTrue(md.contains("| residentsPerBuilding | ATTRIBUTE | MULTI_ASPECT |"));
+        assertTrue(SesDraft.kindDiffMarkdown(List.of()).contains("없음"));
     }
 }
