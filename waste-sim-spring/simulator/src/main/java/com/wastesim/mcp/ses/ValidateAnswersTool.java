@@ -94,7 +94,7 @@ public class ValidateAnswersTool implements McpToolProvider {
             root.put("valid", rejected.isEmpty());
             root.set("normalized", normalized);
             root.set("rejected", rejected);
-            String planId = args.path("planId").asText(null);
+            String planId = JsonValues.text(args, "planId");
             if (planId != null) {
                 var ev = mapper.createObjectNode().put("event", "validate");
                 ev.set("normalized", normalized);

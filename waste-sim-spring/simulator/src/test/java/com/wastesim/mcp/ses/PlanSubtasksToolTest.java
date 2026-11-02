@@ -14,9 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
 class PlanSubtasksToolTest {
 
     private final ObjectMapper m = new ObjectMapper();
+    private final PlanRounds rounds = new PlanRounds(new TemplateCatalog(), new CapabilityCardLoader(), m);
     private final PlanSubtasksTool tool = new PlanSubtasksTool(
-            new SubtaskPlanner(new TemplateCatalog(), new AnswerNormalizer()), m,
-            new PlanRounds(new TemplateCatalog(), new CapabilityCardLoader(), m));
+            new SubtaskPlanner(new TemplateCatalog(), new AnswerNormalizer()), m, rounds);
 
     private JsonNode instance(String json, String key) throws Exception {
         JsonNode r = m.readTree((String) tool.call(m.readTree(json)).result());
@@ -70,5 +70,43 @@ class PlanSubtasksToolTest {
         assertFalse(r.ready());
         assertEquals("planId", r.errors().get(0).field());
         assertEquals(PlanRounds.UNKNOWN, r.errors().get(0).message());
+    }
+
+    @Test
+    void recheck_로_바뀐_판정은_instances_와_changes_로_남는다() throws Exception {
+        String base = "\"answers\":{\"numBuildings\":4},\"origins\":{\"numBuildings\":\"USER\"},\"userUtterances\":[\"건물 4동\"]";
+        JsonNode first = call("{" + base + ",\"evidence\":{}}");
+        String id = first.get("planId").asText();
+        JsonNode again = call("{\"planId\":\"" + id + "\"," + base + ",\"evidence\":{\"numBuildings\":\"건물 4동\"}}");
+        assertEquals(1, again.get("round").asInt());
+        var h = rounds.history(id).orElseThrow();
+        JsonNode recheck = h.get(h.size() - 1);
+        assertEquals("recheck", recheck.get("event").asText());
+        assertTrue(recheck.has("minRounds"));
+        JsonNode nb = null;
+        for (JsonNode i : recheck.get("instances")) if ("numBuildings".equals(i.get("answerKey").asText())) nb = i;
+        assertNotNull(nb, recheck.toString());
+        assertEquals("VERIFIED", nb.get("evidence").asText());
+        JsonNode change = null;
+        for (JsonNode c : recheck.get("changes")) if ("numBuildings".equals(c.get("answerKey").asText())) change = c;
+        assertNotNull(change, recheck.toString());
+        assertEquals("FILLED", change.get("to").asText());
+
+        // 아무것도 안 바뀐 recheck 는 instances 를 싣지 않는다.
+        call("{\"planId\":\"" + id + "\"," + base + ",\"evidence\":{\"numBuildings\":\"건물 4동\"}}");
+        var h2 = rounds.history(id).orElseThrow();
+        JsonNode quiet = h2.get(h2.size() - 1);
+        assertFalse(quiet.has("instances"), quiet.toString());
+        assertTrue(quiet.has("minRounds"));
+    }
+
+    @Test
+    void 빈_planId_matchId_previousPlanId_는_없는_것으로_본다() throws Exception {
+        JsonNode r = call("{\"planId\":\"  \",\"matchId\":\"\",\"previousPlanId\":\" \",\"answers\":{}}");
+        String id = r.get("planId").asText();
+        assertTrue(id.startsWith("plan-"), r.toString());
+        JsonNode ev = rounds.history(id).orElseThrow().get(0);
+        assertTrue(ev.get("matchId").isNull(), ev.toString());
+        assertFalse(ev.has("previousPlanId"), ev.toString());
     }
 }

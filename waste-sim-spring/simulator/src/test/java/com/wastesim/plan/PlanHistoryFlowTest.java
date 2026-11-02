@@ -179,4 +179,43 @@ class PlanHistoryFlowTest {
         assertFalse(l.get("approved").asBoolean());
         assertEquals(catalog.sesId(), l.get("sesId").asText());
     }
+
+    @Test
+    void 근거_검사로_거절된_build_도_사건으로_남는다() throws Exception {
+        ObjectNode full = fullRequest();
+        String planId = plan(null, (ObjectNode) full.get("values"), full).get("planId").asText();
+        full.put("planId", planId);
+        ((ObjectNode) full.get("origins")).put("days", "USER");
+        full.putArray("userUtterances").add("아무 말");
+        full.putObject("evidence");
+        var r = new BuildScenarioTool(builder, store, catalog, m, rounds()).call(full);
+        assertFalse(r.ready());
+        var h = rounds().history(planId).orElseThrow();
+        JsonNode last = h.get(h.size() - 1);
+        assertEquals("build", last.get("event").asText());
+        assertFalse(last.get("valid").asBoolean());
+        assertEquals("GUARD", last.get("rejectedBy").asText());
+        assertTrue(last.get("guardBlocks").asInt() >= 1, last.toString());
+        assertEquals(planId, lines().get(lines().size() - 1).get("planId").asText());
+    }
+
+    @Test
+    void 요청_원문이_없어_거절된_build_도_사건으로_남는다() throws Exception {
+        ObjectNode full = fullRequest();
+        String planId = plan(null, (ObjectNode) full.get("values"), full).get("planId").asText();
+        full.put("planId", planId);
+        full.remove("request");
+        assertFalse(new BuildScenarioTool(builder, store, catalog, m, rounds()).call(full).ready());
+        var h = rounds().history(planId).orElseThrow();
+        assertEquals("REQUEST", h.get(h.size() - 1).get("rejectedBy").asText());
+        assertFalse(h.get(h.size() - 1).has("guardBlocks"));
+    }
+
+    @Test
+    void 밀려난_planId_의_확인은_planId_를_그대로_남긴다() throws Exception {
+        rounds().attachOrWrite("plan-밀려남0000", m.createObjectNode().put("event", "confirm").put("scenarioId", "sc-1"));
+        JsonNode l = lines().get(0);
+        assertEquals("plan-밀려남0000", l.get("planId").asText());
+        assertTrue(l.get("round").isNull());
+    }
 }

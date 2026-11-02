@@ -91,9 +91,11 @@ public class BuildScenarioTool implements McpToolProvider {
 
     @Override
     public ToolResult call(JsonNode args) {
+        String planId = JsonValues.text(args, "planId");
         // 서버는 사용자의 말을 직접 듣지 못한다. LLM 이 옮겨 주지 않으면 확인 화면에서 요청과 설정을 나란히 볼 수 없다.
         if (args.path("request").asText("").isBlank()) {
-            return ToolFailure.of("request", "사용자 요청 원문(request)이 없습니다 — 사용자가 처음 한 요청을 그대로 넣어 다시 부르십시오.");
+            return rejected(planId, "REQUEST", null,
+                    ToolFailure.of("request", "사용자 요청 원문(request)이 없습니다 — 사용자가 처음 한 요청을 그대로 넣어 다시 부르십시오."));
         }
         try {
             Map<String, Object> values = new LinkedHashMap<>();
@@ -108,7 +110,8 @@ public class BuildScenarioTool implements McpToolProvider {
                 origins.put(e.getKey(), o);
             });
             if (!badOrigins.isEmpty()) {
-                return ToolFailure.of("origins", "알 수 없는 출처: " + badOrigins + ". " + ORIGIN_RULE);
+                return rejected(planId, "ORIGIN", null,
+                        ToolFailure.of("origins", "알 수 없는 출처: " + badOrigins + ". " + ORIGIN_RULE));
             }
             // 출처를 적지 않은 값은 사용자가 말했는지 알 수 없다. 사용자 값으로 넘겨짚으면 확인 화면에서
             // 경고가 사라진다 — 보이는 쪽(MODEL_DEFAULT)으로 둔다.
@@ -131,7 +134,8 @@ public class BuildScenarioTool implements McpToolProvider {
                 submitted.put(args.path("variableAnswerKey").asText(), variableValues);
                 var guard = EvidenceGuard.check(submitted, origins, evidence, said, catalog);
                 if (!guard.blocks().isEmpty())
-                    return ToolFailure.of("evidence", "근거 검사(GUARD): " + String.join("; ", guard.blocks()));
+                    return rejected(planId, "GUARD", guard.blocks().size(),
+                            ToolFailure.of("evidence", "근거 검사(GUARD): " + String.join("; ", guard.blocks())));
                 guardUnverified = guard.unverified();
             }
 
@@ -168,7 +172,6 @@ public class BuildScenarioTool implements McpToolProvider {
                 shown.put(variableKey, List.copyOf(variableValues));
                 pes = new Pes(pes.sesId(), pes.sesVersion(), shown, origins);
             }
-            String planId = args.path("planId").asText(null);
             boolean planIdUnknown = false;
             if (planId != null) {
                 var ev = mapper.createObjectNode().put("event", "build");
@@ -204,9 +207,22 @@ public class BuildScenarioTool implements McpToolProvider {
                     .map(ScenarioStore.Entry::state).orElse("INVALID"));
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (IllegalArgumentException e) {
-            return ToolFailure.of("values", e.getMessage());
+            return rejected(planId, "ERROR", null, ToolFailure.of("values", e.getMessage()));
         } catch (Exception e) {
-            return ToolFailure.of("scenario", "시나리오 생성에 실패했습니다: " + e.getMessage());
+            return rejected(planId, "ERROR", null,
+                    ToolFailure.of("scenario", "시나리오 생성에 실패했습니다: " + e.getMessage()));
         }
+    }
+
+    /** 만들기 전에 거절해도 그 시도를 요청의 기록에 남긴다. 모르는 planId 면 tryAttach 가 붙이지 않는다. */
+    private ToolResult rejected(String planId, String by, Integer guardBlocks, ToolResult failure) {
+        if (planId != null && rounds != null) {
+            var ev = mapper.createObjectNode().put("event", "build");
+            ev.put("valid", false);
+            ev.put("rejectedBy", by);
+            if (guardBlocks != null) ev.put("guardBlocks", guardBlocks);
+            rounds.tryAttach(planId, ev);
+        }
+        return failure;
     }
 }

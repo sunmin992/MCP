@@ -48,7 +48,7 @@ public class PlanRounds {
      * 이번 호출의 결과.
      *
      * @param newRound         단계를 올렸으면 true, 같은 단계의 다시 확인(recheck)이면 false
-     * @param changes          직전 단계 대비 상태가 바뀐 결정. recheck 면 비어 있다
+     * @param changes          직전 단계 대비 상태가 바뀐 결정. recheck 면 같은 단계의 직전 사건 대비 바뀐 것
      * @param completedAtRound complete 가 처음 참이 된 단계. 아직이면 null
      * @param event            이번 호출로 기록에 붙인 사건
      */
@@ -62,7 +62,9 @@ public class PlanRounds {
         String matchId;
         int round;
         JsonNode key;
+        /** 이 단계 마지막 사건(round · recheck)의 상태 · evidence 라벨. 같은 단계 안에서는 마지막 사건이 정본이다. */
         Map<String, String> statuses = Map.of();
+        Map<String, String> evidences = Map.of();
         Integer completedAtRound;
         final List<ObjectNode> events = new ArrayList<>();
 
@@ -130,28 +132,41 @@ public class PlanRounds {
 
         if (plan.complete() && e.completedAtRound == null) e.completedAtRound = newRound ? e.round + 1 : e.round;
 
-        if (!newRound) {
-            ObjectNode ev = common(planId, e, "recheck");
-            ev.set("counts", mapper.valueToTree(plan.counts()));
-            ev.put("complete", plan.complete());
-            putCompletedAtRound(ev, e);
-            add(e, ev);
-            return new Step(planId, e.round, false, List.of(), e.completedAtRound, minRounds, ev.deepCopy());
-        }
-
-        e.round++;
-        e.key = key;
         Map<String, String> now = new LinkedHashMap<>();
-        for (SubtaskInstance i : plan.instances()) now.put(i.answerKey(), i.status().name());
+        Map<String, String> nowEvidence = new LinkedHashMap<>();
+        for (SubtaskInstance i : plan.instances()) {
+            now.put(i.answerKey(), i.status().name());
+            nowEvidence.put(i.answerKey(), i.evidence());
+        }
         List<Change> changes = new ArrayList<>();
         now.forEach((k, to) -> {
             String from = e.statuses.get(k);
             if (!to.equals(from)) changes.add(new Change(k, from, to));
         });
+        // 근거만 다른 호출도 판정을 바꿀 수 있다(NO_EVIDENCE → VERIFIED). 바뀌었으면 recheck 에도 인스턴스를 싣는다.
+        boolean judged = newRound || !now.equals(e.statuses) || !nowEvidence.equals(e.evidences);
         e.statuses = now;
+        e.evidences = nowEvidence;
+        if (newRound) {
+            e.round++;
+            e.key = key;
+        }
 
-        ObjectNode ev = common(planId, e, "round");
-        if (e.round == 1 && previousPlanId != null) ev.put("previousPlanId", previousPlanId);
+        ObjectNode ev = common(planId, e, newRound ? "round" : "recheck");
+        if (newRound && e.round == 1 && previousPlanId != null) ev.put("previousPlanId", previousPlanId);
+        if (judged) {
+            putInstances(ev, plan, waitingOn);
+            ev.set("changes", mapper.valueToTree(changes));
+        }
+        ev.set("counts", mapper.valueToTree(plan.counts()));
+        ev.put("complete", plan.complete());
+        putCompletedAtRound(ev, e);
+        ev.put("minRounds", minRounds);
+        add(e, ev);
+        return new Step(planId, e.round, newRound, List.copyOf(changes), e.completedAtRound, minRounds, ev.deepCopy());
+    }
+
+    private void putInstances(ObjectNode ev, SubtaskPlan plan, Map<String, List<String>> waitingOn) {
         var instances = ev.putArray("instances");
         for (SubtaskInstance i : plan.instances()) {
             ObjectNode n = instances.addObject();
@@ -166,13 +181,6 @@ public class PlanRounds {
             if (i.status() == SubtaskStatus.NOT_GENERATED)
                 n.put("condition", catalog.byId(i.templateId()).map(t -> t.generateWhen().toString()).orElse(null));
         }
-        ev.set("changes", mapper.valueToTree(changes));
-        ev.set("counts", mapper.valueToTree(plan.counts()));
-        ev.put("complete", plan.complete());
-        putCompletedAtRound(ev, e);
-        ev.put("minRounds", minRounds);
-        add(e, ev);
-        return new Step(planId, e.round, true, List.copyOf(changes), e.completedAtRound, minRounds, ev.deepCopy());
     }
 
     /**
@@ -204,13 +212,13 @@ public class PlanRounds {
 
     /**
      * 확인 · 실행 사건. planId 를 모르면(시나리오에 planId 가 없거나 재시작 · 밀려남) 붙일 단계가 없으므로
-     * {@code planId:null}, {@code round:null} 로 파일에만 남긴다. 집계 때 scenarioId 로 build 사건과 잇는다.
+     * {@code round:null} 로 파일에만 남긴다. planId 는 아는 대로(없으면 null) 싣고, 집계 때 scenarioId 로 build 사건과 잇는다.
      */
     public synchronized void attachOrWrite(String planIdOrNull, ObjectNode event) {
         if (planIdOrNull != null && tryAttach(planIdOrNull, event)) return;
         ObjectNode ev = mapper.createObjectNode();
         ev.put("ts", Instant.now().toString());
-        ev.putNull("planId");
+        ev.put("planId", planIdOrNull);
         ev.putNull("matchId");
         ev.put("serverId", serverId);
         ev.put("sesId", catalog.sesId());

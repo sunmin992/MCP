@@ -13,6 +13,12 @@ final class JsonValues {
 
     private JsonValues() {}
 
+    /** 문자열 칸. 없거나 비었거나 공백뿐이면 null — 빈 planId 를 "모르는 planId" 로 거절하지 않게 한다. */
+    static String text(JsonNode args, String field) {
+        String s = args.path(field).asText(null);
+        return s == null || s.isBlank() ? null : s;
+    }
+
     static Object plain(JsonNode v) {
         // 배열의 asText() 는 빈 문자열이다. 하루 수거 시각 목록이 여기서 "" 가 되면 조용히
         // 기본 1회로 돈다.

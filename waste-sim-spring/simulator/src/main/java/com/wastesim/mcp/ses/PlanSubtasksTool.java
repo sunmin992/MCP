@@ -95,8 +95,8 @@ public class PlanSubtasksTool implements McpToolProvider {
             SubtaskPlan plan = across.plan();
             PlanRounds.Step step;
             try {
-                step = rounds.record(args.path("planId").asText(null), args.path("matchId").asText(null),
-                        args.path("previousPlanId").asText(null), args.path("answers"), args.path("origins"),
+                step = rounds.record(JsonValues.text(args, "planId"), JsonValues.text(args, "matchId"),
+                        JsonValues.text(args, "previousPlanId"), args.path("answers"), args.path("origins"),
                         variableKey, args.path("variableValues"), plan, across.waitingOn(), across.minRounds());
             } catch (IllegalArgumentException e) {
                 return ToolFailure.of("planId", e.getMessage());
