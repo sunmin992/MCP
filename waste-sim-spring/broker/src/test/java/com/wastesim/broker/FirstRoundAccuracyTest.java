@@ -28,9 +28,10 @@ class FirstRoundAccuracyTest {
      * @param asked              기대 서버가 애매함만으로 막혀 되물어야 하는 줄
      * @param falsePositiveCases 잘못 걸린 줄의 runId 와 서버
      * @param missCases          놓친 줄의 runId 와 서버
+     * @param askedCases         되물어야 하는 줄의 runId 와 서버
      */
     record Score(int total, int falsePositives, int misses, int asked, List<String> falsePositiveCases,
-                 List<String> missCases) {}
+                 List<String> missCases, List<String> askedCases) {}
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CandidateRegistry registry = registry();
@@ -77,13 +78,25 @@ class FirstRoundAccuracyTest {
     }
 
     static Score measure(CandidateMatcher matcher, List<JsonNode> rows) {
+        return measure(matcher, rows, "profileSent");
+    }
+
+    /** field 는 조회에 쓸 프로필 칸: profileSent(대화에서 만든 것) 또는 goldProfile(요청 문장대로 쓴 것). */
+    static Score measure(CandidateMatcher matcher, List<JsonNode> rows, String field) {
         int fp = 0, miss = 0, asked = 0;
         List<String> fpCases = new ArrayList<>();
         List<String> missCases = new ArrayList<>();
+        List<String> askedCases = new ArrayList<>();
         for (JsonNode row : rows) {
             List<String> expected = new ArrayList<>();
             row.path("expectedServers").forEach(e -> expected.add(e.asText()));
-            List<MatchResult> results = matcher.match(profile(row.path("profileSent")));
+            // 도메인이 없으면 프로필을 만들 수 없다 — 조회가 거절된 것이라 결과 없음(놓침)으로 센다.
+            List<MatchResult> results;
+            try {
+                results = matcher.match(profile(row.path(field)));
+            } catch (IllegalArgumentException e) {
+                results = List.of();
+            }
             for (MatchResult m : results) {
                 if (m.fitsAsIs() && !m.fictional() && !expected.contains(m.serverId())) {
                     fp++;
@@ -100,10 +113,11 @@ class FirstRoundAccuracyTest {
                     missCases.add(row.path("runId").asText() + " → " + id);
                 } else if (m.blockedOnlyByAmbiguity()) {
                     asked++;
+                    askedCases.add(row.path("runId").asText() + " → " + id);
                 }
             }
         }
-        return new Score(rows.size(), fp, miss, asked, fpCases, missCases);
+        return new Score(rows.size(), fp, miss, asked, fpCases, missCases, askedCases);
     }
 
     @Test
@@ -117,5 +131,35 @@ class FirstRoundAccuracyTest {
         Score s = measure(matcher, all());
         assertEquals(54, s.total(), "정답 모음이 비었거나 잘렸다");
         System.out.println(s);
+    }
+
+    @Test
+    void 대조_층_정확도를_출력한다() {
+        Score s = measure(matcher, all(), "goldProfile");
+        assertEquals(54, s.total());
+        System.out.println("대조 층(goldProfile) " + s);
+    }
+
+    private static final List<String> FIELDS = List.of("domain", "spatialScale", "environmentConditions",
+            "objective", "comparisonAxes", "population");
+
+    /** 둘 다 비었거나, 공백을 뺀 글이 같거나 한쪽이 다른 쪽을 품으면 일치. */
+    private static boolean sameField(JsonNode a, JsonNode b) {
+        List<String> x = strings(a), y = strings(b);
+        if (x == null || y == null) return x == y;
+        String p = String.join("|", x).replaceAll("\s", ""), q = String.join("|", y).replaceAll("\s", "");
+        return p.contains(q) || q.contains(p);
+    }
+
+    @Test
+    void 해석_층_칸별_일치율을_출력한다() {
+        List<JsonNode> rows = all();
+        assertEquals(54, rows.size());
+        StringBuilder out = new StringBuilder("해석 층(profileSent 대 goldProfile) 칸별 일치");
+        for (String f : FIELDS) {
+            long n = rows.stream().filter(r -> sameField(r.path("profileSent").path(f), r.path("goldProfile").path(f))).count();
+            out.append(" · ").append(f).append(' ').append(n).append('/').append(rows.size());
+        }
+        System.out.println(out);
     }
 }
