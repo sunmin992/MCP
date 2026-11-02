@@ -23,6 +23,7 @@ import java.util.Map;
  * --validator 검증 클래스, 쉼표로 여럿        (필수)
  * --engine    엔진 클래스, 쉼표로 여럿 — 첫 클래스의 public 메서드가 진입점 (선택, 주면 생성 조건을 뽑는다)
  * --out       생성한 템플릿 JSON 경로         (필수)
+ * --ses-draft SES 트리 초안 JSON 경로 (선택)
  * --compare   대조할 손으로 쓴 템플릿 JSON    (선택)
  * --report    대조 결과 Markdown 경로         (선택, --compare 와 함께)
  * --conditions 손으로 쓴 생성 조건 이름 → 조건식 사전 JSON (선택, --compare 와 함께)
@@ -42,6 +43,12 @@ public final class Main {
         Path out = Path.of(require(a, "out"));
         if (out.getParent() != null) Files.createDirectories(out.getParent());
         mapper.writeValue(out.toFile(), TemplateJson.toJson(result, source, a.get("config")));
+
+        if (a.containsKey("ses-draft")) {
+            Path dp = Path.of(a.get("ses-draft"));
+            if (dp.getParent() != null) Files.createDirectories(dp.getParent());
+            mapper.writeValue(dp.toFile(), SesDraft.draft(result));
+        }
 
         PrintStream console = new PrintStream(System.out, true, StandardCharsets.UTF_8);
         console.println("템플릿 초안 " + result.templates().size() + "개 → " + out
