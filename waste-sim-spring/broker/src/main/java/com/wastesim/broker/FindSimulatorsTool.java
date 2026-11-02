@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -34,9 +35,6 @@ public class FindSimulatorsTool implements McpToolProvider {
     private static final int MAX_REVISIONS = 5;
 
     private static final Logger callLog = LoggerFactory.getLogger("mcp.calls");
-
-    /** 제안은 몇 개까지. 많이 내면 LLM 이 사용자에게 고를 수 없는 목록을 넘긴다. */
-    private static final int MAX_SUGGESTIONS = 3;
 
     /** 서버 주소 → 지금 응답하는가. 추천 · 제안에는 응답하는 서버만 싣는다. */
     private final Predicate<String> reachable;
@@ -160,6 +158,7 @@ public class FindSimulatorsTool implements McpToolProvider {
             JsonNode target = targetServerId == null ? null : matcher.card(targetServerId)
                     .filter(c -> !c.path("fictional").asBoolean(false) && reachable.test(c.path("endpoint").asText()))
                     .orElse(null);
+            boolean targetUnavailable = targetServerId != null && target == null;
             List<MatchResult> matches = target != null
                     ? List.of(matcher.evaluateOne(target, profile)) : matcher.match(profile);
             root.put("matchCount", matches.size());
@@ -208,9 +207,17 @@ public class FindSimulatorsTool implements McpToolProvider {
             } else {
                 // 그대로 받을 서버가 없다. 도메인이 맞는 쪽을 먼저, 다른 쪽을 뒤에 두고 각각
                 // 요청을 어떻게 고치면 되는지 싣는다.
-                List<MatchResult> suggestions = new ArrayList<>();
-                matches.stream().filter(callable).forEach(suggestions::add);
-                if (target == null) matcher.outsideDomain(profile).stream().filter(callable).forEach(suggestions::add);
+                // 같은 도메인에 부를 수 있는 후보가 하나라도 있으면 그것만 싣는다. 없을 때만 다른 도메인.
+                List<MatchResult> suggestions = new ArrayList<>(matches.stream().filter(callable).toList());
+                if (suggestions.isEmpty() && target == null) {
+                    matcher.outsideDomain(profile).stream().filter(callable).forEach(suggestions::add);
+                }
+                // 보기 위한 순서다 — 브로커가 고르지 않는다. 목적이 바뀌는 후보는 뒤, 고칠 것이 적은 순, 서버 id.
+                suggestions.sort(Comparator
+                        .comparing((MatchResult m) -> m.requestAdjustments().stream()
+                                .anyMatch(RequestAdjustment::changesPurpose))
+                        .thenComparingInt(m -> m.requestAdjustments().size())
+                        .thenComparing(MatchResult::serverId));
                 if (suggestions.isEmpty()) {
                     root.put("verdict", "NONE");
                     root.put("noneReason", "NO_CALLABLE_SERVER");
@@ -229,16 +236,17 @@ public class FindSimulatorsTool implements McpToolProvider {
                     }
                 } else {
                     root.put("verdict", "ADJUST_REQUEST");
-                    root.put("nextStep", "사용자에게 requestAdjustments 를 전하고 요청을 고칠지 물으십시오. "
-                            + "고치기로 하면 고친 요청으로 find_simulators 를 다시 부릅니다.");
-                    for (MatchResult m : suggestions.subList(0, Math.min(MAX_SUGGESTIONS, suggestions.size()))) {
+                    root.put("nextStep", "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 "
+                            + "고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 "
+                            + "targetServerId 를 넘깁니다. 남은 고친 조회: "
+                            + roundNode.path("remainingRevisions").asInt() + "번.");
+                    for (MatchResult m : suggestions) {
                         callLog.info("[4 매칭] ADJUST_REQUEST → {} 쓰려면 고칠 것: {}", m.serverId(),
                                 m.requestAdjustments().stream()
                                         .map(a -> a.axis() + "='" + a.current() + "'" + (a.changesPurpose() ? "(목적 바뀜)" : ""))
                                         .toList());
                     }
-                    root.set("suggestions", mapper.valueToTree(
-                            suggestions.subList(0, Math.min(MAX_SUGGESTIONS, suggestions.size()))));
+                    root.set("suggestions", mapper.valueToTree(suggestions));
                     root.put("note", (matches.isEmpty()
                             ? "도메인 '" + profile.domain() + "' 을 다루는 서버가 등록돼 있지 않습니다. "
                             : "요청을 그대로 받을 수 있는 서버가 없습니다. ")
@@ -257,6 +265,11 @@ public class FindSimulatorsTool implements McpToolProvider {
                 root.put("comparisonWarning", warning);
                 root.put("nextStep", warning + " " + root.path("nextStep").asText());
                 callLog.info("[4 매칭] 비교 축 {}개 → 하나만 고르라고 안내", axes.size());
+            }
+            if (targetUnavailable) {
+                var tu = root.putObject("targetUnavailable");
+                tu.put("serverId", targetServerId);
+                tu.put("note", "고른 서버를 지금 쓸 수 없어 전체 후보와 다시 대조했습니다");
             }
             if (!down.isEmpty()) {
                 // 사용자에게 "그 서버는 지금 꺼져 있다" 고 말할 수 있게 남긴다 — 조용히 빼면 왜 다른

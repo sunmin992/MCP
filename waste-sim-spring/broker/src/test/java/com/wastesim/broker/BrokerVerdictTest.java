@@ -381,4 +381,147 @@ class BrokerVerdictTest {
         assertEquals("MATCH", out.path("verdict").asText());
         assertTrue(out.path("unreachable").isMissingNode());
     }
+
+    // ── 고칠 후보 — 모두 · 순서 · 목표 서버 장애 ─────────────────────────────
+
+    private ObjectNode 큰_규모_요청() {
+        ObjectNode a = 그림의_요청();
+        a.put("spatialScale", "장량동 전체");
+        return a;
+    }
+
+    private ObjectNode 쌍둥이_카드(String id) {
+        ObjectNode t = 쌍둥이_카드();
+        t.put("serverId", id);
+        return t;
+    }
+
+    private List<String> 제안_id(JsonNode out) {
+        List<String> ids = new ArrayList<>();
+        out.path("suggestions").forEach(s -> ids.add(s.path("serverId").asText()));
+        return ids;
+    }
+
+    @Test
+    void 제안에_후보_수_제한이_없다() throws Exception {
+        for (String id : List.of("twin-a", "twin-b", "twin-c")) registry.register(쌍둥이_카드(id));
+        JsonNode out = find(큰_규모_요청());
+        assertEquals("ADJUST_REQUEST", out.path("verdict").asText());
+        assertEquals(4, out.path("suggestions").size(), out.path("suggestions").toString());
+    }
+
+    /** 노인을 모델링하는 쌍둥이 — 거주민 조정이 하나 줄어든다. */
+    private ObjectNode 노인_쌍둥이(String id) {
+        ObjectNode twin = 쌍둥이_카드(id);
+        ObjectNode elder = (ObjectNode) twin.path("populationTypes").get(0).deepCopy();
+        elder.put("key", "Elder");
+        elder.putArray("matchKeys").add("노인");
+        ((com.fasterxml.jackson.databind.node.ArrayNode) twin.path("populationTypes")).add(elder);
+        return twin;
+    }
+
+    private ObjectNode 거주민_요청_큰_규모(String... population) {
+        ObjectNode a = 거주민_요청(population);
+        a.put("spatialScale", "장량동 전체");
+        return a;
+    }
+
+    @Test
+    void 고칠_것이_적은_후보가_먼저다() throws Exception {
+        // 장량동은 규모 · 거주민 둘을 고쳐야 하고, 노인을 모델링하는 쌍둥이는 규모 하나만 고치면 된다.
+        registry.register(노인_쌍둥이("twin-elder"));
+        JsonNode out = find(거주민_요청_큰_규모("노인이 많음"));
+        assertEquals(List.of("twin-elder", "jangnyang-waste-sim"), 제안_id(out), out.path("suggestions").toString());
+    }
+
+    @Test
+    void 목적이_바뀌는_후보는_뒤에_온다() throws Exception {
+        // a-blocked 는 id 가 앞서고 조정 개수도 장량동과 같다(둘). 목적이 바뀌는 조정이 있어 뒤로 간다.
+        ObjectNode twin = 노인_쌍둥이("a-blocked");
+        ObjectNode block = mapper.createObjectNode();
+        block.put("code", "UNSUPPORTED_DOMAIN");
+        block.put("capability", "쓰레기수거 일부");
+        block.putArray("matchKeys").add("쓰레기수거");
+        block.put("reason", "이 서버는 그 도메인을 다루지 않는다");
+        block.putArray("alternatives");
+        ((com.fasterxml.jackson.databind.node.ArrayNode) twin.path("unsupported")).add(block);
+        registry.register(twin);
+
+        JsonNode out = find(거주민_요청_큰_규모("노인이 많음"));
+
+        assertEquals(List.of("jangnyang-waste-sim", "a-blocked"), 제안_id(out), out.path("suggestions").toString());
+        assertTrue(조정(제안(out, "a-blocked"), "domain").path("changesPurpose").asBoolean());
+    }
+
+    @Test
+    void 같은_도메인_후보가_있으면_다른_도메인은_싣지_않는다() throws Exception {
+        JsonNode parking = TestCards.parking();
+        registry.register(parking);
+        JsonNode out = find(큰_규모_요청());
+        assertEquals(List.of("jangnyang-waste-sim"), 제안_id(out), out.path("suggestions").toString());
+    }
+
+    @Test
+    void 같은_도메인_후보가_꺼져_있으면_다른_도메인을_싣는다() throws Exception {
+        registry.register(TestCards.parking());
+        String endpoint = TestCards.jangnyang().path("endpoint").asText();
+        var dead = new FindSimulatorsTool(new CandidateMatcher(registry), mapper, e -> !e.equals(endpoint));
+        JsonNode out = mapper.readTree(dead.call(큰_규모_요청()).result().toString());
+        assertEquals("ADJUST_REQUEST", out.path("verdict").asText(), out.toString());
+        assertEquals(List.of(TestCards.parking().path("serverId").asText()), 제안_id(out));
+    }
+
+    @Test
+    void 목표_서버가_꺼지면_전체를_다시_보인다() throws Exception {
+        registry.register(쌍둥이_카드());
+        String twinEndpoint = 쌍둥이_카드().path("endpoint").asText();
+        var tool = new FindSimulatorsTool(new CandidateMatcher(registry), mapper, e -> !e.equals(twinEndpoint));
+        JsonNode first = mapper.readTree(tool.call(그림의_요청(), "s").result().toString());
+        ObjectNode again = 그림의_요청();
+        again.put("matchId", first.path("round").path("matchId").asText());
+        again.put("targetServerId", "twin-waste-sim");
+        JsonNode out = mapper.readTree(tool.call(again, "s").result().toString());
+
+        assertEquals("twin-waste-sim", out.path("targetUnavailable").path("serverId").asText(), out.toString());
+        assertTrue(out.path("targetUnavailable").path("note").asText()
+                .contains("고른 서버를 지금 쓸 수 없어 전체 후보와 다시 대조했습니다"));
+        assertEquals("MATCH", out.path("verdict").asText(), "꺼진 쌍둥이는 빼고 전체와 대조한다");
+        assertEquals(2, out.path("round").path("round").asInt(), "이 조회도 한 바퀴다");
+        assertEquals(1, out.path("round").path("revisions").asInt());
+    }
+
+    @Test
+    void 목표_서버가_등록돼_있지_않아도_알리고_한_바퀴로_센다() throws Exception {
+        JsonNode first = mapper.readTree(find.call(그림의_요청(), "s").result().toString());
+        ObjectNode again = 큰_규모_요청();
+        again.put("matchId", first.path("round").path("matchId").asText());
+        again.put("targetServerId", "no-such-server");
+        JsonNode out = mapper.readTree(find.call(again, "s").result().toString());
+        assertEquals("no-such-server", out.path("targetUnavailable").path("serverId").asText(), out.toString());
+        assertEquals("ADJUST_REQUEST", out.path("verdict").asText());
+        assertEquals(2, out.path("round").path("round").asInt());
+    }
+
+    @Test
+    void 조정마다_분류가_있다() throws Exception {
+        ObjectNode a = 큰_규모_요청();
+        a.put("objective", "비용이 가장 적은 수거 시각");
+        JsonNode out = find(a);
+        int n = 0;
+        for (JsonNode s : out.path("suggestions")) {
+            for (JsonNode adj : s.path("requestAdjustments")) {
+                n++;
+                String c = adj.path("classification").asText();
+                assertTrue(c.equals("MISMATCH") || c.equals("AMBIGUOUS"), adj.toString());
+            }
+        }
+        assertTrue(n > 0);
+    }
+
+    @Test
+    void 고쳐야_하면_남은_고친_조회_수와_함께_모든_후보를_보이라고_안내한다() throws Exception {
+        String next = find(큰_규모_요청()).path("nextStep").asText();
+        assertTrue(next.contains("모두 보이고") && next.contains("targetServerId")
+                && next.contains("남은 고친 조회: 5번."), next);
+    }
 }
