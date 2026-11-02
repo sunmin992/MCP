@@ -24,4 +24,36 @@ public final class SesDerivation {
         }
         return out;
     }
+
+    /** 카드의 sesDigest. decisionPoint = path · kind · field + 결정의 card 칸. */
+    public static ObjectNode digest(SesTree ses) {
+        ObjectNode out = JsonNodeFactory.instance.objectNode();
+        out.put("sesId", ses.sesId());
+        out.put("sesVersion", ses.sesVersion());
+        ArrayNode entities = out.putArray("entities");
+        ses.raw().get("entities").forEach(e -> {
+            if (e.hasNonNull("label")) {
+                entities.add(e.get("label").asText());
+            }
+        });
+        ArrayNode points = out.putArray("decisionPoints");
+        for (SesTree.Decision d : ses.decisions()) {
+            if (d.card() == null) {
+                continue;
+            }
+            ObjectNode p = points.addObject();
+            p.put("path", d.sesPath());
+            p.put("kind", d.nodeKind());
+            p.set("field", d.fields().get("configField"));
+            p.setAll(d.card());
+        }
+        return out;
+    }
+
+    /** 카드 사본에서 sesDigest 칸만 바꾼다. 키 순서는 그대로. */
+    public static ObjectNode withDigest(ObjectNode card, SesTree ses) {
+        ObjectNode copy = card.deepCopy();
+        copy.set("sesDigest", digest(ses));
+        return copy;
+    }
 }
