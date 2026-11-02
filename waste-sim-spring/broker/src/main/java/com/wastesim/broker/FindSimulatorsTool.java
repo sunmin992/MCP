@@ -69,7 +69,10 @@ public class FindSimulatorsTool implements McpToolProvider {
                 + "CHOOSE 면 그대로 맞는 서버가 여럿이다 — differences 를 사용자에게 보여 주고 고르게 한 뒤 "
                 + "고른 서버의 endpoint 로 간다. "
                 + "NONE 이면 부를 수 있는 서버가 없다. 모르는 항목은 비워 두고 추정해 채우지 않는다 — "
-                + "채우면 그 추정으로 서버가 골라진다.";
+                + "채우면 그 추정으로 서버가 골라진다. "
+                + "응답의 round.matchId 는 이 매칭의 이름이다 — 요청을 고쳐 다시 조회할 때 matchId 로 넘긴다. "
+                + "고친 요청으로 쓰려는 서버가 정해졌으면 targetServerId 로 함께 넘겨 그 서버하고만 대조한다. "
+                + "고친 조회는 5번까지 센다 — 넘기면 대조 없이 NONE 이다.";
     }
 
     @Override
@@ -119,6 +122,8 @@ public class FindSimulatorsTool implements McpToolProvider {
         }
 
         int round;
+        List<String> removed = List.of();
+        boolean purposeChanged = false;
         if (matchId == null) {
             matchId = rounds.open(session, profile);
             round = 1;
@@ -129,6 +134,8 @@ public class FindSimulatorsTool implements McpToolProvider {
                         + "matchId 없이 새 요청으로 조회하십시오");
             }
             round = thread.get().round();
+            removed = thread.get().removedConditions();
+            purposeChanged = thread.get().purposeChanged();
         }
 
         // 명세 3단계 — LLM 이 요청에서 뽑은 것. 여기서만 서버가 실제로 받은 값을 볼 수 있다.
@@ -143,6 +150,12 @@ public class FindSimulatorsTool implements McpToolProvider {
             roundNode.put("round", round);
             roundNode.put("revisions", round - 1);
             roundNode.put("remainingRevisions", Math.max(0, MAX_REVISIONS + 1 - round));
+            var removedNode = roundNode.putArray("removedConditions");
+            removed.forEach(removedNode::add);
+            roundNode.put("purposeChanged", purposeChanged);
+            // 바퀴마다 한 줄 — 고친 조회가 어디서 조건을 덜어 냈는지 로그로 본다.
+            final String roundLog = "바퀴 " + round + " · 고친 " + (round - 1) + " · 제거 " + removed
+                    + " · 목적변경 " + purposeChanged;
             if (round > MAX_REVISIONS + 1) {
                 // 고친 조회를 다 썼다. 맞는 요청이어도 대조하지 않는다.
                 root.put("verdict", "NONE");
@@ -150,7 +163,7 @@ public class FindSimulatorsTool implements McpToolProvider {
                 root.put("note", "고친 조회 " + MAX_REVISIONS + "번 안에 맞는 시뮬레이터에 닿지 못했습니다");
                 root.put("nextStep", "사용자에게 고친 조회 " + MAX_REVISIONS
                         + "번 안에 맞는 시뮬레이터에 닿지 못했다고 전하십시오.");
-                callLog.info("[4 매칭] NONE — 고친 조회 한도 ({}바퀴)", round);
+                callLog.info("[4 매칭] {} — NONE 고친 조회 한도", roundLog);
                 return ToolResult.ok(mapper.writeValueAsString(root));
             }
 
@@ -187,8 +200,8 @@ public class FindSimulatorsTool implements McpToolProvider {
                         + fit.endpoint() + " 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → "
                         + "plan_subtasks → validate_answers → build_scenario → get_scenario_status → "
                         + "run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.");
-                callLog.info("[4 매칭] MATCH → {} ({}) · 근거 {}",
-                        fit.serverId(), fit.endpoint(), fit.reasons().size());
+                callLog.info("[4 매칭] {} — MATCH → {} ({}) · 근거 {}",
+                        roundLog, fit.serverId(), fit.endpoint(), fit.reasons().size());
             } else if (fits.size() > 1) {
                 // 브로커가 고르지 않는다. 지역 · 모델 가정처럼 결과를 바꾸는 선택을 몰래 하면 사용자는
                 // 그 가정으로 나온 답인 줄 모른다.
@@ -201,7 +214,8 @@ public class FindSimulatorsTool implements McpToolProvider {
                                 + fits.get(0).endpoint() + " 로 가십시오. 그 대화에서는 브로커를 다시 부르지 마십시오."
                         : "사용자에게 differences 를 보여 주고 어느 서버를 쓸지 물으십시오. 고른 서버의 endpoint 로 "
                                 + "가고, 그 대화에서는 브로커를 다시 부르지 마십시오.");
-                callLog.info("[4 매칭] CHOOSE → {} · 차이 {}",
+                callLog.info("[4 매칭] {} — CHOOSE → {} · 차이 {}",
+                        roundLog,
                         fits.stream().map(MatchResult::serverId).toList(),
                         diffs.isEmpty() ? "없음(동등한 후보)" : diffs.stream().map(Difference::item).toList());
             } else {
@@ -221,7 +235,7 @@ public class FindSimulatorsTool implements McpToolProvider {
                 if (suggestions.isEmpty()) {
                     root.put("verdict", "NONE");
                     root.put("noneReason", "NO_CALLABLE_SERVER");
-                    callLog.info("[4 매칭] NONE — 부를 수 있는 서버 없음");
+                    callLog.info("[4 매칭] {} — NONE 부를 수 있는 서버 없음", roundLog);
                     if (!down.isEmpty()) {
                         // 서버는 있는데 꺼져 있다. "없다" 고 하면 사용자는 다시 켜면 될 일을 포기한다.
                         root.put("nextStep", "사용자에게 등록된 시뮬레이터 " + down.keySet()

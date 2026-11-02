@@ -130,4 +130,57 @@ class MatchRoundsTest {
         assertEquals("MATCH", out.path("verdict").asText(), out.toString());
         assertEquals("twin-waste-sim", out.path("recommended").path("serverId").asText());
     }
+
+    private JsonNode 다시(ObjectNode first, ObjectNode second) throws Exception {
+        String id = call(first, "s1").path("round").path("matchId").asText();
+        second.put("matchId", id);
+        return call(second, "s1").path("round");
+    }
+
+    @Test
+    void 환경_조건을_빼면_제거로_센다() throws Exception {
+        ObjectNode a = 그림의_요청();
+        ((com.fasterxml.jackson.databind.node.ArrayNode) a.path("environmentConditions")).add("분리배출");
+        JsonNode round = 다시(a, 그림의_요청());
+        assertEquals("[\"environmentConditions: 분리배출\"]", round.path("removedConditions").toString());
+        assertTrue(round.path("purposeChanged").asBoolean());
+    }
+
+    @Test
+    void 구절을_고쳐_쓰면_제거가_아니다() throws Exception {
+        ObjectNode a = 그림의_요청();
+        a.putArray("environmentConditions").add("평일 교통");
+        JsonNode round = 다시(a, 그림의_요청());
+        assertEquals(0, round.path("removedConditions").size());
+        assertFalse(round.path("purposeChanged").asBoolean());
+    }
+
+    @Test
+    void 도메인이_바뀌면_목적_변경이다() throws Exception {
+        ObjectNode b = 그림의_요청();
+        b.put("domain", "주차");
+        JsonNode round = 다시(그림의_요청(), b);
+        assertEquals(0, round.path("removedConditions").size());
+        assertTrue(round.path("purposeChanged").asBoolean());
+    }
+
+    @Test
+    void 말하지_않던_칸을_채우는_것은_제거가_아니다() throws Exception {
+        ObjectNode b = 그림의_요청();
+        b.putArray("population").add("학생이 많음");
+        JsonNode round = 다시(그림의_요청(), b);
+        assertEquals(0, round.path("removedConditions").size());
+        assertFalse(round.path("purposeChanged").asBoolean());
+    }
+
+    @Test
+    void 한도_뒤의_조회는_기록을_늘리지_않는다() {
+        var rounds = new MatchRounds();
+        var p = new RequestProfile("쓰레기수거", null, null, null, null, null);
+        String id = rounds.open("s", p);
+        MatchRounds.MatchThread t = null;
+        for (int i = 0; i < 9; i++) t = rounds.next(id, "s", p, null).orElseThrow();
+        assertEquals(10, t.round());
+        assertEquals(6, t.profiles().size());
+    }
 }
