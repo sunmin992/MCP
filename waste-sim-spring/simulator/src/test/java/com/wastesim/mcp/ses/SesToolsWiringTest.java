@@ -32,7 +32,7 @@ class SesToolsWiringTest {
         assertTrue(names.containsAll(List.of(
                         "build_scenario", "get_capability", "get_templates", "get_ses",
                         "plan_subtasks", "validate_answers", "run_scenario_by_token",
-                        "get_scenario_status")),
+                        "get_scenario_status", "get_plan_history")),
                 "tools/list 에 실리지 않은 도구가 있다: " + names);
         // 서버 조회는 브로커 MCP 서버의 일이다(명세 §1). 여기에도 있으면 LLM 이 브로커를
         // 거치지 않고 시뮬레이터에게 "어느 시뮬레이터가 맞나" 를 묻게 된다.
