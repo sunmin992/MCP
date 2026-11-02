@@ -211,9 +211,15 @@ public class CandidateMatcher {
                             blocked.path("reason").asText(), false));
                     continue;
                 }
-                JsonNode supported = findEnvironment(card, cond);
-                if (supported != null) {
-                    reasons.add("환경 조건: " + cond + " → " + supported.path("key").asText());
+                List<JsonNode> supported = findEnvironments(card, cond);
+                if (supported.size() == 1) {
+                    reasons.add("환경 조건: " + cond + " → " + supported.get(0).path("key").asText());
+                } else if (supported.size() > 1) {
+                    String keys = envKeys(supported);
+                    ambiguities.add("환경 조건: " + cond + " — 둘 이상의 조건(" + keys + ")에 걸립니다");
+                    adjustments.add(new RequestAdjustment("environmentConditions", cond, Classification.AMBIGUOUS,
+                            "'" + cond + "' 이 " + keys + " 가운데 무엇인지 정하면 됩니다",
+                            "한 구절이 서로 다른 환경 조건에 걸립니다", false));
                 } else {
                     mismatches.add("환경 조건: " + cond + " — 이 카드가 다루는지 적혀 있지 않습니다");
                     adjustments.add(new RequestAdjustment("environmentConditions", cond, Classification.MISMATCH,
@@ -278,8 +284,7 @@ public class CandidateMatcher {
                 for (JsonNode q : objectives) {
                     if (anyKeyMatches(q.path("matchKeys"), axis)) hits.add(q.path("label").asText());
                 }
-                JsonNode env = findEnvironment(card, axis);
-                if (env != null) hits.add(env.path("key").asText());
+                findEnvironments(card, axis).forEach(e -> hits.add(e.path("key").asText()));
                 findPopulations(card, axis).forEach(t -> hits.add(t.path("key").asText()));
                 // 바꿔 볼 것은 대개 결정 지점 하나다("하루 도착 차량" → 이용자집합). 답할 수 있는
                 // 질문에 없는 결정도 바꿔 볼 수 있으므로 결정 지점이 선언한 말과도 대조한다.
@@ -313,11 +318,47 @@ public class CandidateMatcher {
                 || anyKeyMatches(card.path("domainAliases"), domain);
     }
 
-    private JsonNode findEnvironment(JsonNode card, String phrase) {
+    /**
+     * 구절에 걸린 환경 조건 전부에서 포섭된 것을 뺀 결과. 항목 A 의 가장 긴 걸린 어휘가
+     * 항목 B 의 것의 부분 문자열이고 더 짧으면 A 를 뺀다 — "평일 교통량" 은 "교통량"(교통)이
+     * "평일"(수거 요일)을 포섭한다.
+     */
+    static List<JsonNode> findEnvironments(JsonNode card, String phrase) {
+        List<JsonNode> hit = new ArrayList<>();
+        List<String> longest = new ArrayList<>();
         for (JsonNode e : card.path("applicability").path("environmentMatchKeys")) {
-            if (anyKeyMatches(e.path("matchKeys"), phrase)) return e;
+            String k = longestMatchedKey(e.path("matchKeys"), phrase);
+            if (k != null) {
+                hit.add(e);
+                longest.add(k);
+            }
         }
-        return null;
+        List<JsonNode> out = new ArrayList<>();
+        for (int i = 0; i < hit.size(); i++) {
+            String a = longest.get(i);
+            boolean subsumed = false;
+            for (int j = 0; j < hit.size(); j++) {
+                String b = longest.get(j);
+                if (i != j && a.length() < b.length() && b.contains(a)) subsumed = true;
+            }
+            if (!subsumed) out.add(hit.get(i));
+        }
+        return out;
+    }
+
+    private static String longestMatchedKey(JsonNode keys, String phrase) {
+        if (phrase == null || phrase.isBlank() || !keys.isArray()) return null;
+        String haystack = phrase.toLowerCase();
+        String best = null;
+        for (JsonNode k : keys) {
+            String key = k.asText().toLowerCase();
+            if (!key.isBlank() && haystack.contains(key) && (best == null || key.length() > best.length())) best = key;
+        }
+        return best;
+    }
+
+    private static String envKeys(List<JsonNode> envs) {
+        return envs.stream().map(e -> e.path("key").asText()).collect(java.util.stream.Collectors.joining(", "));
     }
 
     private JsonNode findUnsupported(JsonNode card, String phrase) {

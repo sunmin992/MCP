@@ -293,4 +293,27 @@ class CandidateMatcherTest {
         assertTrue(r.ambiguities().isEmpty());
         assertEquals(Classification.MISMATCH, r.requestAdjustments().get(0).classification());
     }
+
+    private MatchResult 장량동_환경(String 구절) {
+        return byId(matcher.match(new RequestProfile("쓰레기수거", "한 동네", List.of(구절), null, null)),
+                "jangnyang-waste-sim");
+    }
+
+    @Test
+    void 평일_교통량은_교통_조건_하나로_걸린다() {
+        MatchResult j = 장량동_환경("평일 교통량");
+        assertTrue(String.join(" | ", j.reasons()).contains("traffic-profile"), j.reasons().toString());
+        assertTrue(j.ambiguities().isEmpty(), j.ambiguities().toString());
+    }
+
+    @Test
+    void 평일_교통은_두_조건에_걸려_애매다() {
+        MatchResult j = 장량동_환경("평일 교통");
+        assertEquals(1, j.ambiguities().size(), j.toString());
+        RequestAdjustment a = j.requestAdjustments().get(0);
+        assertEquals(Classification.AMBIGUOUS, a.classification());
+        assertTrue(a.suggestion().contains("traffic-profile") && a.suggestion().contains("weekday-schedule"),
+                a.suggestion());
+        assertFalse(j.fitsAsIs());
+    }
 }
