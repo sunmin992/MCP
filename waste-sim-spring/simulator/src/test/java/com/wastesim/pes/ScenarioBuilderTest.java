@@ -103,6 +103,9 @@ class ScenarioBuilderTest {
         Scenario s = builder.build(basePes(), frame);
         assertFalse(s.valid(), "1500분은 0~1439 범위를 벗어난다");
         assertNull(s.confirmToken(), "검증하지 않은 설정에 토큰을 주면 안 된다");
+        assertTrue(s.blocks().stream().anyMatch(b -> b.contains("물어야 할 결정 collectionTimeMinutes")
+                        && b.contains("1439 이하여야 합니다. 받은 값: 1500")),
+                "형식에서 떨어진 값은 정규화 사유와 함께 물어야 할 결정으로 나와야 한다: " + s.blocks());
     }
 
     @Test

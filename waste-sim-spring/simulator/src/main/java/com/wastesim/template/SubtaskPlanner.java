@@ -32,12 +32,12 @@ public class SubtaskPlanner {
     }
 
     /**
-     * 보류된 결정이 기다리는 답변키 — 생성 조건이 읽는 키 가운데 아직 답이 없는 것.
+     * 보류된 결정이 기다리는 답변키 — 생성 조건이 읽는 키 가운데 아직 답이 없거나 형식에서 떨어진 것.
      * "이것을 먼저 정해야 이 결정이 필요한지 알 수 있다" 를 LLM 에 알리는 데 쓴다.
      */
     public List<String> waitingOn(String answerKey, Map<String, Object> answers) {
         return catalog.byAnswerKey(answerKey)
-                .map(t -> t.generateWhen().inputs().stream().filter(k -> answers.get(k) == null).toList())
+                .map(t -> t.generateWhen().inputs().stream().filter(k -> !passes(k, answers.get(k))).toList())
                 .orElse(List.of());
     }
 
@@ -48,6 +48,7 @@ public class SubtaskPlanner {
     public SubtaskPlan plan(Map<String, Object> answers, Map<String, String> origins) {
         // 형식 검사를 통과한 값만 정규화된 모양("4" → 4)으로 담는다. 생성 조건도 이 맵으로 판정한다 —
         // 잘못된 값으로 가지를 정하지 않는다. 떨어진 값에 기대는 결정은 그래서 보류가 된다.
+        // given("말했는가")만은 원래 답을 본다 — 형식이 틀렸다고 말한 결정을 가리면 사유가 사라진다.
         Map<String, AnswerNormalizer.NormalizeResult> checked = new java.util.HashMap<>();
         Map<String, Object> passed = new java.util.HashMap<>();
         for (SubtaskTemplate t : catalog.all()) {
@@ -60,7 +61,7 @@ public class SubtaskPlanner {
         List<SubtaskInstance> out = new ArrayList<>();
         for (SubtaskTemplate t : catalog.all()) {
             AnswerNormalizer.NormalizeResult r = checked.get(t.answerKey());
-            SubtaskStatus status = switch (t.generateWhen().evaluate(passed)) {
+            SubtaskStatus status = switch (t.generateWhen().evaluate(passed, answers)) {
                 case INACTIVE -> SubtaskStatus.NOT_GENERATED;
                 case UNKNOWN -> SubtaskStatus.DEFERRED;
                 case ACTIVE -> r != null && r.ok() ? SubtaskStatus.FILLED : SubtaskStatus.UNFILLED;
@@ -75,8 +76,19 @@ public class SubtaskPlanner {
         return new SubtaskPlan(out);
     }
 
-    /** 정규화기는 문자열을 받는다 — 목록은 JSON 배열로, 나머지는 그대로 글자로 넘긴다. */
+    private boolean passes(String key, Object raw) {
+        if (raw == null) return false;
+        return catalog.byAnswerKey(key).map(t -> normalize(t, raw).ok()).orElse(true);
+    }
+
+    /**
+     * 정규화기는 문자열을 받는다 — 목록은 JSON 배열로, 나머지는 그대로 글자로 넘긴다. 정수형에 온 정수값 실수
+     * (JSON 의 4.0)는 "4" 로 넘긴다. 4.5 는 그대로 넘겨 NOT_A_NUMBER 로 떨어진다.
+     */
     private AnswerNormalizer.NormalizeResult normalize(SubtaskTemplate t, Object raw) {
+        if ("INTEGER".equals(t.valueType())) raw = integral(raw);
+        if ("INTEGER_LIST".equals(t.valueType()) && raw instanceof java.util.Collection<?> c)
+            raw = c.stream().map(SubtaskPlanner::integral).toList();
         String s;
         try {
             s = raw instanceof java.util.Collection<?> ? JSON.writeValueAsString(raw) : String.valueOf(raw);
@@ -84,6 +96,12 @@ public class SubtaskPlanner {
             s = String.valueOf(raw);
         }
         return normalizer.normalize(t, s);
+    }
+
+    private static Object integral(Object o) {
+        if (!(o instanceof Double || o instanceof Float)) return o;
+        double d = ((Number) o).doubleValue();
+        return Double.isFinite(d) && d == Math.rint(d) ? (Object) (long) d : o;
     }
 
     /**
@@ -158,18 +176,30 @@ public class SubtaskPlanner {
                 // best 가 이 키의 인스턴스이므로 템플릿은 있다.
                 SubtaskTemplate t = catalog.byAnswerKey(variableKey).orElseThrow();
                 List<Object> normalized = new ArrayList<>();
-                SubtaskInstance.Reason firstFail = null;
+                List<Object> failed = new ArrayList<>();
+                List<String> messages = new ArrayList<>();
+                String code = null;
                 for (Object v : values) {
                     AnswerNormalizer.NormalizeResult r = v == null
                             ? normalizer.normalize(t, null) : normalize(t, v);
-                    if (r.ok()) normalized.add(r.value());
-                    else if (firstFail == null) firstFail = new SubtaskInstance.Reason(r.errorCode(), r.message());
+                    if (r.ok()) {
+                        normalized.add(r.value());
+                        continue;
+                    }
+                    failed.add(v);
+                    messages.add(r.message());
+                    if (code == null) code = r.errorCode();
                 }
-                best = firstFail == null
+                best = failed.isEmpty()
                         ? new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.FILLED,
                                 List.copyOf(normalized), origins.get(variableKey), best.question(), null, "NOT_CHECKED")
                         : new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.UNFILLED,
-                                null, null, best.question(), firstFail, null);
+                                null, null, best.question(),
+                                new SubtaskInstance.Reason(code, String.join(" / ", messages)), null);
+                // 떨어진 비교 값은 모두 떨어져도 싣는다 — 어느 값을 고쳐야 하는지가 답의 일부다.
+                if (!failed.isEmpty()) onlyFor.put(variableKey, failed);
+                merged.add(best);
+                continue;
             }
             merged.add(best);
             if (!unfilledFor.isEmpty() && unfilledFor.size() < values.size()) onlyFor.put(best.answerKey(), unfilledFor);

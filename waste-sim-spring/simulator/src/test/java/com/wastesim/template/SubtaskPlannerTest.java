@@ -283,6 +283,8 @@ class SubtaskPlannerTest {
         assertEquals(SubtaskStatus.UNFILLED, find(plan, "jn.truckCount").status());
         assertEquals("NOT_A_NUMBER", find(plan, "jn.truckCount").reason().code());
         assertEquals(SubtaskStatus.DEFERRED, find(plan, "jn.dispatchInterval").status());
+        assertTrue(planner.waitingOn("dispatchIntervalMinutes", Map.of("truckCount", "세 대", "numBuildings", 4))
+                .contains("truckCount"), "형식에서 떨어진 키도 먼저 정해야 할 키다");
     }
 
     @Test
@@ -299,5 +301,36 @@ class SubtaskPlannerTest {
         SubtaskInstance i = find(planner.plan(Map.of("truckType", "TANK")), "jn.truckType");
         assertEquals(SubtaskStatus.UNFILLED, i.status());
         assertEquals("OUT_OF_CLOSURE", i.reason().code());
+    }
+
+    @Test
+    void 비교_값이_모두_범위_밖이면_실패_값을_모두_알린다() {
+        SubtaskPlanner.Across a = planner.planAcross(Map.of(), Map.of(), "numBuildings", List.of(99, 100));
+        SubtaskInstance i = find(a.plan(), "jn.numBuildings");
+        assertEquals(SubtaskStatus.UNFILLED, i.status());
+        assertEquals("OUT_OF_RANGE", i.reason().code());
+        assertTrue(i.reason().message().contains("99") && i.reason().message().contains("100"), i.reason().message());
+        assertEquals(List.of(99, 100), a.onlyFor().get("numBuildings"));
+    }
+
+    @Test
+    void 형식이_틀린_다회_수거_시각은_가려지지_않고_사유와_함께_묻는다() {
+        SubtaskPlan plan = planner.plan(Map.of("collectionTimesMinutes", List.of(660, 2000)));
+        SubtaskInstance times = find(plan, "jn.collectionTimes");
+        assertEquals(SubtaskStatus.UNFILLED, times.status());
+        assertEquals("OUT_OF_RANGE", times.reason().code());
+        assertEquals(SubtaskStatus.NOT_GENERATED, find(plan, "jn.collectionTime").status());
+    }
+
+    @Test
+    void 정수형에_온_정수값_실수는_정수로_채우고_소수는_막는다() {
+        SubtaskInstance whole = find(planner.plan(Map.of("numBuildings", 4.0)), "jn.numBuildings");
+        assertEquals(SubtaskStatus.FILLED, whole.status());
+        assertEquals(Integer.valueOf(4), whole.value());
+        assertEquals(List.of(660, 1380), find(planner.plan(Map.of("collectionTimesMinutes", List.of(660.0, 1380.0))),
+                "jn.collectionTimes").value());
+        SubtaskInstance frac = find(planner.plan(Map.of("numBuildings", 4.5)), "jn.numBuildings");
+        assertEquals(SubtaskStatus.UNFILLED, frac.status());
+        assertEquals("NOT_A_NUMBER", frac.reason().code());
     }
 }

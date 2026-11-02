@@ -70,10 +70,19 @@ public final class GenerateCondition {
     }
 
     public Activation evaluate(Map<String, Object> answers) {
-        return always() ? Activation.ACTIVE : judge(expr, answers);
+        return evaluate(answers, answers);
     }
 
-    private static Activation judge(JsonNode e, Map<String, Object> answers) {
+    /**
+     * @param values 비교가 읽는 값
+     * @param given  {@code given} 이 읽는 맵. "말했는가" 는 값이 계약에 맞는지와 따로다 — 형식이 틀린 다회 수거
+     *               시각도 사용자가 말한 것이라, 가리지 말고 그 결정을 사유와 함께 물어야 한다
+     */
+    public Activation evaluate(Map<String, Object> values, Map<String, Object> given) {
+        return always() ? Activation.ACTIVE : judge(expr, values, given);
+    }
+
+    private static Activation judge(JsonNode e, Map<String, Object> answers, Map<String, Object> givenMap) {
         String op = op(e);
         JsonNode arg = e.get(op);
         switch (op) {
@@ -82,21 +91,21 @@ public final class GenerateCondition {
                 Activation decisive = all ? Activation.INACTIVE : Activation.ACTIVE;
                 boolean unknown = false;
                 for (JsonNode p : arg) {
-                    Activation a = judge(p, answers);
+                    Activation a = judge(p, answers, givenMap);
                     if (a == decisive) return decisive;
                     if (a == Activation.UNKNOWN) unknown = true;
                 }
                 return unknown ? Activation.UNKNOWN : all ? Activation.ACTIVE : Activation.INACTIVE;
             }
             case "not" -> {
-                return switch (judge(arg, answers)) {
+                return switch (judge(arg, answers, givenMap)) {
                     case ACTIVE -> Activation.INACTIVE;
                     case INACTIVE -> Activation.ACTIVE;
                     case UNKNOWN -> Activation.UNKNOWN;
                 };
             }
             case "given" -> {
-                Object v = answers.get(arg.asText());
+                Object v = givenMap.get(arg.asText());
                 boolean given = v instanceof Collection<?> c ? !c.isEmpty() : v != null && !String.valueOf(v).isBlank();
                 return given ? Activation.ACTIVE : Activation.INACTIVE;
             }
