@@ -90,13 +90,7 @@ class FirstRoundAccuracyTest {
         for (JsonNode row : rows) {
             List<String> expected = new ArrayList<>();
             row.path("expectedServers").forEach(e -> expected.add(e.asText()));
-            // 도메인이 없으면 프로필을 만들 수 없다 — 조회가 거절된 것이라 결과 없음(놓침)으로 센다.
-            List<MatchResult> results;
-            try {
-                results = matcher.match(profile(row.path(field)));
-            } catch (IllegalArgumentException e) {
-                results = List.of();
-            }
+            List<MatchResult> results = matcher.match(profile(row.path(field)));
             for (MatchResult m : results) {
                 if (m.fitsAsIs() && !m.fictional() && !expected.contains(m.serverId())) {
                     fp++;
@@ -135,6 +129,8 @@ class FirstRoundAccuracyTest {
 
     @Test
     void 대조_층_정확도를_출력한다() {
+        // 모든 정답 프로필이 유효한 요청(도메인 있음)이어야 한다 — 아니면 여기서 예외로 실패한다.
+        all().forEach(r -> profile(r.path("goldProfile")));
         Score s = measure(matcher, all(), "goldProfile");
         assertEquals(54, s.total());
         System.out.println("대조 층(goldProfile) " + s);
@@ -143,10 +139,12 @@ class FirstRoundAccuracyTest {
     private static final List<String> FIELDS = List.of("domain", "spatialScale", "environmentConditions",
             "objective", "comparisonAxes", "population");
 
-    /** 둘 다 비었거나, 공백을 뺀 글이 같거나 한쪽이 다른 쪽을 품으면 일치. */
+    /** 둘 다 비었으면 일치. 한쪽만 비면 불일치. 둘 다 있으면 공백을 뺀 글이 같거나 한쪽이 다른 쪽을 품을 때 일치. */
     private static boolean sameField(JsonNode a, JsonNode b) {
         List<String> x = strings(a), y = strings(b);
-        if (x == null || y == null) return x == y;
+        boolean xe = x == null || x.stream().allMatch(String::isBlank);
+        boolean ye = y == null || y.stream().allMatch(String::isBlank);
+        if (xe || ye) return xe && ye;
         String p = String.join("|", x).replaceAll("\s", ""), q = String.join("|", y).replaceAll("\s", "");
         return p.contains(q) || q.contains(p);
     }

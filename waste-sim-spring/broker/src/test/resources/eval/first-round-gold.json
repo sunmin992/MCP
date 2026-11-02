@@ -14,15 +14,15 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "장량동 전체 아파트 단지",
    "objective": "격일 수거와 매일 수거를 비교",
    "comparisonAxes": [
-    "격일 수거와 매일 수거"
+    "수거 주기"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: 문장에 '쓰레기'는 없고 '수거'만 있다. spatialScale/objective/comparisonAxes: 문장 구절 그대로(비교 대상 둘을 한 항목으로). 환경 조건 · 거주민은 문장에 없어 비움. 주의: '장량동'이라 적었으나 기대 서버는 행정동 서버(실험 설계) — 연구자 확인 필요"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태로 '쓰레기수거'(문장은 '수거'만 말함). spatialScale/objective: 사용자 말 그대로. comparisonAxes: 바꾸는 항목의 이름('격일'·'매일' 이 아니라 '수거 주기'). 환경 조건 · 거주민은 문장에 없어 비움. 판단 필요: 문장은 '장량동 전체'인데 기대 서버는 행정동 서버(실험 설계)"
  },
  {
   "runId": "V2-D1-A-r2",
@@ -39,15 +39,15 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "장량동 전체 아파트 단지",
    "objective": "격일 수거와 매일 수거를 비교",
    "comparisonAxes": [
-    "격일 수거와 매일 수거"
+    "수거 주기"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: 문장에 '쓰레기'는 없고 '수거'만 있다. spatialScale/objective/comparisonAxes: 문장 구절 그대로(비교 대상 둘을 한 항목으로). 환경 조건 · 거주민은 문장에 없어 비움. 주의: '장량동'이라 적었으나 기대 서버는 행정동 서버(실험 설계) — 연구자 확인 필요"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태로 '쓰레기수거'(문장은 '수거'만 말함). spatialScale/objective: 사용자 말 그대로. comparisonAxes: 바꾸는 항목의 이름('격일'·'매일' 이 아니라 '수거 주기'). 환경 조건 · 거주민은 문장에 없어 비움. 판단 필요: 문장은 '장량동 전체'인데 기대 서버는 행정동 서버(실험 설계)"
  },
  {
   "runId": "V2-D1-A-r3",
@@ -64,15 +64,15 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "장량동 전체 아파트 단지",
    "objective": "격일 수거와 매일 수거를 비교",
    "comparisonAxes": [
-    "격일 수거와 매일 수거"
+    "수거 주기"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: 문장에 '쓰레기'는 없고 '수거'만 있다. spatialScale/objective/comparisonAxes: 문장 구절 그대로(비교 대상 둘을 한 항목으로). 환경 조건 · 거주민은 문장에 없어 비움. 주의: '장량동'이라 적었으나 기대 서버는 행정동 서버(실험 설계) — 연구자 확인 필요"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태로 '쓰레기수거'(문장은 '수거'만 말함). spatialScale/objective: 사용자 말 그대로. comparisonAxes: 바꾸는 항목의 이름('격일'·'매일' 이 아니라 '수거 주기'). 환경 조건 · 거주민은 문장에 없어 비움. 판단 필요: 문장은 '장량동 전체'인데 기대 서버는 행정동 서버(실험 설계)"
  },
  {
   "runId": "V2-D2-A-r1",
@@ -91,7 +91,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "environmentConditions": [
     "추석 연휴가 낀 주"
    ],
@@ -101,7 +101,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기'+'수거'. environmentConditions: '추석 연휴가 낀 주'. objective: '쓰레기가 얼마나 쌓일까'. comparisonAxes: '수거 요일을 바꾸면'. 공간 규모 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. environmentConditions: 사용자 말 그대로. objective: 사용자 말 그대로. comparisonAxes: '수거 요일을 바꾸면' 의 바꾸는 항목. 공간 규모 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D2-A-r2",
@@ -120,7 +120,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "environmentConditions": [
     "추석 연휴가 낀 주"
    ],
@@ -130,7 +130,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기'+'수거'. environmentConditions: '추석 연휴가 낀 주'. objective: '쓰레기가 얼마나 쌓일까'. comparisonAxes: '수거 요일을 바꾸면'. 공간 규모 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. environmentConditions: 사용자 말 그대로. objective: 사용자 말 그대로. comparisonAxes: '수거 요일을 바꾸면' 의 바꾸는 항목. 공간 규모 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D2-A-r3",
@@ -149,7 +149,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "environmentConditions": [
     "추석 연휴가 낀 주"
    ],
@@ -159,7 +159,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기'+'수거'. environmentConditions: '추석 연휴가 낀 주'. objective: '쓰레기가 얼마나 쌓일까'. comparisonAxes: '수거 요일을 바꾸면'. 공간 규모 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. environmentConditions: 사용자 말 그대로. objective: 사용자 말 그대로. comparisonAxes: '수거 요일을 바꾸면' 의 바꾸는 항목. 공간 규모 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D3-A-r1",
@@ -176,15 +176,15 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동",
-   "objective": "화·목·토 주 3회로 바꾸면 지금 일정이랑 비교해서 어때",
+   "objective": "화·목·토 주 3회로 바꾸면 지금 일정이랑 비교해서 어떤지",
    "comparisonAxes": [
-    "화·목·토 주 3회와 지금 일정"
+    "수거 요일"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'만 있음. spatialScale: '행정동'. objective · comparisonAxes: 문장 구절 그대로. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '행정동'. objective: 사용자 말 그대로. comparisonAxes: 화·목·토 대 지금 일정에서 바뀌는 것은 수거 요일. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D3-A-r2",
@@ -201,15 +201,15 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동",
-   "objective": "화·목·토 주 3회로 바꾸면 지금 일정이랑 비교해서 어때",
+   "objective": "화·목·토 주 3회로 바꾸면 지금 일정이랑 비교해서 어떤지",
    "comparisonAxes": [
-    "화·목·토 주 3회와 지금 일정"
+    "수거 요일"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'만 있음. spatialScale: '행정동'. objective · comparisonAxes: 문장 구절 그대로. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '행정동'. objective: 사용자 말 그대로. comparisonAxes: 화·목·토 대 지금 일정에서 바뀌는 것은 수거 요일. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D3-A-r3",
@@ -226,15 +226,15 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동",
-   "objective": "화·목·토 주 3회로 바꾸면 지금 일정이랑 비교해서 어때",
+   "objective": "화·목·토 주 3회로 바꾸면 지금 일정이랑 비교해서 어떤지",
    "comparisonAxes": [
-    "화·목·토 주 3회와 지금 일정"
+    "수거 요일"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'만 있음. spatialScale: '행정동'. objective · comparisonAxes: 문장 구절 그대로. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '행정동'. objective: 사용자 말 그대로. comparisonAxes: 화·목·토 대 지금 일정에서 바뀌는 것은 수거 요일. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D4-A-r1",
@@ -250,14 +250,14 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "objective": "수거가 빨리 끝날까",
    "comparisonAxes": [
-    "적환장을 쓰면"
+    "적환장 사용"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. objective: '수거가 빨리 끝날까'. comparisonAxes: '적환장을 쓰면'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. objective: '수거가 빨리 끝날까'. comparisonAxes: 바꾸는 항목 '적환장 사용'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D4-A-r2",
@@ -273,14 +273,14 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "objective": "수거가 빨리 끝날까",
    "comparisonAxes": [
-    "적환장을 쓰면"
+    "적환장 사용"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. objective: '수거가 빨리 끝날까'. comparisonAxes: '적환장을 쓰면'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. objective: '수거가 빨리 끝날까'. comparisonAxes: 바꾸는 항목 '적환장 사용'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D4-A-r3",
@@ -296,14 +296,14 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "objective": "수거가 빨리 끝날까",
    "comparisonAxes": [
-    "적환장을 쓰면"
+    "적환장 사용"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. objective: '수거가 빨리 끝날까'. comparisonAxes: '적환장을 쓰면'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. objective: '수거가 빨리 끝날까'. comparisonAxes: 바꾸는 항목 '적환장 사용'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D5-A-r1",
@@ -320,7 +320,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동을 50개 구역으로 나눠서",
    "environmentConditions": [
     "상가가 많은"
@@ -328,7 +328,7 @@
    "objective": "수거차 3대로 감당할 수 있을까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거차'에서 '수거'만. spatialScale: '행정동을 50개 구역으로 나눠서'. environmentConditions: '상가가 많은'은 거주민이 아니라 지역 특성이라 환경 조건 칸에 둠(연구자 판단 필요). 비교 축은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: 사용자 말 그대로. environmentConditions: '상가가 많은' 은 거주민이 아니라 지역 특성이라 환경 조건에 둠(판단 필요). comparisonAxes: 문장에 바꿔 가며 비교하는 것이 없어 비움"
  },
  {
   "runId": "V2-D5-A-r2",
@@ -345,7 +345,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동을 50개 구역으로 나눠서",
    "environmentConditions": [
     "상가가 많은"
@@ -353,7 +353,7 @@
    "objective": "수거차 3대로 감당할 수 있을까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거차'에서 '수거'만. spatialScale: '행정동을 50개 구역으로 나눠서'. environmentConditions: '상가가 많은'은 거주민이 아니라 지역 특성이라 환경 조건 칸에 둠(연구자 판단 필요). 비교 축은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: 사용자 말 그대로. environmentConditions: '상가가 많은' 은 거주민이 아니라 지역 특성이라 환경 조건에 둠(판단 필요). comparisonAxes: 문장에 바꿔 가며 비교하는 것이 없어 비움"
  },
  {
   "runId": "V2-D5-A-r3",
@@ -370,7 +370,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동을 50개 구역으로 나눠서",
    "environmentConditions": [
     "상가가 많은"
@@ -378,7 +378,7 @@
    "objective": "수거차 3대로 감당할 수 있을까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거차'에서 '수거'만. spatialScale: '행정동을 50개 구역으로 나눠서'. environmentConditions: '상가가 많은'은 거주민이 아니라 지역 특성이라 환경 조건 칸에 둠(연구자 판단 필요). 비교 축은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: 사용자 말 그대로. environmentConditions: '상가가 많은' 은 거주민이 아니라 지역 특성이라 환경 조건에 둠(판단 필요). comparisonAxes: 문장에 바꿔 가며 비교하는 것이 없어 비움"
  },
  {
   "runId": "V2-D6-A-r1",
@@ -395,7 +395,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동",
    "objective": "수거가 다 끝날까",
    "comparisonAxes": [
@@ -403,7 +403,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. spatialScale: '행정동'. objective: '수거가 다 끝날까'. comparisonAxes: '수거차 근무 시간'. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '행정동'. objective: '수거가 다 끝날까'. comparisonAxes: 바꾸는 항목 '수거차 근무 시간'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D6-A-r2",
@@ -420,7 +420,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동",
    "objective": "수거가 다 끝날까",
    "comparisonAxes": [
@@ -428,7 +428,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. spatialScale: '행정동'. objective: '수거가 다 끝날까'. comparisonAxes: '수거차 근무 시간'. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '행정동'. objective: '수거가 다 끝날까'. comparisonAxes: 바꾸는 항목 '수거차 근무 시간'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-D6-A-r3",
@@ -445,7 +445,7 @@
    "bukgu-district-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "행정동",
    "objective": "수거가 다 끝날까",
    "comparisonAxes": [
@@ -453,7 +453,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. spatialScale: '행정동'. objective: '수거가 다 끝날까'. comparisonAxes: '수거차 근무 시간'. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '행정동'. objective: '수거가 다 끝날까'. comparisonAxes: 바꾸는 항목 '수거차 근무 시간'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J1-A-r1",
@@ -476,7 +476,7 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "spatialScale": "원룸촌 한 블록",
    "environmentConditions": [
     "평일 교통량"
@@ -490,7 +490,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기 수거'. spatialScale: '원룸촌 한 블록'. environmentConditions: '평일 교통량'. objective: '민원이 가장 적은 … 찾고 싶어'. comparisonAxes: '수거 시각'. population: '학생이 많은'"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale · environmentConditions · population: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 찾으려는 바꾸는 항목 '수거 시각'"
  },
  {
   "runId": "V2-J1-A-r2",
@@ -513,7 +513,7 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "spatialScale": "원룸촌 한 블록",
    "environmentConditions": [
     "평일 교통량"
@@ -527,7 +527,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기 수거'. spatialScale: '원룸촌 한 블록'. environmentConditions: '평일 교통량'. objective: '민원이 가장 적은 … 찾고 싶어'. comparisonAxes: '수거 시각'. population: '학생이 많은'"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale · environmentConditions · population: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 찾으려는 바꾸는 항목 '수거 시각'"
  },
  {
   "runId": "V2-J1-A-r3",
@@ -550,7 +550,7 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "spatialScale": "원룸촌 한 블록",
    "environmentConditions": [
     "평일 교통량"
@@ -564,7 +564,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기 수거'. spatialScale: '원룸촌 한 블록'. environmentConditions: '평일 교통량'. objective: '민원이 가장 적은 … 찾고 싶어'. comparisonAxes: '수거 시각'. population: '학생이 많은'"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale · environmentConditions · population: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 찾으려는 바꾸는 항목 '수거 시각'"
  },
  {
   "runId": "V2-J2-A-r1",
@@ -580,7 +580,7 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "spatialScale": "우리 동네",
    "objective": "수거 시각을 바꾸면 어떻게 될까",
    "comparisonAxes": [
@@ -588,7 +588,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기 수거'. spatialScale: '우리 동네'(장량동이라고 말하지 않음). objective · comparisonAxes: 문장 구절 그대로. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '우리 동네'(장량동이라고 말하지 않음). objective: 사용자 말 그대로. comparisonAxes: '수거 시각'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J2-A-r2",
@@ -604,7 +604,7 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "spatialScale": "우리 동네",
    "objective": "수거 시각을 바꾸면 어떻게 될까",
    "comparisonAxes": [
@@ -612,7 +612,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기 수거'. spatialScale: '우리 동네'(장량동이라고 말하지 않음). objective · comparisonAxes: 문장 구절 그대로. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '우리 동네'(장량동이라고 말하지 않음). objective: 사용자 말 그대로. comparisonAxes: '수거 시각'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J2-A-r3",
@@ -629,7 +629,7 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "쓰레기 수거",
+   "domain": "쓰레기수거",
    "spatialScale": "우리 동네",
    "objective": "수거 시각을 바꾸면 어떻게 될까",
    "comparisonAxes": [
@@ -637,7 +637,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '쓰레기 수거'. spatialScale: '우리 동네'(장량동이라고 말하지 않음). objective · comparisonAxes: 문장 구절 그대로. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale: '우리 동네'(장량동이라고 말하지 않음). objective: 사용자 말 그대로. comparisonAxes: '수거 시각'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J3-A-r1",
@@ -657,18 +657,18 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "원룸 건물이 10동",
    "environmentConditions": [
     "아침 출근길 교통"
    ],
    "objective": "수거차 한 대로 버틸 수 있을까, 두 대가 필요할까",
    "comparisonAxes": [
-    "수거차 한 대와 두 대"
+    "수거차 대수"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거차'에서 '수거'만. spatialScale: '원룸 건물이 10동'. environmentConditions: '아침 출근길 교통'. objective · comparisonAxes: 문장 구절 그대로. 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale · environmentConditions: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: '한 대'·'두 대' 가 아니라 바꾸는 항목 '수거차 대수'(스키마 예시와 같은 형태). 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J3-A-r2",
@@ -687,18 +687,18 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "원룸 건물이 10동",
    "environmentConditions": [
     "아침 출근길 교통"
    ],
    "objective": "수거차 한 대로 버틸 수 있을까, 두 대가 필요할까",
    "comparisonAxes": [
-    "수거차 한 대와 두 대"
+    "수거차 대수"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거차'에서 '수거'만. spatialScale: '원룸 건물이 10동'. environmentConditions: '아침 출근길 교통'. objective · comparisonAxes: 문장 구절 그대로. 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale · environmentConditions: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: '한 대'·'두 대' 가 아니라 바꾸는 항목 '수거차 대수'(스키마 예시와 같은 형태). 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J3-A-r3",
@@ -716,18 +716,18 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "spatialScale": "원룸 건물이 10동",
    "environmentConditions": [
     "아침 출근길 교통"
    ],
    "objective": "수거차 한 대로 버틸 수 있을까, 두 대가 필요할까",
    "comparisonAxes": [
-    "수거차 한 대와 두 대"
+    "수거차 대수"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거차'에서 '수거'만. spatialScale: '원룸 건물이 10동'. environmentConditions: '아침 출근길 교통'. objective · comparisonAxes: 문장 구절 그대로. 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. spatialScale · environmentConditions: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: '한 대'·'두 대' 가 아니라 바꾸는 항목 '수거차 대수'(스키마 예시와 같은 형태). 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J4-A-r1",
@@ -743,14 +743,14 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "objective": "수거가 다 안 끝나는 날이 생길까",
    "comparisonAxes": [
-    "수거차를 5톤에서 1톤 소형으로"
+    "수거차 종류"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. objective: '수거가 다 안 끝나는 날이 생길까'. comparisonAxes: '수거차를 5톤에서 1톤 소형으로'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. objective: 사용자 말 그대로. comparisonAxes: '5톤' · '1톤' 이 아니라 바꾸는 항목 '수거차 종류'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J4-A-r2",
@@ -766,14 +766,14 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "objective": "수거가 다 안 끝나는 날이 생길까",
    "comparisonAxes": [
-    "수거차를 5톤에서 1톤 소형으로"
+    "수거차 종류"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. objective: '수거가 다 안 끝나는 날이 생길까'. comparisonAxes: '수거차를 5톤에서 1톤 소형으로'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. objective: 사용자 말 그대로. comparisonAxes: '5톤' · '1톤' 이 아니라 바꾸는 항목 '수거차 종류'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J4-A-r3",
@@ -789,14 +789,14 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "objective": "수거가 다 안 끝나는 날이 생길까",
    "comparisonAxes": [
-    "수거차를 5톤에서 1톤 소형으로"
+    "수거차 종류"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. objective: '수거가 다 안 끝나는 날이 생길까'. comparisonAxes: '수거차를 5톤에서 1톤 소형으로'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. objective: 사용자 말 그대로. comparisonAxes: '5톤' · '1톤' 이 아니라 바꾸는 항목 '수거차 종류'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-J5-A-r1",
@@ -810,11 +810,12 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
+   "domain": "쓰레기수거",
    "spatialScale": "한 동에 40세대씩 6동인 원룸 블록",
    "objective": "아침 9시에 한 번 걷으면 감당이 될까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: 문장에 '쓰레기'도 '수거'도 없고 '걷으면'만 있어 비움. spatialScale: '한 동에 40세대씩 6동인 원룸 블록'. objective: '아침 9시에 한 번 걷으면 감당이 될까'. '200번 반복'은 프로필 칸이 아니라 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 문장은 '걷으면' 으로만 말하지만 스키마 형태 '쓰레기수거' 로 적는다(원룸 블록 · 걷기). spatialScale · objective: 사용자 말 그대로. comparisonAxes: 바꿔 비교하는 것이 없어 비움. '200번 반복' 은 프로필 칸이 아니라 비움"
  },
  {
   "runId": "V2-J5-A-r2",
@@ -831,11 +832,12 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
+   "domain": "쓰레기수거",
    "spatialScale": "한 동에 40세대씩 6동인 원룸 블록",
    "objective": "아침 9시에 한 번 걷으면 감당이 될까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: 문장에 '쓰레기'도 '수거'도 없고 '걷으면'만 있어 비움. spatialScale: '한 동에 40세대씩 6동인 원룸 블록'. objective: '아침 9시에 한 번 걷으면 감당이 될까'. '200번 반복'은 프로필 칸이 아니라 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 문장은 '걷으면' 으로만 말하지만 스키마 형태 '쓰레기수거' 로 적는다(원룸 블록 · 걷기). spatialScale · objective: 사용자 말 그대로. comparisonAxes: 바꿔 비교하는 것이 없어 비움. '200번 반복' 은 프로필 칸이 아니라 비움"
  },
  {
   "runId": "V2-J5-A-r3",
@@ -852,11 +854,12 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
+   "domain": "쓰레기수거",
    "spatialScale": "한 동에 40세대씩 6동인 원룸 블록",
    "objective": "아침 9시에 한 번 걷으면 감당이 될까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: 문장에 '쓰레기'도 '수거'도 없고 '걷으면'만 있어 비움. spatialScale: '한 동에 40세대씩 6동인 원룸 블록'. objective: '아침 9시에 한 번 걷으면 감당이 될까'. '200번 반복'은 프로필 칸이 아니라 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 문장은 '걷으면' 으로만 말하지만 스키마 형태 '쓰레기수거' 로 적는다(원룸 블록 · 걷기). spatialScale · objective: 사용자 말 그대로. comparisonAxes: 바꿔 비교하는 것이 없어 비움. '200번 반복' 은 프로필 칸이 아니라 비움"
  },
  {
   "runId": "V2-J6-A-r1",
@@ -876,17 +879,17 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "environmentConditions": [
     "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다고 치면"
    ],
    "objective": "수거를 새벽 6시에 하는 게 낫나 오전 9시에 하는 게 낫나",
    "comparisonAxes": [
-    "새벽 6시와 오전 9시"
+    "수거 시각"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. environmentConditions: 포항시 배출 시간 구절 전체(포항시는 공간 규모가 아니라 규정의 수식이라 spatialScale 은 비움). objective · comparisonAxes: 문장 구절 그대로"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. environmentConditions: 배출 시간 구절 전체, 사용자 말 그대로(포항시는 규정의 수식이라 spatialScale 은 비움 — 판단 필요). objective: 문장 구절. comparisonAxes: '수거 시각'"
  },
  {
   "runId": "V2-J6-A-r2",
@@ -904,17 +907,17 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "environmentConditions": [
     "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다고 치면"
    ],
    "objective": "수거를 새벽 6시에 하는 게 낫나 오전 9시에 하는 게 낫나",
    "comparisonAxes": [
-    "새벽 6시와 오전 9시"
+    "수거 시각"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. environmentConditions: 포항시 배출 시간 구절 전체(포항시는 공간 규모가 아니라 규정의 수식이라 spatialScale 은 비움). objective · comparisonAxes: 문장 구절 그대로"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. environmentConditions: 배출 시간 구절 전체, 사용자 말 그대로(포항시는 규정의 수식이라 spatialScale 은 비움 — 판단 필요). objective: 문장 구절. comparisonAxes: '수거 시각'"
  },
  {
   "runId": "V2-J6-A-r3",
@@ -933,17 +936,17 @@
    "jangnyang-waste-sim"
   ],
   "goldProfile": {
-   "domain": "수거",
+   "domain": "쓰레기수거",
    "environmentConditions": [
     "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다고 치면"
    ],
    "objective": "수거를 새벽 6시에 하는 게 낫나 오전 9시에 하는 게 낫나",
    "comparisonAxes": [
-    "새벽 6시와 오전 9시"
+    "수거 시각"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '수거'. environmentConditions: 포항시 배출 시간 구절 전체(포항시는 공간 규모가 아니라 규정의 수식이라 spatialScale 은 비움). objective · comparisonAxes: 문장 구절 그대로"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태. environmentConditions: 배출 시간 구절 전체, 사용자 말 그대로(포항시는 규정의 수식이라 spatialScale 은 비움 — 판단 필요). objective: 문장 구절. comparisonAxes: '수거 시각'"
  },
  {
   "runId": "V2-P1-A-r1",
@@ -960,15 +963,15 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "주차장",
+   "domain": "주차",
    "spatialScale": "도심 공영주차장 4곳",
    "objective": "주차장 찾느라 배회하는 게 줄어들까",
    "comparisonAxes": [
-    "실시간 안내 앱 도입"
+    "실시간 안내 앱"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차장'. spatialScale: '도심 공영주차장 4곳'. objective: '주차장 찾느라 배회하는 게 줄어들까'. comparisonAxes: '실시간 안내 앱 도입'. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'(문장은 '주차장'). spatialScale · objective: 사용자 말 그대로. comparisonAxes: 바꾸는 항목 '실시간 안내 앱'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P1-A-r2",
@@ -985,15 +988,15 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "주차장",
+   "domain": "주차",
    "spatialScale": "도심 공영주차장 4곳",
    "objective": "주차장 찾느라 배회하는 게 줄어들까",
    "comparisonAxes": [
-    "실시간 안내 앱 도입"
+    "실시간 안내 앱"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차장'. spatialScale: '도심 공영주차장 4곳'. objective: '주차장 찾느라 배회하는 게 줄어들까'. comparisonAxes: '실시간 안내 앱 도입'. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'(문장은 '주차장'). spatialScale · objective: 사용자 말 그대로. comparisonAxes: 바꾸는 항목 '실시간 안내 앱'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P1-A-r3",
@@ -1010,15 +1013,15 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "주차장",
+   "domain": "주차",
    "spatialScale": "도심 공영주차장 4곳",
    "objective": "주차장 찾느라 배회하는 게 줄어들까",
    "comparisonAxes": [
-    "실시간 안내 앱 도입"
+    "실시간 안내 앱"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차장'. spatialScale: '도심 공영주차장 4곳'. objective: '주차장 찾느라 배회하는 게 줄어들까'. comparisonAxes: '실시간 안내 앱 도입'. 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'(문장은 '주차장'). spatialScale · objective: 사용자 말 그대로. comparisonAxes: 바꾸는 항목 '실시간 안내 앱'. 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P2-A-r1",
@@ -1037,11 +1040,11 @@
    "domain": "주차",
    "objective": "공영주차장 만차가 좀 풀릴까",
    "comparisonAxes": [
-    "주차 요금을 시간대별로 다르게"
+    "주차 요금"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차 요금'에서 '주차'. objective: '공영주차장 만차가 좀 풀릴까'. comparisonAxes: '주차 요금을 시간대별로 다르게'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. objective: 사용자 말 그대로. comparisonAxes: '시간대별로 다르게' 가 아니라 바꾸는 항목 '주차 요금'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P2-A-r2",
@@ -1060,11 +1063,11 @@
    "domain": "주차",
    "objective": "공영주차장 만차가 좀 풀릴까",
    "comparisonAxes": [
-    "주차 요금을 시간대별로 다르게"
+    "주차 요금"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차 요금'에서 '주차'. objective: '공영주차장 만차가 좀 풀릴까'. comparisonAxes: '주차 요금을 시간대별로 다르게'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. objective: 사용자 말 그대로. comparisonAxes: '시간대별로 다르게' 가 아니라 바꾸는 항목 '주차 요금'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P2-A-r3",
@@ -1083,11 +1086,11 @@
    "domain": "주차",
    "objective": "공영주차장 만차가 좀 풀릴까",
    "comparisonAxes": [
-    "주차 요금을 시간대별로 다르게"
+    "주차 요금"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차 요금'에서 '주차'. objective: '공영주차장 만차가 좀 풀릴까'. comparisonAxes: '주차 요금을 시간대별로 다르게'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. objective: 사용자 말 그대로. comparisonAxes: '시간대별로 다르게' 가 아니라 바꾸는 항목 '주차 요금'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P3-A-r1",
@@ -1110,21 +1113,21 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "spatialScale": "동네",
    "environmentConditions": [
     "밤"
    ],
    "objective": "공영주차장 일부를 거주자 우선 구획으로 돌리면 어떨까",
    "comparisonAxes": [
-    "공영주차장 일부를 거주자 우선 구획으로"
+    "거주자 우선 구획 비율"
    ],
    "population": [
     "동네 주민들"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. spatialScale: '동네'. environmentConditions: '밤'. population: '동네 주민들'. objective · comparisonAxes: 문장 구절 그대로"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. spatialScale · environmentConditions · population: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 바꾸는 항목 '거주자 우선 구획 비율'(문장은 '일부')"
  },
  {
   "runId": "V2-P3-A-r2",
@@ -1147,21 +1150,21 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "spatialScale": "동네",
    "environmentConditions": [
     "밤"
    ],
    "objective": "공영주차장 일부를 거주자 우선 구획으로 돌리면 어떨까",
    "comparisonAxes": [
-    "공영주차장 일부를 거주자 우선 구획으로"
+    "거주자 우선 구획 비율"
    ],
    "population": [
     "동네 주민들"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. spatialScale: '동네'. environmentConditions: '밤'. population: '동네 주민들'. objective · comparisonAxes: 문장 구절 그대로"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. spatialScale · environmentConditions · population: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 바꾸는 항목 '거주자 우선 구획 비율'(문장은 '일부')"
  },
  {
   "runId": "V2-P3-A-r3",
@@ -1184,21 +1187,21 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "spatialScale": "동네",
    "environmentConditions": [
     "밤"
    ],
    "objective": "공영주차장 일부를 거주자 우선 구획으로 돌리면 어떨까",
    "comparisonAxes": [
-    "공영주차장 일부를 거주자 우선 구획으로"
+    "거주자 우선 구획 비율"
    ],
    "population": [
     "동네 주민들"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. spatialScale: '동네'. environmentConditions: '밤'. population: '동네 주민들'. objective · comparisonAxes: 문장 구절 그대로"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. spatialScale · environmentConditions · population: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 바꾸는 항목 '거주자 우선 구획 비율'(문장은 '일부')"
  },
  {
   "runId": "V2-P4-A-r1",
@@ -1215,7 +1218,7 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "spatialScale": "도심 공영주차장 15곳",
    "environmentConditions": [
     "주말에 길이 막힐 때",
@@ -1224,7 +1227,7 @@
    "objective": "주차장 찾는 데 얼마나 걸릴까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. spatialScale: '도심 공영주차장 15곳'. environmentConditions: '주말에 길이 막힐 때', '하루 3만 대가 몰리면'. objective: '주차장 찾는 데 얼마나 걸릴까'. 비교 축 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. spatialScale: 사용자 말 그대로. environmentConditions: 구절마다 하나씩, 사용자 말 그대로(판단 필요: '하루 3만 대' 를 환경 조건으로 봄). comparisonAxes: 비교 없음 — 비움. 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P4-A-r2",
@@ -1241,7 +1244,7 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "spatialScale": "도심 공영주차장 15곳",
    "environmentConditions": [
     "주말에 길이 막힐 때",
@@ -1250,7 +1253,7 @@
    "objective": "주차장 찾는 데 얼마나 걸릴까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. spatialScale: '도심 공영주차장 15곳'. environmentConditions: '주말에 길이 막힐 때', '하루 3만 대가 몰리면'. objective: '주차장 찾는 데 얼마나 걸릴까'. 비교 축 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. spatialScale: 사용자 말 그대로. environmentConditions: 구절마다 하나씩, 사용자 말 그대로(판단 필요: '하루 3만 대' 를 환경 조건으로 봄). comparisonAxes: 비교 없음 — 비움. 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P4-A-r3",
@@ -1267,7 +1270,7 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "spatialScale": "도심 공영주차장 15곳",
    "environmentConditions": [
     "주말에 길이 막힐 때",
@@ -1276,7 +1279,7 @@
    "objective": "주차장 찾는 데 얼마나 걸릴까"
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. spatialScale: '도심 공영주차장 15곳'. environmentConditions: '주말에 길이 막힐 때', '하루 3만 대가 몰리면'. objective: '주차장 찾는 데 얼마나 걸릴까'. 비교 축 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. spatialScale: 사용자 말 그대로. environmentConditions: 구절마다 하나씩, 사용자 말 그대로(판단 필요: '하루 3만 대' 를 환경 조건으로 봄). comparisonAxes: 비교 없음 — 비움. 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P5-A-r1",
@@ -1292,14 +1295,14 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "objective": "무료로 바꾸면 어떻게 될까",
    "comparisonAxes": [
-    "무료로 바꾸면"
+    "주차장 요금"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. objective: '무료로 바꾸면 어떻게 될까'. comparisonAxes: '무료로 바꾸면'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. objective: 사용자 말 그대로. comparisonAxes: '무료' 가 아니라 바꾸는 항목 '주차장 요금'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P5-A-r2",
@@ -1315,14 +1318,14 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "objective": "무료로 바꾸면 어떻게 될까",
    "comparisonAxes": [
-    "무료로 바꾸면"
+    "주차장 요금"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. objective: '무료로 바꾸면 어떻게 될까'. comparisonAxes: '무료로 바꾸면'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. objective: 사용자 말 그대로. comparisonAxes: '무료' 가 아니라 바꾸는 항목 '주차장 요금'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P5-A-r3",
@@ -1338,14 +1341,14 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "공영주차장",
+   "domain": "주차",
    "objective": "무료로 바꾸면 어떻게 될까",
    "comparisonAxes": [
-    "무료로 바꾸면"
+    "주차장 요금"
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '공영주차장'. objective: '무료로 바꾸면 어떻게 될까'. comparisonAxes: '무료로 바꾸면'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. objective: 사용자 말 그대로. comparisonAxes: '무료' 가 아니라 바꾸는 항목 '주차장 요금'. 공간 규모 · 환경 조건 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P6-A-r1",
@@ -1364,7 +1367,7 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "주차장",
+   "domain": "주차",
    "environmentConditions": [
     "주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸리면"
    ],
@@ -1374,7 +1377,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차장'. environmentConditions: '주차장끼리 멀어서 … 10분씩 걸리면'. objective: '실시간 안내 앱 효과가 더 클까'. comparisonAxes: '실시간 안내 앱'. 공간 규모 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. environmentConditions: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 바꾸는 항목 '실시간 안내 앱'. 공간 규모 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P6-A-r2",
@@ -1393,7 +1396,7 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "주차장",
+   "domain": "주차",
    "environmentConditions": [
     "주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸리면"
    ],
@@ -1403,7 +1406,7 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차장'. environmentConditions: '주차장끼리 멀어서 … 10분씩 걸리면'. objective: '실시간 안내 앱 효과가 더 클까'. comparisonAxes: '실시간 안내 앱'. 공간 규모 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. environmentConditions: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 바꾸는 항목 '실시간 안내 앱'. 공간 규모 · 거주민은 문장에 없어 비움"
  },
  {
   "runId": "V2-P6-A-r3",
@@ -1422,7 +1425,7 @@
    "pohang-parking-sim"
   ],
   "goldProfile": {
-   "domain": "주차장",
+   "domain": "주차",
    "environmentConditions": [
     "주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸리면"
    ],
@@ -1432,6 +1435,6 @@
    ]
   },
   "confirmed": false,
-  "labelNote": "초안(연구자 검토 전). 요청 문장 구절로 다시 씀, 카드 어휘로 바꾸지 않음. domain: '주차장'. environmentConditions: '주차장끼리 멀어서 … 10분씩 걸리면'. objective: '실시간 안내 앱 효과가 더 클까'. comparisonAxes: '실시간 안내 앱'. 공간 규모 · 거주민은 문장에 없어 비움"
+  "labelNote": "초안(연구자 검토 전). 입력 스키마 규칙대로 뽑은 정답 추출 — 카드 matchKeys 를 옮겨 적지 않음. domain: 스키마 형태 '주차'. environmentConditions: 사용자 말 그대로. objective: 문장 구절. comparisonAxes: 바꾸는 항목 '실시간 안내 앱'. 공간 규모 · 거주민은 문장에 없어 비움"
  }
 ]
