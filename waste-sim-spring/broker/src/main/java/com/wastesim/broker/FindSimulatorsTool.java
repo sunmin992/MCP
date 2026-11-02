@@ -28,6 +28,10 @@ public class FindSimulatorsTool implements McpToolProvider {
 
     private final CandidateMatcher matcher;
     private final ObjectMapper mapper;
+    private final MatchRounds rounds;
+
+    /** 고친 조회는 다섯 번까지. 첫 조회가 1바퀴이므로 7바퀴째부터 대조하지 않는다. */
+    private static final int MAX_REVISIONS = 5;
 
     private static final Logger callLog = LoggerFactory.getLogger("mcp.calls");
 
@@ -38,15 +42,22 @@ public class FindSimulatorsTool implements McpToolProvider {
     private final Predicate<String> reachable;
 
     @Autowired
-    public FindSimulatorsTool(CandidateMatcher matcher, ObjectMapper mapper, Predicate<String> reachable) {
+    public FindSimulatorsTool(CandidateMatcher matcher, ObjectMapper mapper, Predicate<String> reachable,
+                              MatchRounds rounds) {
         this.matcher = matcher;
         this.mapper = mapper;
         this.reachable = reachable;
+        this.rounds = rounds;
     }
 
     /** 모든 서버가 응답한다고 보는 시험용 생성자. */
     FindSimulatorsTool(CandidateMatcher matcher, ObjectMapper mapper) {
-        this(matcher, mapper, endpoint -> true);
+        this(matcher, mapper, endpoint -> true, new MatchRounds());
+    }
+
+    /** 응답 여부를 정하는 시험용 생성자. */
+    FindSimulatorsTool(CandidateMatcher matcher, ObjectMapper mapper, Predicate<String> reachable) {
+        this(matcher, mapper, reachable, new MatchRounds());
     }
 
     @Override public String toolName() { return "find_simulators"; }
@@ -76,13 +87,26 @@ public class FindSimulatorsTool implements McpToolProvider {
                "comparisonAxes":{"type":"array","items":{"type":"string"},
                  "description":"무엇을 바꿔 가며 비교할 것인가 — 비교할 값이 아니라 바꾸는 항목의 이름을 적는다. 예: [\\"수거차 대수\\"] (\\"수거차 3대\\", \\"수거차 2대\\" 가 아니다), [\\"수거 시각\\"] (\\"밤 10시 수거\\" 가 아니다)"},
                "population":{"type":"array","items":{"type":"string"},
-                 "description":"거주민에 관한 구절. 구절 하나에 거주민 하나로 나눠 사용자 말 그대로 적는다. 예: [\\"학생이 많음\\",\\"주부가 많음\\"]"}},
+                 "description":"거주민에 관한 구절. 구절 하나에 거주민 하나로 나눠 사용자 말 그대로 적는다. 예: [\\"학생이 많음\\",\\"주부가 많음\\"]"},
+               "matchId":{"type":"string","description":"첫 조회 응답의 round.matchId. 고친 요청으로 다시 조회할 때만 보낸다"},
+               "targetServerId":{"type":"string","description":"고친 요청으로 쓰려는 서버의 id. matchId 와 함께만 보낸다"}},
              "required":["domain"]}
             """;
     }
 
     @Override
     public ToolResult call(JsonNode args) {
+        return call(args, null);
+    }
+
+    public ToolResult call(JsonNode args, String session) {
+        String matchId = args.path("matchId").asText(null);
+        String targetServerId = args.path("targetServerId").asText(null);
+        if (matchId != null && matchId.isBlank()) matchId = null;
+        if (targetServerId != null && targetServerId.isBlank()) targetServerId = null;
+        if (matchId == null && targetServerId != null) {
+            return ToolFailure.of("matchId", "targetServerId 는 matchId 와 함께 보내십시오 — 첫 조회에서 받은 matchId 입니다");
+        }
         RequestProfile profile;
         try {
             profile = new RequestProfile(
@@ -96,15 +120,48 @@ public class FindSimulatorsTool implements McpToolProvider {
             return ToolFailure.of("domain", e.getMessage());
         }
 
+        int round;
+        if (matchId == null) {
+            matchId = rounds.open(session, profile);
+            round = 1;
+        } else {
+            var thread = rounds.next(matchId, session, profile, targetServerId);
+            if (thread.isEmpty()) {
+                return ToolFailure.of("matchId", "모르는 매칭 id 입니다 — 브로커가 다시 시작됐을 수 있습니다. "
+                        + "matchId 없이 새 요청으로 조회하십시오");
+            }
+            round = thread.get().round();
+        }
+
         // 명세 3단계 — LLM 이 요청에서 뽑은 것. 여기서만 서버가 실제로 받은 값을 볼 수 있다.
         callLog.info("[3 조회] domain={} · scale={} · population={} · env={} · objective={}",
                 profile.domain(), profile.spatialScale(), profile.population(),
                 profile.environmentConditions(), profile.objective());
         try {
-            List<MatchResult> matches = matcher.match(profile);
-
             var root = mapper.createObjectNode();
             root.put("domain", profile.domain());
+            var roundNode = root.putObject("round");
+            roundNode.put("matchId", matchId);
+            roundNode.put("round", round);
+            roundNode.put("revisions", round - 1);
+            roundNode.put("remainingRevisions", Math.max(0, MAX_REVISIONS + 1 - round));
+            if (round > MAX_REVISIONS + 1) {
+                // 고친 조회를 다 썼다. 맞는 요청이어도 대조하지 않는다.
+                root.put("verdict", "NONE");
+                root.put("noneReason", "REVISION_LIMIT");
+                root.put("note", "고친 조회 " + MAX_REVISIONS + "번 안에 맞는 시뮬레이터에 닿지 못했습니다");
+                root.put("nextStep", "사용자에게 고친 조회 " + MAX_REVISIONS
+                        + "번 안에 맞는 시뮬레이터에 닿지 못했다고 전하십시오.");
+                callLog.info("[4 매칭] NONE — 고친 조회 한도 ({}바퀴)", round);
+                return ToolResult.ok(mapper.writeValueAsString(root));
+            }
+
+            // 목표 서버가 등록돼 있고 부를 수 있으면 그 카드 하나와만 대조한다. 아니면 전체 대조.
+            JsonNode target = targetServerId == null ? null : matcher.card(targetServerId)
+                    .filter(c -> !c.path("fictional").asBoolean(false) && reachable.test(c.path("endpoint").asText()))
+                    .orElse(null);
+            List<MatchResult> matches = target != null
+                    ? List.of(matcher.evaluateOne(target, profile)) : matcher.match(profile);
             root.put("matchCount", matches.size());
 
             // 추천은 부를 수 있는 서버 가운데 요청을 그대로 받는 것만. 지어낸 후보는 맞아도
@@ -153,9 +210,10 @@ public class FindSimulatorsTool implements McpToolProvider {
                 // 요청을 어떻게 고치면 되는지 싣는다.
                 List<MatchResult> suggestions = new ArrayList<>();
                 matches.stream().filter(callable).forEach(suggestions::add);
-                matcher.outsideDomain(profile).stream().filter(callable).forEach(suggestions::add);
+                if (target == null) matcher.outsideDomain(profile).stream().filter(callable).forEach(suggestions::add);
                 if (suggestions.isEmpty()) {
                     root.put("verdict", "NONE");
+                    root.put("noneReason", "NO_CALLABLE_SERVER");
                     callLog.info("[4 매칭] NONE — 부를 수 있는 서버 없음");
                     if (!down.isEmpty()) {
                         // 서버는 있는데 꺼져 있다. "없다" 고 하면 사용자는 다시 켜면 될 일을 포기한다.

@@ -31,6 +31,11 @@ public class CandidateMatcher {
 
     private final CandidateRegistry registry;
 
+    /** 목표 서버 하나만 볼 때 카드를 찾는 데 쓴다. */
+    public java.util.Optional<JsonNode> card(String serverId) {
+        return registry.byServerId(serverId);
+    }
+
     public CandidateMatcher(CandidateRegistry registry) {
         this.registry = registry;
     }
@@ -48,7 +53,14 @@ public class CandidateMatcher {
         return evaluateAll(profile, false);
     }
 
-    private static final String UNWRITTEN = "적혀 있지 않음";
+    /** 카드 하나와만 대조한다. 도메인이 다르면 {@link #outsideDomain} 과 같은 판정이다. */
+    public MatchResult evaluateOne(JsonNode card, RequestProfile profile) {
+        boolean domainMatched = domainMatches(card, profile.domain());
+        return evaluate(card, profile, domainMatched,
+                domainMatched ? List.of(text(card.path("domain"))) : List.of());
+    }
+
+    private static final String UNWRITTEN ="적혀 있지 않음";
     private static final String UNDECIDABLE = "카드가 이 칸을 적지 않아 할 수 있는지 판단할 수 없습니다";
 
     /**

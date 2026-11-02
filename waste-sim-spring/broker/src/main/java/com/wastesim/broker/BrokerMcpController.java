@@ -115,7 +115,7 @@ public class BrokerMcpController {
         JsonNode arguments = params.path("arguments");
         // 다른 병렬 호출이 실행 도중 만든 연결을 이 요청의 과거 이력으로 보이면 안 된다.
         var previous = sessions.handedOff(session, arguments);
-        ToolResult tr = tool.call(arguments);
+        ToolResult tr = tool instanceof FindSimulatorsTool f ? f.call(arguments, session) : tool.call(arguments);
         if (!tr.ready()) {
             callLog.info("[브로커] {} → 거절: {}", name, tr.errors());
             return textResult("검증 실패: " + mapper.writeValueAsString(tr.errors()), true);
