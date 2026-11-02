@@ -165,8 +165,10 @@ public class SubtaskPlanner {
      *                  실험 변수 자체는 비교할 값 목록으로 채워진 것으로 본다
      * @param onlyFor   어떤 비교 값에서만 물어야 하는 결정 → 그 값들. 모든 값에서 필요하면 싣지 않는다
      * @param waitingOn 보류된 결정 → 먼저 정해야 할 답변키(값마다의 합집합)
+     * @param minRounds 실행별 계획의 최소 필요 단계 가운데 가장 큰 값
      */
-    public record Across(SubtaskPlan plan, Map<String, List<Object>> onlyFor, Map<String, List<String>> waitingOn) {}
+    public record Across(SubtaskPlan plan, Map<String, List<Object>> onlyFor, Map<String, List<String>> waitingOn,
+                         int minRounds) {}
 
     /**
      * 실험 변수의 비교 값마다 생성 조건을 평가해 합친다.
@@ -184,7 +186,7 @@ public class SubtaskPlanner {
                              String variableKey, List<Object> values, Evidence ev) {
         if (variableKey == null || variableKey.isBlank() || values == null || values.isEmpty()) {
             SubtaskPlan p = plan(answers, origins, ev);
-            return new Across(p, Map.of(), waitingOf(p, answers, origins, ev));
+            return new Across(p, Map.of(), waitingOf(p, answers, origins, ev), MinRounds.of(p, catalog));
         }
         List<SubtaskPlan> plans = new ArrayList<>();
         List<Map<String, Object>> runAnswers = new ArrayList<>();
@@ -244,7 +246,8 @@ public class SubtaskPlanner {
             if (!unfilledFor.isEmpty() && unfilledFor.size() < values.size()) onlyFor.put(best.answerKey(), unfilledFor);
             if (best.status() == SubtaskStatus.DEFERRED) waiting.put(best.answerKey(), List.copyOf(waits));
         }
-        return new Across(new SubtaskPlan(merged), onlyFor, waiting);
+        return new Across(new SubtaskPlan(merged), onlyFor, waiting,
+                plans.stream().mapToInt(p -> MinRounds.of(p, catalog)).max().orElse(1));
     }
 
     private Map<String, List<String>> waitingOf(SubtaskPlan p, Map<String, Object> answers, Map<String, String> origins, Evidence ev) {
