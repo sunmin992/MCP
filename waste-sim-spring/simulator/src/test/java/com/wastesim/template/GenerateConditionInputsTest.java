@@ -43,7 +43,7 @@ class GenerateConditionInputsTest {
                 Object v = sample(t, rnd);
                 if (v != null) answers.put(t.answerKey(), v);
             }
-            for (GenerateCondition c : GenerateCondition.values()) {
+            for (GenerateCondition c : catalog.all().stream().map(SubtaskTemplate::generateWhen).toList()) {
                 Map<String, Object> only = new HashMap<>();
                 for (String k : c.inputs()) if (answers.containsKey(k)) only.put(k, answers.get(k));
                 assertEquals(c.evaluate(answers), c.evaluate(only), c + " 이 선언하지 않은 키를 읽는다: " + answers);

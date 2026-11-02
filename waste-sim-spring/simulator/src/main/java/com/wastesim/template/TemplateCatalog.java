@@ -7,6 +7,8 @@ import org.springframework.stereotype.Component;
 import java.io.InputStream;
 import java.io.UncheckedIOException;
 import java.util.List;
+import java.util.Set;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -47,9 +49,37 @@ public class TemplateCatalog {
             this.sesVersion = requireText(root, "sesVersion", resourcePath);
             this.templates = List.of(mapper.treeToValue(
                     root.path("templates"), SubtaskTemplate[].class));
+            checkConditions(templates, resourcePath);
         } catch (java.io.IOException e) {
             throw new UncheckedIOException("템플릿을 읽지 못했습니다: " + resourcePath, e);
         }
+    }
+
+    /**
+     * 생성 조건은 템플릿에 적힌 식이라 컴파일러가 봐 주지 않는다. 불러올 때 두 가지를 막는다 —
+     * 없는 답변키를 읽는 식(언제나 보류가 되어 대화가 끝나지 않는다)과 서로를 기다리는 조건(둘 다
+     * 영영 보류다). 자기 답을 읽는 것은 순환이 아니다: {@code given} 은 답이 없으면 거짓이라 기다리지 않는다.
+     */
+    static void checkConditions(List<SubtaskTemplate> templates, String where) {
+        Map<String, List<String>> reads = new java.util.HashMap<>();
+        for (SubtaskTemplate t : templates) reads.put(t.answerKey(), t.generateWhen().inputs());
+        reads.forEach((key, inputs) -> {
+            for (String k : inputs) {
+                if (!reads.containsKey(k))
+                    throw new IllegalStateException(key + " 의 생성 조건이 없는 답변키 " + k + " 를 읽습니다: " + where);
+            }
+        });
+        Set<String> done = new java.util.HashSet<>();
+        for (String key : reads.keySet()) visit(key, reads, new java.util.LinkedHashSet<>(), done, where);
+    }
+
+    private static void visit(String key, Map<String, List<String>> reads, Set<String> path, Set<String> done, String where) {
+        if (done.contains(key)) return;
+        if (!path.add(key))
+            throw new IllegalStateException("생성 조건이 서로를 기다립니다: " + String.join(" → ", path) + " → " + key + ": " + where);
+        for (String k : reads.get(key)) if (!k.equals(key)) visit(k, reads, path, done, where);
+        path.remove(key);
+        done.add(key);
     }
 
     private static String requireText(JsonNode root, String field, String resourcePath) {

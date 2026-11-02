@@ -35,7 +35,7 @@ class TemplateCatalogTest {
     @Test
     void 배차간격의_생성조건은_차량두대이상이다() {
         SubtaskTemplate t = catalog.byId("jn.dispatchInterval").orElseThrow();
-        assertEquals(GenerateCondition.EFFECTIVE_TRUCKS_AT_LEAST_2, t.generateWhen());
+        assertEquals(List.of("numBuildings", "truckCount"), t.generateWhen().inputs());
         assertEquals("dispatchIntervalMinutes", t.configField());
     }
 
@@ -120,5 +120,28 @@ class TemplateCatalogTest {
         for (com.wastesim.model.OccupationType o : com.wastesim.model.OccupationType.values()) {
             assertTrue(t.allowed().contains(o.name()), "엔진이 아는 직업은 모두 고를 수 있어야 한다: " + o);
         }
+    }
+
+    private static SubtaskTemplate withCondition(String key, String json) throws Exception {
+        return new SubtaskTemplate("t." + key, key, "INTEGER",
+                GenerateCondition.of(new com.fasterxml.jackson.databind.ObjectMapper().readTree(json)),
+                null, null, null, null, 1, null, "?", key, null, null, key);
+    }
+
+    @Test
+    void 없는_답변키를_읽는_조건은_불러올_때_막는다() throws Exception {
+        var ts = List.of(withCondition("a", "{\"eq\": [\"nope\", 1]}"));
+        assertThrows(IllegalStateException.class, () -> TemplateCatalog.checkConditions(ts, "test"));
+    }
+
+    @Test
+    void 서로를_기다리는_조건은_불러올_때_막는다() throws Exception {
+        var ts = List.of(withCondition("a", "{\"eq\": [\"b\", 1]}"), withCondition("b", "{\"eq\": [\"a\", 1]}"));
+        assertThrows(IllegalStateException.class, () -> TemplateCatalog.checkConditions(ts, "test"));
+    }
+
+    @Test
+    void 자기_답을_읽는_조건은_순환이_아니다() throws Exception {
+        TemplateCatalog.checkConditions(List.of(withCondition("a", "{\"given\": \"a\"}")), "test");
     }
 }

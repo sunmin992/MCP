@@ -99,7 +99,7 @@ public final class TemplateComparator {
                 cells.add(new Cell(f, hv, gv, match, hasValue(hv)));
             }
             rows.add(new Row(h.path("templateId").asText(), field, g != null, cells,
-                    h.path("generateWhen").asText()));
+                    conditionName(h)));
         }
         List<String> notExposed = byField.keySet().stream().filter(f -> !used.contains(f)).toList();
         return new Report(rows, notExposed, generated.skipped(),
@@ -114,7 +114,7 @@ public final class TemplateComparator {
             String field = h.path("configField").asText();
             GeneratedTemplate g = byField.get(field);
             if (g == null || g.condition() == null) continue;
-            String name = h.path("generateWhen").asText();
+            String name = conditionName(h);
             String handExpr = dictionary.get(name);
             if (handExpr == null) {
                 throw new IllegalArgumentException("조건 사전에 없는 생성 조건: " + name);
@@ -124,6 +124,15 @@ public final class TemplateComparator {
                     g.generateWhenExpr(), c.relation(), c.counterexample(), g.conditionHints()));
         }
         return out;
+    }
+
+    /**
+     * 조건 사전에서 찾을 이름. 손 템플릿의 생성 조건은 {@code "ALWAYS"} 가 아니면 답변키에 대한 식이다 —
+     * 설정 필드에 대한 식인 사전과 어휘가 달라 바로 맞댈 수 없으므로, 사전은 템플릿 id 로 찾는다.
+     */
+    private static String conditionName(JsonNode h) {
+        JsonNode w = h.path("generateWhen");
+        return w.isTextual() ? w.asText() : h.path("templateId").asText();
     }
 
     private static Object handValue(JsonNode h, String f) {

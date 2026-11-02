@@ -36,7 +36,7 @@
       "templateId": "jn.dispatchInterval",
       "answerKey": "dispatchIntervalMinutes", "label": "배차 간격(분)",
       "valueType": "INTEGER",
-      "generateWhen": "EFFECTIVE_TRUCKS_AT_LEAST_2",
+      "generateWhen": {"all": [{"gte": ["numBuildings", 2]}, {"gte": ["truckCount", 2]}]},
       "min": 0,
       "max": 1439,
       "unit": "minute",
@@ -51,7 +51,7 @@
       "templateId": "jn.collectionTime",
       "answerKey": "collectionTimeMinutes", "label": "수거 시각(자정부터 분)",
       "valueType": "INTEGER",
-      "generateWhen": "SINGLE_COLLECTION_TIME",
+      "generateWhen": {"not": {"given": "collectionTimesMinutes"}},
       "min": 0,
       "max": 1439,
       "unit": "minute",
@@ -66,7 +66,7 @@
       "templateId": "jn.collectionTimes",
       "answerKey": "collectionTimesMinutes", "label": "하루 수거 시각 목록(자정부터 분)",
       "valueType": "INTEGER_LIST",
-      "generateWhen": "MULTI_COLLECTION_TIMES_GIVEN",
+      "generateWhen": {"given": "collectionTimesMinutes"},
       "min": 0,
       "max": 1439,
       "unit": "minute",
@@ -97,7 +97,7 @@
       "templateId": "jn.trafficProfile",
       "answerKey": "trafficProfileId", "label": "교통 프로파일",
       "valueType": "STRING",
-      "generateWhen": "TRAFFIC_APPLIED",
+      "generateWhen": {"eq": ["trafficMode", "APPLY"]},
       "allowed": [
         "jangryang-weekday",
         "jangryang-volume-weekday"
@@ -129,7 +129,7 @@
       "templateId": "jn.zoneAssignmentRule",
       "answerKey": "zoneAssignmentRule", "label": "구역 배정 방식",
       "valueType": "ENUM",
-      "generateWhen": "ZONE_PROXY_OVER_4_BUILDINGS",
+      "generateWhen": {"all": [{"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}, {"gt": ["numBuildings", 4]}]},
       "allowed": [
         "CONTIGUOUS",
         "ROUND_ROBIN"
@@ -145,7 +145,7 @@
       "templateId": "jn.intraZoneTravel",
       "answerKey": "intraZoneTravelMinutes", "label": "구역 내 이동시간(분)",
       "valueType": "INTEGER",
-      "generateWhen": "CONTIGUOUS_ZONE_RULE",
+      "generateWhen": {"all": [{"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}, {"gt": ["numBuildings", 4]}, {"eq": ["zoneAssignmentRule", "CONTIGUOUS"]}]},
       "min": 0,
       "unit": "minute",
       "defaultValue": null,

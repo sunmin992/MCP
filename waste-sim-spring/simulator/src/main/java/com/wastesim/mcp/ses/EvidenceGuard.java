@@ -1,6 +1,5 @@
 package com.wastesim.mcp.ses;
 
-import com.wastesim.template.GenerateCondition;
 import com.wastesim.template.SubtaskTemplate;
 import com.wastesim.template.TemplateCatalog;
 
@@ -69,7 +68,7 @@ final class EvidenceGuard {
     }
 
     static boolean asksBeforeDefault(SubtaskTemplate t) {
-        return t.defaultValue() != null && t.generateWhen() != GenerateCondition.ALWAYS;
+        return t.defaultValue() != null && !t.generateWhen().always();
     }
 
     private static boolean isNumeric(SubtaskTemplate t) {

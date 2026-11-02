@@ -118,11 +118,12 @@ class SubtaskPlannerTest {
     }
 
     @Test
-    void 덩어리배정이면_구역내이동시간을_묻는다() {
+    void 덩어리배정이어도_구역근사를_모르면_구역내이동시간은_보류다() {
+        // 배정 규칙 자체가 아직 보류인데 그 아래 결정만 물으면 순서가 뒤집힌다. 묻는 경우는 조건이_연쇄한다 가 본다.
         Map<String, Object> answers = new HashMap<>();
         answers.put("zoneAssignmentRule", "CONTIGUOUS");
         SubtaskPlan plan = planner.plan(answers);
-        assertEquals(SubtaskStatus.UNFILLED, find(plan, "jn.intraZoneTravel").status());
+        assertEquals(SubtaskStatus.DEFERRED, find(plan, "jn.intraZoneTravel").status());
     }
 
     @Test
@@ -217,9 +218,9 @@ class SubtaskPlannerTest {
 
     @Test
     void 상태별_개수가_섞인_계획에서_맞게_집계된다() {
-        // FILLED 4개(truckType,truckCount,numBuildings,trafficMode) · NOT_GENERATED 2개(trafficProfile,
-        // collectionTimes — 다회 수거를 말하지 않았다)
-        // · DEFERRED 2개(zoneAssignmentRule,intraZoneTravel) · UNFILLED 나머지 11개
+        // FILLED 4개(truckType,truckCount,numBuildings,trafficMode) · NOT_GENERATED 4개(trafficProfile,
+        // collectionTimes — 다회 수거를 말하지 않았다 — 그리고 zoneAssignmentRule,intraZoneTravel — 4동이면
+        // 이동시간 방식을 몰라도 구역 배정이 걸리지 않는다) · DEFERRED 0개 · UNFILLED 나머지 11개
         // (collectionTime·dispatchInterval·travelTimeMode·residentsPerBuilding·days·seeds
         //  ·routeAvailableCapacity·occupationMix·dischargeTimeMode·binCapacity·complaintThreshold).
         Map<String, Object> answers = new HashMap<>();
@@ -233,8 +234,8 @@ class SubtaskPlannerTest {
         assertEquals(4, counts.size(), "네 상태 키가 다 있어야 한다 — 없으면 counts().get(DEFERRED) 가 null 이 된다");
         assertEquals(4, counts.get(SubtaskStatus.FILLED));
         assertEquals(11, counts.get(SubtaskStatus.UNFILLED));
-        assertEquals(2, counts.get(SubtaskStatus.DEFERRED));
-        assertEquals(2, counts.get(SubtaskStatus.NOT_GENERATED));
+        assertEquals(0, counts.get(SubtaskStatus.DEFERRED));
+        assertEquals(4, counts.get(SubtaskStatus.NOT_GENERATED));
     }
 
     @Test
