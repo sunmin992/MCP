@@ -1,0 +1,3 @@
+{"sesId":"jangnyang-ses","sesVersion":"9.9.9","root":"R",
+ "entities":{"R":{"attrs":["x"]}},
+ "decisions":[{"at":"R/x","configField":"days"}]}
