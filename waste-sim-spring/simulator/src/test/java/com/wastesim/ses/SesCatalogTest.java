@@ -26,4 +26,12 @@ class SesCatalogTest {
                 () -> new SesCatalog(templates, "/ses/ses-bad-field.json"));
         assertTrue(e.getMessage().contains("noSuchField"), e.getMessage());
     }
+
+    @Test
+    void configField_가_없거나_비면_templateId_를_밝히고_뜨지_않는다() {
+        for (String r : new String[]{"/ses/ses-no-field.json", "/ses/ses-empty-field.json"}) {
+            IllegalStateException e = assertThrows(IllegalStateException.class, () -> new SesCatalog(templates, r), r);
+            assertTrue(e.getMessage().contains("T-NOFIELD"), e.getMessage());
+        }
+    }
 }

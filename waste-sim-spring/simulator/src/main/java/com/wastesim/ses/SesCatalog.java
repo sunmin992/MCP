@@ -27,8 +27,13 @@ public class SesCatalog {
                     + ")이 템플릿(" + templates.sesId() + " " + templates.sesVersion() + ")과 다릅니다");
         }
         for (SesTree.Decision d : t.decisions()) {
-            String field = d.fields().path("configField").asText(null);
-            if (field != null && !hasGetter(field)) {
+            // configField 는 필수 칸이다(spec §6-3). 없거나 비면 조용히 넘기지 않는다.
+            String field = d.fields().path("configField").asText("");
+            if (field.isEmpty()) {
+                throw new IllegalStateException("configField 가 없거나 빈 결정입니다: "
+                        + d.fields().path("templateId").asText("?") + " (" + d.sesPath() + ")");
+            }
+            if (!hasGetter(field)) {
                 throw new IllegalStateException("SimulationConfig 에 없는 configField 입니다: "
                         + field + " (" + d.sesPath() + ")");
             }

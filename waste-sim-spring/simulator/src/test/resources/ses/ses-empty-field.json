@@ -1,0 +1,3 @@
+{"sesId":"jangnyang-ses","sesVersion":"1.1.0","root":"R",
+ "entities":{"R":{"attrs":["x"]}},
+ "decisions":[{"at":"R/x","templateId":"T-NOFIELD","configField":""}]}

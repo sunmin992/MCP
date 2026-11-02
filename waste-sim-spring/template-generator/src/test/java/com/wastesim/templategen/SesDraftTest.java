@@ -18,7 +18,12 @@ class SesDraftTest {
 
     @BeforeAll
     static void run() throws Exception {
-        result = new TemplateGenerator(Path.of("../simulator/src/main/java")).generate(
+        result = generate();
+    }
+
+    /** 생성기를 새로 돌린다. 결정성은 생성부터 다시 해야 보인다 — 같은 결과로 초안만 두 번 뽑으면 생성의 흔들림을 놓친다. */
+    static TemplateGenerator.Result generate() throws Exception {
+        return new TemplateGenerator(Path.of("../simulator/src/main/java")).generate(
                 "com.wastesim.model.SimulationConfig",
                 List.of("com.wastesim.tool.SimulationConfigValidator"),
                 List.of("com.wastesim.service.SimulationService", "com.wastesim.simulation.SimulationEngine",
@@ -54,7 +59,7 @@ class SesDraftTest {
 
     @Test
     void 같은_입력이면_바이트까지_같다() throws Exception {
-        assertEquals(M.writeValueAsString(SesDraft.draft(result)), M.writeValueAsString(SesDraft.draft(result)));
+        assertEquals(M.writeValueAsString(SesDraft.draft(generate())), M.writeValueAsString(SesDraft.draft(generate())));
     }
 
     @Test
