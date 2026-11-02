@@ -371,7 +371,8 @@ class RunScenarioByTokenToolTest {
         args.put("request", "원룸촌에서 새벽 6시에 걷으면 민원이 줄어?");
         var b = mapper.readTree(buildTool.call(com.wastesim.TestScenarioRequests.completed(args)).result().toString());
 
-        var controller = new com.wastesim.controller.ScenarioConfirmController(store, confirmTool, mapper, "", catalog);
+        var controller = new com.wastesim.controller.ScenarioConfirmController(store, confirmTool, mapper, "", catalog,
+                new com.wastesim.plan.PlanRounds(catalog, new com.wastesim.capability.CapabilityCardLoader(), mapper));
         var detail = controller.detail(b.path("scenarioId").asText()).getBody();
         assertEquals("원룸촌에서 새벽 6시에 걷으면 민원이 줄어?", detail.get("request"),
                 "사용자는 자기 요청과 설정을 나란히 보고 판단해야 한다");

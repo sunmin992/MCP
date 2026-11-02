@@ -8,6 +8,9 @@ import com.wastesim.template.SubtaskInstance;
 import com.wastesim.template.SubtaskPlan;
 import com.wastesim.template.SubtaskStatus;
 import com.wastesim.template.TemplateCatalog;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.time.Instant;
@@ -30,6 +33,8 @@ import java.util.UUID;
  */
 @Component
 public class PlanRounds {
+
+    private static final Logger log = LoggerFactory.getLogger(PlanRounds.class);
 
     private static final int MAX_PLANS = 1000;
 
@@ -71,6 +76,8 @@ public class PlanRounds {
     private final TemplateCatalog catalog;
     private final ObjectMapper mapper;
     private final String serverId;
+    /** null 이면 파일에 쓰지 않는다(단위 시험). */
+    private final PlanHistoryWriter writer;
 
     private final Map<String, Entry> plans = new LinkedHashMap<>(16, 0.75f, true) {
         @Override
@@ -80,9 +87,15 @@ public class PlanRounds {
     };
 
     public PlanRounds(TemplateCatalog catalog, CapabilityCardLoader card, ObjectMapper mapper) {
+        this(catalog, card, mapper, null);
+    }
+
+    @Autowired
+    public PlanRounds(TemplateCatalog catalog, CapabilityCardLoader card, ObjectMapper mapper, PlanHistoryWriter writer) {
         this.catalog = catalog;
         this.mapper = mapper;
         this.serverId = card.rawJson().path("serverId").asText(null);
+        this.writer = writer;
     }
 
     /**
@@ -108,11 +121,11 @@ public class PlanRounds {
         }
 
         ObjectNode key = mapper.createObjectNode();
-        key.set("answers", objectOrEmpty(answers));
-        key.set("origins", objectOrEmpty(origins));
+        key.set("answers", objectOrEmpty(answers).deepCopy());
+        key.set("origins", objectOrEmpty(origins).deepCopy());
         key.put("variableKey", variableKey);
         key.set("variableValues", variableValues == null || !variableValues.isArray()
-                ? mapper.createArrayNode() : variableValues);
+                ? mapper.createArrayNode() : variableValues.deepCopy());
         boolean newRound = !key.equals(e.key);
 
         if (plan.complete() && e.completedAtRound == null) e.completedAtRound = newRound ? e.round + 1 : e.round;
@@ -121,8 +134,9 @@ public class PlanRounds {
             ObjectNode ev = common(planId, e, "recheck");
             ev.set("counts", mapper.valueToTree(plan.counts()));
             ev.put("complete", plan.complete());
-            e.events.add(ev);
-            return new Step(planId, e.round, false, List.of(), e.completedAtRound, minRounds, ev);
+            putCompletedAtRound(ev, e);
+            add(e, ev);
+            return new Step(planId, e.round, false, List.of(), e.completedAtRound, minRounds, ev.deepCopy());
         }
 
         e.round++;
@@ -155,11 +169,10 @@ public class PlanRounds {
         ev.set("changes", mapper.valueToTree(changes));
         ev.set("counts", mapper.valueToTree(plan.counts()));
         ev.put("complete", plan.complete());
-        if (e.completedAtRound == null) ev.putNull("completedAtRound");
-        else ev.put("completedAtRound", e.completedAtRound);
+        putCompletedAtRound(ev, e);
         ev.put("minRounds", minRounds);
-        e.events.add(ev);
-        return new Step(planId, e.round, true, List.copyOf(changes), e.completedAtRound, minRounds, ev);
+        add(e, ev);
+        return new Step(planId, e.round, true, List.copyOf(changes), e.completedAtRound, minRounds, ev.deepCopy());
     }
 
     /**
@@ -171,15 +184,46 @@ public class PlanRounds {
     public synchronized void attach(String planId, ObjectNode event) {
         Entry e = live(planId);
         ObjectNode ev = common(planId, e, event.path("event").asText(null));
-        event.fields().forEachRemaining(f -> {
-            if (!f.getKey().equals("event")) ev.set(f.getKey(), f.getValue());
-        });
-        e.events.add(ev);
+        copyFields(event, ev);
+        add(e, ev);
+    }
+
+    /**
+     * validate · build 용. 모르는 planId 면 사건을 붙이지 않고 false 를 낸다 — 도구는 planId 없이 부른 것처럼
+     * 동작하고 응답에 그 사실만 싣는다. plan_subtasks 와 달리 거절하지 않는 것은 검증 · 생성 결과가 단계 기록보다 중요해서다.
+     */
+    public synchronized boolean tryAttach(String planId, ObjectNode event) {
+        try {
+            attach(planId, event);
+            return true;
+        } catch (IllegalArgumentException unknown) {
+            log.warn("모르는 planId 라 {} 사건을 붙이지 않습니다: {}", event.path("event").asText(), planId);
+            return false;
+        }
+    }
+
+    /**
+     * 확인 · 실행 사건. planId 를 모르면(시나리오에 planId 가 없거나 재시작 · 밀려남) 붙일 단계가 없으므로
+     * {@code planId:null}, {@code round:null} 로 파일에만 남긴다. 집계 때 scenarioId 로 build 사건과 잇는다.
+     */
+    public synchronized void attachOrWrite(String planIdOrNull, ObjectNode event) {
+        if (planIdOrNull != null && tryAttach(planIdOrNull, event)) return;
+        ObjectNode ev = mapper.createObjectNode();
+        ev.put("ts", Instant.now().toString());
+        ev.putNull("planId");
+        ev.putNull("matchId");
+        ev.put("serverId", serverId);
+        ev.put("sesId", catalog.sesId());
+        ev.put("sesVersion", catalog.sesVersion());
+        ev.put("event", event.path("event").asText(null));
+        ev.putNull("round");
+        copyFields(event, ev);
+        if (writer != null) writer.write(ev);
     }
 
     public synchronized Optional<List<ObjectNode>> history(String planId) {
         Entry e = plans.get(planId);
-        return e == null ? Optional.empty() : Optional.of(List.copyOf(e.events));
+        return e == null ? Optional.empty() : Optional.of(e.events.stream().map(ObjectNode::deepCopy).toList());
     }
 
     public synchronized Optional<Integer> currentRound(String planId) {
@@ -193,6 +237,22 @@ public class PlanRounds {
         if (e == null || !Objects.equals(e.sesId, catalog.sesId()) || !Objects.equals(e.sesVersion, catalog.sesVersion()))
             throw new IllegalArgumentException(UNKNOWN);
         return e;
+    }
+
+    private void add(Entry e, ObjectNode ev) {
+        e.events.add(ev);
+        if (writer != null) writer.write(ev);
+    }
+
+    private static void copyFields(ObjectNode from, ObjectNode to) {
+        from.fields().forEachRemaining(f -> {
+            if (!f.getKey().equals("event")) to.set(f.getKey(), f.getValue().deepCopy());
+        });
+    }
+
+    private static void putCompletedAtRound(ObjectNode ev, Entry e) {
+        if (e.completedAtRound == null) ev.putNull("completedAtRound");
+        else ev.put("completedAtRound", e.completedAtRound);
     }
 
     private ObjectNode common(String planId, Entry e, String event) {

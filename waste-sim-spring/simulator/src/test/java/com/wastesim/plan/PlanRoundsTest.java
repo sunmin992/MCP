@@ -179,4 +179,21 @@ class PlanRoundsTest {
         assertEquals(1, last.get("round").asInt());
         assertEquals(id, last.get("planId").asText());
     }
+
+    @Test
+    void 기록은_복사본으로만_나가고_recheck_도_completedAtRound_를_싣는다() throws Exception {
+        var answers = m.readTree("{\"truckType\":\"LARGE_5TON\"}");
+        var p = planner.planAcross(Map.of("truckType", "LARGE_5TON"), Map.of(), null, List.of(), null).plan();
+        var s = rounds.record(null, null, null, answers, m.createObjectNode(), null, m.createArrayNode(), p, Map.of(), 1);
+        ((com.fasterxml.jackson.databind.node.ObjectNode) answers).put("truckType", "SMALL_1TON");
+        s.event().put("event", "변조");
+        rounds.history(s.planId()).orElseThrow().get(0).put("round", 99);
+
+        var again = call(s.planId(), "{\"truckType\":\"LARGE_5TON\"}");
+        assertFalse(again.newRound(), "호출자가 넘긴 답변 맵을 고쳐도 비교 기준은 그대로다");
+        assertTrue(again.event().has("completedAtRound"));
+        JsonNode first = rounds.history(s.planId()).orElseThrow().get(0);
+        assertEquals("round", first.get("event").asText());
+        assertEquals(1, first.get("round").asInt());
+    }
 }

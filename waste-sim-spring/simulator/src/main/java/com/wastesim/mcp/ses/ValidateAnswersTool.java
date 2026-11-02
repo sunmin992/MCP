@@ -3,11 +3,13 @@ package com.wastesim.mcp.ses;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.McpToolProvider;
+import com.wastesim.plan.PlanRounds;
 import com.wastesim.template.AnswerNormalizer;
 import com.wastesim.template.SubtaskTemplate;
 import com.wastesim.template.TemplateCatalog;
 import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -23,12 +25,20 @@ public class ValidateAnswersTool implements McpToolProvider {
     private final TemplateCatalog catalog;
     private final AnswerNormalizer normalizer;
     private final ObjectMapper mapper;
+    private final PlanRounds rounds;
 
     public ValidateAnswersTool(TemplateCatalog catalog, AnswerNormalizer normalizer,
                                ObjectMapper mapper) {
+        this(catalog, normalizer, mapper, null);
+    }
+
+    @Autowired
+    public ValidateAnswersTool(TemplateCatalog catalog, AnswerNormalizer normalizer,
+                               ObjectMapper mapper, PlanRounds rounds) {
         this.catalog = catalog;
         this.normalizer = normalizer;
         this.mapper = mapper;
+        this.rounds = rounds;
     }
 
     @Override public String toolName() { return "validate_answers"; }
@@ -45,7 +55,8 @@ public class ValidateAnswersTool implements McpToolProvider {
             {"type":"object",
              "properties":{
                "answers":{"type":"object",
-                 "description":"답변키 → 원문 문자열. 예: {\\"truckType\\":\\"SMALL_1TON\\"}"}},
+                 "description":"답변키 → 원문 문자열. 예: {\\"truckType\\":\\"SMALL_1TON\\"}"},
+               "planId":{"type":"string","description":"plan_subtasks 가 준 planId. 주면 이 검증 결과를 그 요청의 현재 단계에 기록한다"}},
              "required":["answers"]}
             """;
     }
@@ -83,6 +94,13 @@ public class ValidateAnswersTool implements McpToolProvider {
             root.put("valid", rejected.isEmpty());
             root.set("normalized", normalized);
             root.set("rejected", rejected);
+            String planId = args.path("planId").asText(null);
+            if (planId != null) {
+                var ev = mapper.createObjectNode().put("event", "validate");
+                ev.set("normalized", normalized);
+                ev.set("rejected", rejected);
+                if (rounds == null || !rounds.tryAttach(planId, ev)) root.put("planIdUnknown", true);
+            }
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("answers", "답변 검증에 실패했습니다: " + e.getMessage());

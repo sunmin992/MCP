@@ -8,9 +8,11 @@ import com.wastesim.model.SimulationResult;
 import com.wastesim.model.TravelTimeMode;
 import com.wastesim.pes.Scenario;
 import com.wastesim.pes.ScenarioBuilder;
+import com.wastesim.plan.PlanRounds;
 import com.wastesim.service.SimulationService;
 import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
@@ -32,13 +34,21 @@ public class RunScenarioByTokenTool implements McpToolProvider {
     private final ScenarioStore store;
     private final SimulationService simulations;
     private final ObjectMapper mapper;
+    private final PlanRounds rounds;
 
     public RunScenarioByTokenTool(ScenarioBuilder builder, ScenarioStore store,
                                   SimulationService simulations, ObjectMapper mapper) {
+        this(builder, store, simulations, mapper, null);
+    }
+
+    @Autowired
+    public RunScenarioByTokenTool(ScenarioBuilder builder, ScenarioStore store,
+                                  SimulationService simulations, ObjectMapper mapper, PlanRounds rounds) {
         this.builder = builder;
         this.store = store;
         this.simulations = simulations;
         this.mapper = mapper;
+        this.rounds = rounds;
     }
 
     @Override public String toolName() { return "run_scenario_by_token"; }
@@ -63,8 +73,20 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             """;
     }
 
+    /** 실행 사건을 남긴다. 거절도 남긴다 — 확인했는데 돌지 못한 것도 평가에 필요하다. */
     @Override
     public ToolResult call(JsonNode args) {
+        ToolResult result = run(args);
+        String scenarioId = args.path("scenarioId").asText(null);
+        if (rounds != null && scenarioId != null && !scenarioId.isBlank()) {
+            var ev = mapper.createObjectNode().put("event", "run").put("scenarioId", scenarioId)
+                    .put("success", result.ready());
+            rounds.attachOrWrite(store.planId(scenarioId).orElse(null), ev);
+        }
+        return result;
+    }
+
+    private ToolResult run(JsonNode args) {
         String scenarioId = args.path("scenarioId").asText(null);
         String token = args.path("confirmToken").asText(null);
         if (scenarioId == null || scenarioId.isBlank()) {

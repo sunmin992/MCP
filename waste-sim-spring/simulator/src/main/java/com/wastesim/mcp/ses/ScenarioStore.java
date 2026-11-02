@@ -68,6 +68,19 @@ public class ScenarioStore {
         return put(scenario, pes);
     }
 
+    /** 시나리오를 만든 요청의 planId. 확인 · 실행 사건을 그 요청의 단계에 붙인다. 수명은 시나리오와 같다. */
+    private final Map<String, String> planIds = new ConcurrentHashMap<>();
+
+    public String put(Scenario scenario, Pes pes, String request, String planId) {
+        if (planId != null) planIds.put(scenario.scenarioId(), planId);
+        else planIds.remove(scenario.scenarioId());
+        return put(scenario, pes, request);
+    }
+
+    public Optional<String> planId(String scenarioId) {
+        return Optional.ofNullable(planIds.get(scenarioId));
+    }
+
     public Optional<String> request(String scenarioId) {
         return Optional.ofNullable(requests.get(scenarioId));
     }

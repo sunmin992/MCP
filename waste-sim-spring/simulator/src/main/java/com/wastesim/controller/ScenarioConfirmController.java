@@ -3,6 +3,7 @@ package com.wastesim.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.ses.ConfirmScenarioTool;
 import com.wastesim.mcp.ses.ScenarioStore;
+import com.wastesim.plan.PlanRounds;
 import com.wastesim.tool.ToolResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,11 +44,14 @@ public class ScenarioConfirmController {
     private final ConfirmScenarioTool confirmTool;
     private final ObjectMapper mapper;
     private final com.wastesim.template.TemplateCatalog catalog;
+    private final PlanRounds rounds;
 
     public ScenarioConfirmController(ScenarioStore store, ConfirmScenarioTool confirmTool,
                                      ObjectMapper mapper,
                                      @Value("${server.address:}") String boundAddress,
-                                     com.wastesim.template.TemplateCatalog catalog) {
+                                     com.wastesim.template.TemplateCatalog catalog,
+                                     PlanRounds rounds) {
+        this.rounds = rounds;
         this.boundAddress = boundAddress;
         this.store = store;
         this.confirmTool = confirmTool;
@@ -123,6 +127,8 @@ public class ScenarioConfirmController {
     public ResponseEntity<String> confirm(@PathVariable String scenarioId) throws Exception {
         ToolResult result = confirmTool.call(
                 mapper.createObjectNode().put("scenarioId", scenarioId));
+        rounds.attachOrWrite(store.planId(scenarioId).orElse(null), mapper.createObjectNode()
+                .put("event", "confirm").put("scenarioId", scenarioId).put("approved", result.ready()));
         if (!result.ready()) {
             callLog.info("[12 확인] {} → 거절: {}", scenarioId, result.errors());
             return ResponseEntity.badRequest()

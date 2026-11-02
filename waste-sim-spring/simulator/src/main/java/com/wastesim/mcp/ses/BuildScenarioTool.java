@@ -7,10 +7,12 @@ import com.wastesim.pes.ExperimentFrame;
 import com.wastesim.pes.Pes;
 import com.wastesim.pes.Scenario;
 import com.wastesim.pes.ScenarioBuilder;
+import com.wastesim.plan.PlanRounds;
 import com.wastesim.template.EvidenceGuard;
 import com.wastesim.template.TemplateCatalog;
 import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -34,13 +36,21 @@ public class BuildScenarioTool implements McpToolProvider {
     private final ScenarioStore store;
     private final TemplateCatalog catalog;
     private final ObjectMapper mapper;
+    private final PlanRounds rounds;
 
     public BuildScenarioTool(ScenarioBuilder builder, ScenarioStore store,
                              TemplateCatalog catalog, ObjectMapper mapper) {
+        this(builder, store, catalog, mapper, null);
+    }
+
+    @Autowired
+    public BuildScenarioTool(ScenarioBuilder builder, ScenarioStore store,
+                             TemplateCatalog catalog, ObjectMapper mapper, PlanRounds rounds) {
         this.builder = builder;
         this.store = store;
         this.catalog = catalog;
         this.mapper = mapper;
+        this.rounds = rounds;
     }
 
     private static final java.util.Set<String> KNOWN_ORIGINS = java.util.Set.of("USER", "MODEL_DEFAULT", "DERIVED");
@@ -73,7 +83,8 @@ public class BuildScenarioTool implements McpToolProvider {
                "observations":{"type":"array","items":{"type":"string"}},
                "request":{"type":"string","description":"사용자가 처음 한 요청 원문(요약하거나 바꿔 쓰지 않는다). 확인 화면이 설정 옆에 그대로 보여 준다 — 사용자는 자기 요청과 설정이 맞는지 보고 승인한다"},
                "userUtterances":{"type":"array","items":{"type":"string"},"description":"근거 검사용 사용자 발화 원문 목록. 클라이언트가 대화 기록에서 넣는다. 있으면 evidence 를 검사한다"},
-               "evidence":{"type":"object","description":"답변키 → 그 값의 근거가 된 사용자 발화 구절(그대로 옮긴다). USER 값과, 조건부 결정에 기본값을 쓸 때 필요하다"}},
+               "evidence":{"type":"object","description":"답변키 → 그 값의 근거가 된 사용자 발화 구절(그대로 옮긴다). USER 값과, 조건부 결정에 기본값을 쓸 때 필요하다"},
+               "planId":{"type":"string","description":"plan_subtasks 가 준 planId. 주면 생성 결과와 이후 확인 · 실행을 그 요청의 기록에 잇는다"}},
              "required":["values","variableAnswerKey","variableValues","request"]}
             """;
     }
@@ -157,7 +168,21 @@ public class BuildScenarioTool implements McpToolProvider {
                 shown.put(variableKey, List.copyOf(variableValues));
                 pes = new Pes(pes.sesId(), pes.sesVersion(), shown, origins);
             }
-            if (scenario.valid()) store.put(scenario, pes, args.path("request").asText(null));
+            String planId = args.path("planId").asText(null);
+            boolean planIdUnknown = false;
+            if (planId != null) {
+                var ev = mapper.createObjectNode().put("event", "build");
+                ev.put("scenarioId", scenario.scenarioId());
+                ev.put("valid", scenario.valid());
+                ev.put("blocks", scenario.blocks().size());
+                ev.put("backVerificationBlocks", scenario.backVerificationBlocks().size());
+                ev.put("branchBlocks", scenario.branchBlocks().size());
+                ev.set("droppedDefaults", dropped);
+                ev.set("guardUnverified", args.has("userUtterances") ? mapper.valueToTree(guardUnverified) : null);
+                planIdUnknown = rounds == null || !rounds.tryAttach(planId, ev);
+            }
+            if (scenario.valid())
+                store.put(scenario, pes, args.path("request").asText(null), planIdUnknown ? null : planId);
 
             var root = mapper.createObjectNode();
             root.put("sesId", pes.sesId());
@@ -172,6 +197,7 @@ public class BuildScenarioTool implements McpToolProvider {
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
             if (!dropped.isEmpty()) root.set("droppedDefaults", dropped);
             if (args.has("userUtterances")) root.set("guardUnverified", mapper.valueToTree(guardUnverified));
+            if (planIdUnknown) root.put("planIdUnknown", true);
             // 토큰은 여기서 나오지 않는다. 검증을 통과해도 아직 미확인이며,
             // 사람이 확인 화면에서 승인해야 발급된다(ScenarioConfirmController → ConfirmScenarioTool).
             root.put("state", store.entry(scenario.scenarioId())

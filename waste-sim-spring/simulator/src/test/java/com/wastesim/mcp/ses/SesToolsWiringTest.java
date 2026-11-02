@@ -5,6 +5,7 @@ import com.wastesim.mcp.McpToolRegistry;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.TestPropertySource;
 
 import java.util.List;
 
@@ -18,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
  * <b>서버를 띄울 때만</b> 터진다. 그 구멍을 여기서 막는다.
  */
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
+// 단계 기록이 실제 logs/ 에 쌓이지 않게 한다.
+@TestPropertySource(properties = "plan.history.dir=target/plan-history")
 class SesToolsWiringTest {
 
     @Autowired
