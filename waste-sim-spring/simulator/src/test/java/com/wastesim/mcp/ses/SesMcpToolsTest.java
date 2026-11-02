@@ -54,7 +54,8 @@ class SesMcpToolsTest {
 
     @Test
     void 계획_도구가_차량한대면_배차간격을_빼고_낸다() {
-        var tool = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
+        var tool = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper,
+                new com.wastesim.plan.PlanRounds(catalog, new com.wastesim.capability.CapabilityCardLoader(), mapper));
         var args = mapper.createObjectNode();
         var answers = args.putObject("answers");
         answers.put("numBuildings", 4);
@@ -78,7 +79,8 @@ class SesMcpToolsTest {
         var tools = java.util.List.of(
                 new GetCapabilityTool(new CapabilityCardLoader()),
                 new GetTemplatesTool(catalog, mapper),
-                new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper),
+                new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper,
+                new com.wastesim.plan.PlanRounds(catalog, new com.wastesim.capability.CapabilityCardLoader(), mapper)),
                 new ValidateAnswersTool(catalog, new AnswerNormalizer(), mapper),
                 buildTool());
         for (var t : tools) {

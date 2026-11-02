@@ -181,7 +181,8 @@ class CompletenessAndOriginTest {
 
     @Test
     void plan_subtasks_는_비교_값마다_계산해_합친다() throws Exception {
-        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
+        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper,
+                new com.wastesim.plan.PlanRounds(catalog, new com.wastesim.capability.CapabilityCardLoader(), mapper));
         ObjectNode args = mapper.createObjectNode();
         ObjectNode a = args.putObject("answers");
         a.put("numBuildings", 4);
@@ -204,7 +205,8 @@ class CompletenessAndOriginTest {
 
     @Test
     void 변수_없이_부르면_예전처럼_한_번_계산한다() throws Exception {
-        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
+        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper,
+                new com.wastesim.plan.PlanRounds(catalog, new com.wastesim.capability.CapabilityCardLoader(), mapper));
         ObjectNode args = mapper.createObjectNode();
         args.putObject("answers").put("numBuildings", 4).put("truckCount", 1);
         JsonNode out = mapper.readTree(plan.call(args).result().toString());

@@ -3,10 +3,14 @@ package com.wastesim.mcp.ses;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wastesim.mcp.McpToolProvider;
+import com.wastesim.plan.PlanRounds;
+import com.wastesim.template.SubtaskStatus;
 import com.wastesim.template.SubtaskPlan;
 import com.wastesim.template.SubtaskPlanner;
 import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.LinkedHashMap;
@@ -21,12 +25,16 @@ import java.util.Map;
 @Component
 public class PlanSubtasksTool implements McpToolProvider {
 
+    private static final Logger callLog = LoggerFactory.getLogger("mcp.calls");
+
     private final SubtaskPlanner planner;
     private final ObjectMapper mapper;
+    private final PlanRounds rounds;
 
-    public PlanSubtasksTool(SubtaskPlanner planner, ObjectMapper mapper) {
+    public PlanSubtasksTool(SubtaskPlanner planner, ObjectMapper mapper, PlanRounds rounds) {
         this.planner = planner;
         this.mapper = mapper;
+        this.rounds = rounds;
     }
 
     @Override public String toolName() { return "plan_subtasks"; }
@@ -38,7 +46,9 @@ public class PlanSubtasksTool implements McpToolProvider {
                 + "먼저 정해야 할 답변키를 적는다 — UNFILLED 를 먼저 묻고, 보류는 그 뒤 다시 계산하면 풀린다. "
                 + "비교할 실험 변수가 정해졌으면 build_scenario 와 같은 variableAnswerKey · variableValues 를 함께 준다 — "
                 + "비교 값마다 계산해 합치므로 어떤 값에서만 생기는 결정도 한 번에 드러난다(onlyFor). "
-                + "mustAskNoDefault 의 결정은 기본값이 없어 사용자에게 물어 값을 받아야 한다.";
+                + "mustAskNoDefault 의 결정은 기본값이 없어 사용자에게 물어 값을 받아야 한다. "
+                + "응답의 planId 는 이 요청의 id 다 — 이후 호출에 이 planId 를 그대로 넣으십시오. "
+                + "답변 · 출처 · 실험 변수가 바뀌면 round 가 오르고 changes 에 상태가 바뀐 결정이 실린다.";
     }
 
     @Override
@@ -46,6 +56,9 @@ public class PlanSubtasksTool implements McpToolProvider {
         return """
             {"type":"object",
              "properties":{
+               "planId":{"type":"string","description":"(선택) 이전 응답의 planId. 없으면 새 요청으로 보고 새로 발급한다"},
+               "matchId":{"type":"string","description":"(선택) 브로커 매칭의 matchId. 기록에 함께 남긴다"},
+               "previousPlanId":{"type":"string","description":"(선택) 거절된 옛 planId. planId 없이 새로 시작할 때 주면 기록에 남긴다"},
                "answers":{"type":"object",
                  "description":"답변키 → 확정값. 예: {\\"numBuildings\\":4,\\"truckCount\\":3}. 실험 변수는 여기에 넣지 않고 variableValues 로 준다"},
                "origins":{"type":"object",
@@ -80,8 +93,23 @@ public class PlanSubtasksTool implements McpToolProvider {
             }
             SubtaskPlanner.Across across = planner.planAcross(answers, origins, variableKey, variableValues, ev);
             SubtaskPlan plan = across.plan();
+            PlanRounds.Step step;
+            try {
+                step = rounds.record(args.path("planId").asText(null), args.path("matchId").asText(null),
+                        args.path("previousPlanId").asText(null), args.path("answers"), args.path("origins"),
+                        variableKey, args.path("variableValues"), plan, across.waitingOn(), across.minRounds());
+            } catch (IllegalArgumentException e) {
+                return ToolFailure.of("planId", e.getMessage());
+            }
+            log(step, plan);
 
             var root = mapper.createObjectNode();
+            root.put("planId", step.planId());
+            root.put("round", step.round());
+            root.set("changes", mapper.valueToTree(step.changes()));
+            // 완료 단계의 minRounds 가 정본이다 — 초반에는 보류가 많아 작게 나오다 커질 수 있다.
+            root.putPOJO("completedAtRound", step.completedAtRound());
+            root.put("minRounds", step.minRounds());
             root.set("instances", mapper.valueToTree(plan.instances()));
             root.set("counts", mapper.valueToTree(plan.counts()));
             root.put("complete", plan.complete());
@@ -106,5 +134,24 @@ public class PlanSubtasksTool implements McpToolProvider {
         } catch (Exception e) {
             return ToolFailure.of("answers", "서브태스크 계획에 실패했습니다: " + e.getMessage());
         }
+    }
+
+    /** 예: [6 서브태스크] planId=plan-… 3단계 · 새로 채움 2 · 새로 생김 1 · 남음 4 · 완료 아님 */
+    private static void log(PlanRounds.Step step, SubtaskPlan plan) {
+        var c = plan.counts();
+        String rest = "남음 " + (c.get(SubtaskStatus.UNFILLED) + c.get(SubtaskStatus.DEFERRED))
+                + " · " + (plan.complete() ? "완료" : "완료 아님");
+        if (!step.newRound()) {
+            callLog.info("[6 서브태스크] planId={} {}단계 다시 확인 · {}", step.planId(), step.round(), rest);
+            return;
+        }
+        long filled = step.changes().stream().filter(x -> x.to().equals("FILLED")).count();
+        long born = step.changes().stream().filter(x -> active(x.to()) && !active(x.from())).count();
+        callLog.info("[6 서브태스크] planId={} {}단계 · 새로 채움 {} · 새로 생김 {} · {}",
+                step.planId(), step.round(), filled, born, rest);
+    }
+
+    private static boolean active(String status) {
+        return "UNFILLED".equals(status) || "FILLED".equals(status);
     }
 }

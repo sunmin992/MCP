@@ -37,7 +37,8 @@ class MultiCollectionTimesTest {
             new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
             new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
     private final BuildScenarioTool build = new BuildScenarioTool(builder, store, catalog, mapper);
-    private final PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
+    private final PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper,
+                new com.wastesim.plan.PlanRounds(catalog, new com.wastesim.capability.CapabilityCardLoader(), mapper));
     private final ValidateAnswersTool validate =
             new ValidateAnswersTool(catalog, new AnswerNormalizer(), mapper);
 
