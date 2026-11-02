@@ -103,7 +103,7 @@ class TemplateCatalogTest {
     @Test
     void 정상_리소스는_두_식별자를_모두_돌려준다() {
         assertEquals("jangnyang-ses", catalog.sesId());
-        assertEquals("1.0.0", catalog.sesVersion());
+        assertEquals("1.1.0", catalog.sesVersion());
     }
 
     private static String capitalize(String s) {

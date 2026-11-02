@@ -1,297 +1,378 @@
 {
-  "sesId": "jangnyang-ses",
-  "sesVersion": "1.0.0",
-  "templates": [
+  "sesId" : "jangnyang-ses",
+  "sesVersion" : "1.1.0",
+  "templates" : [
     {
-      "templateId": "jn.truckType",
-      "answerKey": "truckType", "label": "차량 크기",
-      "valueType": "ENUM",
-      "generateWhen": "ALWAYS",
-      "allowed": [
+      "templateId" : "jn.truckType",
+      "answerKey" : "truckType",
+      "label" : "차량 크기",
+      "valueType" : "ENUM",
+      "generateWhen" : "ALWAYS",
+      "allowed" : [
         "LARGE_5TON",
         "MEDIUM_2P5T",
         "SMALL_1TON"
       ],
-      "defaultValue": "LARGE_5TON",
-      "defaultBasis": "SimulationConfig 초기값",
-      "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
-      "configField": "truckType",
-      "sesPath": "수거차량집합/차량유형",
-      "nodeKind": "SPECIALIZATION"
+      "defaultValue" : "LARGE_5TON",
+      "defaultBasis" : "SimulationConfig 초기값",
+      "question" : "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+      "configField" : "truckType",
+      "sesPath" : "수거차량집합/차량유형",
+      "nodeKind" : "SPECIALIZATION"
     },
     {
-      "templateId": "jn.truckCount",
-      "answerKey": "truckCount", "label": "차량 대수",
-      "valueType": "INTEGER",
-      "generateWhen": "ALWAYS",
-      "min": 1,
-      "defaultValue": 1,
-      "defaultBasis": "numTrucks 초기값",
-      "question": "수거차량은 몇 대인가요? (1 이상)",
-      "configField": "numTrucks",
-      "sesPath": "수거차량집합",
-      "nodeKind": "MULTI_ASPECT"
+      "templateId" : "jn.truckCount",
+      "answerKey" : "truckCount",
+      "label" : "차량 대수",
+      "valueType" : "INTEGER",
+      "generateWhen" : "ALWAYS",
+      "min" : 1,
+      "defaultValue" : 1,
+      "defaultBasis" : "numTrucks 초기값",
+      "question" : "수거차량은 몇 대인가요? (1 이상)",
+      "configField" : "numTrucks",
+      "sesPath" : "수거차량집합",
+      "nodeKind" : "MULTI_ASPECT"
     },
     {
-      "templateId": "jn.dispatchInterval",
-      "answerKey": "dispatchIntervalMinutes", "label": "배차 간격(분)",
-      "valueType": "INTEGER",
-      "generateWhen": {"all": [{"gte": ["numBuildings", 2]}, {"gte": ["truckCount", 2]}]},
-      "min": 0,
-      "max": 1439,
-      "unit": "minute",
-      "defaultValue": 0,
-      "defaultBasis": "dispatchIntervalMinutes 초기값",
-      "question": "차량 간 배차 간격을 몇 분으로 할까요?",
-      "configField": "dispatchIntervalMinutes",
-      "sesPath": "수거차량집합/배차간격",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.dispatchInterval",
+      "answerKey" : "dispatchIntervalMinutes",
+      "label" : "배차 간격(분)",
+      "valueType" : "INTEGER",
+      "generateWhen" : {
+        "all" : [
+          {
+            "gte" : [
+              "numBuildings",
+              2
+            ]
+          },
+          {
+            "gte" : [
+              "truckCount",
+              2
+            ]
+          }
+        ]
+      },
+      "min" : 0,
+      "max" : 1439,
+      "unit" : "minute",
+      "defaultValue" : 0,
+      "defaultBasis" : "dispatchIntervalMinutes 초기값",
+      "question" : "차량 간 배차 간격을 몇 분으로 할까요?",
+      "configField" : "dispatchIntervalMinutes",
+      "sesPath" : "수거차량집합/배차간격",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.collectionTime",
-      "answerKey": "collectionTimeMinutes", "label": "수거 시각(자정부터 분)",
-      "valueType": "INTEGER",
-      "generateWhen": {"not": {"given": "collectionTimesMinutes"}},
-      "min": 0,
-      "max": 1439,
-      "unit": "minute",
-      "defaultValue": 720,
-      "defaultBasis": "collectionTimeMinutes 초기값",
-      "question": "하루 중 몇 시에 수거할까요?",
-      "configField": "collectionTimeMinutes",
-      "sesPath": "실험프레임/수거시각",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.collectionTime",
+      "answerKey" : "collectionTimeMinutes",
+      "label" : "수거 시각(자정부터 분)",
+      "valueType" : "INTEGER",
+      "generateWhen" : {
+        "not" : {
+          "given" : "collectionTimesMinutes"
+        }
+      },
+      "min" : 0,
+      "max" : 1439,
+      "unit" : "minute",
+      "defaultValue" : 720,
+      "defaultBasis" : "collectionTimeMinutes 초기값",
+      "question" : "하루 중 몇 시에 수거할까요?",
+      "configField" : "collectionTimeMinutes",
+      "sesPath" : "실험프레임/수거시각",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.collectionTimes",
-      "answerKey": "collectionTimesMinutes", "label": "하루 수거 시각 목록(자정부터 분)",
-      "valueType": "INTEGER_LIST",
-      "generateWhen": {"given": "collectionTimesMinutes"},
-      "min": 0,
-      "max": 1439,
-      "unit": "minute",
-      "defaultValue": null,
-      "defaultBasis": "없음 — 하루 1회가 기본이고, 여러 번이면 시각을 사람이 확인한다",
-      "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
-      "configField": "collectionTimesMinutes",
-      "sesPath": "실험프레임/하루수거시각",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.collectionTimes",
+      "answerKey" : "collectionTimesMinutes",
+      "label" : "하루 수거 시각 목록(자정부터 분)",
+      "valueType" : "INTEGER_LIST",
+      "generateWhen" : {
+        "given" : "collectionTimesMinutes"
+      },
+      "min" : 0,
+      "max" : 1439,
+      "unit" : "minute",
+      "defaultValue" : null,
+      "defaultBasis" : "없음 — 하루 1회가 기본이고, 여러 번이면 시각을 사람이 확인한다",
+      "question" : "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+      "configField" : "collectionTimesMinutes",
+      "sesPath" : "실험프레임/하루수거시각",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.trafficMode",
-      "answerKey": "trafficMode", "label": "교통 반영 여부",
-      "valueType": "ENUM",
-      "generateWhen": "ALWAYS",
-      "allowed": [
+      "templateId" : "jn.trafficMode",
+      "answerKey" : "trafficMode",
+      "label" : "교통 반영 여부",
+      "valueType" : "ENUM",
+      "generateWhen" : "ALWAYS",
+      "allowed" : [
         "APPLY",
         "IGNORE"
       ],
-      "defaultValue": "IGNORE",
-      "defaultBasis": "trafficEnabled = false",
-      "question": "교통량을 반영할까요?",
-      "configField": "trafficEnabled",
-      "sesPath": "경로교통/교통결합",
-      "nodeKind": "COUPLING_CONDITION"
+      "defaultValue" : "IGNORE",
+      "defaultBasis" : "trafficEnabled = false",
+      "question" : "교통량을 반영할까요?",
+      "configField" : "trafficEnabled",
+      "sesPath" : "경로교통/교통결합",
+      "nodeKind" : "COUPLING_CONDITION"
     },
     {
-      "templateId": "jn.trafficProfile",
-      "answerKey": "trafficProfileId", "label": "교통 프로파일",
-      "valueType": "STRING",
-      "generateWhen": {"eq": ["trafficMode", "APPLY"]},
-      "allowed": [
+      "templateId" : "jn.trafficProfile",
+      "answerKey" : "trafficProfileId",
+      "label" : "교통 프로파일",
+      "valueType" : "STRING",
+      "generateWhen" : {
+        "eq" : [
+          "trafficMode",
+          "APPLY"
+        ]
+      },
+      "allowed" : [
         "jangryang-weekday",
         "jangryang-volume-weekday"
       ],
-      "defaultValue": "jangryang-weekday",
-      "defaultBasis": "TrafficDataService.DEFAULT_PROFILE_ID",
-      "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
-      "configField": "trafficProfileId",
-      "sesPath": "경로교통/교통구역집합/프로파일",
-      "nodeKind": "ATTRIBUTE"
+      "defaultValue" : "jangryang-weekday",
+      "defaultBasis" : "TrafficDataService.DEFAULT_PROFILE_ID",
+      "question" : "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+      "configField" : "trafficProfileId",
+      "sesPath" : "경로교통/교통구역집합/프로파일",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.travelTimeMode",
-      "answerKey": "travelTimeMode", "label": "이동시간 계산 방식",
-      "valueType": "ENUM",
-      "generateWhen": "ALWAYS",
-      "allowed": [
+      "templateId" : "jn.travelTimeMode",
+      "answerKey" : "travelTimeMode",
+      "label" : "이동시간 계산 방식",
+      "valueType" : "ENUM",
+      "generateWhen" : "ALWAYS",
+      "allowed" : [
         "LEGACY_CONSTANT",
         "ZONE_PROXY_HYBRID"
       ],
-      "defaultValue": "LEGACY_CONSTANT",
-      "defaultBasis": "travelTimeMode 초기값",
-      "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
-      "configField": "travelTimeMode",
-      "sesPath": "경로교통/이동시간",
-      "nodeKind": "SPECIALIZATION"
+      "defaultValue" : "LEGACY_CONSTANT",
+      "defaultBasis" : "travelTimeMode 초기값",
+      "question" : "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+      "configField" : "travelTimeMode",
+      "sesPath" : "경로교통/이동시간",
+      "nodeKind" : "SPECIALIZATION"
     },
     {
-      "templateId": "jn.zoneAssignmentRule",
-      "answerKey": "zoneAssignmentRule", "label": "구역 배정 방식",
-      "valueType": "ENUM",
-      "generateWhen": {"all": [{"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}, {"gt": ["numBuildings", 4]}]},
-      "allowed": [
+      "templateId" : "jn.zoneAssignmentRule",
+      "answerKey" : "zoneAssignmentRule",
+      "label" : "구역 배정 방식",
+      "valueType" : "ENUM",
+      "generateWhen" : {
+        "all" : [
+          {
+            "eq" : [
+              "travelTimeMode",
+              "ZONE_PROXY_HYBRID"
+            ]
+          },
+          {
+            "gt" : [
+              "numBuildings",
+              4
+            ]
+          }
+        ]
+      },
+      "allowed" : [
         "CONTIGUOUS",
         "ROUND_ROBIN"
       ],
-      "defaultValue": null,
-      "defaultBasis": null,
-      "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
-      "configField": "zoneAssignmentRule",
-      "sesPath": "경로교통/구역배정",
-      "nodeKind": "ATTRIBUTE"
+      "defaultValue" : null,
+      "defaultBasis" : null,
+      "question" : "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+      "configField" : "zoneAssignmentRule",
+      "sesPath" : "경로교통/구역배정",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.intraZoneTravel",
-      "answerKey": "intraZoneTravelMinutes", "label": "구역 내 이동시간(분)",
-      "valueType": "INTEGER",
-      "generateWhen": {"all": [{"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}, {"gt": ["numBuildings", 4]}, {"eq": ["zoneAssignmentRule", "CONTIGUOUS"]}]},
-      "min": 0,
-      "unit": "minute",
-      "defaultValue": null,
-      "defaultBasis": null,
-      "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
-      "configField": "intraZoneTravelMinutes",
-      "sesPath": "경로교통/구역내이동",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.intraZoneTravel",
+      "answerKey" : "intraZoneTravelMinutes",
+      "label" : "구역 내 이동시간(분)",
+      "valueType" : "INTEGER",
+      "generateWhen" : {
+        "all" : [
+          {
+            "eq" : [
+              "travelTimeMode",
+              "ZONE_PROXY_HYBRID"
+            ]
+          },
+          {
+            "gt" : [
+              "numBuildings",
+              4
+            ]
+          },
+          {
+            "eq" : [
+              "zoneAssignmentRule",
+              "CONTIGUOUS"
+            ]
+          }
+        ]
+      },
+      "min" : 0,
+      "unit" : "minute",
+      "defaultValue" : null,
+      "defaultBasis" : null,
+      "question" : "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+      "configField" : "intraZoneTravelMinutes",
+      "sesPath" : "경로교통/구역내이동",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.numBuildings",
-      "answerKey": "numBuildings", "label": "건물 수",
-      "valueType": "INTEGER",
-      "generateWhen": "ALWAYS",
-      "min": 1,
-      "max": 26,
-      "defaultValue": 4,
-      "defaultBasis": "numBuildings 초기값 (논문 기준선)",
-      "question": "건물은 몇 동인가요? (1~26동)",
-      "configField": "numBuildings",
-      "sesPath": "건물집합",
-      "nodeKind": "MULTI_ASPECT"
+      "templateId" : "jn.numBuildings",
+      "answerKey" : "numBuildings",
+      "label" : "건물 수",
+      "valueType" : "INTEGER",
+      "generateWhen" : "ALWAYS",
+      "min" : 1,
+      "max" : 26,
+      "defaultValue" : 4,
+      "defaultBasis" : "numBuildings 초기값 (논문 기준선)",
+      "question" : "건물은 몇 동인가요? (1~26동)",
+      "configField" : "numBuildings",
+      "sesPath" : "건물집합",
+      "nodeKind" : "MULTI_ASPECT"
     },
     {
-      "templateId": "jn.residentsPerBuilding",
-      "answerKey": "residentsPerBuilding", "label": "동당 세대 수",
-      "valueType": "INTEGER",
-      "generateWhen": "ALWAYS",
-      "min": 1,
-      "defaultValue": 25,
-      "defaultBasis": "residentsPerBuilding 초기값 (논문 기준선)",
-      "question": "한 동에 몇 세대인가요?",
-      "configField": "residentsPerBuilding",
-      "sesPath": "건물/거주민집합",
-      "nodeKind": "MULTI_ASPECT"
+      "templateId" : "jn.residentsPerBuilding",
+      "answerKey" : "residentsPerBuilding",
+      "label" : "동당 세대 수",
+      "valueType" : "INTEGER",
+      "generateWhen" : "ALWAYS",
+      "min" : 1,
+      "defaultValue" : 25,
+      "defaultBasis" : "residentsPerBuilding 초기값 (논문 기준선)",
+      "question" : "한 동에 몇 세대인가요?",
+      "configField" : "residentsPerBuilding",
+      "sesPath" : "건물/거주민집합",
+      "nodeKind" : "MULTI_ASPECT"
     },
     {
-      "templateId": "jn.occupationMix",
-      "answerKey": "occupationMix", "label": "직업 구성",
-      "valueType": "ENUM_LIST",
-      "generateWhen": "ALWAYS",
-      "allowed": [
+      "templateId" : "jn.occupationMix",
+      "answerKey" : "occupationMix",
+      "label" : "직업 구성",
+      "valueType" : "ENUM_LIST",
+      "generateWhen" : "ALWAYS",
+      "allowed" : [
         "BlueCollar",
         "Student",
         "Housewife",
         "NightShift",
         "OfficeWorker"
       ],
-      "defaultValue": [
+      "defaultValue" : [
         "BlueCollar",
         "Student",
         "Housewife"
       ],
-      "defaultBasis": "OccupationType.baseMix (논문 기준선) — 4동×25명이면 34/33/33",
-      "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
-      "configField": "occupationMix",
-      "sesPath": "건물/거주민집합/직업구성",
-      "nodeKind": "SPECIALIZATION"
+      "defaultBasis" : "OccupationType.baseMix (논문 기준선) — 4동×25명이면 34/33/33",
+      "question" : "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+      "configField" : "occupationMix",
+      "sesPath" : "건물/거주민집합/직업구성",
+      "nodeKind" : "SPECIALIZATION"
     },
     {
-      "templateId": "jn.dischargeTimeMode",
-      "answerKey": "dischargeTimeMode", "label": "배출 시간 모델",
-      "valueType": "ENUM",
-      "generateWhen": "ALWAYS",
-      "allowed": [
+      "templateId" : "jn.dischargeTimeMode",
+      "answerKey" : "dischargeTimeMode",
+      "label" : "배출 시간 모델",
+      "valueType" : "ENUM",
+      "generateWhen" : "ALWAYS",
+      "allowed" : [
         "PAPER_BASELINE",
         "POHANG_ACTUAL"
       ],
-      "defaultValue": "PAPER_BASELINE",
-      "defaultBasis": "dischargeTimeMode 초기값 — 직업별 배출 시각(논문 기준선)",
-      "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
-      "configField": "dischargeTimeMode",
-      "sesPath": "건물/거주민집합/배출시간",
-      "nodeKind": "SPECIALIZATION"
+      "defaultValue" : "PAPER_BASELINE",
+      "defaultBasis" : "dischargeTimeMode 초기값 — 직업별 배출 시각(논문 기준선)",
+      "question" : "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+      "configField" : "dischargeTimeMode",
+      "sesPath" : "건물/거주민집합/배출시간",
+      "nodeKind" : "SPECIALIZATION"
     },
     {
-      "templateId": "jn.days",
-      "answerKey": "days", "label": "기간(일)",
-      "valueType": "INTEGER",
-      "generateWhen": "ALWAYS",
-      "min": 1,
-      "max": 365,
-      "defaultValue": 30,
-      "defaultBasis": "days 초기값",
-      "question": "며칠치를 볼까요? (1~365일)",
-      "configField": "days",
-      "sesPath": "실험프레임/기간",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.days",
+      "answerKey" : "days",
+      "label" : "기간(일)",
+      "valueType" : "INTEGER",
+      "generateWhen" : "ALWAYS",
+      "min" : 1,
+      "max" : 365,
+      "defaultValue" : 30,
+      "defaultBasis" : "days 초기값",
+      "question" : "며칠치를 볼까요? (1~365일)",
+      "configField" : "days",
+      "sesPath" : "실험프레임/기간",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.seeds",
-      "answerKey": "seeds", "label": "반복 횟수",
-      "valueType": "INTEGER",
-      "generateWhen": "ALWAYS",
-      "min": 1,
-      "max": 100,
-      "defaultValue": 30,
-      "defaultBasis": "seeds 초기값",
-      "question": "몇 번 반복할까요? (1~100회)",
-      "configField": "seeds",
-      "sesPath": "실험프레임/반복",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.seeds",
+      "answerKey" : "seeds",
+      "label" : "반복 횟수",
+      "valueType" : "INTEGER",
+      "generateWhen" : "ALWAYS",
+      "min" : 1,
+      "max" : 100,
+      "defaultValue" : 30,
+      "defaultBasis" : "seeds 초기값",
+      "question" : "몇 번 반복할까요? (1~100회)",
+      "configField" : "seeds",
+      "sesPath" : "실험프레임/반복",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.routeAvailableCapacity",
-      "answerKey": "routeAvailableCapacityKg", "label": "경로 가용 용량(kg)",
-      "valueType": "NUMBER",
-      "generateWhen": "ALWAYS",
-      "allowed": [],
-      "min": null,
-      "max": null,
-      "unit": "kg",
-      "defaultValue": null,
-      "defaultBasis": "고정 기본값 없음 — 선택 차종의 정격용량(5톤 5000kg · 2.5톤 2500kg · 1톤 1000kg)을 기본값으로 제안한다(plan_subtasks 의 derivedDefaults). 정격 전체면 이 블록 규모에서 가동률·미수거 축이 작동하지 않는다",
-      "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
-      "configField": "routeAvailableCapacityKg",
-      "sesPath": "수거차량집합/경로적재몫",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.routeAvailableCapacity",
+      "answerKey" : "routeAvailableCapacityKg",
+      "label" : "경로 가용 용량(kg)",
+      "valueType" : "NUMBER",
+      "generateWhen" : "ALWAYS",
+      "allowed" : [ ],
+      "min" : null,
+      "max" : null,
+      "unit" : "kg",
+      "defaultValue" : null,
+      "defaultBasis" : "고정 기본값 없음 — 선택 차종의 정격용량(5톤 5000kg · 2.5톤 2500kg · 1톤 1000kg)을 기본값으로 제안한다(plan_subtasks 의 derivedDefaults). 정격 전체면 이 블록 규모에서 가동률·미수거 축이 작동하지 않는다",
+      "question" : "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+      "configField" : "routeAvailableCapacityKg",
+      "sesPath" : "수거차량집합/경로적재몫",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.binCapacity",
-      "answerKey": "binCapacityKg", "label": "수거장 용량(kg)",
-      "valueType": "NUMBER",
-      "generateWhen": "ALWAYS",
-      "min": 0,
-      "unit": "kg",
-      "defaultValue": 30.0,
-      "defaultBasis": "capacity 초기값 — 원룸 건물 하나의 쓰레기장 용량",
-      "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
-      "configField": "capacity",
-      "sesPath": "수거장/용량",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.binCapacity",
+      "answerKey" : "binCapacityKg",
+      "label" : "수거장 용량(kg)",
+      "valueType" : "NUMBER",
+      "generateWhen" : "ALWAYS",
+      "min" : 0,
+      "unit" : "kg",
+      "defaultValue" : 30.0,
+      "defaultBasis" : "capacity 초기값 — 원룸 건물 하나의 쓰레기장 용량",
+      "question" : "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+      "configField" : "capacity",
+      "sesPath" : "수거장/용량",
+      "nodeKind" : "ATTRIBUTE"
     },
     {
-      "templateId": "jn.complaintThreshold",
-      "answerKey": "complaintThreshold", "label": "민원 임계(적재율)",
-      "valueType": "NUMBER",
-      "generateWhen": "ALWAYS",
-      "min": 0,
-      "max": 1,
-      "defaultValue": 0.8,
-      "defaultBasis": "threshold 초기값",
-      "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
-      "configField": "threshold",
-      "sesPath": "민원감시/임계",
-      "nodeKind": "ATTRIBUTE"
+      "templateId" : "jn.complaintThreshold",
+      "answerKey" : "complaintThreshold",
+      "label" : "민원 임계(적재율)",
+      "valueType" : "NUMBER",
+      "generateWhen" : "ALWAYS",
+      "min" : 0,
+      "max" : 1,
+      "defaultValue" : 0.8,
+      "defaultBasis" : "threshold 초기값",
+      "question" : "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+      "configField" : "threshold",
+      "sesPath" : "민원감시/임계",
+      "nodeKind" : "ATTRIBUTE"
     }
   ]
 }
