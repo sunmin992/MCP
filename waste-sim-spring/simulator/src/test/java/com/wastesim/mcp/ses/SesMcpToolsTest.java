@@ -29,7 +29,7 @@ class SesMcpToolsTest {
         ScenarioBuilder builder = new ScenarioBuilder(
                 new PesFlattener(catalog), new PesBackVerifier(catalog),
                 new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
-            new com.wastesim.template.SubtaskPlanner(catalog));
+            new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
         return new BuildScenarioTool(builder, new ScenarioStore(), catalog, mapper);
     }
 
@@ -54,7 +54,7 @@ class SesMcpToolsTest {
 
     @Test
     void 계획_도구가_차량한대면_배차간격을_빼고_낸다() {
-        var tool = new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper);
+        var tool = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
         var args = mapper.createObjectNode();
         var answers = args.putObject("answers");
         answers.put("numBuildings", 4);
@@ -78,7 +78,7 @@ class SesMcpToolsTest {
         var tools = java.util.List.of(
                 new GetCapabilityTool(new CapabilityCardLoader()),
                 new GetTemplatesTool(catalog, mapper),
-                new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper),
+                new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper),
                 new ValidateAnswersTool(catalog, new AnswerNormalizer(), mapper),
                 buildTool());
         for (var t : tools) {
@@ -96,7 +96,7 @@ class SesMcpToolsTest {
         ScenarioBuilder builder = new ScenarioBuilder(
                 new PesFlattener(catalog), new PesBackVerifier(catalog),
                 new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
-            new com.wastesim.template.SubtaskPlanner(catalog));
+            new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
         var tool = new BuildScenarioTool(builder, store, catalog, mapper);
 
         var args = mapper.createObjectNode();

@@ -1,5 +1,6 @@
 package com.wastesim;
 
+import com.wastesim.template.AnswerNormalizer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -21,7 +22,7 @@ import java.util.Map;
 public final class TestScenarioRequests {
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final SubtaskPlanner PLANNER = new SubtaskPlanner(new TemplateCatalog());
+    private static final SubtaskPlanner PLANNER = new SubtaskPlanner(new TemplateCatalog(), new AnswerNormalizer());
 
     /** 물어야 할 결정이 열리면 채울 값. 기본값이 없는 결정(적재 몫 · 구역 배정 · 구역 내 이동)도 여기서 정한다. */
     private static final Map<String, Object> FILL = new LinkedHashMap<>();

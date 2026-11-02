@@ -16,10 +16,15 @@ import java.util.Map;
 @Component
 public class SubtaskPlanner {
 
-    private final TemplateCatalog catalog;
+    private static final com.fasterxml.jackson.databind.ObjectMapper JSON =
+            new com.fasterxml.jackson.databind.ObjectMapper();
 
-    public SubtaskPlanner(TemplateCatalog catalog) {
+    private final TemplateCatalog catalog;
+    private final AnswerNormalizer normalizer;
+
+    public SubtaskPlanner(TemplateCatalog catalog, AnswerNormalizer normalizer) {
         this.catalog = catalog;
+        this.normalizer = normalizer;
     }
 
     public SubtaskPlan plan(Map<String, Object> answers) {
@@ -41,21 +46,44 @@ public class SubtaskPlanner {
      *                "사용자가 말했다" 고 넘겨짚으면 기본값으로 채운 값과 구별되지 않는다.
      */
     public SubtaskPlan plan(Map<String, Object> answers, Map<String, String> origins) {
+        // 형식 검사를 통과한 값만 정규화된 모양("4" → 4)으로 담는다. 생성 조건도 이 맵으로 판정한다 —
+        // 잘못된 값으로 가지를 정하지 않는다. 떨어진 값에 기대는 결정은 그래서 보류가 된다.
+        Map<String, AnswerNormalizer.NormalizeResult> checked = new java.util.HashMap<>();
+        Map<String, Object> passed = new java.util.HashMap<>();
+        for (SubtaskTemplate t : catalog.all()) {
+            Object raw = answers.get(t.answerKey());
+            if (raw == null) continue;
+            AnswerNormalizer.NormalizeResult r = normalize(t, raw);
+            checked.put(t.answerKey(), r);
+            if (r.ok()) passed.put(t.answerKey(), r.value());
+        }
         List<SubtaskInstance> out = new ArrayList<>();
         for (SubtaskTemplate t : catalog.all()) {
-            Activation activation = t.generateWhen().evaluate(answers);
-            SubtaskStatus status = switch (activation) {
+            AnswerNormalizer.NormalizeResult r = checked.get(t.answerKey());
+            SubtaskStatus status = switch (t.generateWhen().evaluate(passed)) {
                 case INACTIVE -> SubtaskStatus.NOT_GENERATED;
                 case UNKNOWN -> SubtaskStatus.DEFERRED;
-                case ACTIVE -> answers.get(t.answerKey()) != null
-                        ? SubtaskStatus.FILLED : SubtaskStatus.UNFILLED;
+                case ACTIVE -> r != null && r.ok() ? SubtaskStatus.FILLED : SubtaskStatus.UNFILLED;
             };
-            Object value = status == SubtaskStatus.FILLED ? answers.get(t.answerKey()) : null;
-            String origin = status == SubtaskStatus.FILLED ? origins.get(t.answerKey()) : null;
-            out.add(new SubtaskInstance(
-                    t.templateId(), t.answerKey(), status, value, origin, t.question()));
+            boolean filled = status == SubtaskStatus.FILLED;
+            SubtaskInstance.Reason reason = status == SubtaskStatus.UNFILLED && r != null
+                    ? new SubtaskInstance.Reason(r.errorCode(), r.message()) : null;
+            out.add(new SubtaskInstance(t.templateId(), t.answerKey(), status,
+                    filled ? r.value() : null, filled ? origins.get(t.answerKey()) : null, t.question(),
+                    reason, filled ? "NOT_CHECKED" : null));
         }
         return new SubtaskPlan(out);
+    }
+
+    /** 정규화기는 문자열을 받는다 — 목록은 JSON 배열로, 나머지는 그대로 글자로 넘긴다. */
+    private AnswerNormalizer.NormalizeResult normalize(SubtaskTemplate t, Object raw) {
+        String s;
+        try {
+            s = raw instanceof java.util.Collection<?> ? JSON.writeValueAsString(raw) : String.valueOf(raw);
+        } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
+            s = String.valueOf(raw);
+        }
+        return normalizer.normalize(t, s);
     }
 
     /**
@@ -125,8 +153,23 @@ public class SubtaskPlanner {
                 if (i.status() == SubtaskStatus.DEFERRED) waits.addAll(waitingOn(i.answerKey(), runAnswers.get(r)));
             }
             if (best.answerKey().equals(variableKey)) {
-                best = new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.FILLED,
-                        List.copyOf(values), origins.get(variableKey), best.question());
+                // 비교 값마다 형식을 본다. 하나라도 떨어지면 FILLED 로 덮지 않는다 — 첫 실패 사유를 단
+                // UNFILLED 로 두고, 떨어진 값은 onlyFor 에 실린다. 모두 통과하면 정규화된 값 목록으로 채운다.
+                // best 가 이 키의 인스턴스이므로 템플릿은 있다.
+                SubtaskTemplate t = catalog.byAnswerKey(variableKey).orElseThrow();
+                List<Object> normalized = new ArrayList<>();
+                SubtaskInstance.Reason firstFail = null;
+                for (Object v : values) {
+                    AnswerNormalizer.NormalizeResult r = v == null
+                            ? normalizer.normalize(t, null) : normalize(t, v);
+                    if (r.ok()) normalized.add(r.value());
+                    else if (firstFail == null) firstFail = new SubtaskInstance.Reason(r.errorCode(), r.message());
+                }
+                best = firstFail == null
+                        ? new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.FILLED,
+                                List.copyOf(normalized), origins.get(variableKey), best.question(), null, "NOT_CHECKED")
+                        : new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.UNFILLED,
+                                null, null, best.question(), firstFail, null);
             }
             merged.add(best);
             if (!unfilledFor.isEmpty() && unfilledFor.size() < values.size()) onlyFor.put(best.answerKey(), unfilledFor);

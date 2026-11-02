@@ -35,9 +35,9 @@ class MultiCollectionTimesTest {
     private final ScenarioBuilder builder = new ScenarioBuilder(
             new PesFlattener(catalog), new PesBackVerifier(catalog),
             new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
-            new com.wastesim.template.SubtaskPlanner(catalog));
+            new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
     private final BuildScenarioTool build = new BuildScenarioTool(builder, store, catalog, mapper);
-    private final PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper);
+    private final PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
     private final ValidateAnswersTool validate =
             new ValidateAnswersTool(catalog, new AnswerNormalizer(), mapper);
 

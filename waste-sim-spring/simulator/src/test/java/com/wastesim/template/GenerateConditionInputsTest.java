@@ -53,7 +53,7 @@ class GenerateConditionInputsTest {
 
     @Test
     void 보류된_결정은_기다리는_키를_알려준다() {
-        SubtaskPlanner planner = new SubtaskPlanner(catalog);
+        SubtaskPlanner planner = new SubtaskPlanner(catalog, new AnswerNormalizer());
         for (SubtaskInstance i : planner.plan(Map.of()).instances()) {
             if (i.status() == SubtaskStatus.DEFERRED) {
                 assertEquals(false, planner.waitingOn(i.answerKey(), Map.of()).isEmpty(),

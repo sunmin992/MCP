@@ -25,7 +25,7 @@ class ScenarioBuilderTest {
             new PesFlattener(catalog),
             new PesBackVerifier(catalog),
             new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
-            new com.wastesim.template.SubtaskPlanner(catalog));
+            new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
 
     private Pes basePes() {
         Map<String, Object> v = new LinkedHashMap<>();

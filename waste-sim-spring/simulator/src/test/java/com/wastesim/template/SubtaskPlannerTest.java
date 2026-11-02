@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.*;
  */
 class SubtaskPlannerTest {
 
-    private final SubtaskPlanner planner = new SubtaskPlanner(new TemplateCatalog());
+    private final SubtaskPlanner planner = new SubtaskPlanner(new TemplateCatalog(), new AnswerNormalizer());
 
     private SubtaskInstance find(SubtaskPlan plan, String templateId) {
         return plan.instances().stream()
@@ -256,5 +256,48 @@ class SubtaskPlannerTest {
         assertFalse(answered.containsKey("dispatchIntervalMinutes"), "UNFILLED 는 담기지 않는다");
         assertFalse(answered.containsKey("trafficProfileId"), "NOT_GENERATED 는 담기지 않는다");
         assertFalse(answered.containsKey("zoneAssignmentRule"), "DEFERRED 는 담기지 않는다");
+    }
+
+    @Test
+    void 범위_밖_값은_UNFILLED_와_사유() {
+        SubtaskPlan plan = planner.plan(Map.of("numBuildings", 99));
+        SubtaskInstance i = find(plan, "jn.numBuildings");
+        assertEquals(SubtaskStatus.UNFILLED, i.status());
+        assertNull(i.value());
+        assertEquals("OUT_OF_RANGE", i.reason().code());
+        assertFalse(plan.complete());
+    }
+
+    @Test
+    void 범위_안_값은_정규화되어_FILLED() {
+        SubtaskInstance i = find(planner.plan(Map.of("numBuildings", "4")), "jn.numBuildings");
+        assertEquals(SubtaskStatus.FILLED, i.status());
+        assertEquals(Integer.valueOf(4), i.value());
+        assertEquals("NOT_CHECKED", i.evidence());
+        assertNull(i.reason());
+    }
+
+    @Test
+    void 형식에서_떨어진_값은_조건_판정에_쓰지_않는다() {
+        SubtaskPlan plan = planner.plan(Map.of("truckCount", "세 대", "numBuildings", 4));
+        assertEquals(SubtaskStatus.UNFILLED, find(plan, "jn.truckCount").status());
+        assertEquals("NOT_A_NUMBER", find(plan, "jn.truckCount").reason().code());
+        assertEquals(SubtaskStatus.DEFERRED, find(plan, "jn.dispatchInterval").status());
+    }
+
+    @Test
+    void 비교_값_하나가_범위_밖이면_변수는_UNFILLED() {
+        SubtaskPlanner.Across a = planner.planAcross(Map.of(), Map.of(), "numBuildings", List.of(4, 99));
+        SubtaskInstance i = find(a.plan(), "jn.numBuildings");
+        assertEquals(SubtaskStatus.UNFILLED, i.status());
+        assertEquals("OUT_OF_RANGE", i.reason().code());
+        assertEquals(List.of(99), a.onlyFor().get("numBuildings"));
+    }
+
+    @Test
+    void 허용값_밖_열거값은_UNFILLED() {
+        SubtaskInstance i = find(planner.plan(Map.of("truckType", "TANK")), "jn.truckType");
+        assertEquals(SubtaskStatus.UNFILLED, i.status());
+        assertEquals("OUT_OF_CLOSURE", i.reason().code());
     }
 }

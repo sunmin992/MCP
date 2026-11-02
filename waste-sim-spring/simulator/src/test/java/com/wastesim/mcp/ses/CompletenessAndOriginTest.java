@@ -1,5 +1,6 @@
 package com.wastesim.mcp.ses;
 
+import com.wastesim.template.AnswerNormalizer;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
@@ -32,7 +33,7 @@ class CompletenessAndOriginTest {
     private final BuildScenarioTool build = new BuildScenarioTool(
             new ScenarioBuilder(new PesFlattener(catalog), new PesBackVerifier(catalog),
                     new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
-                    new SubtaskPlanner(catalog)),
+                    new SubtaskPlanner(catalog, new AnswerNormalizer())),
             store, catalog, mapper);
 
     /** 물어야 할 결정이 모두 들어 있는 장량동 PES. 출처는 모두 USER. */
@@ -180,7 +181,7 @@ class CompletenessAndOriginTest {
 
     @Test
     void plan_subtasks_는_비교_값마다_계산해_합친다() throws Exception {
-        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper);
+        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
         ObjectNode args = mapper.createObjectNode();
         ObjectNode a = args.putObject("answers");
         a.put("numBuildings", 4);
@@ -203,7 +204,7 @@ class CompletenessAndOriginTest {
 
     @Test
     void 변수_없이_부르면_예전처럼_한_번_계산한다() throws Exception {
-        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog), mapper);
+        PlanSubtasksTool plan = new PlanSubtasksTool(new SubtaskPlanner(catalog, new AnswerNormalizer()), mapper);
         ObjectNode args = mapper.createObjectNode();
         args.putObject("answers").put("numBuildings", 4).put("truckCount", 1);
         JsonNode out = mapper.readTree(plan.call(args).result().toString());

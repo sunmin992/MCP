@@ -32,7 +32,7 @@ class ExecutionConfirmationTest {
     private final ScenarioBuilder builder = new ScenarioBuilder(
             new PesFlattener(catalog), new PesBackVerifier(catalog),
             new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
-            new com.wastesim.template.SubtaskPlanner(catalog));
+            new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
     private final ExecutionConfirmation gate = new ExecutionConfirmation(store, builder);
 
     /** 시나리오를 하나 만들고 확인까지 마친 뒤 토큰을 돌려준다. */

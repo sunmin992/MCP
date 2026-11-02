@@ -5,6 +5,8 @@ package com.wastesim.template;
  *
  * @param origin 값의 출처. {@code USER} / {@code MODEL_DEFAULT} / {@code DERIVED} /
  *               {@code null}(값 없음). 미승인 기본값으로 실행되면 임의 가정으로 집계한다
+ * @param reason   UNFILLED 인 까닭. 형식 검사에서 떨어졌으면 정규화 코드와 메시지. 그 밖에는 {@code null}
+ * @param evidence 근거 검사 결과 {@code VERIFIED} / {@code UNVERIFIED} / {@code NOT_CHECKED}. FILLED 일 때만 있다
  */
 public record SubtaskInstance(
         String templateId,
@@ -12,5 +14,9 @@ public record SubtaskInstance(
         SubtaskStatus status,
         Object value,
         String origin,
-        String question) {
+        String question,
+        Reason reason,
+        String evidence) {
+
+    public record Reason(String code, String message) {}
 }

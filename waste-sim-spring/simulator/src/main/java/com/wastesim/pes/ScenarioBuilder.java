@@ -79,7 +79,8 @@ public class ScenarioBuilder {
                     String how = dflt == null
                             ? " (기본값이 없습니다 — 사용자에게 물어 값을 받으십시오. 질문의 예시 값을 대신 넣지 마십시오)"
                             : " (사용자가 기본값 " + dflt + " 을(를) 받아들였으면 그 값을 MODEL_DEFAULT 출처로 넣으십시오)";
-                    blocks.add(run + "물어야 할 결정 " + i.answerKey() + " — " + i.question() + how);
+                    String why = i.reason() == null ? "" : " — " + i.reason().message();
+                    blocks.add(run + "물어야 할 결정 " + i.answerKey() + " — " + i.question() + why + how);
                 }
             }
             for (SubtaskInstance i : instances) {

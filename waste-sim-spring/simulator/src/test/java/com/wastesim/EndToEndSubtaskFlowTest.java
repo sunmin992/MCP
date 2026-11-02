@@ -1,5 +1,6 @@
 package com.wastesim;
 
+import com.wastesim.template.AnswerNormalizer;
 import com.wastesim.model.SimulationConfig;
 import com.wastesim.model.SimulationResult;
 import com.wastesim.pes.ExperimentFrame;
@@ -38,13 +39,13 @@ class EndToEndSubtaskFlowTest {
     private static final int SEED = 42;
 
     private final TemplateCatalog catalog = new TemplateCatalog();
-    private final SubtaskPlanner planner = new SubtaskPlanner(catalog);
+    private final SubtaskPlanner planner = new SubtaskPlanner(catalog, new AnswerNormalizer());
     private final PesFlattener flattener = new PesFlattener(catalog);
     private final PesBackVerifier backVerifier = new PesBackVerifier(catalog);
     private final ScenarioBuilder builder = new ScenarioBuilder(
             flattener, backVerifier,
             new SimulationConfigValidator(new TrafficDataService(), CollectionSiteRegistry.empty()),
-            new com.wastesim.template.SubtaskPlanner(catalog));
+            new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
 
     /** 사용자가 "1톤 3대, 주택 4동 25세대, 30일" 이라고 답한 상태. */
     private Map<String, Object> answersFromUser() {
