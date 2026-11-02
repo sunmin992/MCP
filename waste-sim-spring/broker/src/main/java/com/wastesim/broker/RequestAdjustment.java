@@ -8,6 +8,7 @@ package com.wastesim.broker;
  *
  * @param axis           요청의 어느 칸인가 — domain · spatialScale · environmentConditions · objective
  * @param current        요청이 지금 적은 값
+ * @param classification 불일치(못 한다)인가 애매(적혀 있지 않아 모른다)인가
  * @param suggestion     이렇게 바꾸면 된다
  * @param reason         왜 지금은 안 되는가. 카드가 적은 사유를 그대로 옮긴다
  * @param changesPurpose 이 조정이 요청을 고치는 게 아니라 다른 질문을 하게 만드는가. 도메인이
@@ -16,6 +17,7 @@ package com.wastesim.broker;
 public record RequestAdjustment(
         String axis,
         String current,
+        Classification classification,
         String suggestion,
         String reason,
         boolean changesPurpose) {

@@ -49,6 +49,7 @@ public class CandidateMatcher {
     }
 
     private static final String UNWRITTEN = "적혀 있지 않음";
+    private static final String UNDECIDABLE = "카드가 이 칸을 적지 않아 할 수 있는지 판단할 수 없습니다";
 
     /**
      * 그대로 맞는 후보끼리 다른 항목. 브로커는 여기서 고르지 않는다 — 다른 점을 사용자에게 보이고
@@ -114,6 +115,7 @@ public class CandidateMatcher {
                                  List<String> matchedDomains) {
         List<String> reasons = new ArrayList<>();
         List<String> mismatches = new ArrayList<>();
+        List<String> ambiguities = new ArrayList<>();
         List<RequestAdjustment> adjustments = new ArrayList<>();
 
         if (domainMatched) {
@@ -124,15 +126,15 @@ public class CandidateMatcher {
             if (blocked != null) {
                 mismatches.add("도메인: " + profile.domain() + " — " + blocked.path("capability").asText()
                         + " 미지원. " + blocked.path("reason").asText());
-                adjustments.add(new RequestAdjustment("domain", profile.domain(),
+                adjustments.add(new RequestAdjustment("domain", profile.domain(), Classification.MISMATCH,
                         "이 서버는 " + blocked.path("capability").asText() + " 을(를) 다루지 않습니다"
                                 + alternativesSuffix(blocked),
                         blocked.path("reason").asText(), true));
             }
             if (matchedDomains.size() > 1) {
-                mismatches.add("도메인: " + profile.domain() + " — 서로 다른 도메인(" + String.join(", ", matchedDomains)
+                ambiguities.add("도메인: " + profile.domain() + " — 서로 다른 도메인(" + String.join(", ", matchedDomains)
                         + ")의 말이 함께 들어 있습니다");
-                adjustments.add(new RequestAdjustment("domain", profile.domain(),
+                adjustments.add(new RequestAdjustment("domain", profile.domain(), Classification.AMBIGUOUS,
                         "도메인을 '" + card.path("domainAliases").path(0).asText(text(card.path("domain")))
                                 + "' 하나로 정하면 이 서버를 쓸 수 있습니다",
                         "도메인이 둘 이상이면 브로커가 어느 시뮬레이션인지 정할 수 없습니다", false));
@@ -140,7 +142,7 @@ public class CandidateMatcher {
         } else {
             mismatches.add("도메인: " + profile.domain() + " 는 이 서버의 도메인("
                     + text(card.path("domain")) + ")이 아닙니다");
-            adjustments.add(new RequestAdjustment("domain", profile.domain(),
+            adjustments.add(new RequestAdjustment("domain", profile.domain(), Classification.MISMATCH,
                     "이 서버는 " + text(card.path("domainAliases")) + " 를 다룹니다. "
                             + "답할 수 있는 질문: " + answerableLabels(card),
                     "요청한 도메인을 다루지 않습니다 — 요청을 고치는 게 아니라 다른 질문을 하게 됩니다",
@@ -161,7 +163,7 @@ public class CandidateMatcher {
             } else {
                 mismatches.add("공간 규모: " + scale + " 는 이 서버의 분석 단위("
                         + unitLabel + ")와 맞지 않습니다");
-                adjustments.add(new RequestAdjustment("spatialScale", scale,
+                adjustments.add(new RequestAdjustment("spatialScale", scale, Classification.MISMATCH,
                         "공간 규모를 '" + unitLabel + "' 로 바꾸면 됩니다"
                                 + (blocked == null ? "" : alternativesSuffix(blocked)),
                         blocked != null ? blocked.path("reason").asText()
@@ -180,13 +182,13 @@ public class CandidateMatcher {
                     reasons.add("거주민: " + phrase + " → " + String.join(", ",
                             hit.stream().map(t -> t.path("key").asText()).toList()));
                 } else if (!types.isArray() || types.isEmpty()) {
-                    mismatches.add("거주민: " + phrase + " — 이 카드는 다루는 거주민을 적지 않았습니다");
-                    adjustments.add(new RequestAdjustment("population", phrase,
+                    ambiguities.add("거주민: " + phrase + " — 이 카드는 다루는 거주민을 적지 않았습니다");
+                    adjustments.add(new RequestAdjustment("population", phrase, Classification.AMBIGUOUS,
                             "'" + phrase + "' 조건을 빼면 됩니다",
-                            "이 카드는 다루는 거주민을 적지 않았습니다", false));
+                            UNDECIDABLE, false));
                 } else {
                     mismatches.add("거주민: " + phrase + " — 이 서버가 모델링하는 거주민에 없습니다");
-                    adjustments.add(new RequestAdjustment("population", phrase,
+                    adjustments.add(new RequestAdjustment("population", phrase, Classification.MISMATCH,
                             "이 서버가 다루는 거주민으로 바꾸면 됩니다: " + populationLabels(card),
                             "이 서버가 모델링하는 거주민에 없습니다", false));
                 }
@@ -204,7 +206,7 @@ public class CandidateMatcher {
                     mismatches.add("환경 조건: " + cond + " — "
                             + blocked.path("capability").asText() + " 미지원. "
                             + blocked.path("reason").asText());
-                    adjustments.add(new RequestAdjustment("environmentConditions", cond,
+                    adjustments.add(new RequestAdjustment("environmentConditions", cond, Classification.MISMATCH,
                             "'" + cond + "' 조건을 빼면 됩니다" + alternativesSuffix(blocked),
                             blocked.path("reason").asText(), false));
                     continue;
@@ -214,7 +216,7 @@ public class CandidateMatcher {
                     reasons.add("환경 조건: " + cond + " → " + supported.path("key").asText());
                 } else {
                     mismatches.add("환경 조건: " + cond + " — 이 카드가 다루는지 적혀 있지 않습니다");
-                    adjustments.add(new RequestAdjustment("environmentConditions", cond,
+                    adjustments.add(new RequestAdjustment("environmentConditions", cond, Classification.MISMATCH,
                             "'" + cond + "' 조건을 빼면 됩니다. 이 서버가 다루는 환경 조건: "
                                     + environmentKeys(card),
                             "이 카드가 다루는지 적혀 있지 않습니다", false));
@@ -223,14 +225,14 @@ public class CandidateMatcher {
         }
 
         // 목적 — 카드가 답할 수 있는 질문(objectiveMatchKeys)에 닿는가. 그 표가 없는 카드는
-        // 판단하지 않는다 — 적혀 있지 않은 것을 못 한다고 하면 안 된다.
+        // 못 한다고도 된다고도 하지 않고 애매로 둔다.
         String objective = profile.objective();
         if (objective != null) {
             JsonNode blocked = findUnsupported(card, objective);
             if (blocked != null) {
                 mismatches.add("목적: " + objective + " — " + blocked.path("capability").asText()
                         + " 미지원. " + blocked.path("reason").asText());
-                adjustments.add(new RequestAdjustment("objective", objective,
+                adjustments.add(new RequestAdjustment("objective", objective, Classification.MISMATCH,
                         "목적을 바꾸면 됩니다" + alternativesSuffix(blocked),
                         blocked.path("reason").asText(), false));
             } else {
@@ -246,16 +248,20 @@ public class CandidateMatcher {
                     // 도메인이 다르면 도메인 조정이 이미 답할 수 있는 질문을 보여 준다 — 같은 목록을
                     // 두 번 싣지 않는다.
                     if (domainMatched) {
-                        adjustments.add(new RequestAdjustment("objective", objective,
+                        adjustments.add(new RequestAdjustment("objective", objective, Classification.MISMATCH,
                                 "이 서버가 답할 수 있는 질문 가운데 하나로 바꾸면 됩니다: " + answerableLabels(card),
                                 "목적이 카드의 답할 수 있는 질문과 닿지 않습니다", false));
                     }
+                } else {
+                    ambiguities.add("목적: " + objective + " — 이 카드는 답할 수 있는 질문을 적지 않았습니다");
+                    adjustments.add(new RequestAdjustment("objective", objective, Classification.AMBIGUOUS,
+                            "카드가 답할 수 있는 질문을 적으면 판단할 수 있습니다", UNDECIDABLE, false));
                 }
             }
         }
 
         // 비교 축 — 바꿔 볼 것이 카드의 답할 수 있는 질문 · 환경 조건 · 거주민 가운데 하나에 닿는가.
-        // 목적과 같은 이유로 그 표가 없는 카드는 판단하지 않는다.
+        // 목적과 같은 이유로 그 표가 없는 카드는 애매로 둔다.
         if (profile.comparisonAxes() != null) {
             JsonNode objectives = card.path("applicability").path("objectiveMatchKeys");
             for (String axis : profile.comparisonAxes()) {
@@ -263,7 +269,7 @@ public class CandidateMatcher {
                 if (blocked != null) {
                     mismatches.add("비교 축: " + axis + " — " + blocked.path("capability").asText()
                             + " 미지원. " + blocked.path("reason").asText());
-                    adjustments.add(new RequestAdjustment("comparisonAxes", axis,
+                    adjustments.add(new RequestAdjustment("comparisonAxes", axis, Classification.MISMATCH,
                             "'" + axis + "' 대신 다른 것을 바꿔 보면 됩니다" + alternativesSuffix(blocked),
                             blocked.path("reason").asText(), false));
                     continue;
@@ -284,16 +290,21 @@ public class CandidateMatcher {
                     reasons.add("비교 축: " + axis + " → " + String.join(", ", hits));
                 } else if (objectives.isArray() && !objectives.isEmpty()) {
                     mismatches.add("비교 축: " + axis + " — 이 서버가 바꿔 볼 수 있는 것에 없습니다");
-                    adjustments.add(new RequestAdjustment("comparisonAxes", axis,
+                    adjustments.add(new RequestAdjustment("comparisonAxes", axis, Classification.MISMATCH,
                             "이 서버가 바꿔 볼 수 있는 것 가운데 하나로 바꾸면 됩니다: " + decisionLabels(card),
                             "비교 축이 카드의 결정 지점 · 답할 수 있는 질문 · 환경 조건과 닿지 않습니다", false));
+                } else {
+                    ambiguities.add("비교 축: " + axis + " — 이 카드는 답할 수 있는 질문을 적지 않았습니다");
+                    adjustments.add(new RequestAdjustment("comparisonAxes", axis, Classification.AMBIGUOUS,
+                            "'" + axis + "' 대신 이 서버가 바꿔 볼 수 있는 것을 고르면 됩니다: " + decisionLabels(card),
+                            UNDECIDABLE, false));
                 }
             }
         }
 
         return new MatchResult(card.path("serverId").asText(), card.path("name").asText(),
                 card.path("endpoint").asText(), card.path("fictional").asBoolean(false),
-                reasons, mismatches, adjustments);
+                reasons, mismatches, ambiguities, adjustments);
     }
 
     /** 슬러그로도, 카드가 선언한 말로도 맞는다. */

@@ -24,11 +24,13 @@ class FirstRoundAccuracyTest {
     /**
      * @param total              센 줄 수
      * @param falsePositives     요청을 그대로 받는다고 걸렸는데 기대 서버가 아닌 줄(가상 후보 제외)
-     * @param misses             기대 서버가 그대로는 못 받고 조정이 필요한 줄
+     * @param misses             기대 서버가 결과에 없거나, 불일치 조정이 하나라도 있어 막힌 줄
      * @param asked              기대 서버가 애매함만으로 막혀 되물어야 하는 줄
      * @param falsePositiveCases 잘못 걸린 줄의 runId 와 서버
+     * @param missCases          놓친 줄의 runId 와 서버
      */
-    record Score(int total, int falsePositives, int misses, int asked, List<String> falsePositiveCases) {}
+    record Score(int total, int falsePositives, int misses, int asked, List<String> falsePositiveCases,
+                 List<String> missCases) {}
 
     private final ObjectMapper mapper = new ObjectMapper();
     private final CandidateRegistry registry = registry();
@@ -77,6 +79,7 @@ class FirstRoundAccuracyTest {
     static Score measure(CandidateMatcher matcher, List<JsonNode> rows) {
         int fp = 0, miss = 0, asked = 0;
         List<String> fpCases = new ArrayList<>();
+        List<String> missCases = new ArrayList<>();
         for (JsonNode row : rows) {
             List<String> expected = new ArrayList<>();
             row.path("expectedServers").forEach(e -> expected.add(e.asText()));
@@ -87,14 +90,20 @@ class FirstRoundAccuracyTest {
                     fpCases.add(row.path("runId").asText() + " → " + m.serverId());
                 }
             }
-            // Task 2 전에는 분류가 없다 — 조정이 하나라도 있으면 모두 불일치로 센다.
-            // 되묻기(애매만으로 막힘)는 Task 2 전에는 0.
+            // 놓침: 기대 서버가 없거나 불일치 조정으로 막힘. 되묻기: 애매함만으로 막힘.
             for (String id : expected) {
                 MatchResult m = results.stream().filter(r -> r.serverId().equals(id)).findFirst().orElse(null);
-                if (m == null || (!m.fitsAsIs() && !m.requestAdjustments().isEmpty())) miss++;
+                boolean mismatched = m != null && m.requestAdjustments().stream()
+                        .anyMatch(a -> a.classification() == Classification.MISMATCH);
+                if (m == null || (!m.fitsAsIs() && mismatched)) {
+                    miss++;
+                    missCases.add(row.path("runId").asText() + " → " + id);
+                } else if (m.blockedOnlyByAmbiguity()) {
+                    asked++;
+                }
             }
         }
-        return new Score(rows.size(), fp, miss, asked, fpCases);
+        return new Score(rows.size(), fp, miss, asked, fpCases, missCases);
     }
 
     @Test
@@ -105,6 +114,8 @@ class FirstRoundAccuracyTest {
 
     @Test
     void 기준선을_출력한다() {
-        System.out.println(measure(matcher, all()));
+        Score s = measure(matcher, all());
+        assertEquals(54, s.total(), "정답 모음이 비었거나 잘렸다");
+        System.out.println(s);
     }
 }

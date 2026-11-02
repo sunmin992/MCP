@@ -129,9 +129,12 @@ class CandidateMatcherTest {
     }
 
     @Test
-    void 거주민을_적지_않은_카드는_거주민_조건에서_어긋난다() {
+    void 거주민을_적지_않은_카드는_거주민을_애매로_본다() {
         MatchResult d = byId(matcher.match(거주민_요청("학생이 많음")), "district-waste-sim");
-        assertTrue(String.join(" | ", d.mismatches()).contains("적지 않았습니다"), d.mismatches().toString());
+        assertTrue(String.join(" | ", d.ambiguities()).contains("적지 않았습니다"), d.ambiguities().toString());
+        assertTrue(d.mismatches().isEmpty(), d.mismatches().toString());
+        assertEquals(Classification.AMBIGUOUS, d.requestAdjustments().stream()
+                .filter(x -> x.axis().equals("population")).findFirst().orElseThrow().classification());
     }
 
     @Test
@@ -214,12 +217,13 @@ class CandidateMatcherTest {
     }
 
     @Test
-    void 도메인이_둘_섞이면_어느_서버도_그대로_맞지_않는다() throws Exception {
+    void 여러_도메인에_걸린_구절은_애매다() throws Exception {
         List<MatchResult> r = 쓰레기와_주차().match(new RequestProfile("주차장 쓰레기 수거", null, null, null, null));
         assertEquals(2, r.size());
         r.forEach(m -> {
             assertFalse(m.fitsAsIs(), "주차 서버와 쓰레기 서버가 한 CHOOSE 에 섞이면 안 된다: " + m.serverId());
-            assertTrue(m.requestAdjustments().stream().anyMatch(a -> a.axis().equals("domain")), m.toString());
+            assertTrue(m.requestAdjustments().stream().anyMatch(a -> a.axis().equals("domain")
+                    && a.classification() == Classification.AMBIGUOUS), m.toString());
         });
     }
 
@@ -242,5 +246,51 @@ class CandidateMatcherTest {
         MatchResult r = m.match(new RequestProfile("주차장", null, null, null, List.of("하루 도착 차량"))).get(0);
         assertTrue(r.fitsAsIs(), "답할 수 있는 질문에 없어도 결정 지점이면 바꿔 볼 수 있다: " + r.mismatches());
         assertTrue(String.join(" | ", r.reasons()).contains("이용자집합"), r.reasons().toString());
+    }
+
+    /** 목적 · 비교 축 · 거주민 표가 모두 없는 카드 한 장짜리 매칭기. */
+    private static CandidateMatcher 표가_없는_카드(boolean 거주민표) throws Exception {
+        var card = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
+                {"serverId":"bare","endpoint":"http://localhost:3/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"]%s}"""
+                .formatted(거주민표 ? ",\"populationTypes\":[{\"key\":\"Student\",\"matchKeys\":[\"학생\"]}]" : ""));
+        return new CandidateMatcher(new CandidateRegistry(card, "classpath*:/none/*.json"));
+    }
+
+    @Test
+    void 목적표가_없는_카드는_목적을_애매로_본다() throws Exception {
+        MatchResult r = 표가_없는_카드(false).match(new RequestProfile("쓰레기", null, null, "민원 최소", null)).get(0);
+        assertEquals(1, r.ambiguities().size(), r.ambiguities().toString());
+        assertTrue(r.mismatches().isEmpty());
+        assertFalse(r.fitsAsIs());
+        assertTrue(r.blockedOnlyByAmbiguity());
+    }
+
+    @Test
+    void 비교축표가_없는_카드는_비교축을_애매로_본다() throws Exception {
+        MatchResult r = 표가_없는_카드(false).match(new RequestProfile("쓰레기", null, null, null, List.of("아무 말"))).get(0);
+        assertEquals(1, r.requestAdjustments().size());
+        assertEquals(Classification.AMBIGUOUS, r.requestAdjustments().get(0).classification());
+        assertTrue(r.mismatches().isEmpty());
+    }
+
+    @Test
+    void 거주민을_적지_않은_카드는_거주민을_애매로_본다_단독() throws Exception {
+        MatchResult r = 표가_없는_카드(false).match(new RequestProfile("쓰레기", null, null, null, null, List.of("학생"))).get(0);
+        assertEquals(Classification.AMBIGUOUS, r.requestAdjustments().get(0).classification());
+        MatchResult ok = 표가_없는_카드(true).match(new RequestProfile("쓰레기", null, null, null, null, List.of("학생"))).get(0);
+        assertTrue(ok.fitsAsIs(), "거주민 표가 있고 맞으면 일치다");
+    }
+
+    @Test
+    void unsupported_에_걸리면_지원어휘가_있어도_불일치다() throws Exception {
+        var card = new com.fasterxml.jackson.databind.ObjectMapper().readTree("""
+                {"serverId":"x","endpoint":"http://localhost:4/mcp","domain":["waste-collection"],"domainAliases":["쓰레기"],
+                 "applicability":{"objectiveMatchKeys":[{"label":"수거 시각","matchKeys":["수거 시각"]}]},
+                 "unsupported":[{"capability":"시각 자동 최적화","matchKeys":["수거 시각 자동"],"reason":"못 한다"}]}""");
+        var m = new CandidateMatcher(new CandidateRegistry(card, "classpath*:/none/*.json"));
+        MatchResult r = m.match(new RequestProfile("쓰레기", null, null, "수거 시각 자동 선택", null)).get(0);
+        assertEquals(1, r.mismatches().size(), r.toString());
+        assertTrue(r.ambiguities().isEmpty());
+        assertEquals(Classification.MISMATCH, r.requestAdjustments().get(0).classification());
     }
 }
