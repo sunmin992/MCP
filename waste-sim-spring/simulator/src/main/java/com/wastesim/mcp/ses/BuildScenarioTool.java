@@ -7,6 +7,7 @@ import com.wastesim.pes.ExperimentFrame;
 import com.wastesim.pes.Pes;
 import com.wastesim.pes.Scenario;
 import com.wastesim.pes.ScenarioBuilder;
+import com.wastesim.template.EvidenceGuard;
 import com.wastesim.template.TemplateCatalog;
 import com.wastesim.mcp.ToolFailure;
 import com.wastesim.tool.ToolResult;

@@ -333,4 +333,55 @@ class SubtaskPlannerTest {
         assertEquals(SubtaskStatus.UNFILLED, frac.status());
         assertEquals("NOT_A_NUMBER", frac.reason().code());
     }
+
+    // ---- 근거 기준 ----
+
+    private SubtaskInstance withEvidence(String key, Object value, String origin, Map<String, String> quotes,
+                                         List<String> said) {
+        SubtaskPlan p = planner.plan(Map.of(key, value), Map.of(key, origin),
+                new SubtaskPlanner.Evidence(said, quotes));
+        return byKey(p, key);
+    }
+
+    private SubtaskInstance byKey(SubtaskPlan p, String key) {
+        return p.instances().stream().filter(x -> x.answerKey().equals(key)).findFirst().orElseThrow();
+    }
+
+    @Test
+    void 근거_구절이_없는_USER_값은_UNFILLED() {
+        SubtaskInstance i = withEvidence("numBuildings", 4, "USER", Map.of(), List.of("건물 4동"));
+        assertEquals(SubtaskStatus.UNFILLED, i.status());
+        assertEquals("NO_EVIDENCE", i.reason().code());
+        assertNull(i.value());
+        assertNull(i.evidence());
+    }
+
+    @Test
+    void 근거가_맞으면_VERIFIED() {
+        SubtaskInstance i = withEvidence("numBuildings", 4, "USER", Map.of("numBuildings", "건물 4동"), List.of("건물 4동"));
+        assertEquals(SubtaskStatus.FILLED, i.status());
+        assertEquals("VERIFIED", i.evidence());
+    }
+
+    @Test
+    void 숫자_없는_구절은_UNVERIFIED() {
+        SubtaskInstance i = withEvidence("truckType", "SMALL_1TON", "USER", Map.of("truckType", "작은 차"), List.of("작은 차로 해줘"));
+        assertEquals(SubtaskStatus.FILLED, i.status());
+        assertEquals("UNVERIFIED", i.evidence());
+    }
+
+    @Test
+    void 발화가_없으면_NOT_CHECKED() {
+        SubtaskPlan p = planner.plan(Map.of("numBuildings", 4), Map.of("numBuildings", "USER"));
+        assertEquals("NOT_CHECKED", byKey(p, "numBuildings").evidence());
+    }
+
+    @Test
+    void 비교값도_구절로_확인한다() {
+        SubtaskPlanner.Evidence ev = new SubtaskPlanner.Evidence(List.of("차량 1대와 3대를 비교"), Map.of("truckCount", "차량 1대와 3대"));
+        var a = planner.planAcross(Map.of(), Map.of("truckCount", "USER"), "truckCount", List.of(1, 3), ev);
+        assertEquals("VERIFIED", byKey(a.plan(), "truckCount").evidence());
+        var bad = planner.planAcross(Map.of(), Map.of("truckCount", "USER"), "truckCount", List.of(1, 5), ev);
+        assertEquals(SubtaskStatus.UNFILLED, byKey(bad.plan(), "truckCount").status());
+    }
 }

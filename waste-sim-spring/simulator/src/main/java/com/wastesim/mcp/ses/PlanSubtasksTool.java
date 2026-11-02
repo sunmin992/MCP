@@ -51,7 +51,9 @@ public class PlanSubtasksTool implements McpToolProvider {
                "origins":{"type":"object",
                  "description":"(선택) 답변키 → USER / MODEL_DEFAULT / DERIVED. 주면 인스턴스에 그대로 싣고, 주지 않으면 출처를 비워 둔다. 규칙은 build_scenario 설명을 따른다"},
                "variableAnswerKey":{"type":"string","description":"(선택) 비교할 실험 변수의 답변키 — build_scenario 와 같다"},
-               "variableValues":{"type":"array","description":"(선택) 비교할 값들 — build_scenario 와 같다"}},
+               "variableValues":{"type":"array","description":"(선택) 비교할 값들 — build_scenario 와 같다"},
+               "userUtterances":{"type":"array","items":{"type":"string"},"description":"근거 검사용 사용자 발화 원문 목록. 클라이언트가 대화 기록에서 넣는다. 있으면 evidence 를 검사한다"},
+               "evidence":{"type":"object","description":"답변키 → 그 값의 근거가 된 사용자 발화 구절(그대로 옮긴다). USER 값과, 조건부 결정에 기본값을 쓸 때 필요하다"}},
              "required":["answers"]}
             """;
     }
@@ -68,7 +70,15 @@ public class PlanSubtasksTool implements McpToolProvider {
             String variableKey = args.path("variableAnswerKey").asText(null);
             java.util.List<Object> variableValues = new java.util.ArrayList<>();
             args.path("variableValues").forEach(v -> variableValues.add(JsonValues.plain(v)));
-            SubtaskPlanner.Across across = planner.planAcross(answers, origins, variableKey, variableValues);
+            SubtaskPlanner.Evidence ev = null;
+            if (args.has("userUtterances")) {
+                java.util.List<String> said = new java.util.ArrayList<>();
+                args.path("userUtterances").forEach(v -> said.add(v.asText()));
+                Map<String, String> quotes = new LinkedHashMap<>();
+                args.path("evidence").fields().forEachRemaining(e -> quotes.put(e.getKey(), e.getValue().asText()));
+                ev = new SubtaskPlanner.Evidence(said, quotes);
+            }
+            SubtaskPlanner.Across across = planner.planAcross(answers, origins, variableKey, variableValues, ev);
             SubtaskPlan plan = across.plan();
 
             var root = mapper.createObjectNode();

@@ -46,6 +46,24 @@ public class SubtaskPlanner {
      *                "사용자가 말했다" 고 넘겨짚으면 기본값으로 채운 값과 구별되지 않는다.
      */
     public SubtaskPlan plan(Map<String, Object> answers, Map<String, String> origins) {
+        return plan(answers, origins, null);
+    }
+
+    /** 근거 검사에 쓰는 사용자 발화와 값별 근거 구절. null 이면 검사하지 않는다. */
+    public record Evidence(List<String> utterances, Map<String, String> quotes) {}
+
+    /** 형식을 통과한 FILLED 후보 하나에 근거 검사를 건다. 막히면 UNFILLED(NO_EVIDENCE), 아니면 VERIFIED / UNVERIFIED. */
+    private SubtaskInstance judge(SubtaskInstance i, Object submitted, Map<String, String> origins, Evidence ev) {
+        if (ev == null) return i;
+        var g = EvidenceGuard.check(Map.of(i.answerKey(), List.of(submitted)), origins, ev.quotes(), ev.utterances(), catalog);
+        if (!g.blocks().isEmpty())
+            return new SubtaskInstance(i.templateId(), i.answerKey(), SubtaskStatus.UNFILLED, null, null, i.question(),
+                    new SubtaskInstance.Reason("NO_EVIDENCE", String.join("; ", g.blocks())), null);
+        return new SubtaskInstance(i.templateId(), i.answerKey(), i.status(), i.value(), i.origin(), i.question(),
+                null, g.unverified().isEmpty() ? "VERIFIED" : "UNVERIFIED");
+    }
+
+    public SubtaskPlan plan(Map<String, Object> answers, Map<String, String> origins, Evidence ev) {
         // 형식 검사를 통과한 값만 정규화된 모양("4" → 4)으로 담는다. 생성 조건도 이 맵으로 판정한다 —
         // 잘못된 값으로 가지를 정하지 않는다. 떨어진 값에 기대는 결정은 그래서 보류가 된다.
         // given("말했는가")만은 원래 답을 본다 — 형식이 틀렸다고 말한 결정을 가리면 사유가 사라진다.
@@ -69,9 +87,10 @@ public class SubtaskPlanner {
             boolean filled = status == SubtaskStatus.FILLED;
             SubtaskInstance.Reason reason = status == SubtaskStatus.UNFILLED && r != null
                     ? new SubtaskInstance.Reason(r.errorCode(), r.message()) : null;
-            out.add(new SubtaskInstance(t.templateId(), t.answerKey(), status,
+            SubtaskInstance inst = new SubtaskInstance(t.templateId(), t.answerKey(), status,
                     filled ? r.value() : null, filled ? origins.get(t.answerKey()) : null, t.question(),
-                    reason, filled ? "NOT_CHECKED" : null));
+                    reason, filled ? "NOT_CHECKED" : null);
+            out.add(filled ? judge(inst, r.value(), origins, ev) : inst);
         }
         return new SubtaskPlan(out);
     }
@@ -144,8 +163,13 @@ public class SubtaskPlanner {
      */
     public Across planAcross(Map<String, Object> answers, Map<String, String> origins,
                              String variableKey, List<Object> values) {
+        return planAcross(answers, origins, variableKey, values, null);
+    }
+
+    public Across planAcross(Map<String, Object> answers, Map<String, String> origins,
+                             String variableKey, List<Object> values, Evidence ev) {
         if (variableKey == null || variableKey.isBlank() || values == null || values.isEmpty()) {
-            SubtaskPlan p = plan(answers, origins);
+            SubtaskPlan p = plan(answers, origins, ev);
             return new Across(p, Map.of(), waitingOf(p, answers));
         }
         List<SubtaskPlan> plans = new ArrayList<>();
@@ -154,7 +178,7 @@ public class SubtaskPlanner {
             Map<String, Object> a = new java.util.LinkedHashMap<>(answers);
             a.put(variableKey, v);
             runAnswers.add(a);
-            plans.add(plan(a, origins));
+            plans.add(plan(a, origins, ev));
         }
         List<SubtaskInstance> merged = new ArrayList<>();
         Map<String, List<Object>> onlyFor = new java.util.LinkedHashMap<>();
@@ -191,8 +215,9 @@ public class SubtaskPlanner {
                     if (code == null) code = r.errorCode();
                 }
                 best = failed.isEmpty()
-                        ? new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.FILLED,
-                                List.copyOf(normalized), origins.get(variableKey), best.question(), null, "NOT_CHECKED")
+                        ? judge(new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.FILLED,
+                                List.copyOf(normalized), origins.get(variableKey), best.question(), null, "NOT_CHECKED"),
+                                normalized, origins, ev)
                         : new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.UNFILLED,
                                 null, null, best.question(),
                                 new SubtaskInstance.Reason(code, String.join(" / ", messages)), null);

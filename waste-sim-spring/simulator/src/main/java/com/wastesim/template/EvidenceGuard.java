@@ -1,7 +1,4 @@
-package com.wastesim.mcp.ses;
-
-import com.wastesim.template.SubtaskTemplate;
-import com.wastesim.template.TemplateCatalog;
+package com.wastesim.template;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -27,16 +24,16 @@ import java.util.regex.Pattern;
  *
  * <p>발화 목록은 클라이언트가 넘긴다. 없으면 검사하지 않는다.
  */
-final class EvidenceGuard {
+public final class EvidenceGuard {
 
-    record Result(List<String> blocks, List<String> unverified) {}
+    public record Result(List<String> blocks, List<String> unverified) {}
 
     private static final Pattern NUMBER = Pattern.compile("\\d+(?:,\\d{3})*(?:\\.\\d+)?");
 
     private EvidenceGuard() {}
 
     /** @param submitted 답변키 → 제출한 값들(실험 변수는 비교할 값 전부) */
-    static Result check(Map<String, List<Object>> submitted, Map<String, String> origins,
+    public static Result check(Map<String, List<Object>> submitted, Map<String, String> origins,
                         Map<String, String> evidence, List<String> utterances, TemplateCatalog catalog) {
         List<String> blocks = new ArrayList<>();
         List<String> unverified = new ArrayList<>();

@@ -1,6 +1,5 @@
-package com.wastesim.mcp.ses;
+package com.wastesim.template;
 
-import com.wastesim.template.TemplateCatalog;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
