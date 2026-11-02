@@ -384,4 +384,38 @@ class SubtaskPlannerTest {
         var bad = planner.planAcross(Map.of(), Map.of("truckCount", "USER"), "truckCount", List.of(1, 5), ev);
         assertEquals(SubtaskStatus.UNFILLED, byKey(bad.plan(), "truckCount").status());
     }
+
+    @Test
+    void DERIVED_값은_발화가_있어도_NOT_CHECKED() {
+        SubtaskInstance i = withEvidence("numBuildings", 4, "DERIVED", Map.of(), List.of("건물 4동"));
+        assertEquals(SubtaskStatus.FILLED, i.status());
+        assertEquals("NOT_CHECKED", i.evidence());
+    }
+
+    @Test
+    void 조건부_기본값은_동의_구절이_있어야_VERIFIED() {
+        Map<String, Object> a = Map.of("truckCount", 3, "numBuildings", 4, "dispatchIntervalMinutes", 15);
+        Map<String, String> o = Map.of("truckCount", "USER", "numBuildings", "USER", "dispatchIntervalMinutes", "MODEL_DEFAULT");
+        Map<String, String> q = new HashMap<>(Map.of("truckCount", "차량 3대", "numBuildings", "건물 4동"));
+        List<String> said = List.of("차량 3대 건물 4동", "배차 간격은 기본값으로");
+        var no = byKey(planner.plan(a, o, new SubtaskPlanner.Evidence(said, q)), "dispatchIntervalMinutes");
+        assertEquals(SubtaskStatus.UNFILLED, no.status());
+        assertEquals("NO_EVIDENCE", no.reason().code());
+        q.put("dispatchIntervalMinutes", "배차 간격은 기본값으로");
+        var yes = byKey(planner.plan(a, o, new SubtaskPlanner.Evidence(said, q)), "dispatchIntervalMinutes");
+        assertEquals(SubtaskStatus.FILLED, yes.status());
+        assertEquals("VERIFIED", yes.evidence());
+    }
+
+    @Test
+    void 근거에서_막힌_값으로_가지를_정하지_않는다() {
+        Map<String, Object> a = Map.of("truckCount", 3, "numBuildings", 4);
+        Map<String, String> o = Map.of("truckCount", "USER", "numBuildings", "USER");
+        var p = planner.plan(a, o, new SubtaskPlanner.Evidence(List.of("건물 4동"), Map.of("numBuildings", "건물 4동")));
+        assertEquals(SubtaskStatus.UNFILLED, byKey(p, "truckCount").status());
+        assertEquals("NO_EVIDENCE", byKey(p, "truckCount").reason().code());
+        assertEquals(SubtaskStatus.DEFERRED, find(p, "jn.dispatchInterval").status());
+        assertTrue(planner.waitingOn("dispatchIntervalMinutes", a, o,
+                new SubtaskPlanner.Evidence(List.of("건물 4동"), Map.of("numBuildings", "건물 4동"))).contains("truckCount"));
+    }
 }

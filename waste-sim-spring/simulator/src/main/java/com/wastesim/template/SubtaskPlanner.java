@@ -36,8 +36,12 @@ public class SubtaskPlanner {
      * "이것을 먼저 정해야 이 결정이 필요한지 알 수 있다" 를 LLM 에 알리는 데 쓴다.
      */
     public List<String> waitingOn(String answerKey, Map<String, Object> answers) {
+        return waitingOn(answerKey, answers, Map.of(), null);
+    }
+
+    public List<String> waitingOn(String answerKey, Map<String, Object> answers, Map<String, String> origins, Evidence ev) {
         return catalog.byAnswerKey(answerKey)
-                .map(t -> t.generateWhen().inputs().stream().filter(k -> !passes(k, answers.get(k))).toList())
+                .map(t -> t.generateWhen().inputs().stream().filter(k -> !passes(k, answers.get(k), origins, ev)).toList())
                 .orElse(List.of());
     }
 
@@ -59,8 +63,13 @@ public class SubtaskPlanner {
         if (!g.blocks().isEmpty())
             return new SubtaskInstance(i.templateId(), i.answerKey(), SubtaskStatus.UNFILLED, null, null, i.question(),
                     new SubtaskInstance.Reason("NO_EVIDENCE", String.join("; ", g.blocks())), null);
+        if (!EvidenceGuard.examined(origins.get(i.answerKey()), catalog.byAnswerKey(i.answerKey()).orElseThrow())) return i;
         return new SubtaskInstance(i.templateId(), i.answerKey(), i.status(), i.value(), i.origin(), i.question(),
                 null, g.unverified().isEmpty() ? "VERIFIED" : "UNVERIFIED");
+    }
+
+    private static SubtaskInstance placeholder(SubtaskTemplate t, Object v) {
+        return new SubtaskInstance(t.templateId(), t.answerKey(), SubtaskStatus.FILLED, v, null, t.question(), null, "NOT_CHECKED");
     }
 
     public SubtaskPlan plan(Map<String, Object> answers, Map<String, String> origins, Evidence ev) {
@@ -74,7 +83,9 @@ public class SubtaskPlanner {
             if (raw == null) continue;
             AnswerNormalizer.NormalizeResult r = normalize(t, raw);
             checked.put(t.answerKey(), r);
-            if (r.ok()) passed.put(t.answerKey(), r.value());
+            // 근거에서 막힌 값도 형식 실패처럼 가지를 정하는 데 쓰지 않는다.
+            if (r.ok() && judge(placeholder(t, r.value()), r.value(), origins, ev).status() == SubtaskStatus.FILLED)
+                passed.put(t.answerKey(), r.value());
         }
         List<SubtaskInstance> out = new ArrayList<>();
         for (SubtaskTemplate t : catalog.all()) {
@@ -95,9 +106,12 @@ public class SubtaskPlanner {
         return new SubtaskPlan(out);
     }
 
-    private boolean passes(String key, Object raw) {
+    private boolean passes(String key, Object raw, Map<String, String> origins, Evidence ev) {
         if (raw == null) return false;
-        return catalog.byAnswerKey(key).map(t -> normalize(t, raw).ok()).orElse(true);
+        return catalog.byAnswerKey(key).map(t -> {
+            var r = normalize(t, raw);
+            return r.ok() && judge(placeholder(t, r.value()), r.value(), origins, ev).status() == SubtaskStatus.FILLED;
+        }).orElse(true);
     }
 
     /**
@@ -170,7 +184,7 @@ public class SubtaskPlanner {
                              String variableKey, List<Object> values, Evidence ev) {
         if (variableKey == null || variableKey.isBlank() || values == null || values.isEmpty()) {
             SubtaskPlan p = plan(answers, origins, ev);
-            return new Across(p, Map.of(), waitingOf(p, answers));
+            return new Across(p, Map.of(), waitingOf(p, answers, origins, ev));
         }
         List<SubtaskPlan> plans = new ArrayList<>();
         List<Map<String, Object>> runAnswers = new ArrayList<>();
@@ -192,7 +206,7 @@ public class SubtaskPlanner {
                 SubtaskInstance i = plans.get(r).instances().get(idx);
                 if (rank(i.status()) < rank(best.status())) best = i;
                 if (i.status() == SubtaskStatus.UNFILLED) unfilledFor.add(values.get(r));
-                if (i.status() == SubtaskStatus.DEFERRED) waits.addAll(waitingOn(i.answerKey(), runAnswers.get(r)));
+                if (i.status() == SubtaskStatus.DEFERRED) waits.addAll(waitingOn(i.answerKey(), runAnswers.get(r), origins, ev));
             }
             if (best.answerKey().equals(variableKey)) {
                 // 비교 값마다 형식을 본다. 하나라도 떨어지면 FILLED 로 덮지 않는다 — 첫 실패 사유를 단
@@ -233,10 +247,10 @@ public class SubtaskPlanner {
         return new Across(new SubtaskPlan(merged), onlyFor, waiting);
     }
 
-    private Map<String, List<String>> waitingOf(SubtaskPlan p, Map<String, Object> answers) {
+    private Map<String, List<String>> waitingOf(SubtaskPlan p, Map<String, Object> answers, Map<String, String> origins, Evidence ev) {
         Map<String, List<String>> out = new java.util.LinkedHashMap<>();
         for (SubtaskInstance i : p.instances()) {
-            if (i.status() == SubtaskStatus.DEFERRED) out.put(i.answerKey(), waitingOn(i.answerKey(), answers));
+            if (i.status() == SubtaskStatus.DEFERRED) out.put(i.answerKey(), waitingOn(i.answerKey(), answers, origins, ev));
         }
         return out;
     }

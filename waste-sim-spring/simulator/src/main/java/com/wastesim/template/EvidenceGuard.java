@@ -64,6 +64,12 @@ public final class EvidenceGuard {
         return new Result(blocks, unverified);
     }
 
+    /** 이 값을 guard 가 실제로 따져 보는가 — USER 값, 그리고 조건부 결정의 MODEL_DEFAULT(출처가 없으면 MODEL_DEFAULT 로 본다). */
+    static boolean examined(String origin, SubtaskTemplate t) {
+        String o = origin == null ? "MODEL_DEFAULT" : origin;
+        return "USER".equals(o) || ("MODEL_DEFAULT".equals(o) && asksBeforeDefault(t));
+    }
+
     static boolean asksBeforeDefault(SubtaskTemplate t) {
         return t.defaultValue() != null && !t.generateWhen().always();
     }
