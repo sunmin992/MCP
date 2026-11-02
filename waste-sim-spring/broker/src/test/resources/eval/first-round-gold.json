@@ -1,0 +1,1438 @@
+[
+ {
+  "runId": "V2-D1-A-r1",
+  "requestId": "D1",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "장량동 전체 아파트 단지",
+   "objective": "격일 수거와 매일 수거 비교",
+   "comparisonAxes": [
+    "수거 주기"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "장량동 전체 아파트 단지",
+   "objective": "격일 수거와 매일 수거 비교",
+   "comparisonAxes": [
+    "수거 주기"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D1-A-r2",
+  "requestId": "D1",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "장량동 전체 아파트 단지",
+   "comparisonAxes": [
+    "수거 주기"
+   ],
+   "objective": "격일 수거와 매일 수거 비교"
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "장량동 전체 아파트 단지",
+   "comparisonAxes": [
+    "수거 주기"
+   ],
+   "objective": "격일 수거와 매일 수거 비교"
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D1-A-r3",
+  "requestId": "D1",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "장량동 전체 아파트 단지",
+   "objective": "격일 수거와 매일 수거 비교",
+   "comparisonAxes": [
+    "수거 주기"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "장량동 전체 아파트 단지",
+   "objective": "격일 수거와 매일 수거 비교",
+   "comparisonAxes": [
+    "수거 주기"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D2-A-r1",
+  "requestId": "D2",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "objective": "쌓이는 쓰레기 양",
+   "comparisonAxes": [
+    "수거 요일"
+   ],
+   "environmentConditions": [
+    "추석 연휴"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "objective": "쌓이는 쓰레기 양",
+   "comparisonAxes": [
+    "수거 요일"
+   ],
+   "environmentConditions": [
+    "추석 연휴"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D2-A-r2",
+  "requestId": "D2",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "추석 연휴가 낀 주"
+   ],
+   "objective": "쓰레기가 얼마나 쌓일까",
+   "comparisonAxes": [
+    "수거 요일"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "추석 연휴가 낀 주"
+   ],
+   "objective": "쓰레기가 얼마나 쌓일까",
+   "comparisonAxes": [
+    "수거 요일"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D2-A-r3",
+  "requestId": "D2",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "추석 연휴가 낀 주"
+   ],
+   "objective": "쓰레기가 얼마나 쌓이는지",
+   "comparisonAxes": [
+    "수거 요일"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "추석 연휴가 낀 주"
+   ],
+   "objective": "쓰레기가 얼마나 쌓이는지",
+   "comparisonAxes": [
+    "수거 요일"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D3-A-r1",
+  "requestId": "D3",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "수거를 화·목·토 주 3회로 바꿨을 때 지금 일정과 비교",
+   "comparisonAxes": [
+    "수거 요일/주기"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "수거를 화·목·토 주 3회로 바꿨을 때 지금 일정과 비교",
+   "comparisonAxes": [
+    "수거 요일/주기"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D3-A-r2",
+  "requestId": "D3",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "수거를 화·목·토 주 3회로 바꿨을 때 지금 일정과 비교",
+   "comparisonAxes": [
+    "수거 요일·횟수"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "수거를 화·목·토 주 3회로 바꿨을 때 지금 일정과 비교",
+   "comparisonAxes": [
+    "수거 요일·횟수"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D3-A-r3",
+  "requestId": "D3",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "화·목·토 주 3회 수거로 바꾸면 지금 일정과 비교해 어떤지",
+   "comparisonAxes": [
+    "수거 요일"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "화·목·토 주 3회 수거로 바꾸면 지금 일정과 비교해 어떤지",
+   "comparisonAxes": [
+    "수거 요일"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D4-A-r1",
+  "requestId": "D4",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지",
+   "comparisonAxes": [
+    "적환장 사용 여부"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지",
+   "comparisonAxes": [
+    "적환장 사용 여부"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D4-A-r2",
+  "requestId": "D4",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지",
+   "comparisonAxes": [
+    "적환장 사용 여부"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지",
+   "comparisonAxes": [
+    "적환장 사용 여부"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D4-A-r3",
+  "requestId": "D4",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지",
+   "comparisonAxes": [
+    "적환장 사용 여부"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지",
+   "comparisonAxes": [
+    "적환장 사용 여부"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D5-A-r1",
+  "requestId": "D5",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동을 50개 구역으로 나눔",
+   "objective": "수거차 3대로 감당할 수 있는지",
+   "population": [
+    "상가가 많음"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동을 50개 구역으로 나눔",
+   "objective": "수거차 3대로 감당할 수 있는지",
+   "population": [
+    "상가가 많음"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D5-A-r2",
+  "requestId": "D5",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동 (50개 구역)",
+   "environmentConditions": [
+    "상가가 많음"
+   ],
+   "objective": "수거차 3대로 감당할 수 있는지"
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동 (50개 구역)",
+   "environmentConditions": [
+    "상가가 많음"
+   ],
+   "objective": "수거차 3대로 감당할 수 있는지"
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D5-A-r3",
+  "requestId": "D5",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동, 50개 구역",
+   "objective": "수거차 3대로 감당할 수 있는지",
+   "population": [
+    "상가가 많음"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동, 50개 구역",
+   "objective": "수거차 3대로 감당할 수 있는지",
+   "population": [
+    "상가가 많음"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D6-A-r1",
+  "requestId": "D6",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "수거차 근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지",
+   "comparisonAxes": [
+    "근무 시간"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "수거차 근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지",
+   "comparisonAxes": [
+    "근무 시간"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D6-A-r2",
+  "requestId": "D6",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지",
+   "comparisonAxes": [
+    "근무 시간"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지",
+   "comparisonAxes": [
+    "근무 시간"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-D6-A-r3",
+  "requestId": "D6",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지",
+   "comparisonAxes": [
+    "근무 시간"
+   ]
+  },
+  "expectedServers": [
+   "bukgu-district-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "행정동",
+   "objective": "근무 시간을 하루 6시간으로 줄여도 수거가 다 끝나는지",
+   "comparisonAxes": [
+    "근무 시간"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J1-A-r1",
+  "requestId": "J1",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸촌 한 블록",
+   "environmentConditions": [
+    "평일 교통량"
+   ],
+   "objective": "민원이 가장 적은 쓰레기 수거 시각",
+   "comparisonAxes": [
+    "수거 시각"
+   ],
+   "population": [
+    "학생이 많음"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸촌 한 블록",
+   "environmentConditions": [
+    "평일 교통량"
+   ],
+   "objective": "민원이 가장 적은 쓰레기 수거 시각",
+   "comparisonAxes": [
+    "수거 시각"
+   ],
+   "population": [
+    "학생이 많음"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J1-A-r2",
+  "requestId": "J1",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸촌 한 블록",
+   "environmentConditions": [
+    "평일 교통량"
+   ],
+   "objective": "민원이 가장 적은 쓰레기 수거 시각",
+   "comparisonAxes": [
+    "수거 시각"
+   ],
+   "population": [
+    "학생이 많음"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸촌 한 블록",
+   "environmentConditions": [
+    "평일 교통량"
+   ],
+   "objective": "민원이 가장 적은 쓰레기 수거 시각",
+   "comparisonAxes": [
+    "수거 시각"
+   ],
+   "population": [
+    "학생이 많음"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J1-A-r3",
+  "requestId": "J1",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸촌 한 블록",
+   "environmentConditions": [
+    "평일 교통량"
+   ],
+   "objective": "민원이 가장 적은 쓰레기 수거 시각",
+   "comparisonAxes": [
+    "수거 시각"
+   ],
+   "population": [
+    "학생이 많음"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸촌 한 블록",
+   "environmentConditions": [
+    "평일 교통량"
+   ],
+   "objective": "민원이 가장 적은 쓰레기 수거 시각",
+   "comparisonAxes": [
+    "수거 시각"
+   ],
+   "population": [
+    "학생이 많음"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J2-A-r1",
+  "requestId": "J2",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "우리 동네",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "우리 동네",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J2-A-r2",
+  "requestId": "J2",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "우리 동네",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "우리 동네",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J2-A-r3",
+  "requestId": "J2",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "우리 동네",
+   "objective": "수거 시각을 바꾸면 어떻게 되는지",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "우리 동네",
+   "objective": "수거 시각을 바꾸면 어떻게 되는지",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J3-A-r1",
+  "requestId": "J3",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸 건물 10동",
+   "environmentConditions": [
+    "아침 출근길 교통"
+   ],
+   "objective": "수거차 한 대로 버틸 수 있는지, 두 대가 필요한지",
+   "comparisonAxes": [
+    "수거차 대수"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸 건물 10동",
+   "environmentConditions": [
+    "아침 출근길 교통"
+   ],
+   "objective": "수거차 한 대로 버틸 수 있는지, 두 대가 필요한지",
+   "comparisonAxes": [
+    "수거차 대수"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J3-A-r2",
+  "requestId": "J3",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "아침 출근길 교통"
+   ],
+   "objective": "원룸 건물이 10동일 때 수거차 한 대로 충분한지 두 대가 필요한지",
+   "comparisonAxes": [
+    "수거차 대수"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "아침 출근길 교통"
+   ],
+   "objective": "원룸 건물이 10동일 때 수거차 한 대로 충분한지 두 대가 필요한지",
+   "comparisonAxes": [
+    "수거차 대수"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J3-A-r3",
+  "requestId": "J3",
+  "profileSent": {
+   "domain": "waste",
+   "purpose": "원룸 건물이 10동으로 늘 때 수거차 한 대와 두 대 비교, 아침 출근길 교통 반영",
+   "compareAxis": "차량 대수",
+   "entities": [
+    "원룸 건물",
+    "수거차"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "waste",
+   "purpose": "원룸 건물이 10동으로 늘 때 수거차 한 대와 두 대 비교, 아침 출근길 교통 반영",
+   "compareAxis": "차량 대수",
+   "entities": [
+    "원룸 건물",
+    "수거차"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J4-A-r1",
+  "requestId": "J4",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "objective": "수거가 다 안 끝나는 날이 생기는지",
+   "comparisonAxes": [
+    "수거차 크기"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "objective": "수거가 다 안 끝나는 날이 생기는지",
+   "comparisonAxes": [
+    "수거차 크기"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J4-A-r2",
+  "requestId": "J4",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "objective": "수거차를 5톤에서 1톤 소형으로 바꾸면 수거가 다 안 끝나는 날이 생기는지",
+   "comparisonAxes": [
+    "수거차 크기"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "objective": "수거차를 5톤에서 1톤 소형으로 바꾸면 수거가 다 안 끝나는 날이 생기는지",
+   "comparisonAxes": [
+    "수거차 크기"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J4-A-r3",
+  "requestId": "J4",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "objective": "수거가 다 안 끝나는 날이 생기는지",
+   "comparisonAxes": [
+    "수거차 종류"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "objective": "수거가 다 안 끝나는 날이 생기는지",
+   "comparisonAxes": [
+    "수거차 종류"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J5-A-r1",
+  "requestId": "J5",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "한 동에 40세대씩 6동인 원룸 블록",
+   "objective": "아침 9시에 한 번 걷으면 감당이 되는지"
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "한 동에 40세대씩 6동인 원룸 블록",
+   "objective": "아침 9시에 한 번 걷으면 감당이 되는지"
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J5-A-r2",
+  "requestId": "J5",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸 블록 6동(동당 40세대)",
+   "objective": "아침 9시 1회 수거로 감당이 되는지",
+   "population": [
+    "원룸"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "원룸 블록 6동(동당 40세대)",
+   "objective": "아침 9시 1회 수거로 감당이 되는지",
+   "population": [
+    "원룸"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J5-A-r3",
+  "requestId": "J5",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "한 동에 40세대씩 6동인 원룸 블록",
+   "objective": "아침 9시에 한 번 걷으면 감당이 되는지",
+   "population": [
+    "원룸"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "한 동에 40세대씩 6동인 원룸 블록",
+   "objective": "아침 9시에 한 번 걷으면 감당이 되는지",
+   "population": [
+    "원룸"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J6-A-r1",
+  "requestId": "J6",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "spatialScale": "포항시",
+   "environmentConditions": [
+    "공식 배출 시간(저녁 8시~새벽 6시)을 모두 지킴"
+   ],
+   "objective": "새벽 6시 수거와 오전 9시 수거 중 어느 쪽이 나은지",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "spatialScale": "포항시",
+   "environmentConditions": [
+    "공식 배출 시간(저녁 8시~새벽 6시)을 모두 지킴"
+   ],
+   "objective": "새벽 6시 수거와 오전 9시 수거 중 어느 쪽이 나은지",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J6-A-r2",
+  "requestId": "J6",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"
+   ],
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"
+   ],
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-J6-A-r3",
+  "requestId": "J6",
+  "profileSent": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다"
+   ],
+   "objective": "수거를 새벽 6시에 하는 게 나은지 오전 9시에 하는 게 나은지",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "expectedServers": [
+   "jangnyang-waste-sim"
+  ],
+  "goldProfile": {
+   "domain": "쓰레기수거",
+   "environmentConditions": [
+    "포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킨다"
+   ],
+   "objective": "수거를 새벽 6시에 하는 게 나은지 오전 9시에 하는 게 나은지",
+   "comparisonAxes": [
+    "수거 시각"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P1-A-r1",
+  "requestId": "P1",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 4곳",
+   "objective": "주차장 찾느라 배회하는 것을 줄이기",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 4곳",
+   "objective": "주차장 찾느라 배회하는 것을 줄이기",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P1-A-r2",
+  "requestId": "P1",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 4곳",
+   "objective": "주차장을 찾느라 배회하는 것 줄이기",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 4곳",
+   "objective": "주차장을 찾느라 배회하는 것 줄이기",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P1-A-r3",
+  "requestId": "P1",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 4곳",
+   "objective": "주차장 찾느라 배회하는 것이 줄어드는지",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 4곳",
+   "objective": "주차장 찾느라 배회하는 것이 줄어드는지",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P2-A-r1",
+  "requestId": "P2",
+  "profileSent": {
+   "domain": "주차",
+   "objective": "시간대별 차등 요금으로 공영주차장 만차 완화",
+   "comparisonAxes": [
+    "주차 요금 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "objective": "시간대별 차등 요금으로 공영주차장 만차 완화",
+   "comparisonAxes": [
+    "주차 요금 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P2-A-r2",
+  "requestId": "P2",
+  "profileSent": {
+   "domain": "주차",
+   "objective": "공영주차장 만차 완화",
+   "comparisonAxes": [
+    "주차 요금 체계"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "objective": "공영주차장 만차 완화",
+   "comparisonAxes": [
+    "주차 요금 체계"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P2-A-r3",
+  "requestId": "P2",
+  "profileSent": {
+   "domain": "주차",
+   "objective": "공영주차장 만차 완화",
+   "comparisonAxes": [
+    "주차 요금 부과 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "objective": "공영주차장 만차 완화",
+   "comparisonAxes": [
+    "주차 요금 부과 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P3-A-r1",
+  "requestId": "P3",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "한 동네",
+   "environmentConditions": [
+    "밤"
+   ],
+   "objective": "밤에 주민들이 차 댈 데가 없는 문제 해소",
+   "comparisonAxes": [
+    "공영주차장 거주자 우선 구획 비율"
+   ],
+   "population": [
+    "동네 주민"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "한 동네",
+   "environmentConditions": [
+    "밤"
+   ],
+   "objective": "밤에 주민들이 차 댈 데가 없는 문제 해소",
+   "comparisonAxes": [
+    "공영주차장 거주자 우선 구획 비율"
+   ],
+   "population": [
+    "동네 주민"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P3-A-r2",
+  "requestId": "P3",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "동네",
+   "environmentConditions": [
+    "밤"
+   ],
+   "objective": "밤에 동네 주민들이 차 댈 데가 없는 문제 개선",
+   "comparisonAxes": [
+    "거주자 우선 구획 비율"
+   ],
+   "population": [
+    "동네 주민"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "동네",
+   "environmentConditions": [
+    "밤"
+   ],
+   "objective": "밤에 동네 주민들이 차 댈 데가 없는 문제 개선",
+   "comparisonAxes": [
+    "거주자 우선 구획 비율"
+   ],
+   "population": [
+    "동네 주민"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P3-A-r3",
+  "requestId": "P3",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "동네",
+   "environmentConditions": [
+    "밤"
+   ],
+   "objective": "밤에 동네 주민이 차 댈 곳 확보",
+   "comparisonAxes": [
+    "공영주차장 거주자 우선 구획 비율"
+   ],
+   "population": [
+    "밤에 차 댈 데가 없는 동네 주민"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "동네",
+   "environmentConditions": [
+    "밤"
+   ],
+   "objective": "밤에 동네 주민이 차 댈 곳 확보",
+   "comparisonAxes": [
+    "공영주차장 거주자 우선 구획 비율"
+   ],
+   "population": [
+    "밤에 차 댈 데가 없는 동네 주민"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P4-A-r1",
+  "requestId": "P4",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "도심",
+   "environmentConditions": [
+    "주말 교통 혼잡"
+   ],
+   "objective": "주차장 찾는 데 걸리는 시간"
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "도심",
+   "environmentConditions": [
+    "주말 교통 혼잡"
+   ],
+   "objective": "주차장 찾는 데 걸리는 시간"
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P4-A-r2",
+  "requestId": "P4",
+  "profileSent": {
+   "domain": "주차장 탐색",
+   "spatialScale": "도심",
+   "environmentConditions": [
+    "주말 교통 혼잡"
+   ],
+   "objective": "주차장 찾는 데 걸리는 시간"
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차장 탐색",
+   "spatialScale": "도심",
+   "environmentConditions": [
+    "주말 교통 혼잡"
+   ],
+   "objective": "주차장 찾는 데 걸리는 시간"
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P4-A-r3",
+  "requestId": "P4",
+  "profileSent": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 15곳",
+   "environmentConditions": [
+    "주말 교통 혼잡"
+   ],
+   "objective": "하루 3만 대가 몰릴 때 주차장 찾는 데 걸리는 시간"
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "spatialScale": "도심 공영주차장 15곳",
+   "environmentConditions": [
+    "주말 교통 혼잡"
+   ],
+   "objective": "하루 3만 대가 몰릴 때 주차장 찾는 데 걸리는 시간"
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P5-A-r1",
+  "requestId": "P5",
+  "profileSent": {
+   "domain": "주차",
+   "objective": "공영주차장을 무료로 바꾸면 어떻게 될까",
+   "comparisonAxes": [
+    "공영주차장 요금"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "objective": "공영주차장을 무료로 바꾸면 어떻게 될까",
+   "comparisonAxes": [
+    "공영주차장 요금"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P5-A-r2",
+  "requestId": "P5",
+  "profileSent": {
+   "domain": "공영주차장",
+   "objective": "공영주차장을 무료로 바꾸면 어떻게 되는지",
+   "comparisonAxes": [
+    "주차 요금"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "공영주차장",
+   "objective": "공영주차장을 무료로 바꾸면 어떻게 되는지",
+   "comparisonAxes": [
+    "주차 요금"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P5-A-r3",
+  "requestId": "P5",
+  "profileSent": {
+   "domain": "주차",
+   "objective": "공영주차장을 무료로 바꿨을 때의 영향",
+   "comparisonAxes": [
+    "공영주차장 요금"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "objective": "공영주차장을 무료로 바꿨을 때의 영향",
+   "comparisonAxes": [
+    "공영주차장 요금"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P6-A-r1",
+  "requestId": "P6",
+  "profileSent": {
+   "domain": "주차",
+   "environmentConditions": [
+    "주차장 사이 이동에 10분 걸림"
+   ],
+   "objective": "실시간 안내 앱의 효과",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "environmentConditions": [
+    "주차장 사이 이동에 10분 걸림"
+   ],
+   "objective": "실시간 안내 앱의 효과",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P6-A-r2",
+  "requestId": "P6",
+  "profileSent": {
+   "domain": "주차",
+   "environmentConditions": [
+    "주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸림"
+   ],
+   "objective": "실시간 안내 앱 효과",
+   "comparisonAxes": [
+    "안내 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "environmentConditions": [
+    "주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸림"
+   ],
+   "objective": "실시간 안내 앱 효과",
+   "comparisonAxes": [
+    "안내 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ },
+ {
+  "runId": "V2-P6-A-r3",
+  "requestId": "P6",
+  "profileSent": {
+   "domain": "주차",
+   "environmentConditions": [
+    "주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸림"
+   ],
+   "objective": "실시간 안내 앱 효과가 더 큰지",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "expectedServers": [
+   "pohang-parking-sim"
+  ],
+  "goldProfile": {
+   "domain": "주차",
+   "environmentConditions": [
+    "주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸림"
+   ],
+   "objective": "실시간 안내 앱 효과가 더 큰지",
+   "comparisonAxes": [
+    "주차 안내 방식"
+   ]
+  },
+  "confirmed": false,
+  "labelNote": "초안: 요청 id 가 가리키는 서버. 연구자 검토 전"
+ }
+]

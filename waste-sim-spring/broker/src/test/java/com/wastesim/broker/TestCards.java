@@ -26,4 +26,20 @@ final class TestCards {
             throw new UncheckedIOException(e);
         }
     }
+
+    static JsonNode district() {
+        return read("../../district-waste-sim/src/main/resources/mcp/district-capability-card.json");
+    }
+
+    static JsonNode parking() {
+        return read("../../parking-sim/src/main/resources/mcp/parking-capability-card.json");
+    }
+
+    private static JsonNode read(String path) {
+        try {
+            return new ObjectMapper().readTree(new File(path));
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
 }

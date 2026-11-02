@@ -1,0 +1,19 @@
+# 첫 조회 기준선 (규칙 변경 전)
+
+정답 모음: `broker/src/test/resources/eval/first-round-gold.json` — V2 실험 A 조건 54회의 첫 조회.
+**라벨은 초안이며 연구자 검토 전이다**(전부 `confirmed:false`). 기대 서버는 요청 id 첫 글자(J/D/P)가 가리키는 서버를 그대로 옮긴 것이다.
+
+레지스트리: 장량동 · 행정동 · 주차 실제 카드 + `mcp/candidates/*.json`(가상 후보).
+측정: `FirstRoundAccuracyTest.measure`. Task 2 전이라 분류가 없어 조정이 있으면 모두 불일치로 세고, 되묻기는 0.
+
+## 숫자
+
+`Score[total=54, falsePositives=3, misses=20, asked=0]`
+
+## 잘못 걸림 (3)
+
+- V2-J2-A-r1 → bukgu-district-waste-sim
+- V2-J2-A-r2 → bukgu-district-waste-sim
+- V2-J2-A-r3 → bukgu-district-waste-sim
+
+J2 의 기대 서버는 jangnyang-waste-sim 인데, 행정동 서버가 요청을 그대로 받는다고 걸렸다.
