@@ -1,0 +1,6221 @@
+{
+  "match": {
+    "domain": "쓰레기수거",
+    "requirements": {
+      "regionId": "덕명동",
+      "simulationDuration": {
+        "value": 2,
+        "unit": "day"
+      }
+    },
+    "schemaVersion": "1.0.0",
+    "round": {
+      "matchId": "2bc68c1b-0e49-4549-9308-41aadf42feaa",
+      "round": 1,
+      "revisions": 0,
+      "remainingRevisions": 5,
+      "removedConditions": [],
+      "purposeChanged": false
+    },
+    "matchCount": 2,
+    "verdict": "MATCH",
+    "recommended": {
+      "serverId": "jangnyang-waste-sim",
+      "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+      "endpoint": "http://localhost:8090/mcp",
+      "fictional": false,
+      "reasons": [
+        "도메인: 쓰레기수거 → waste-collection",
+        "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED",
+        "simulationDuration: {\"value\":2,\"unit\":\"day\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED"
+      ],
+      "mismatches": [],
+      "ambiguities": [],
+      "requestAdjustments": [],
+      "conditionChecks": [
+        {
+          "field": "regionId",
+          "requested": "덕명동",
+          "declared": [
+            "jangnyang",
+            "synthetic-block"
+          ],
+          "status": "CONDITIONAL",
+          "code": "CONFIGURATION_CHECK_REQUIRED",
+          "action": "VERIFY_GENERATED_CONFIGURATION",
+          "required": true
+        },
+        {
+          "field": "simulationDuration",
+          "requested": {
+            "value": 2,
+            "unit": "day"
+          },
+          "declared": {
+            "min": {
+              "value": 1,
+              "unit": "day"
+            },
+            "max": {
+              "value": 365,
+              "unit": "day"
+            }
+          },
+          "status": "SATISFIED",
+          "code": "SUPPORTED",
+          "action": "NONE",
+          "required": true
+        }
+      ]
+    },
+    "selection": {
+      "schemaVersion": "1.0.0",
+      "matchId": "2bc68c1b-0e49-4549-9308-41aadf42feaa",
+      "serverId": "jangnyang-waste-sim",
+      "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+      "requirements": {
+        "regionId": "덕명동",
+        "simulationDuration": {
+          "value": 2,
+          "unit": "day"
+        }
+      }
+    },
+    "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8090/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다. 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. 공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. 실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.",
+    "scenarioCreationTool": "create_neighborhood_scenario",
+    "matches": [
+      {
+        "serverId": "district-waste-sim",
+        "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+        "endpoint": "http://example.invalid/mcp",
+        "fictional": true,
+        "reasons": [
+          "도메인: 쓰레기수거 → waste-collection"
+        ],
+        "mismatches": [],
+        "ambiguities": [
+          "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED",
+          "simulationDuration: {\"value\":2,\"unit\":\"day\"} /  — CAPABILITY_UNDECLARED"
+        ],
+        "requestAdjustments": [
+          {
+            "axis": "regionId",
+            "current": "\"덕명동\"",
+            "classification": "AMBIGUOUS",
+            "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+            "reason": "CAPABILITY_UNDECLARED",
+            "changesPurpose": false
+          },
+          {
+            "axis": "simulationDuration",
+            "current": "{\"value\":2,\"unit\":\"day\"}",
+            "classification": "AMBIGUOUS",
+            "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+            "reason": "CAPABILITY_UNDECLARED",
+            "changesPurpose": false
+          }
+        ],
+        "conditionChecks": [
+          {
+            "field": "regionId",
+            "requested": "덕명동",
+            "declared": null,
+            "status": "UNKNOWN",
+            "code": "CAPABILITY_UNDECLARED",
+            "action": "PROVIDER_DECLARATION_REQUIRED",
+            "required": true
+          },
+          {
+            "field": "simulationDuration",
+            "requested": {
+              "value": 2,
+              "unit": "day"
+            },
+            "declared": null,
+            "status": "UNKNOWN",
+            "code": "CAPABILITY_UNDECLARED",
+            "action": "PROVIDER_DECLARATION_REQUIRED",
+            "required": true
+          }
+        ]
+      },
+      {
+        "serverId": "jangnyang-waste-sim",
+        "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+        "endpoint": "http://localhost:8090/mcp",
+        "fictional": false,
+        "reasons": [
+          "도메인: 쓰레기수거 → waste-collection",
+          "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED",
+          "simulationDuration: {\"value\":2,\"unit\":\"day\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED"
+        ],
+        "mismatches": [],
+        "ambiguities": [],
+        "requestAdjustments": [],
+        "conditionChecks": [
+          {
+            "field": "regionId",
+            "requested": "덕명동",
+            "declared": [
+              "jangnyang",
+              "synthetic-block"
+            ],
+            "status": "CONDITIONAL",
+            "code": "CONFIGURATION_CHECK_REQUIRED",
+            "action": "VERIFY_GENERATED_CONFIGURATION",
+            "required": true
+          },
+          {
+            "field": "simulationDuration",
+            "requested": {
+              "value": 2,
+              "unit": "day"
+            },
+            "declared": {
+              "min": {
+                "value": 1,
+                "unit": "day"
+              },
+              "max": {
+                "value": 365,
+                "unit": "day"
+              }
+            },
+            "status": "SATISFIED",
+            "code": "SUPPORTED",
+            "action": "NONE",
+            "required": true
+          }
+        ]
+      }
+    ]
+  },
+  "deokmyeong": {
+    "sesId": "jangnyang-ses",
+    "sesVersion": "1.1.0",
+    "scenarioId": "scn-222e8dba",
+    "valid": true,
+    "requestId": "request-4a8a409f-0199-46c4-8565-c23efc7970c0",
+    "requirementReady": true,
+    "requirementErrors": [],
+    "requirementChecks": [
+      {
+        "field": "regionId",
+        "requested": "덕명동",
+        "declared": [
+          "jangnyang",
+          "synthetic-block"
+        ],
+        "status": "SATISFIED",
+        "code": "CONFIGURATION_VERIFIED",
+        "action": "NONE",
+        "required": true
+      },
+      {
+        "field": "simulationDuration",
+        "requested": {
+          "value": 2,
+          "unit": "day"
+        },
+        "declared": {
+          "min": {
+            "value": 1,
+            "unit": "day"
+          },
+          "max": {
+            "value": 365,
+            "unit": "day"
+          }
+        },
+        "status": "SATISFIED",
+        "code": "SUPPORTED",
+        "action": "NONE",
+        "required": true
+      }
+    ],
+    "region": {
+      "id": "덕명동",
+      "version": "1.0.0",
+      "label": "덕명동 — 공통 기본값으로 구성한 가상 블록",
+      "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+      "synthetic": true,
+      "basis": "COMMON_MODEL_ASSUMPTIONS",
+      "scope": "block",
+      "defaults": {
+        "numBuildings": 4,
+        "residentsPerBuilding": 25
+      },
+      "supportedTravelModes": [
+        "LEGACY_CONSTANT"
+      ],
+      "allowProviderTraffic": false,
+      "identityStatus": "USER_LABEL_NOT_GEOCODED"
+    },
+    "scenarioMode": "ASSUMED_BLOCK",
+    "dataNotice": "공통 모델 기본값과 지정한 입력으로 구성한 가상 블록입니다. 실제 지역의 지리·인구·도로·교통을 재현한 결과가 아닙니다.",
+    "structureSelection": [
+      {
+        "comparisonValue": 2,
+        "decisions": [
+          {
+            "sesPath": "수거차량집합/차량유형",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "truckType",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckType",
+              "answerKey": "truckType",
+              "status": "FILLED",
+              "value": "LARGE_5TON",
+              "origin": null,
+              "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numTrucks",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckCount",
+              "answerKey": "truckCount",
+              "status": "FILLED",
+              "value": 1,
+              "origin": null,
+              "question": "수거차량은 몇 대인가요? (1 이상)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/배차간격",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "dispatchIntervalMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.dispatchInterval",
+              "answerKey": "dispatchIntervalMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "실험프레임/수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimeMinutes",
+            "selected": true,
+            "input": {
+              "templateId": "jn.collectionTime",
+              "answerKey": "collectionTimeMinutes",
+              "status": "FILLED",
+              "value": 720,
+              "origin": null,
+              "question": "하루 중 몇 시에 수거할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/하루수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimesMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.collectionTimes",
+              "answerKey": "collectionTimesMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/교통결합",
+            "nodeKind": "COUPLING_CONDITION",
+            "configField": "trafficEnabled",
+            "selected": true,
+            "input": {
+              "templateId": "jn.trafficMode",
+              "answerKey": "trafficMode",
+              "status": "FILLED",
+              "value": "IGNORE",
+              "origin": null,
+              "question": "교통량을 반영할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/교통구역집합/프로파일",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "trafficProfileId",
+            "selected": false,
+            "input": {
+              "templateId": "jn.trafficProfile",
+              "answerKey": "trafficProfileId",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/이동시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "travelTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.travelTimeMode",
+              "answerKey": "travelTimeMode",
+              "status": "FILLED",
+              "value": "LEGACY_CONSTANT",
+              "origin": null,
+              "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/구역배정",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "zoneAssignmentRule",
+            "selected": false,
+            "input": {
+              "templateId": "jn.zoneAssignmentRule",
+              "answerKey": "zoneAssignmentRule",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/구역내이동",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "intraZoneTravelMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.intraZoneTravel",
+              "answerKey": "intraZoneTravelMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "건물집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numBuildings",
+            "selected": true,
+            "input": {
+              "templateId": "jn.numBuildings",
+              "answerKey": "numBuildings",
+              "status": "FILLED",
+              "value": 4,
+              "origin": null,
+              "question": "건물은 몇 동인가요? (1~26동)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "residentsPerBuilding",
+            "selected": true,
+            "input": {
+              "templateId": "jn.residentsPerBuilding",
+              "answerKey": "residentsPerBuilding",
+              "status": "FILLED",
+              "value": 25,
+              "origin": null,
+              "question": "한 동에 몇 세대인가요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/직업구성",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "occupationMix",
+            "selected": true,
+            "input": {
+              "templateId": "jn.occupationMix",
+              "answerKey": "occupationMix",
+              "status": "FILLED",
+              "value": [
+                "BlueCollar",
+                "Student",
+                "Housewife"
+              ],
+              "origin": null,
+              "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/배출시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "dischargeTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.dischargeTimeMode",
+              "answerKey": "dischargeTimeMode",
+              "status": "FILLED",
+              "value": "PAPER_BASELINE",
+              "origin": null,
+              "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/기간",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "days",
+            "selected": true,
+            "input": {
+              "templateId": "jn.days",
+              "answerKey": "days",
+              "status": "FILLED",
+              "value": 2,
+              "origin": null,
+              "question": "며칠치를 볼까요? (1~365일)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/반복",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "seeds",
+            "selected": true,
+            "input": {
+              "templateId": "jn.seeds",
+              "answerKey": "seeds",
+              "status": "FILLED",
+              "value": 1,
+              "origin": null,
+              "question": "몇 번 반복할까요? (1~100회)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/경로적재몫",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "routeAvailableCapacityKg",
+            "selected": true,
+            "input": {
+              "templateId": "jn.routeAvailableCapacity",
+              "answerKey": "routeAvailableCapacityKg",
+              "status": "FILLED",
+              "value": 5000.0,
+              "origin": null,
+              "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거장/용량",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "capacity",
+            "selected": true,
+            "input": {
+              "templateId": "jn.binCapacity",
+              "answerKey": "binCapacityKg",
+              "status": "FILLED",
+              "value": 30.0,
+              "origin": null,
+              "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "민원감시/임계",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "threshold",
+            "selected": true,
+            "input": {
+              "templateId": "jn.complaintThreshold",
+              "answerKey": "complaintThreshold",
+              "status": "FILLED",
+              "value": 0.8,
+              "origin": null,
+              "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          }
+        ]
+      }
+    ],
+    "purposeCheck": {
+      "status": "SATISFIED",
+      "acceptable": true,
+      "reasons": [],
+      "specification": {
+        "mode": "RUN",
+        "observations": [
+          "meanComplaints"
+        ]
+      }
+    },
+    "taskDefinitions": [
+      {
+        "id": "region-data",
+        "label": "지역 데이터 검증",
+        "dependencies": [],
+        "subtasks": [],
+        "outputs": [
+          "validated-region-bundle"
+        ],
+        "validator": "REGION"
+      },
+      {
+        "id": "vehicle",
+        "label": "수거 차량 준비",
+        "dependencies": [],
+        "subtasks": [
+          "truckType",
+          "truckCount",
+          "dispatchIntervalMinutes",
+          "routeAvailableCapacityKg"
+        ],
+        "outputs": [
+          "decisions.vehicle"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "collection",
+        "label": "수거 정책 준비",
+        "dependencies": [],
+        "subtasks": [
+          "collectionTimeMinutes",
+          "collectionTimesMinutes"
+        ],
+        "outputs": [
+          "decisions.collection"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "travel",
+        "label": "이동·교통 조건 준비",
+        "dependencies": [],
+        "subtasks": [
+          "trafficMode",
+          "trafficProfileId",
+          "travelTimeMode",
+          "zoneAssignmentRule",
+          "intraZoneTravelMinutes"
+        ],
+        "outputs": [
+          "decisions.travel"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "population",
+        "label": "배출 대상·행태 준비",
+        "dependencies": [],
+        "subtasks": [
+          "numBuildings",
+          "residentsPerBuilding",
+          "occupationMix",
+          "dischargeTimeMode"
+        ],
+        "outputs": [
+          "decisions.population"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "site",
+        "label": "수거장·민원 기준 준비",
+        "dependencies": [],
+        "subtasks": [
+          "binCapacityKg",
+          "complaintThreshold"
+        ],
+        "outputs": [
+          "decisions.site"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "experiment",
+        "label": "실험 기간·반복 구성",
+        "dependencies": [],
+        "subtasks": [
+          "days",
+          "seeds"
+        ],
+        "outputs": [
+          "decisions.experiment"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "execution-settings",
+        "label": "실행 설정·입력 데이터 검증",
+        "dependencies": [
+          "vehicle",
+          "collection",
+          "travel",
+          "population",
+          "site",
+          "experiment",
+          "region-data"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "validated-run-configs"
+        ],
+        "validator": "CONFIG"
+      },
+      {
+        "id": "settings-roundtrip",
+        "label": "입력 결정의 실행 설정 반영 확인",
+        "dependencies": [
+          "execution-settings"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "verified-setting-mapping"
+        ],
+        "validator": "ROUNDTRIP"
+      },
+      {
+        "id": "scenario",
+        "label": "시나리오 통합 검증",
+        "dependencies": [
+          "settings-roundtrip"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "ready-scenario"
+        ],
+        "validator": "SCENARIO"
+      }
+    ],
+    "validation": {
+      "matchId": "2bc68c1b-0e49-4549-9308-41aadf42feaa",
+      "selection": {
+        "schemaVersion": "1.0.0",
+        "matchId": "2bc68c1b-0e49-4549-9308-41aadf42feaa",
+        "serverId": "jangnyang-waste-sim",
+        "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+        "requirements": {
+          "regionId": "덕명동",
+          "simulationDuration": {
+            "value": 2,
+            "unit": "day"
+          }
+        }
+      },
+      "requirementErrors": [],
+      "requirements": {
+        "regionId": "덕명동",
+        "simulationDuration": {
+          "value": 2,
+          "unit": "day"
+        }
+      },
+      "requirementChecks": [
+        {
+          "field": "regionId",
+          "requested": "덕명동",
+          "declared": [
+            "jangnyang",
+            "synthetic-block"
+          ],
+          "status": "SATISFIED",
+          "code": "CONFIGURATION_VERIFIED",
+          "action": "NONE",
+          "required": true
+        },
+        {
+          "field": "simulationDuration",
+          "requested": {
+            "value": 2,
+            "unit": "day"
+          },
+          "declared": {
+            "min": {
+              "value": 1,
+              "unit": "day"
+            },
+            "max": {
+              "value": 365,
+              "unit": "day"
+            }
+          },
+          "status": "SATISFIED",
+          "code": "SUPPORTED",
+          "action": "NONE",
+          "required": true
+        }
+      ],
+      "requirementReady": true,
+      "region": {
+        "id": "덕명동",
+        "version": "1.0.0",
+        "label": "덕명동 — 공통 기본값으로 구성한 가상 블록",
+        "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+        "synthetic": true,
+        "basis": "COMMON_MODEL_ASSUMPTIONS",
+        "scope": "block",
+        "defaults": {
+          "numBuildings": 4,
+          "residentsPerBuilding": 25
+        },
+        "supportedTravelModes": [
+          "LEGACY_CONSTANT"
+        ],
+        "allowProviderTraffic": false,
+        "identityStatus": "USER_LABEL_NOT_GEOCODED"
+      },
+      "scenarioMode": "ASSUMED_BLOCK",
+      "dataNotice": "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다.",
+      "structureSelection": [
+        {
+          "comparisonValue": 2,
+          "decisions": [
+            {
+              "sesPath": "수거차량집합/차량유형",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "truckType",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckType",
+                "answerKey": "truckType",
+                "status": "FILLED",
+                "value": "LARGE_5TON",
+                "origin": null,
+                "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numTrucks",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckCount",
+                "answerKey": "truckCount",
+                "status": "FILLED",
+                "value": 1,
+                "origin": null,
+                "question": "수거차량은 몇 대인가요? (1 이상)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/배차간격",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "dispatchIntervalMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.dispatchInterval",
+                "answerKey": "dispatchIntervalMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "실험프레임/수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimeMinutes",
+              "selected": true,
+              "input": {
+                "templateId": "jn.collectionTime",
+                "answerKey": "collectionTimeMinutes",
+                "status": "FILLED",
+                "value": 720,
+                "origin": null,
+                "question": "하루 중 몇 시에 수거할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/하루수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimesMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.collectionTimes",
+                "answerKey": "collectionTimesMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/교통결합",
+              "nodeKind": "COUPLING_CONDITION",
+              "configField": "trafficEnabled",
+              "selected": true,
+              "input": {
+                "templateId": "jn.trafficMode",
+                "answerKey": "trafficMode",
+                "status": "FILLED",
+                "value": "IGNORE",
+                "origin": null,
+                "question": "교통량을 반영할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/교통구역집합/프로파일",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "trafficProfileId",
+              "selected": false,
+              "input": {
+                "templateId": "jn.trafficProfile",
+                "answerKey": "trafficProfileId",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/이동시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "travelTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.travelTimeMode",
+                "answerKey": "travelTimeMode",
+                "status": "FILLED",
+                "value": "LEGACY_CONSTANT",
+                "origin": null,
+                "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/구역배정",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "zoneAssignmentRule",
+              "selected": false,
+              "input": {
+                "templateId": "jn.zoneAssignmentRule",
+                "answerKey": "zoneAssignmentRule",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/구역내이동",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "intraZoneTravelMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.intraZoneTravel",
+                "answerKey": "intraZoneTravelMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "건물집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numBuildings",
+              "selected": true,
+              "input": {
+                "templateId": "jn.numBuildings",
+                "answerKey": "numBuildings",
+                "status": "FILLED",
+                "value": 4,
+                "origin": null,
+                "question": "건물은 몇 동인가요? (1~26동)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "residentsPerBuilding",
+              "selected": true,
+              "input": {
+                "templateId": "jn.residentsPerBuilding",
+                "answerKey": "residentsPerBuilding",
+                "status": "FILLED",
+                "value": 25,
+                "origin": null,
+                "question": "한 동에 몇 세대인가요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/직업구성",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "occupationMix",
+              "selected": true,
+              "input": {
+                "templateId": "jn.occupationMix",
+                "answerKey": "occupationMix",
+                "status": "FILLED",
+                "value": [
+                  "BlueCollar",
+                  "Student",
+                  "Housewife"
+                ],
+                "origin": null,
+                "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/배출시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "dischargeTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.dischargeTimeMode",
+                "answerKey": "dischargeTimeMode",
+                "status": "FILLED",
+                "value": "PAPER_BASELINE",
+                "origin": null,
+                "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/기간",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "days",
+              "selected": true,
+              "input": {
+                "templateId": "jn.days",
+                "answerKey": "days",
+                "status": "FILLED",
+                "value": 2,
+                "origin": null,
+                "question": "며칠치를 볼까요? (1~365일)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/반복",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "seeds",
+              "selected": true,
+              "input": {
+                "templateId": "jn.seeds",
+                "answerKey": "seeds",
+                "status": "FILLED",
+                "value": 1,
+                "origin": null,
+                "question": "몇 번 반복할까요? (1~100회)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/경로적재몫",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "routeAvailableCapacityKg",
+              "selected": true,
+              "input": {
+                "templateId": "jn.routeAvailableCapacity",
+                "answerKey": "routeAvailableCapacityKg",
+                "status": "FILLED",
+                "value": 5000.0,
+                "origin": null,
+                "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거장/용량",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "capacity",
+              "selected": true,
+              "input": {
+                "templateId": "jn.binCapacity",
+                "answerKey": "binCapacityKg",
+                "status": "FILLED",
+                "value": 30.0,
+                "origin": null,
+                "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "민원감시/임계",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "threshold",
+              "selected": true,
+              "input": {
+                "templateId": "jn.complaintThreshold",
+                "answerKey": "complaintThreshold",
+                "status": "FILLED",
+                "value": 0.8,
+                "origin": null,
+                "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            }
+          ]
+        }
+      ],
+      "taskReadiness": {
+        "ready": true,
+        "tasks": [
+          {
+            "taskId": "run-0/region-data",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/vehicle",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/truckType",
+              "run-0/truckCount",
+              "run-0/dispatchIntervalMinutes",
+              "run-0/routeAvailableCapacityKg"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/collection",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/collectionTimeMinutes",
+              "run-0/collectionTimesMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/travel",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/trafficMode",
+              "run-0/trafficProfileId",
+              "run-0/travelTimeMode",
+              "run-0/zoneAssignmentRule",
+              "run-0/intraZoneTravelMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/population",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/numBuildings",
+              "run-0/residentsPerBuilding",
+              "run-0/occupationMix",
+              "run-0/dischargeTimeMode"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/site",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/binCapacityKg",
+              "run-0/complaintThreshold"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/experiment",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/days",
+              "run-0/seeds"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/execution-settings",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/settings-roundtrip",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/scenario",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          }
+        ]
+      },
+      "taskDefinitions": [
+        {
+          "id": "region-data",
+          "label": "지역 데이터 검증",
+          "dependencies": [],
+          "subtasks": [],
+          "outputs": [
+            "validated-region-bundle"
+          ],
+          "validator": "REGION"
+        },
+        {
+          "id": "vehicle",
+          "label": "수거 차량 준비",
+          "dependencies": [],
+          "subtasks": [
+            "truckType",
+            "truckCount",
+            "dispatchIntervalMinutes",
+            "routeAvailableCapacityKg"
+          ],
+          "outputs": [
+            "decisions.vehicle"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "collection",
+          "label": "수거 정책 준비",
+          "dependencies": [],
+          "subtasks": [
+            "collectionTimeMinutes",
+            "collectionTimesMinutes"
+          ],
+          "outputs": [
+            "decisions.collection"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "travel",
+          "label": "이동·교통 조건 준비",
+          "dependencies": [],
+          "subtasks": [
+            "trafficMode",
+            "trafficProfileId",
+            "travelTimeMode",
+            "zoneAssignmentRule",
+            "intraZoneTravelMinutes"
+          ],
+          "outputs": [
+            "decisions.travel"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "population",
+          "label": "배출 대상·행태 준비",
+          "dependencies": [],
+          "subtasks": [
+            "numBuildings",
+            "residentsPerBuilding",
+            "occupationMix",
+            "dischargeTimeMode"
+          ],
+          "outputs": [
+            "decisions.population"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "site",
+          "label": "수거장·민원 기준 준비",
+          "dependencies": [],
+          "subtasks": [
+            "binCapacityKg",
+            "complaintThreshold"
+          ],
+          "outputs": [
+            "decisions.site"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "experiment",
+          "label": "실험 기간·반복 구성",
+          "dependencies": [],
+          "subtasks": [
+            "days",
+            "seeds"
+          ],
+          "outputs": [
+            "decisions.experiment"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "execution-settings",
+          "label": "실행 설정·입력 데이터 검증",
+          "dependencies": [
+            "vehicle",
+            "collection",
+            "travel",
+            "population",
+            "site",
+            "experiment",
+            "region-data"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "validated-run-configs"
+          ],
+          "validator": "CONFIG"
+        },
+        {
+          "id": "settings-roundtrip",
+          "label": "입력 결정의 실행 설정 반영 확인",
+          "dependencies": [
+            "execution-settings"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "verified-setting-mapping"
+          ],
+          "validator": "ROUNDTRIP"
+        },
+        {
+          "id": "scenario",
+          "label": "시나리오 통합 검증",
+          "dependencies": [
+            "settings-roundtrip"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "ready-scenario"
+          ],
+          "validator": "SCENARIO"
+        }
+      ],
+      "purposeCheck": {
+        "status": "SATISFIED",
+        "acceptable": true,
+        "reasons": [],
+        "specification": {
+          "mode": "RUN",
+          "observations": [
+            "meanComplaints"
+          ]
+        }
+      },
+      "manifestVersion": "1.0",
+      "runArtifactDigest": "ed32d97507bea3a0b6a0ff289de0f0ea2905374017c658256c75963977684f2b",
+      "runArtifactCount": 1,
+      "providerResourceDigest": "ca78e7374b867e6244834d93b152cda83924b2be0f1a75954fb574b1410568ae",
+      "ready": true,
+      "requestId": "request-4a8a409f-0199-46c4-8565-c23efc7970c0",
+      "fingerprint": "9edf9518b8102db72dda1e4008360afb82aae4bf85ba5e6a1b8568484d967327:40dcde1355372fc23b77691da7a8ed2ab0e4b8f76d3746bec586360bcfcb7e49:unlinked:7d4654af-8e40-4a14-829f-10413577bba8",
+      "validatedAt": "2026-11-03T12:13:56.096828700Z",
+      "current": true
+    },
+    "taskReadiness": {
+      "ready": true,
+      "tasks": [
+        {
+          "taskId": "run-0/region-data",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/vehicle",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/truckType",
+            "run-0/truckCount",
+            "run-0/dispatchIntervalMinutes",
+            "run-0/routeAvailableCapacityKg"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/collection",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/collectionTimeMinutes",
+            "run-0/collectionTimesMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/travel",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/trafficMode",
+            "run-0/trafficProfileId",
+            "run-0/travelTimeMode",
+            "run-0/zoneAssignmentRule",
+            "run-0/intraZoneTravelMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/population",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/numBuildings",
+            "run-0/residentsPerBuilding",
+            "run-0/occupationMix",
+            "run-0/dischargeTimeMode"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/site",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/binCapacityKg",
+            "run-0/complaintThreshold"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/experiment",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/days",
+            "run-0/seeds"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/execution-settings",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/settings-roundtrip",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/scenario",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        }
+      ]
+    },
+    "evidencePolicy": "REQUIRE_CONFIRMATION_FOR_UNVERIFIED",
+    "evidenceStatus": "NOT_CHECKED",
+    "unverifiedKeys": [
+      "truckCount",
+      "binCapacityKg",
+      "occupationMix",
+      "numBuildings",
+      "seeds",
+      "truckType",
+      "routeAvailableCapacityKg",
+      "residentsPerBuilding",
+      "trafficMode",
+      "collectionTimeMinutes",
+      "travelTimeMode",
+      "complaintThreshold",
+      "dischargeTimeMode",
+      "days"
+    ],
+    "unverifiedValues": {
+      "truckCount": 1,
+      "binCapacityKg": 30.0,
+      "truckType": "LARGE_5TON",
+      "seeds": 1,
+      "numBuildings": 4,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "trafficMode": "IGNORE",
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "complaintThreshold": 0.8,
+      "dischargeTimeMode": "PAPER_BASELINE",
+      "days": [
+        2
+      ]
+    },
+    "reviewRequiredValues": {
+      "truckCount": 1,
+      "binCapacityKg": 30.0,
+      "truckType": "LARGE_5TON",
+      "numBuildings": 4,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "trafficMode": "IGNORE",
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "complaintThreshold": 0.8,
+      "dischargeTimeMode": "PAPER_BASELINE",
+      "seeds": 1,
+      "days": [
+        2
+      ]
+    },
+    "runCount": 1,
+    "blocks": [],
+    "backVerificationBlocks": [],
+    "branchBlocks": [],
+    "unapprovedDefaults": {
+      "truckCount": 1,
+      "binCapacityKg": 30.0,
+      "truckType": "LARGE_5TON",
+      "numBuildings": 4,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "trafficMode": "IGNORE",
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "complaintThreshold": 0.8,
+      "dischargeTimeMode": "PAPER_BASELINE"
+    },
+    "state": "UNCONFIRMED",
+    "confirmUrl": "http://localhost:8090/confirm.html?id=scn-222e8dba",
+    "nextStep": "사용자에게 http://localhost:8090/confirm.html?id=scn-222e8dba 을 열어 설정을 확인하도록 안내하십시오. 확인은 사람만 할 수 있습니다."
+  },
+  "status": {
+    "scenarioId": "scn-222e8dba",
+    "state": "UNCONFIRMED",
+    "validation": {
+      "matchId": "2bc68c1b-0e49-4549-9308-41aadf42feaa",
+      "selection": {
+        "schemaVersion": "1.0.0",
+        "matchId": "2bc68c1b-0e49-4549-9308-41aadf42feaa",
+        "serverId": "jangnyang-waste-sim",
+        "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+        "requirements": {
+          "regionId": "덕명동",
+          "simulationDuration": {
+            "value": 2,
+            "unit": "day"
+          }
+        }
+      },
+      "requirementErrors": [],
+      "requirements": {
+        "regionId": "덕명동",
+        "simulationDuration": {
+          "value": 2,
+          "unit": "day"
+        }
+      },
+      "requirementChecks": [
+        {
+          "field": "regionId",
+          "requested": "덕명동",
+          "declared": [
+            "jangnyang",
+            "synthetic-block"
+          ],
+          "status": "SATISFIED",
+          "code": "CONFIGURATION_VERIFIED",
+          "action": "NONE",
+          "required": true
+        },
+        {
+          "field": "simulationDuration",
+          "requested": {
+            "value": 2,
+            "unit": "day"
+          },
+          "declared": {
+            "min": {
+              "value": 1,
+              "unit": "day"
+            },
+            "max": {
+              "value": 365,
+              "unit": "day"
+            }
+          },
+          "status": "SATISFIED",
+          "code": "SUPPORTED",
+          "action": "NONE",
+          "required": true
+        }
+      ],
+      "requirementReady": true,
+      "region": {
+        "id": "덕명동",
+        "version": "1.0.0",
+        "label": "덕명동 — 공통 기본값으로 구성한 가상 블록",
+        "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+        "synthetic": true,
+        "basis": "COMMON_MODEL_ASSUMPTIONS",
+        "scope": "block",
+        "defaults": {
+          "numBuildings": 4,
+          "residentsPerBuilding": 25
+        },
+        "supportedTravelModes": [
+          "LEGACY_CONSTANT"
+        ],
+        "allowProviderTraffic": false,
+        "identityStatus": "USER_LABEL_NOT_GEOCODED"
+      },
+      "scenarioMode": "ASSUMED_BLOCK",
+      "dataNotice": "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다.",
+      "structureSelection": [
+        {
+          "comparisonValue": 2,
+          "decisions": [
+            {
+              "sesPath": "수거차량집합/차량유형",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "truckType",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckType",
+                "answerKey": "truckType",
+                "status": "FILLED",
+                "value": "LARGE_5TON",
+                "origin": null,
+                "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numTrucks",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckCount",
+                "answerKey": "truckCount",
+                "status": "FILLED",
+                "value": 1,
+                "origin": null,
+                "question": "수거차량은 몇 대인가요? (1 이상)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/배차간격",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "dispatchIntervalMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.dispatchInterval",
+                "answerKey": "dispatchIntervalMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "실험프레임/수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimeMinutes",
+              "selected": true,
+              "input": {
+                "templateId": "jn.collectionTime",
+                "answerKey": "collectionTimeMinutes",
+                "status": "FILLED",
+                "value": 720,
+                "origin": null,
+                "question": "하루 중 몇 시에 수거할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/하루수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimesMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.collectionTimes",
+                "answerKey": "collectionTimesMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/교통결합",
+              "nodeKind": "COUPLING_CONDITION",
+              "configField": "trafficEnabled",
+              "selected": true,
+              "input": {
+                "templateId": "jn.trafficMode",
+                "answerKey": "trafficMode",
+                "status": "FILLED",
+                "value": "IGNORE",
+                "origin": null,
+                "question": "교통량을 반영할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/교통구역집합/프로파일",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "trafficProfileId",
+              "selected": false,
+              "input": {
+                "templateId": "jn.trafficProfile",
+                "answerKey": "trafficProfileId",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/이동시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "travelTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.travelTimeMode",
+                "answerKey": "travelTimeMode",
+                "status": "FILLED",
+                "value": "LEGACY_CONSTANT",
+                "origin": null,
+                "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/구역배정",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "zoneAssignmentRule",
+              "selected": false,
+              "input": {
+                "templateId": "jn.zoneAssignmentRule",
+                "answerKey": "zoneAssignmentRule",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/구역내이동",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "intraZoneTravelMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.intraZoneTravel",
+                "answerKey": "intraZoneTravelMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "건물집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numBuildings",
+              "selected": true,
+              "input": {
+                "templateId": "jn.numBuildings",
+                "answerKey": "numBuildings",
+                "status": "FILLED",
+                "value": 4,
+                "origin": null,
+                "question": "건물은 몇 동인가요? (1~26동)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "residentsPerBuilding",
+              "selected": true,
+              "input": {
+                "templateId": "jn.residentsPerBuilding",
+                "answerKey": "residentsPerBuilding",
+                "status": "FILLED",
+                "value": 25,
+                "origin": null,
+                "question": "한 동에 몇 세대인가요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/직업구성",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "occupationMix",
+              "selected": true,
+              "input": {
+                "templateId": "jn.occupationMix",
+                "answerKey": "occupationMix",
+                "status": "FILLED",
+                "value": [
+                  "BlueCollar",
+                  "Student",
+                  "Housewife"
+                ],
+                "origin": null,
+                "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/배출시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "dischargeTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.dischargeTimeMode",
+                "answerKey": "dischargeTimeMode",
+                "status": "FILLED",
+                "value": "PAPER_BASELINE",
+                "origin": null,
+                "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/기간",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "days",
+              "selected": true,
+              "input": {
+                "templateId": "jn.days",
+                "answerKey": "days",
+                "status": "FILLED",
+                "value": 2,
+                "origin": null,
+                "question": "며칠치를 볼까요? (1~365일)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/반복",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "seeds",
+              "selected": true,
+              "input": {
+                "templateId": "jn.seeds",
+                "answerKey": "seeds",
+                "status": "FILLED",
+                "value": 1,
+                "origin": null,
+                "question": "몇 번 반복할까요? (1~100회)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/경로적재몫",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "routeAvailableCapacityKg",
+              "selected": true,
+              "input": {
+                "templateId": "jn.routeAvailableCapacity",
+                "answerKey": "routeAvailableCapacityKg",
+                "status": "FILLED",
+                "value": 5000.0,
+                "origin": null,
+                "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거장/용량",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "capacity",
+              "selected": true,
+              "input": {
+                "templateId": "jn.binCapacity",
+                "answerKey": "binCapacityKg",
+                "status": "FILLED",
+                "value": 30.0,
+                "origin": null,
+                "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "민원감시/임계",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "threshold",
+              "selected": true,
+              "input": {
+                "templateId": "jn.complaintThreshold",
+                "answerKey": "complaintThreshold",
+                "status": "FILLED",
+                "value": 0.8,
+                "origin": null,
+                "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            }
+          ]
+        }
+      ],
+      "taskReadiness": {
+        "ready": true,
+        "tasks": [
+          {
+            "taskId": "run-0/region-data",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/vehicle",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/truckType",
+              "run-0/truckCount",
+              "run-0/dispatchIntervalMinutes",
+              "run-0/routeAvailableCapacityKg"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/collection",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/collectionTimeMinutes",
+              "run-0/collectionTimesMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/travel",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/trafficMode",
+              "run-0/trafficProfileId",
+              "run-0/travelTimeMode",
+              "run-0/zoneAssignmentRule",
+              "run-0/intraZoneTravelMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/population",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/numBuildings",
+              "run-0/residentsPerBuilding",
+              "run-0/occupationMix",
+              "run-0/dischargeTimeMode"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/site",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/binCapacityKg",
+              "run-0/complaintThreshold"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/experiment",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/days",
+              "run-0/seeds"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/execution-settings",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/settings-roundtrip",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/scenario",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          }
+        ]
+      },
+      "taskDefinitions": [
+        {
+          "id": "region-data",
+          "label": "지역 데이터 검증",
+          "dependencies": [],
+          "subtasks": [],
+          "outputs": [
+            "validated-region-bundle"
+          ],
+          "validator": "REGION"
+        },
+        {
+          "id": "vehicle",
+          "label": "수거 차량 준비",
+          "dependencies": [],
+          "subtasks": [
+            "truckType",
+            "truckCount",
+            "dispatchIntervalMinutes",
+            "routeAvailableCapacityKg"
+          ],
+          "outputs": [
+            "decisions.vehicle"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "collection",
+          "label": "수거 정책 준비",
+          "dependencies": [],
+          "subtasks": [
+            "collectionTimeMinutes",
+            "collectionTimesMinutes"
+          ],
+          "outputs": [
+            "decisions.collection"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "travel",
+          "label": "이동·교통 조건 준비",
+          "dependencies": [],
+          "subtasks": [
+            "trafficMode",
+            "trafficProfileId",
+            "travelTimeMode",
+            "zoneAssignmentRule",
+            "intraZoneTravelMinutes"
+          ],
+          "outputs": [
+            "decisions.travel"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "population",
+          "label": "배출 대상·행태 준비",
+          "dependencies": [],
+          "subtasks": [
+            "numBuildings",
+            "residentsPerBuilding",
+            "occupationMix",
+            "dischargeTimeMode"
+          ],
+          "outputs": [
+            "decisions.population"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "site",
+          "label": "수거장·민원 기준 준비",
+          "dependencies": [],
+          "subtasks": [
+            "binCapacityKg",
+            "complaintThreshold"
+          ],
+          "outputs": [
+            "decisions.site"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "experiment",
+          "label": "실험 기간·반복 구성",
+          "dependencies": [],
+          "subtasks": [
+            "days",
+            "seeds"
+          ],
+          "outputs": [
+            "decisions.experiment"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "execution-settings",
+          "label": "실행 설정·입력 데이터 검증",
+          "dependencies": [
+            "vehicle",
+            "collection",
+            "travel",
+            "population",
+            "site",
+            "experiment",
+            "region-data"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "validated-run-configs"
+          ],
+          "validator": "CONFIG"
+        },
+        {
+          "id": "settings-roundtrip",
+          "label": "입력 결정의 실행 설정 반영 확인",
+          "dependencies": [
+            "execution-settings"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "verified-setting-mapping"
+          ],
+          "validator": "ROUNDTRIP"
+        },
+        {
+          "id": "scenario",
+          "label": "시나리오 통합 검증",
+          "dependencies": [
+            "settings-roundtrip"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "ready-scenario"
+          ],
+          "validator": "SCENARIO"
+        }
+      ],
+      "purposeCheck": {
+        "status": "SATISFIED",
+        "acceptable": true,
+        "reasons": [],
+        "specification": {
+          "mode": "RUN",
+          "observations": [
+            "meanComplaints"
+          ]
+        }
+      },
+      "manifestVersion": "1.0",
+      "runArtifactDigest": "ed32d97507bea3a0b6a0ff289de0f0ea2905374017c658256c75963977684f2b",
+      "runArtifactCount": 1,
+      "providerResourceDigest": "ca78e7374b867e6244834d93b152cda83924b2be0f1a75954fb574b1410568ae",
+      "ready": true,
+      "requestId": "request-4a8a409f-0199-46c4-8565-c23efc7970c0",
+      "fingerprint": "9edf9518b8102db72dda1e4008360afb82aae4bf85ba5e6a1b8568484d967327:40dcde1355372fc23b77691da7a8ed2ab0e4b8f76d3746bec586360bcfcb7e49:unlinked:7d4654af-8e40-4a14-829f-10413577bba8",
+      "validatedAt": "2026-11-03T12:13:56.096828700Z",
+      "current": true
+    },
+    "region": {
+      "id": "덕명동",
+      "version": "1.0.0",
+      "label": "덕명동 — 공통 기본값으로 구성한 가상 블록",
+      "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+      "synthetic": true,
+      "basis": "COMMON_MODEL_ASSUMPTIONS",
+      "scope": "block",
+      "defaults": {
+        "numBuildings": 4,
+        "residentsPerBuilding": 25
+      },
+      "supportedTravelModes": [
+        "LEGACY_CONSTANT"
+      ],
+      "allowProviderTraffic": false,
+      "identityStatus": "USER_LABEL_NOT_GEOCODED"
+    },
+    "scenarioMode": "ASSUMED_BLOCK",
+    "dataNotice": "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다.",
+    "runCount": 1,
+    "unapprovedDefaultCount": 12,
+    "confirmUrl": "http://localhost:8090/confirm.html?id=scn-222e8dba",
+    "nextStep": "사용자에게 http://localhost:8090/confirm.html?id=scn-222e8dba 을 열어 설정을 확인하도록 안내하십시오. 확인은 사람만 할 수 있습니다."
+  },
+  "unapprovedRun": {
+    "toolError": true,
+    "response": {
+      "jsonrpc": "2.0",
+      "id": 1,
+      "result": {
+        "content": [
+          {
+            "type": "text",
+            "text": "필수 인자 누락: confirmToken (도구 run_scenario_by_token의 스키마에 required로 선언된 필드입니다)"
+          }
+        ],
+        "isError": true
+      }
+    }
+  },
+  "anyNeighborhood": {
+    "sesId": "jangnyang-ses",
+    "sesVersion": "1.1.0",
+    "scenarioId": "scn-ef020a86",
+    "valid": true,
+    "requestId": "request-bc4a77ea-5927-4bed-9392-3a1cf0085331",
+    "requirementReady": true,
+    "requirementErrors": [],
+    "requirementChecks": [],
+    "region": {
+      "id": "가상 동네",
+      "version": "1.0.0",
+      "label": "가상 동네 — 공통 기본값으로 구성한 가상 블록",
+      "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+      "synthetic": true,
+      "basis": "COMMON_MODEL_ASSUMPTIONS",
+      "scope": "block",
+      "defaults": {
+        "numBuildings": 4,
+        "residentsPerBuilding": 25
+      },
+      "supportedTravelModes": [
+        "LEGACY_CONSTANT"
+      ],
+      "allowProviderTraffic": false,
+      "identityStatus": "USER_LABEL_NOT_GEOCODED"
+    },
+    "scenarioMode": "ASSUMED_BLOCK",
+    "dataNotice": "공통 모델 기본값과 지정한 입력으로 구성한 가상 블록입니다. 실제 지역의 지리·인구·도로·교통을 재현한 결과가 아닙니다.",
+    "structureSelection": [
+      {
+        "comparisonValue": 30,
+        "decisions": [
+          {
+            "sesPath": "수거차량집합/차량유형",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "truckType",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckType",
+              "answerKey": "truckType",
+              "status": "FILLED",
+              "value": "LARGE_5TON",
+              "origin": null,
+              "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numTrucks",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckCount",
+              "answerKey": "truckCount",
+              "status": "FILLED",
+              "value": 1,
+              "origin": null,
+              "question": "수거차량은 몇 대인가요? (1 이상)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/배차간격",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "dispatchIntervalMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.dispatchInterval",
+              "answerKey": "dispatchIntervalMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "실험프레임/수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimeMinutes",
+            "selected": true,
+            "input": {
+              "templateId": "jn.collectionTime",
+              "answerKey": "collectionTimeMinutes",
+              "status": "FILLED",
+              "value": 720,
+              "origin": null,
+              "question": "하루 중 몇 시에 수거할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/하루수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimesMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.collectionTimes",
+              "answerKey": "collectionTimesMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/교통결합",
+            "nodeKind": "COUPLING_CONDITION",
+            "configField": "trafficEnabled",
+            "selected": true,
+            "input": {
+              "templateId": "jn.trafficMode",
+              "answerKey": "trafficMode",
+              "status": "FILLED",
+              "value": "IGNORE",
+              "origin": null,
+              "question": "교통량을 반영할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/교통구역집합/프로파일",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "trafficProfileId",
+            "selected": false,
+            "input": {
+              "templateId": "jn.trafficProfile",
+              "answerKey": "trafficProfileId",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/이동시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "travelTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.travelTimeMode",
+              "answerKey": "travelTimeMode",
+              "status": "FILLED",
+              "value": "LEGACY_CONSTANT",
+              "origin": null,
+              "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/구역배정",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "zoneAssignmentRule",
+            "selected": false,
+            "input": {
+              "templateId": "jn.zoneAssignmentRule",
+              "answerKey": "zoneAssignmentRule",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/구역내이동",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "intraZoneTravelMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.intraZoneTravel",
+              "answerKey": "intraZoneTravelMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "건물집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numBuildings",
+            "selected": true,
+            "input": {
+              "templateId": "jn.numBuildings",
+              "answerKey": "numBuildings",
+              "status": "FILLED",
+              "value": 4,
+              "origin": null,
+              "question": "건물은 몇 동인가요? (1~26동)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "residentsPerBuilding",
+            "selected": true,
+            "input": {
+              "templateId": "jn.residentsPerBuilding",
+              "answerKey": "residentsPerBuilding",
+              "status": "FILLED",
+              "value": 25,
+              "origin": null,
+              "question": "한 동에 몇 세대인가요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/직업구성",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "occupationMix",
+            "selected": true,
+            "input": {
+              "templateId": "jn.occupationMix",
+              "answerKey": "occupationMix",
+              "status": "FILLED",
+              "value": [
+                "BlueCollar",
+                "Student",
+                "Housewife"
+              ],
+              "origin": null,
+              "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/배출시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "dischargeTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.dischargeTimeMode",
+              "answerKey": "dischargeTimeMode",
+              "status": "FILLED",
+              "value": "PAPER_BASELINE",
+              "origin": null,
+              "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/기간",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "days",
+            "selected": true,
+            "input": {
+              "templateId": "jn.days",
+              "answerKey": "days",
+              "status": "FILLED",
+              "value": 30,
+              "origin": null,
+              "question": "며칠치를 볼까요? (1~365일)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/반복",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "seeds",
+            "selected": true,
+            "input": {
+              "templateId": "jn.seeds",
+              "answerKey": "seeds",
+              "status": "FILLED",
+              "value": 30,
+              "origin": null,
+              "question": "몇 번 반복할까요? (1~100회)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/경로적재몫",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "routeAvailableCapacityKg",
+            "selected": true,
+            "input": {
+              "templateId": "jn.routeAvailableCapacity",
+              "answerKey": "routeAvailableCapacityKg",
+              "status": "FILLED",
+              "value": 5000.0,
+              "origin": null,
+              "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거장/용량",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "capacity",
+            "selected": true,
+            "input": {
+              "templateId": "jn.binCapacity",
+              "answerKey": "binCapacityKg",
+              "status": "FILLED",
+              "value": 30.0,
+              "origin": null,
+              "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "민원감시/임계",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "threshold",
+            "selected": true,
+            "input": {
+              "templateId": "jn.complaintThreshold",
+              "answerKey": "complaintThreshold",
+              "status": "FILLED",
+              "value": 0.8,
+              "origin": null,
+              "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          }
+        ]
+      }
+    ],
+    "purposeCheck": {
+      "status": "SATISFIED",
+      "acceptable": true,
+      "reasons": [],
+      "specification": {
+        "mode": "RUN",
+        "observations": [
+          "meanComplaints"
+        ]
+      }
+    },
+    "taskDefinitions": [
+      {
+        "id": "region-data",
+        "label": "지역 데이터 검증",
+        "dependencies": [],
+        "subtasks": [],
+        "outputs": [
+          "validated-region-bundle"
+        ],
+        "validator": "REGION"
+      },
+      {
+        "id": "vehicle",
+        "label": "수거 차량 준비",
+        "dependencies": [],
+        "subtasks": [
+          "truckType",
+          "truckCount",
+          "dispatchIntervalMinutes",
+          "routeAvailableCapacityKg"
+        ],
+        "outputs": [
+          "decisions.vehicle"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "collection",
+        "label": "수거 정책 준비",
+        "dependencies": [],
+        "subtasks": [
+          "collectionTimeMinutes",
+          "collectionTimesMinutes"
+        ],
+        "outputs": [
+          "decisions.collection"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "travel",
+        "label": "이동·교통 조건 준비",
+        "dependencies": [],
+        "subtasks": [
+          "trafficMode",
+          "trafficProfileId",
+          "travelTimeMode",
+          "zoneAssignmentRule",
+          "intraZoneTravelMinutes"
+        ],
+        "outputs": [
+          "decisions.travel"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "population",
+        "label": "배출 대상·행태 준비",
+        "dependencies": [],
+        "subtasks": [
+          "numBuildings",
+          "residentsPerBuilding",
+          "occupationMix",
+          "dischargeTimeMode"
+        ],
+        "outputs": [
+          "decisions.population"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "site",
+        "label": "수거장·민원 기준 준비",
+        "dependencies": [],
+        "subtasks": [
+          "binCapacityKg",
+          "complaintThreshold"
+        ],
+        "outputs": [
+          "decisions.site"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "experiment",
+        "label": "실험 기간·반복 구성",
+        "dependencies": [],
+        "subtasks": [
+          "days",
+          "seeds"
+        ],
+        "outputs": [
+          "decisions.experiment"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "execution-settings",
+        "label": "실행 설정·입력 데이터 검증",
+        "dependencies": [
+          "vehicle",
+          "collection",
+          "travel",
+          "population",
+          "site",
+          "experiment",
+          "region-data"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "validated-run-configs"
+        ],
+        "validator": "CONFIG"
+      },
+      {
+        "id": "settings-roundtrip",
+        "label": "입력 결정의 실행 설정 반영 확인",
+        "dependencies": [
+          "execution-settings"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "verified-setting-mapping"
+        ],
+        "validator": "ROUNDTRIP"
+      },
+      {
+        "id": "scenario",
+        "label": "시나리오 통합 검증",
+        "dependencies": [
+          "settings-roundtrip"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "ready-scenario"
+        ],
+        "validator": "SCENARIO"
+      }
+    ],
+    "validation": {
+      "matchId": null,
+      "selection": null,
+      "requirementErrors": [],
+      "requirements": {},
+      "requirementChecks": [],
+      "requirementReady": true,
+      "region": {
+        "id": "가상 동네",
+        "version": "1.0.0",
+        "label": "가상 동네 — 공통 기본값으로 구성한 가상 블록",
+        "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+        "synthetic": true,
+        "basis": "COMMON_MODEL_ASSUMPTIONS",
+        "scope": "block",
+        "defaults": {
+          "numBuildings": 4,
+          "residentsPerBuilding": 25
+        },
+        "supportedTravelModes": [
+          "LEGACY_CONSTANT"
+        ],
+        "allowProviderTraffic": false,
+        "identityStatus": "USER_LABEL_NOT_GEOCODED"
+      },
+      "scenarioMode": "ASSUMED_BLOCK",
+      "dataNotice": "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다.",
+      "structureSelection": [
+        {
+          "comparisonValue": 30,
+          "decisions": [
+            {
+              "sesPath": "수거차량집합/차량유형",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "truckType",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckType",
+                "answerKey": "truckType",
+                "status": "FILLED",
+                "value": "LARGE_5TON",
+                "origin": null,
+                "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numTrucks",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckCount",
+                "answerKey": "truckCount",
+                "status": "FILLED",
+                "value": 1,
+                "origin": null,
+                "question": "수거차량은 몇 대인가요? (1 이상)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/배차간격",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "dispatchIntervalMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.dispatchInterval",
+                "answerKey": "dispatchIntervalMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "실험프레임/수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimeMinutes",
+              "selected": true,
+              "input": {
+                "templateId": "jn.collectionTime",
+                "answerKey": "collectionTimeMinutes",
+                "status": "FILLED",
+                "value": 720,
+                "origin": null,
+                "question": "하루 중 몇 시에 수거할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/하루수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimesMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.collectionTimes",
+                "answerKey": "collectionTimesMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/교통결합",
+              "nodeKind": "COUPLING_CONDITION",
+              "configField": "trafficEnabled",
+              "selected": true,
+              "input": {
+                "templateId": "jn.trafficMode",
+                "answerKey": "trafficMode",
+                "status": "FILLED",
+                "value": "IGNORE",
+                "origin": null,
+                "question": "교통량을 반영할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/교통구역집합/프로파일",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "trafficProfileId",
+              "selected": false,
+              "input": {
+                "templateId": "jn.trafficProfile",
+                "answerKey": "trafficProfileId",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/이동시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "travelTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.travelTimeMode",
+                "answerKey": "travelTimeMode",
+                "status": "FILLED",
+                "value": "LEGACY_CONSTANT",
+                "origin": null,
+                "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/구역배정",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "zoneAssignmentRule",
+              "selected": false,
+              "input": {
+                "templateId": "jn.zoneAssignmentRule",
+                "answerKey": "zoneAssignmentRule",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/구역내이동",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "intraZoneTravelMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.intraZoneTravel",
+                "answerKey": "intraZoneTravelMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "건물집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numBuildings",
+              "selected": true,
+              "input": {
+                "templateId": "jn.numBuildings",
+                "answerKey": "numBuildings",
+                "status": "FILLED",
+                "value": 4,
+                "origin": null,
+                "question": "건물은 몇 동인가요? (1~26동)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "residentsPerBuilding",
+              "selected": true,
+              "input": {
+                "templateId": "jn.residentsPerBuilding",
+                "answerKey": "residentsPerBuilding",
+                "status": "FILLED",
+                "value": 25,
+                "origin": null,
+                "question": "한 동에 몇 세대인가요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/직업구성",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "occupationMix",
+              "selected": true,
+              "input": {
+                "templateId": "jn.occupationMix",
+                "answerKey": "occupationMix",
+                "status": "FILLED",
+                "value": [
+                  "BlueCollar",
+                  "Student",
+                  "Housewife"
+                ],
+                "origin": null,
+                "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/배출시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "dischargeTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.dischargeTimeMode",
+                "answerKey": "dischargeTimeMode",
+                "status": "FILLED",
+                "value": "PAPER_BASELINE",
+                "origin": null,
+                "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/기간",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "days",
+              "selected": true,
+              "input": {
+                "templateId": "jn.days",
+                "answerKey": "days",
+                "status": "FILLED",
+                "value": 30,
+                "origin": null,
+                "question": "며칠치를 볼까요? (1~365일)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/반복",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "seeds",
+              "selected": true,
+              "input": {
+                "templateId": "jn.seeds",
+                "answerKey": "seeds",
+                "status": "FILLED",
+                "value": 30,
+                "origin": null,
+                "question": "몇 번 반복할까요? (1~100회)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/경로적재몫",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "routeAvailableCapacityKg",
+              "selected": true,
+              "input": {
+                "templateId": "jn.routeAvailableCapacity",
+                "answerKey": "routeAvailableCapacityKg",
+                "status": "FILLED",
+                "value": 5000.0,
+                "origin": null,
+                "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거장/용량",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "capacity",
+              "selected": true,
+              "input": {
+                "templateId": "jn.binCapacity",
+                "answerKey": "binCapacityKg",
+                "status": "FILLED",
+                "value": 30.0,
+                "origin": null,
+                "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "민원감시/임계",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "threshold",
+              "selected": true,
+              "input": {
+                "templateId": "jn.complaintThreshold",
+                "answerKey": "complaintThreshold",
+                "status": "FILLED",
+                "value": 0.8,
+                "origin": null,
+                "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            }
+          ]
+        }
+      ],
+      "taskReadiness": {
+        "ready": true,
+        "tasks": [
+          {
+            "taskId": "run-0/region-data",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/vehicle",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/truckType",
+              "run-0/truckCount",
+              "run-0/dispatchIntervalMinutes",
+              "run-0/routeAvailableCapacityKg"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/collection",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/collectionTimeMinutes",
+              "run-0/collectionTimesMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/travel",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/trafficMode",
+              "run-0/trafficProfileId",
+              "run-0/travelTimeMode",
+              "run-0/zoneAssignmentRule",
+              "run-0/intraZoneTravelMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/population",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/numBuildings",
+              "run-0/residentsPerBuilding",
+              "run-0/occupationMix",
+              "run-0/dischargeTimeMode"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/site",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/binCapacityKg",
+              "run-0/complaintThreshold"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/experiment",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/days",
+              "run-0/seeds"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/execution-settings",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/settings-roundtrip",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/scenario",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          }
+        ]
+      },
+      "taskDefinitions": [
+        {
+          "id": "region-data",
+          "label": "지역 데이터 검증",
+          "dependencies": [],
+          "subtasks": [],
+          "outputs": [
+            "validated-region-bundle"
+          ],
+          "validator": "REGION"
+        },
+        {
+          "id": "vehicle",
+          "label": "수거 차량 준비",
+          "dependencies": [],
+          "subtasks": [
+            "truckType",
+            "truckCount",
+            "dispatchIntervalMinutes",
+            "routeAvailableCapacityKg"
+          ],
+          "outputs": [
+            "decisions.vehicle"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "collection",
+          "label": "수거 정책 준비",
+          "dependencies": [],
+          "subtasks": [
+            "collectionTimeMinutes",
+            "collectionTimesMinutes"
+          ],
+          "outputs": [
+            "decisions.collection"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "travel",
+          "label": "이동·교통 조건 준비",
+          "dependencies": [],
+          "subtasks": [
+            "trafficMode",
+            "trafficProfileId",
+            "travelTimeMode",
+            "zoneAssignmentRule",
+            "intraZoneTravelMinutes"
+          ],
+          "outputs": [
+            "decisions.travel"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "population",
+          "label": "배출 대상·행태 준비",
+          "dependencies": [],
+          "subtasks": [
+            "numBuildings",
+            "residentsPerBuilding",
+            "occupationMix",
+            "dischargeTimeMode"
+          ],
+          "outputs": [
+            "decisions.population"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "site",
+          "label": "수거장·민원 기준 준비",
+          "dependencies": [],
+          "subtasks": [
+            "binCapacityKg",
+            "complaintThreshold"
+          ],
+          "outputs": [
+            "decisions.site"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "experiment",
+          "label": "실험 기간·반복 구성",
+          "dependencies": [],
+          "subtasks": [
+            "days",
+            "seeds"
+          ],
+          "outputs": [
+            "decisions.experiment"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "execution-settings",
+          "label": "실행 설정·입력 데이터 검증",
+          "dependencies": [
+            "vehicle",
+            "collection",
+            "travel",
+            "population",
+            "site",
+            "experiment",
+            "region-data"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "validated-run-configs"
+          ],
+          "validator": "CONFIG"
+        },
+        {
+          "id": "settings-roundtrip",
+          "label": "입력 결정의 실행 설정 반영 확인",
+          "dependencies": [
+            "execution-settings"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "verified-setting-mapping"
+          ],
+          "validator": "ROUNDTRIP"
+        },
+        {
+          "id": "scenario",
+          "label": "시나리오 통합 검증",
+          "dependencies": [
+            "settings-roundtrip"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "ready-scenario"
+          ],
+          "validator": "SCENARIO"
+        }
+      ],
+      "purposeCheck": {
+        "status": "SATISFIED",
+        "acceptable": true,
+        "reasons": [],
+        "specification": {
+          "mode": "RUN",
+          "observations": [
+            "meanComplaints"
+          ]
+        }
+      },
+      "manifestVersion": "1.0",
+      "runArtifactDigest": "fae7885dff72336a127ef8211d71e9cfaec414792de43976ccdd08fbb61c5cad",
+      "runArtifactCount": 1,
+      "providerResourceDigest": "ca78e7374b867e6244834d93b152cda83924b2be0f1a75954fb574b1410568ae",
+      "ready": true,
+      "requestId": "request-bc4a77ea-5927-4bed-9392-3a1cf0085331",
+      "fingerprint": "02ac986f4664a0d30f22a8f5a257169fbffd6bfc7a3687997229f42db7c5e303:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a:unlinked:1be17b04-1e24-4de0-bb67-9bf76eda7c04",
+      "validatedAt": "2026-11-03T12:13:56.650844600Z",
+      "current": true
+    },
+    "taskReadiness": {
+      "ready": true,
+      "tasks": [
+        {
+          "taskId": "run-0/region-data",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/vehicle",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/truckType",
+            "run-0/truckCount",
+            "run-0/dispatchIntervalMinutes",
+            "run-0/routeAvailableCapacityKg"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/collection",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/collectionTimeMinutes",
+            "run-0/collectionTimesMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/travel",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/trafficMode",
+            "run-0/trafficProfileId",
+            "run-0/travelTimeMode",
+            "run-0/zoneAssignmentRule",
+            "run-0/intraZoneTravelMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/population",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/numBuildings",
+            "run-0/residentsPerBuilding",
+            "run-0/occupationMix",
+            "run-0/dischargeTimeMode"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/site",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/binCapacityKg",
+            "run-0/complaintThreshold"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/experiment",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/days",
+            "run-0/seeds"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/execution-settings",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/settings-roundtrip",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/scenario",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        }
+      ]
+    },
+    "evidencePolicy": "REQUIRE_CONFIRMATION_FOR_UNVERIFIED",
+    "evidenceStatus": "NOT_CHECKED",
+    "unverifiedKeys": [
+      "truckCount",
+      "binCapacityKg",
+      "seeds",
+      "occupationMix",
+      "numBuildings",
+      "truckType",
+      "routeAvailableCapacityKg",
+      "residentsPerBuilding",
+      "trafficMode",
+      "collectionTimeMinutes",
+      "travelTimeMode",
+      "complaintThreshold",
+      "dischargeTimeMode",
+      "days"
+    ],
+    "unverifiedValues": {
+      "truckCount": 1,
+      "binCapacityKg": 30.0,
+      "truckType": "LARGE_5TON",
+      "numBuildings": 4,
+      "seeds": 30,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "trafficMode": "IGNORE",
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "complaintThreshold": 0.8,
+      "dischargeTimeMode": "PAPER_BASELINE",
+      "days": [
+        30
+      ]
+    },
+    "reviewRequiredValues": {
+      "truckCount": 1,
+      "binCapacityKg": 30.0,
+      "truckType": "LARGE_5TON",
+      "numBuildings": 4,
+      "seeds": 30,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "trafficMode": "IGNORE",
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "complaintThreshold": 0.8,
+      "dischargeTimeMode": "PAPER_BASELINE",
+      "days": [
+        30
+      ]
+    },
+    "runCount": 1,
+    "blocks": [],
+    "backVerificationBlocks": [],
+    "branchBlocks": [],
+    "unapprovedDefaults": {
+      "truckCount": 1,
+      "binCapacityKg": 30.0,
+      "truckType": "LARGE_5TON",
+      "numBuildings": 4,
+      "seeds": 30,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "trafficMode": "IGNORE",
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "complaintThreshold": 0.8,
+      "dischargeTimeMode": "PAPER_BASELINE",
+      "days": [
+        30
+      ]
+    },
+    "state": "UNCONFIRMED",
+    "confirmUrl": "http://localhost:8090/confirm.html?id=scn-ef020a86",
+    "nextStep": "사용자에게 http://localhost:8090/confirm.html?id=scn-ef020a86 을 열어 설정을 확인하도록 안내하십시오. 확인은 사람만 할 수 있습니다."
+  },
+  "otherName": {
+    "sesId": "jangnyang-ses",
+    "sesVersion": "1.1.0",
+    "scenarioId": "scn-aaeb7771",
+    "valid": true,
+    "requestId": "request-006f9b80-31bf-4098-be23-dc0dbc1522cc",
+    "requirementReady": true,
+    "requirementErrors": [],
+    "requirementChecks": [],
+    "region": {
+      "id": "처음 등록하지 않은 동네",
+      "version": "1.0.0",
+      "label": "처음 등록하지 않은 동네 — 공통 기본값으로 구성한 가상 블록",
+      "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+      "synthetic": true,
+      "basis": "COMMON_MODEL_ASSUMPTIONS",
+      "scope": "block",
+      "defaults": {
+        "numBuildings": 4,
+        "residentsPerBuilding": 25
+      },
+      "supportedTravelModes": [
+        "LEGACY_CONSTANT"
+      ],
+      "allowProviderTraffic": false,
+      "identityStatus": "USER_LABEL_NOT_GEOCODED"
+    },
+    "scenarioMode": "ASSUMED_BLOCK",
+    "dataNotice": "공통 모델 기본값과 지정한 입력으로 구성한 가상 블록입니다. 실제 지역의 지리·인구·도로·교통을 재현한 결과가 아닙니다.",
+    "structureSelection": [
+      {
+        "comparisonValue": 2,
+        "decisions": [
+          {
+            "sesPath": "수거차량집합/차량유형",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "truckType",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckType",
+              "answerKey": "truckType",
+              "status": "FILLED",
+              "value": "LARGE_5TON",
+              "origin": null,
+              "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numTrucks",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckCount",
+              "answerKey": "truckCount",
+              "status": "FILLED",
+              "value": 2,
+              "origin": null,
+              "question": "수거차량은 몇 대인가요? (1 이상)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/배차간격",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "dispatchIntervalMinutes",
+            "selected": true,
+            "input": {
+              "templateId": "jn.dispatchInterval",
+              "answerKey": "dispatchIntervalMinutes",
+              "status": "FILLED",
+              "value": 0,
+              "origin": null,
+              "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimeMinutes",
+            "selected": true,
+            "input": {
+              "templateId": "jn.collectionTime",
+              "answerKey": "collectionTimeMinutes",
+              "status": "FILLED",
+              "value": 720,
+              "origin": null,
+              "question": "하루 중 몇 시에 수거할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/하루수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimesMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.collectionTimes",
+              "answerKey": "collectionTimesMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/교통결합",
+            "nodeKind": "COUPLING_CONDITION",
+            "configField": "trafficEnabled",
+            "selected": true,
+            "input": {
+              "templateId": "jn.trafficMode",
+              "answerKey": "trafficMode",
+              "status": "FILLED",
+              "value": "IGNORE",
+              "origin": null,
+              "question": "교통량을 반영할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/교통구역집합/프로파일",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "trafficProfileId",
+            "selected": false,
+            "input": {
+              "templateId": "jn.trafficProfile",
+              "answerKey": "trafficProfileId",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/이동시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "travelTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.travelTimeMode",
+              "answerKey": "travelTimeMode",
+              "status": "FILLED",
+              "value": "LEGACY_CONSTANT",
+              "origin": null,
+              "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/구역배정",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "zoneAssignmentRule",
+            "selected": false,
+            "input": {
+              "templateId": "jn.zoneAssignmentRule",
+              "answerKey": "zoneAssignmentRule",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/구역내이동",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "intraZoneTravelMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.intraZoneTravel",
+              "answerKey": "intraZoneTravelMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "건물집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numBuildings",
+            "selected": true,
+            "input": {
+              "templateId": "jn.numBuildings",
+              "answerKey": "numBuildings",
+              "status": "FILLED",
+              "value": 8,
+              "origin": null,
+              "question": "건물은 몇 동인가요? (1~26동)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "residentsPerBuilding",
+            "selected": true,
+            "input": {
+              "templateId": "jn.residentsPerBuilding",
+              "answerKey": "residentsPerBuilding",
+              "status": "FILLED",
+              "value": 25,
+              "origin": null,
+              "question": "한 동에 몇 세대인가요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/직업구성",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "occupationMix",
+            "selected": true,
+            "input": {
+              "templateId": "jn.occupationMix",
+              "answerKey": "occupationMix",
+              "status": "FILLED",
+              "value": [
+                "BlueCollar",
+                "Student",
+                "Housewife"
+              ],
+              "origin": null,
+              "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/배출시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "dischargeTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.dischargeTimeMode",
+              "answerKey": "dischargeTimeMode",
+              "status": "FILLED",
+              "value": "PAPER_BASELINE",
+              "origin": null,
+              "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/기간",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "days",
+            "selected": true,
+            "input": {
+              "templateId": "jn.days",
+              "answerKey": "days",
+              "status": "FILLED",
+              "value": 2,
+              "origin": null,
+              "question": "며칠치를 볼까요? (1~365일)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/반복",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "seeds",
+            "selected": true,
+            "input": {
+              "templateId": "jn.seeds",
+              "answerKey": "seeds",
+              "status": "FILLED",
+              "value": 1,
+              "origin": null,
+              "question": "몇 번 반복할까요? (1~100회)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/경로적재몫",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "routeAvailableCapacityKg",
+            "selected": true,
+            "input": {
+              "templateId": "jn.routeAvailableCapacity",
+              "answerKey": "routeAvailableCapacityKg",
+              "status": "FILLED",
+              "value": 5000.0,
+              "origin": null,
+              "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거장/용량",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "capacity",
+            "selected": true,
+            "input": {
+              "templateId": "jn.binCapacity",
+              "answerKey": "binCapacityKg",
+              "status": "FILLED",
+              "value": 30.0,
+              "origin": null,
+              "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "민원감시/임계",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "threshold",
+            "selected": true,
+            "input": {
+              "templateId": "jn.complaintThreshold",
+              "answerKey": "complaintThreshold",
+              "status": "FILLED",
+              "value": 0.8,
+              "origin": null,
+              "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          }
+        ]
+      }
+    ],
+    "purposeCheck": {
+      "status": "SATISFIED",
+      "acceptable": true,
+      "reasons": [],
+      "specification": {
+        "mode": "RUN",
+        "observations": [
+          "meanComplaints"
+        ]
+      }
+    },
+    "taskDefinitions": [
+      {
+        "id": "region-data",
+        "label": "지역 데이터 검증",
+        "dependencies": [],
+        "subtasks": [],
+        "outputs": [
+          "validated-region-bundle"
+        ],
+        "validator": "REGION"
+      },
+      {
+        "id": "vehicle",
+        "label": "수거 차량 준비",
+        "dependencies": [],
+        "subtasks": [
+          "truckType",
+          "truckCount",
+          "dispatchIntervalMinutes",
+          "routeAvailableCapacityKg"
+        ],
+        "outputs": [
+          "decisions.vehicle"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "collection",
+        "label": "수거 정책 준비",
+        "dependencies": [],
+        "subtasks": [
+          "collectionTimeMinutes",
+          "collectionTimesMinutes"
+        ],
+        "outputs": [
+          "decisions.collection"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "travel",
+        "label": "이동·교통 조건 준비",
+        "dependencies": [],
+        "subtasks": [
+          "trafficMode",
+          "trafficProfileId",
+          "travelTimeMode",
+          "zoneAssignmentRule",
+          "intraZoneTravelMinutes"
+        ],
+        "outputs": [
+          "decisions.travel"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "population",
+        "label": "배출 대상·행태 준비",
+        "dependencies": [],
+        "subtasks": [
+          "numBuildings",
+          "residentsPerBuilding",
+          "occupationMix",
+          "dischargeTimeMode"
+        ],
+        "outputs": [
+          "decisions.population"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "site",
+        "label": "수거장·민원 기준 준비",
+        "dependencies": [],
+        "subtasks": [
+          "binCapacityKg",
+          "complaintThreshold"
+        ],
+        "outputs": [
+          "decisions.site"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "experiment",
+        "label": "실험 기간·반복 구성",
+        "dependencies": [],
+        "subtasks": [
+          "days",
+          "seeds"
+        ],
+        "outputs": [
+          "decisions.experiment"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "execution-settings",
+        "label": "실행 설정·입력 데이터 검증",
+        "dependencies": [
+          "vehicle",
+          "collection",
+          "travel",
+          "population",
+          "site",
+          "experiment",
+          "region-data"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "validated-run-configs"
+        ],
+        "validator": "CONFIG"
+      },
+      {
+        "id": "settings-roundtrip",
+        "label": "입력 결정의 실행 설정 반영 확인",
+        "dependencies": [
+          "execution-settings"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "verified-setting-mapping"
+        ],
+        "validator": "ROUNDTRIP"
+      },
+      {
+        "id": "scenario",
+        "label": "시나리오 통합 검증",
+        "dependencies": [
+          "settings-roundtrip"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "ready-scenario"
+        ],
+        "validator": "SCENARIO"
+      }
+    ],
+    "validation": {
+      "matchId": null,
+      "selection": null,
+      "requirementErrors": [],
+      "requirements": {},
+      "requirementChecks": [],
+      "requirementReady": true,
+      "region": {
+        "id": "처음 등록하지 않은 동네",
+        "version": "1.0.0",
+        "label": "처음 등록하지 않은 동네 — 공통 기본값으로 구성한 가상 블록",
+        "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+        "synthetic": true,
+        "basis": "COMMON_MODEL_ASSUMPTIONS",
+        "scope": "block",
+        "defaults": {
+          "numBuildings": 4,
+          "residentsPerBuilding": 25
+        },
+        "supportedTravelModes": [
+          "LEGACY_CONSTANT"
+        ],
+        "allowProviderTraffic": false,
+        "identityStatus": "USER_LABEL_NOT_GEOCODED"
+      },
+      "scenarioMode": "ASSUMED_BLOCK",
+      "dataNotice": "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다.",
+      "structureSelection": [
+        {
+          "comparisonValue": 2,
+          "decisions": [
+            {
+              "sesPath": "수거차량집합/차량유형",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "truckType",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckType",
+                "answerKey": "truckType",
+                "status": "FILLED",
+                "value": "LARGE_5TON",
+                "origin": null,
+                "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numTrucks",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckCount",
+                "answerKey": "truckCount",
+                "status": "FILLED",
+                "value": 2,
+                "origin": null,
+                "question": "수거차량은 몇 대인가요? (1 이상)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/배차간격",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "dispatchIntervalMinutes",
+              "selected": true,
+              "input": {
+                "templateId": "jn.dispatchInterval",
+                "answerKey": "dispatchIntervalMinutes",
+                "status": "FILLED",
+                "value": 0,
+                "origin": null,
+                "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimeMinutes",
+              "selected": true,
+              "input": {
+                "templateId": "jn.collectionTime",
+                "answerKey": "collectionTimeMinutes",
+                "status": "FILLED",
+                "value": 720,
+                "origin": null,
+                "question": "하루 중 몇 시에 수거할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/하루수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimesMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.collectionTimes",
+                "answerKey": "collectionTimesMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/교통결합",
+              "nodeKind": "COUPLING_CONDITION",
+              "configField": "trafficEnabled",
+              "selected": true,
+              "input": {
+                "templateId": "jn.trafficMode",
+                "answerKey": "trafficMode",
+                "status": "FILLED",
+                "value": "IGNORE",
+                "origin": null,
+                "question": "교통량을 반영할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/교통구역집합/프로파일",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "trafficProfileId",
+              "selected": false,
+              "input": {
+                "templateId": "jn.trafficProfile",
+                "answerKey": "trafficProfileId",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/이동시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "travelTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.travelTimeMode",
+                "answerKey": "travelTimeMode",
+                "status": "FILLED",
+                "value": "LEGACY_CONSTANT",
+                "origin": null,
+                "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/구역배정",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "zoneAssignmentRule",
+              "selected": false,
+              "input": {
+                "templateId": "jn.zoneAssignmentRule",
+                "answerKey": "zoneAssignmentRule",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/구역내이동",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "intraZoneTravelMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.intraZoneTravel",
+                "answerKey": "intraZoneTravelMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "건물집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numBuildings",
+              "selected": true,
+              "input": {
+                "templateId": "jn.numBuildings",
+                "answerKey": "numBuildings",
+                "status": "FILLED",
+                "value": 8,
+                "origin": null,
+                "question": "건물은 몇 동인가요? (1~26동)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "residentsPerBuilding",
+              "selected": true,
+              "input": {
+                "templateId": "jn.residentsPerBuilding",
+                "answerKey": "residentsPerBuilding",
+                "status": "FILLED",
+                "value": 25,
+                "origin": null,
+                "question": "한 동에 몇 세대인가요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/직업구성",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "occupationMix",
+              "selected": true,
+              "input": {
+                "templateId": "jn.occupationMix",
+                "answerKey": "occupationMix",
+                "status": "FILLED",
+                "value": [
+                  "BlueCollar",
+                  "Student",
+                  "Housewife"
+                ],
+                "origin": null,
+                "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/배출시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "dischargeTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.dischargeTimeMode",
+                "answerKey": "dischargeTimeMode",
+                "status": "FILLED",
+                "value": "PAPER_BASELINE",
+                "origin": null,
+                "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/기간",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "days",
+              "selected": true,
+              "input": {
+                "templateId": "jn.days",
+                "answerKey": "days",
+                "status": "FILLED",
+                "value": 2,
+                "origin": null,
+                "question": "며칠치를 볼까요? (1~365일)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/반복",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "seeds",
+              "selected": true,
+              "input": {
+                "templateId": "jn.seeds",
+                "answerKey": "seeds",
+                "status": "FILLED",
+                "value": 1,
+                "origin": null,
+                "question": "몇 번 반복할까요? (1~100회)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/경로적재몫",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "routeAvailableCapacityKg",
+              "selected": true,
+              "input": {
+                "templateId": "jn.routeAvailableCapacity",
+                "answerKey": "routeAvailableCapacityKg",
+                "status": "FILLED",
+                "value": 5000.0,
+                "origin": null,
+                "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거장/용량",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "capacity",
+              "selected": true,
+              "input": {
+                "templateId": "jn.binCapacity",
+                "answerKey": "binCapacityKg",
+                "status": "FILLED",
+                "value": 30.0,
+                "origin": null,
+                "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "민원감시/임계",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "threshold",
+              "selected": true,
+              "input": {
+                "templateId": "jn.complaintThreshold",
+                "answerKey": "complaintThreshold",
+                "status": "FILLED",
+                "value": 0.8,
+                "origin": null,
+                "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            }
+          ]
+        }
+      ],
+      "taskReadiness": {
+        "ready": true,
+        "tasks": [
+          {
+            "taskId": "run-0/region-data",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/vehicle",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/truckType",
+              "run-0/truckCount",
+              "run-0/dispatchIntervalMinutes",
+              "run-0/routeAvailableCapacityKg"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/collection",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/collectionTimeMinutes",
+              "run-0/collectionTimesMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/travel",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/trafficMode",
+              "run-0/trafficProfileId",
+              "run-0/travelTimeMode",
+              "run-0/zoneAssignmentRule",
+              "run-0/intraZoneTravelMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/population",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/numBuildings",
+              "run-0/residentsPerBuilding",
+              "run-0/occupationMix",
+              "run-0/dischargeTimeMode"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/site",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/binCapacityKg",
+              "run-0/complaintThreshold"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/experiment",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/days",
+              "run-0/seeds"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/execution-settings",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/settings-roundtrip",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/scenario",
+            "status": "COMPLETE",
+            "subtasks": [],
+            "reasons": []
+          }
+        ]
+      },
+      "taskDefinitions": [
+        {
+          "id": "region-data",
+          "label": "지역 데이터 검증",
+          "dependencies": [],
+          "subtasks": [],
+          "outputs": [
+            "validated-region-bundle"
+          ],
+          "validator": "REGION"
+        },
+        {
+          "id": "vehicle",
+          "label": "수거 차량 준비",
+          "dependencies": [],
+          "subtasks": [
+            "truckType",
+            "truckCount",
+            "dispatchIntervalMinutes",
+            "routeAvailableCapacityKg"
+          ],
+          "outputs": [
+            "decisions.vehicle"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "collection",
+          "label": "수거 정책 준비",
+          "dependencies": [],
+          "subtasks": [
+            "collectionTimeMinutes",
+            "collectionTimesMinutes"
+          ],
+          "outputs": [
+            "decisions.collection"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "travel",
+          "label": "이동·교통 조건 준비",
+          "dependencies": [],
+          "subtasks": [
+            "trafficMode",
+            "trafficProfileId",
+            "travelTimeMode",
+            "zoneAssignmentRule",
+            "intraZoneTravelMinutes"
+          ],
+          "outputs": [
+            "decisions.travel"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "population",
+          "label": "배출 대상·행태 준비",
+          "dependencies": [],
+          "subtasks": [
+            "numBuildings",
+            "residentsPerBuilding",
+            "occupationMix",
+            "dischargeTimeMode"
+          ],
+          "outputs": [
+            "decisions.population"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "site",
+          "label": "수거장·민원 기준 준비",
+          "dependencies": [],
+          "subtasks": [
+            "binCapacityKg",
+            "complaintThreshold"
+          ],
+          "outputs": [
+            "decisions.site"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "experiment",
+          "label": "실험 기간·반복 구성",
+          "dependencies": [],
+          "subtasks": [
+            "days",
+            "seeds"
+          ],
+          "outputs": [
+            "decisions.experiment"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "execution-settings",
+          "label": "실행 설정·입력 데이터 검증",
+          "dependencies": [
+            "vehicle",
+            "collection",
+            "travel",
+            "population",
+            "site",
+            "experiment",
+            "region-data"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "validated-run-configs"
+          ],
+          "validator": "CONFIG"
+        },
+        {
+          "id": "settings-roundtrip",
+          "label": "입력 결정의 실행 설정 반영 확인",
+          "dependencies": [
+            "execution-settings"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "verified-setting-mapping"
+          ],
+          "validator": "ROUNDTRIP"
+        },
+        {
+          "id": "scenario",
+          "label": "시나리오 통합 검증",
+          "dependencies": [
+            "settings-roundtrip"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "ready-scenario"
+          ],
+          "validator": "SCENARIO"
+        }
+      ],
+      "purposeCheck": {
+        "status": "SATISFIED",
+        "acceptable": true,
+        "reasons": [],
+        "specification": {
+          "mode": "RUN",
+          "observations": [
+            "meanComplaints"
+          ]
+        }
+      },
+      "manifestVersion": "1.0",
+      "runArtifactDigest": "4a01dca807a0880e59824d21f855f9de10e746ac3a38acbae3ec46a4573bf3db",
+      "runArtifactCount": 1,
+      "providerResourceDigest": "ca78e7374b867e6244834d93b152cda83924b2be0f1a75954fb574b1410568ae",
+      "ready": true,
+      "requestId": "request-006f9b80-31bf-4098-be23-dc0dbc1522cc",
+      "fingerprint": "a94a7af45395c18f75cc67d1b4fc0fb7c361b3214c8353368dc72fb98494cf21:44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a:unlinked:5aa83195-0d49-4793-837d-9bfb4548b618",
+      "validatedAt": "2026-11-03T12:13:56.839658200Z",
+      "current": true
+    },
+    "taskReadiness": {
+      "ready": true,
+      "tasks": [
+        {
+          "taskId": "run-0/region-data",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/vehicle",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/truckType",
+            "run-0/truckCount",
+            "run-0/dispatchIntervalMinutes",
+            "run-0/routeAvailableCapacityKg"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/collection",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/collectionTimeMinutes",
+            "run-0/collectionTimesMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/travel",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/trafficMode",
+            "run-0/trafficProfileId",
+            "run-0/travelTimeMode",
+            "run-0/zoneAssignmentRule",
+            "run-0/intraZoneTravelMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/population",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/numBuildings",
+            "run-0/residentsPerBuilding",
+            "run-0/occupationMix",
+            "run-0/dischargeTimeMode"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/site",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/binCapacityKg",
+            "run-0/complaintThreshold"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/experiment",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/days",
+            "run-0/seeds"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/execution-settings",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/settings-roundtrip",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/scenario",
+          "status": "COMPLETE",
+          "subtasks": [],
+          "reasons": []
+        }
+      ]
+    },
+    "evidencePolicy": "REQUIRE_CONFIRMATION_FOR_UNVERIFIED",
+    "evidenceStatus": "NOT_CHECKED",
+    "unverifiedKeys": [
+      "trafficMode",
+      "days",
+      "dispatchIntervalMinutes",
+      "truckType",
+      "complaintThreshold",
+      "occupationMix",
+      "residentsPerBuilding",
+      "truckCount",
+      "routeAvailableCapacityKg",
+      "binCapacityKg",
+      "travelTimeMode",
+      "numBuildings",
+      "seeds",
+      "dischargeTimeMode",
+      "collectionTimeMinutes"
+    ],
+    "unverifiedValues": {
+      "trafficMode": "IGNORE",
+      "days": [
+        2
+      ],
+      "dispatchIntervalMinutes": 0,
+      "truckType": "LARGE_5TON",
+      "complaintThreshold": 0.8,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "truckCount": 2,
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "numBuildings": 8,
+      "seeds": 1,
+      "binCapacityKg": 30.0,
+      "dischargeTimeMode": "PAPER_BASELINE"
+    },
+    "reviewRequiredValues": {
+      "trafficMode": "IGNORE",
+      "dispatchIntervalMinutes": 0,
+      "truckType": "LARGE_5TON",
+      "complaintThreshold": 0.8,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "binCapacityKg": 30.0,
+      "dischargeTimeMode": "PAPER_BASELINE",
+      "days": [
+        2
+      ],
+      "truckCount": 2,
+      "numBuildings": 8,
+      "seeds": 1
+    },
+    "runCount": 1,
+    "blocks": [],
+    "backVerificationBlocks": [],
+    "branchBlocks": [],
+    "unapprovedDefaults": {
+      "trafficMode": "IGNORE",
+      "dispatchIntervalMinutes": 0,
+      "truckType": "LARGE_5TON",
+      "complaintThreshold": 0.8,
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "binCapacityKg": 30.0,
+      "dischargeTimeMode": "PAPER_BASELINE"
+    },
+    "state": "UNCONFIRMED",
+    "confirmUrl": "http://localhost:8090/confirm.html?id=scn-aaeb7771",
+    "nextStep": "사용자에게 http://localhost:8090/confirm.html?id=scn-aaeb7771 을 열어 설정을 확인하도록 안내하십시오. 확인은 사람만 할 수 있습니다."
+  },
+  "foreignTraffic": {
+    "sesId": "jangnyang-ses",
+    "sesVersion": "1.1.0",
+    "scenarioId": "scn-f7aef350",
+    "valid": false,
+    "requestId": "request-1b3139f7-c20c-4841-948b-34a72d280667",
+    "requirementReady": true,
+    "requirementErrors": [],
+    "requirementChecks": [],
+    "region": {
+      "id": "덕명동",
+      "version": "1.0.0",
+      "label": "덕명동 — 공통 기본값으로 구성한 가상 블록",
+      "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+      "synthetic": true,
+      "basis": "COMMON_MODEL_ASSUMPTIONS",
+      "scope": "block",
+      "defaults": {
+        "numBuildings": 4,
+        "residentsPerBuilding": 25
+      },
+      "supportedTravelModes": [
+        "LEGACY_CONSTANT"
+      ],
+      "allowProviderTraffic": false,
+      "identityStatus": "USER_LABEL_NOT_GEOCODED"
+    },
+    "scenarioMode": "ASSUMED_BLOCK",
+    "dataNotice": "공통 모델 기본값과 지정한 입력으로 구성한 가상 블록입니다. 실제 지역의 지리·인구·도로·교통을 재현한 결과가 아닙니다.",
+    "structureSelection": [
+      {
+        "comparisonValue": 30,
+        "decisions": [
+          {
+            "sesPath": "수거차량집합/차량유형",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "truckType",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckType",
+              "answerKey": "truckType",
+              "status": "FILLED",
+              "value": "LARGE_5TON",
+              "origin": null,
+              "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numTrucks",
+            "selected": true,
+            "input": {
+              "templateId": "jn.truckCount",
+              "answerKey": "truckCount",
+              "status": "FILLED",
+              "value": 1,
+              "origin": null,
+              "question": "수거차량은 몇 대인가요? (1 이상)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/배차간격",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "dispatchIntervalMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.dispatchInterval",
+              "answerKey": "dispatchIntervalMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "실험프레임/수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimeMinutes",
+            "selected": true,
+            "input": {
+              "templateId": "jn.collectionTime",
+              "answerKey": "collectionTimeMinutes",
+              "status": "FILLED",
+              "value": 720,
+              "origin": null,
+              "question": "하루 중 몇 시에 수거할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/하루수거시각",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "collectionTimesMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.collectionTimes",
+              "answerKey": "collectionTimesMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/교통결합",
+            "nodeKind": "COUPLING_CONDITION",
+            "configField": "trafficEnabled",
+            "selected": true,
+            "input": {
+              "templateId": "jn.trafficMode",
+              "answerKey": "trafficMode",
+              "status": "FILLED",
+              "value": "APPLY",
+              "origin": null,
+              "question": "교통량을 반영할까요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/교통구역집합/프로파일",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "trafficProfileId",
+            "selected": true,
+            "input": {
+              "templateId": "jn.trafficProfile",
+              "answerKey": "trafficProfileId",
+              "status": "FILLED",
+              "value": "jangryang-weekday",
+              "origin": null,
+              "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/이동시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "travelTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.travelTimeMode",
+              "answerKey": "travelTimeMode",
+              "status": "FILLED",
+              "value": "LEGACY_CONSTANT",
+              "origin": null,
+              "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "경로교통/구역배정",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "zoneAssignmentRule",
+            "selected": false,
+            "input": {
+              "templateId": "jn.zoneAssignmentRule",
+              "answerKey": "zoneAssignmentRule",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "경로교통/구역내이동",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "intraZoneTravelMinutes",
+            "selected": false,
+            "input": {
+              "templateId": "jn.intraZoneTravel",
+              "answerKey": "intraZoneTravelMinutes",
+              "status": "NOT_GENERATED",
+              "value": null,
+              "origin": null,
+              "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+              "reason": null,
+              "evidence": null
+            }
+          },
+          {
+            "sesPath": "건물집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "numBuildings",
+            "selected": true,
+            "input": {
+              "templateId": "jn.numBuildings",
+              "answerKey": "numBuildings",
+              "status": "FILLED",
+              "value": 4,
+              "origin": null,
+              "question": "건물은 몇 동인가요? (1~26동)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합",
+            "nodeKind": "MULTI_ASPECT",
+            "configField": "residentsPerBuilding",
+            "selected": true,
+            "input": {
+              "templateId": "jn.residentsPerBuilding",
+              "answerKey": "residentsPerBuilding",
+              "status": "FILLED",
+              "value": 25,
+              "origin": null,
+              "question": "한 동에 몇 세대인가요?",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/직업구성",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "occupationMix",
+            "selected": true,
+            "input": {
+              "templateId": "jn.occupationMix",
+              "answerKey": "occupationMix",
+              "status": "FILLED",
+              "value": [
+                "BlueCollar",
+                "Student",
+                "Housewife"
+              ],
+              "origin": null,
+              "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "건물/거주민집합/배출시간",
+            "nodeKind": "SPECIALIZATION",
+            "configField": "dischargeTimeMode",
+            "selected": true,
+            "input": {
+              "templateId": "jn.dischargeTimeMode",
+              "answerKey": "dischargeTimeMode",
+              "status": "FILLED",
+              "value": "PAPER_BASELINE",
+              "origin": null,
+              "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/기간",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "days",
+            "selected": true,
+            "input": {
+              "templateId": "jn.days",
+              "answerKey": "days",
+              "status": "FILLED",
+              "value": 30,
+              "origin": null,
+              "question": "며칠치를 볼까요? (1~365일)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "실험프레임/반복",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "seeds",
+            "selected": true,
+            "input": {
+              "templateId": "jn.seeds",
+              "answerKey": "seeds",
+              "status": "FILLED",
+              "value": 30,
+              "origin": null,
+              "question": "몇 번 반복할까요? (1~100회)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거차량집합/경로적재몫",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "routeAvailableCapacityKg",
+            "selected": true,
+            "input": {
+              "templateId": "jn.routeAvailableCapacity",
+              "answerKey": "routeAvailableCapacityKg",
+              "status": "FILLED",
+              "value": 5000.0,
+              "origin": null,
+              "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "수거장/용량",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "capacity",
+            "selected": true,
+            "input": {
+              "templateId": "jn.binCapacity",
+              "answerKey": "binCapacityKg",
+              "status": "FILLED",
+              "value": 30.0,
+              "origin": null,
+              "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          },
+          {
+            "sesPath": "민원감시/임계",
+            "nodeKind": "ATTRIBUTE",
+            "configField": "threshold",
+            "selected": true,
+            "input": {
+              "templateId": "jn.complaintThreshold",
+              "answerKey": "complaintThreshold",
+              "status": "FILLED",
+              "value": 0.8,
+              "origin": null,
+              "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+              "reason": null,
+              "evidence": "NOT_CHECKED"
+            }
+          }
+        ]
+      }
+    ],
+    "purposeCheck": {
+      "status": "SATISFIED",
+      "acceptable": true,
+      "reasons": [],
+      "specification": {
+        "mode": "RUN",
+        "observations": [
+          "meanComplaints"
+        ]
+      }
+    },
+    "taskDefinitions": [
+      {
+        "id": "region-data",
+        "label": "지역 데이터 검증",
+        "dependencies": [],
+        "subtasks": [],
+        "outputs": [
+          "validated-region-bundle"
+        ],
+        "validator": "REGION"
+      },
+      {
+        "id": "vehicle",
+        "label": "수거 차량 준비",
+        "dependencies": [],
+        "subtasks": [
+          "truckType",
+          "truckCount",
+          "dispatchIntervalMinutes",
+          "routeAvailableCapacityKg"
+        ],
+        "outputs": [
+          "decisions.vehicle"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "collection",
+        "label": "수거 정책 준비",
+        "dependencies": [],
+        "subtasks": [
+          "collectionTimeMinutes",
+          "collectionTimesMinutes"
+        ],
+        "outputs": [
+          "decisions.collection"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "travel",
+        "label": "이동·교통 조건 준비",
+        "dependencies": [],
+        "subtasks": [
+          "trafficMode",
+          "trafficProfileId",
+          "travelTimeMode",
+          "zoneAssignmentRule",
+          "intraZoneTravelMinutes"
+        ],
+        "outputs": [
+          "decisions.travel"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "population",
+        "label": "배출 대상·행태 준비",
+        "dependencies": [],
+        "subtasks": [
+          "numBuildings",
+          "residentsPerBuilding",
+          "occupationMix",
+          "dischargeTimeMode"
+        ],
+        "outputs": [
+          "decisions.population"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "site",
+        "label": "수거장·민원 기준 준비",
+        "dependencies": [],
+        "subtasks": [
+          "binCapacityKg",
+          "complaintThreshold"
+        ],
+        "outputs": [
+          "decisions.site"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "experiment",
+        "label": "실험 기간·반복 구성",
+        "dependencies": [],
+        "subtasks": [
+          "days",
+          "seeds"
+        ],
+        "outputs": [
+          "decisions.experiment"
+        ],
+        "validator": "INPUTS"
+      },
+      {
+        "id": "execution-settings",
+        "label": "실행 설정·입력 데이터 검증",
+        "dependencies": [
+          "vehicle",
+          "collection",
+          "travel",
+          "population",
+          "site",
+          "experiment",
+          "region-data"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "validated-run-configs"
+        ],
+        "validator": "CONFIG"
+      },
+      {
+        "id": "settings-roundtrip",
+        "label": "입력 결정의 실행 설정 반영 확인",
+        "dependencies": [
+          "execution-settings"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "verified-setting-mapping"
+        ],
+        "validator": "ROUNDTRIP"
+      },
+      {
+        "id": "scenario",
+        "label": "시나리오 통합 검증",
+        "dependencies": [
+          "settings-roundtrip"
+        ],
+        "subtasks": [],
+        "outputs": [
+          "ready-scenario"
+        ],
+        "validator": "SCENARIO"
+      }
+    ],
+    "validation": {
+      "matchId": null,
+      "selection": null,
+      "requirementErrors": [],
+      "requirements": {},
+      "requirementChecks": [],
+      "requirementReady": true,
+      "region": {
+        "id": "덕명동",
+        "version": "1.0.0",
+        "label": "덕명동 — 공통 기본값으로 구성한 가상 블록",
+        "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+        "synthetic": true,
+        "basis": "COMMON_MODEL_ASSUMPTIONS",
+        "scope": "block",
+        "defaults": {
+          "numBuildings": 4,
+          "residentsPerBuilding": 25
+        },
+        "supportedTravelModes": [
+          "LEGACY_CONSTANT"
+        ],
+        "allowProviderTraffic": false,
+        "identityStatus": "USER_LABEL_NOT_GEOCODED"
+      },
+      "scenarioMode": "ASSUMED_BLOCK",
+      "dataNotice": "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다.",
+      "structureSelection": [
+        {
+          "comparisonValue": 30,
+          "decisions": [
+            {
+              "sesPath": "수거차량집합/차량유형",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "truckType",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckType",
+                "answerKey": "truckType",
+                "status": "FILLED",
+                "value": "LARGE_5TON",
+                "origin": null,
+                "question": "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numTrucks",
+              "selected": true,
+              "input": {
+                "templateId": "jn.truckCount",
+                "answerKey": "truckCount",
+                "status": "FILLED",
+                "value": 1,
+                "origin": null,
+                "question": "수거차량은 몇 대인가요? (1 이상)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/배차간격",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "dispatchIntervalMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.dispatchInterval",
+                "answerKey": "dispatchIntervalMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "차량 간 배차 간격을 몇 분으로 할까요?",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "실험프레임/수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimeMinutes",
+              "selected": true,
+              "input": {
+                "templateId": "jn.collectionTime",
+                "answerKey": "collectionTimeMinutes",
+                "status": "FILLED",
+                "value": 720,
+                "origin": null,
+                "question": "하루 중 몇 시에 수거할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/하루수거시각",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "collectionTimesMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.collectionTimes",
+                "answerKey": "collectionTimesMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/교통결합",
+              "nodeKind": "COUPLING_CONDITION",
+              "configField": "trafficEnabled",
+              "selected": true,
+              "input": {
+                "templateId": "jn.trafficMode",
+                "answerKey": "trafficMode",
+                "status": "FILLED",
+                "value": "APPLY",
+                "origin": null,
+                "question": "교통량을 반영할까요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/교통구역집합/프로파일",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "trafficProfileId",
+              "selected": true,
+              "input": {
+                "templateId": "jn.trafficProfile",
+                "answerKey": "trafficProfileId",
+                "status": "FILLED",
+                "value": "jangryang-weekday",
+                "origin": null,
+                "question": "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/이동시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "travelTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.travelTimeMode",
+                "answerKey": "travelTimeMode",
+                "status": "FILLED",
+                "value": "LEGACY_CONSTANT",
+                "origin": null,
+                "question": "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "경로교통/구역배정",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "zoneAssignmentRule",
+              "selected": false,
+              "input": {
+                "templateId": "jn.zoneAssignmentRule",
+                "answerKey": "zoneAssignmentRule",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "경로교통/구역내이동",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "intraZoneTravelMinutes",
+              "selected": false,
+              "input": {
+                "templateId": "jn.intraZoneTravel",
+                "answerKey": "intraZoneTravelMinutes",
+                "status": "NOT_GENERATED",
+                "value": null,
+                "origin": null,
+                "question": "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+                "reason": null,
+                "evidence": null
+              }
+            },
+            {
+              "sesPath": "건물집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "numBuildings",
+              "selected": true,
+              "input": {
+                "templateId": "jn.numBuildings",
+                "answerKey": "numBuildings",
+                "status": "FILLED",
+                "value": 4,
+                "origin": null,
+                "question": "건물은 몇 동인가요? (1~26동)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합",
+              "nodeKind": "MULTI_ASPECT",
+              "configField": "residentsPerBuilding",
+              "selected": true,
+              "input": {
+                "templateId": "jn.residentsPerBuilding",
+                "answerKey": "residentsPerBuilding",
+                "status": "FILLED",
+                "value": 25,
+                "origin": null,
+                "question": "한 동에 몇 세대인가요?",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/직업구성",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "occupationMix",
+              "selected": true,
+              "input": {
+                "templateId": "jn.occupationMix",
+                "answerKey": "occupationMix",
+                "status": "FILLED",
+                "value": [
+                  "BlueCollar",
+                  "Student",
+                  "Housewife"
+                ],
+                "origin": null,
+                "question": "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "건물/거주민집합/배출시간",
+              "nodeKind": "SPECIALIZATION",
+              "configField": "dischargeTimeMode",
+              "selected": true,
+              "input": {
+                "templateId": "jn.dischargeTimeMode",
+                "answerKey": "dischargeTimeMode",
+                "status": "FILLED",
+                "value": "PAPER_BASELINE",
+                "origin": null,
+                "question": "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/기간",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "days",
+              "selected": true,
+              "input": {
+                "templateId": "jn.days",
+                "answerKey": "days",
+                "status": "FILLED",
+                "value": 30,
+                "origin": null,
+                "question": "며칠치를 볼까요? (1~365일)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "실험프레임/반복",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "seeds",
+              "selected": true,
+              "input": {
+                "templateId": "jn.seeds",
+                "answerKey": "seeds",
+                "status": "FILLED",
+                "value": 30,
+                "origin": null,
+                "question": "몇 번 반복할까요? (1~100회)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거차량집합/경로적재몫",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "routeAvailableCapacityKg",
+              "selected": true,
+              "input": {
+                "templateId": "jn.routeAvailableCapacity",
+                "answerKey": "routeAvailableCapacityKg",
+                "status": "FILLED",
+                "value": 5000.0,
+                "origin": null,
+                "question": "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "수거장/용량",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "capacity",
+              "selected": true,
+              "input": {
+                "templateId": "jn.binCapacity",
+                "answerKey": "binCapacityKg",
+                "status": "FILLED",
+                "value": 30.0,
+                "origin": null,
+                "question": "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            },
+            {
+              "sesPath": "민원감시/임계",
+              "nodeKind": "ATTRIBUTE",
+              "configField": "threshold",
+              "selected": true,
+              "input": {
+                "templateId": "jn.complaintThreshold",
+                "answerKey": "complaintThreshold",
+                "status": "FILLED",
+                "value": 0.8,
+                "origin": null,
+                "question": "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+                "reason": null,
+                "evidence": "NOT_CHECKED"
+              }
+            }
+          ]
+        }
+      ],
+      "taskReadiness": {
+        "ready": false,
+        "tasks": [
+          {
+            "taskId": "run-0/region-data",
+            "status": "INVALID",
+            "subtasks": [],
+            "reasons": [
+              "합성 지역에 장량동 교통을 적용할 수 없습니다"
+            ]
+          },
+          {
+            "taskId": "run-0/vehicle",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/truckType",
+              "run-0/truckCount",
+              "run-0/dispatchIntervalMinutes",
+              "run-0/routeAvailableCapacityKg"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/collection",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/collectionTimeMinutes",
+              "run-0/collectionTimesMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/travel",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/trafficMode",
+              "run-0/trafficProfileId",
+              "run-0/travelTimeMode",
+              "run-0/zoneAssignmentRule",
+              "run-0/intraZoneTravelMinutes"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/population",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/numBuildings",
+              "run-0/residentsPerBuilding",
+              "run-0/occupationMix",
+              "run-0/dischargeTimeMode"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/site",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/binCapacityKg",
+              "run-0/complaintThreshold"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/experiment",
+            "status": "COMPLETE",
+            "subtasks": [
+              "run-0/days",
+              "run-0/seeds"
+            ],
+            "reasons": []
+          },
+          {
+            "taskId": "run-0/execution-settings",
+            "status": "BLOCKED",
+            "subtasks": [],
+            "reasons": [
+              "선행 Task 미완료: run-0/region-data"
+            ]
+          },
+          {
+            "taskId": "run-0/settings-roundtrip",
+            "status": "BLOCKED",
+            "subtasks": [],
+            "reasons": [
+              "선행 Task 미완료: run-0/execution-settings"
+            ]
+          },
+          {
+            "taskId": "run-0/scenario",
+            "status": "BLOCKED",
+            "subtasks": [],
+            "reasons": [
+              "선행 Task 미완료: run-0/settings-roundtrip"
+            ]
+          }
+        ]
+      },
+      "taskDefinitions": [
+        {
+          "id": "region-data",
+          "label": "지역 데이터 검증",
+          "dependencies": [],
+          "subtasks": [],
+          "outputs": [
+            "validated-region-bundle"
+          ],
+          "validator": "REGION"
+        },
+        {
+          "id": "vehicle",
+          "label": "수거 차량 준비",
+          "dependencies": [],
+          "subtasks": [
+            "truckType",
+            "truckCount",
+            "dispatchIntervalMinutes",
+            "routeAvailableCapacityKg"
+          ],
+          "outputs": [
+            "decisions.vehicle"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "collection",
+          "label": "수거 정책 준비",
+          "dependencies": [],
+          "subtasks": [
+            "collectionTimeMinutes",
+            "collectionTimesMinutes"
+          ],
+          "outputs": [
+            "decisions.collection"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "travel",
+          "label": "이동·교통 조건 준비",
+          "dependencies": [],
+          "subtasks": [
+            "trafficMode",
+            "trafficProfileId",
+            "travelTimeMode",
+            "zoneAssignmentRule",
+            "intraZoneTravelMinutes"
+          ],
+          "outputs": [
+            "decisions.travel"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "population",
+          "label": "배출 대상·행태 준비",
+          "dependencies": [],
+          "subtasks": [
+            "numBuildings",
+            "residentsPerBuilding",
+            "occupationMix",
+            "dischargeTimeMode"
+          ],
+          "outputs": [
+            "decisions.population"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "site",
+          "label": "수거장·민원 기준 준비",
+          "dependencies": [],
+          "subtasks": [
+            "binCapacityKg",
+            "complaintThreshold"
+          ],
+          "outputs": [
+            "decisions.site"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "experiment",
+          "label": "실험 기간·반복 구성",
+          "dependencies": [],
+          "subtasks": [
+            "days",
+            "seeds"
+          ],
+          "outputs": [
+            "decisions.experiment"
+          ],
+          "validator": "INPUTS"
+        },
+        {
+          "id": "execution-settings",
+          "label": "실행 설정·입력 데이터 검증",
+          "dependencies": [
+            "vehicle",
+            "collection",
+            "travel",
+            "population",
+            "site",
+            "experiment",
+            "region-data"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "validated-run-configs"
+          ],
+          "validator": "CONFIG"
+        },
+        {
+          "id": "settings-roundtrip",
+          "label": "입력 결정의 실행 설정 반영 확인",
+          "dependencies": [
+            "execution-settings"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "verified-setting-mapping"
+          ],
+          "validator": "ROUNDTRIP"
+        },
+        {
+          "id": "scenario",
+          "label": "시나리오 통합 검증",
+          "dependencies": [
+            "settings-roundtrip"
+          ],
+          "subtasks": [],
+          "outputs": [
+            "ready-scenario"
+          ],
+          "validator": "SCENARIO"
+        }
+      ],
+      "purposeCheck": {
+        "status": "SATISFIED",
+        "acceptable": true,
+        "reasons": [],
+        "specification": {
+          "mode": "RUN",
+          "observations": [
+            "meanComplaints"
+          ]
+        }
+      },
+      "manifestVersion": "1.0",
+      "runArtifactDigest": "09a2301cdeeb8b180449936c4373edd5ea47d12e6084db3ce1d3beba53b10fd0",
+      "runArtifactCount": 1,
+      "providerResourceDigest": "ca78e7374b867e6244834d93b152cda83924b2be0f1a75954fb574b1410568ae",
+      "ready": false,
+      "requestId": "request-1b3139f7-c20c-4841-948b-34a72d280667"
+    },
+    "taskReadiness": {
+      "ready": false,
+      "tasks": [
+        {
+          "taskId": "run-0/region-data",
+          "status": "INVALID",
+          "subtasks": [],
+          "reasons": [
+            "합성 지역에 장량동 교통을 적용할 수 없습니다"
+          ]
+        },
+        {
+          "taskId": "run-0/vehicle",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/truckType",
+            "run-0/truckCount",
+            "run-0/dispatchIntervalMinutes",
+            "run-0/routeAvailableCapacityKg"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/collection",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/collectionTimeMinutes",
+            "run-0/collectionTimesMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/travel",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/trafficMode",
+            "run-0/trafficProfileId",
+            "run-0/travelTimeMode",
+            "run-0/zoneAssignmentRule",
+            "run-0/intraZoneTravelMinutes"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/population",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/numBuildings",
+            "run-0/residentsPerBuilding",
+            "run-0/occupationMix",
+            "run-0/dischargeTimeMode"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/site",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/binCapacityKg",
+            "run-0/complaintThreshold"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/experiment",
+          "status": "COMPLETE",
+          "subtasks": [
+            "run-0/days",
+            "run-0/seeds"
+          ],
+          "reasons": []
+        },
+        {
+          "taskId": "run-0/execution-settings",
+          "status": "BLOCKED",
+          "subtasks": [],
+          "reasons": [
+            "선행 Task 미완료: run-0/region-data"
+          ]
+        },
+        {
+          "taskId": "run-0/settings-roundtrip",
+          "status": "BLOCKED",
+          "subtasks": [],
+          "reasons": [
+            "선행 Task 미완료: run-0/execution-settings"
+          ]
+        },
+        {
+          "taskId": "run-0/scenario",
+          "status": "BLOCKED",
+          "subtasks": [],
+          "reasons": [
+            "선행 Task 미완료: run-0/settings-roundtrip"
+          ]
+        }
+      ]
+    },
+    "evidencePolicy": "REQUIRE_CONFIRMATION_FOR_UNVERIFIED",
+    "evidenceStatus": "NOT_CHECKED",
+    "unverifiedKeys": [
+      "trafficMode",
+      "days",
+      "truckType",
+      "complaintThreshold",
+      "trafficProfileId",
+      "occupationMix",
+      "residentsPerBuilding",
+      "truckCount",
+      "routeAvailableCapacityKg",
+      "binCapacityKg",
+      "travelTimeMode",
+      "numBuildings",
+      "seeds",
+      "dischargeTimeMode",
+      "collectionTimeMinutes"
+    ],
+    "unverifiedValues": {
+      "trafficMode": "APPLY",
+      "days": [
+        30
+      ],
+      "truckType": "LARGE_5TON",
+      "complaintThreshold": 0.8,
+      "trafficProfileId": "jangryang-weekday",
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "truckCount": 1,
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "numBuildings": 4,
+      "seeds": 30,
+      "binCapacityKg": 30.0,
+      "dischargeTimeMode": "PAPER_BASELINE"
+    },
+    "reviewRequiredValues": {
+      "days": [
+        30
+      ],
+      "truckType": "LARGE_5TON",
+      "complaintThreshold": 0.8,
+      "trafficProfileId": "jangryang-weekday",
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "truckCount": 1,
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "numBuildings": 4,
+      "seeds": 30,
+      "binCapacityKg": 30.0,
+      "dischargeTimeMode": "PAPER_BASELINE",
+      "trafficMode": "APPLY"
+    },
+    "runCount": 1,
+    "blocks": [
+      "합성 지역에 장량동 교통을 적용할 수 없습니다",
+      "days=30: 합성 지역에 장량동 교통을 적용할 수 없습니다"
+    ],
+    "backVerificationBlocks": [],
+    "branchBlocks": [],
+    "unapprovedDefaults": {
+      "days": [
+        30
+      ],
+      "truckType": "LARGE_5TON",
+      "complaintThreshold": 0.8,
+      "trafficProfileId": "jangryang-weekday",
+      "occupationMix": [
+        "BlueCollar",
+        "Student",
+        "Housewife"
+      ],
+      "truckCount": 1,
+      "residentsPerBuilding": 25,
+      "routeAvailableCapacityKg": 5000.0,
+      "collectionTimeMinutes": 720,
+      "travelTimeMode": "LEGACY_CONSTANT",
+      "numBuildings": 4,
+      "seeds": 30,
+      "binCapacityKg": 30.0,
+      "dischargeTimeMode": "PAPER_BASELINE"
+    },
+    "state": "INVALID"
+  },
+  "tooLarge": {
+    "valid": false,
+    "state": "NEEDS_INPUT",
+    "missingInputs": [
+      {
+        "templateId": "jn.numBuildings",
+        "answerKey": "numBuildings",
+        "status": "UNFILLED",
+        "value": null,
+        "origin": null,
+        "question": "건물은 몇 동인가요? (1~26동)",
+        "reason": {
+          "code": "OUT_OF_RANGE",
+          "message": "numBuildings 는 26 이하여야 합니다. 받은 값: 100"
+        },
+        "evidence": null
+      }
+    ],
+    "region": {
+      "id": "덕명동",
+      "version": "1.0.0",
+      "label": "덕명동 — 공통 기본값으로 구성한 가상 블록",
+      "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+      "synthetic": true,
+      "basis": "COMMON_MODEL_ASSUMPTIONS",
+      "scope": "block",
+      "defaults": {
+        "numBuildings": 4,
+        "residentsPerBuilding": 25
+      },
+      "supportedTravelModes": [
+        "LEGACY_CONSTANT"
+      ],
+      "allowProviderTraffic": false,
+      "identityStatus": "USER_LABEL_NOT_GEOCODED"
+    }
+  },
+  "wholeDistrict": {
+    "domain": "쓰레기수거",
+    "requirements": {
+      "regionId": "덕명동"
+    },
+    "schemaVersion": "1.0.0",
+    "round": {
+      "matchId": "4cef8778-b6fa-42b5-b637-e3f8f49e98b9",
+      "round": 1,
+      "revisions": 0,
+      "remainingRevisions": 5,
+      "removedConditions": [],
+      "purposeChanged": false
+    },
+    "matchCount": 2,
+    "verdict": "ADJUST_REQUEST",
+    "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+    "suggestions": [
+      {
+        "serverId": "jangnyang-waste-sim",
+        "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+        "endpoint": "http://localhost:8090/mcp",
+        "fictional": false,
+        "reasons": [
+          "도메인: 쓰레기수거 → waste-collection",
+          "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED"
+        ],
+        "mismatches": [
+          "공간 규모: 동 전체 는 이 서버의 분석 단위(원룸촌 한 블록)와 맞지 않습니다"
+        ],
+        "ambiguities": [],
+        "requestAdjustments": [
+          {
+            "axis": "spatialScale",
+            "current": "동 전체",
+            "classification": "MISMATCH",
+            "suggestion": "공간 규모를 '원룸촌 한 블록' 로 바꾸면 됩니다. 카드가 적은 대안: scale:block",
+            "reason": "수거 지점 26개 상한. 장량동 전체(70,576명)는 약 2,700개가 필요하다",
+            "changesPurpose": false
+          }
+        ],
+        "conditionChecks": [
+          {
+            "field": "regionId",
+            "requested": "덕명동",
+            "declared": [
+              "jangnyang",
+              "synthetic-block"
+            ],
+            "status": "CONDITIONAL",
+            "code": "CONFIGURATION_CHECK_REQUIRED",
+            "action": "VERIFY_GENERATED_CONFIGURATION",
+            "required": true
+          }
+        ]
+      }
+    ],
+    "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+    "matches": [
+      {
+        "serverId": "district-waste-sim",
+        "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+        "endpoint": "http://example.invalid/mcp",
+        "fictional": true,
+        "reasons": [
+          "도메인: 쓰레기수거 → waste-collection",
+          "공간 규모: 동 전체 → 행정동 전체(district)"
+        ],
+        "mismatches": [],
+        "ambiguities": [
+          "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED"
+        ],
+        "requestAdjustments": [
+          {
+            "axis": "regionId",
+            "current": "\"덕명동\"",
+            "classification": "AMBIGUOUS",
+            "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+            "reason": "CAPABILITY_UNDECLARED",
+            "changesPurpose": false
+          }
+        ],
+        "conditionChecks": [
+          {
+            "field": "regionId",
+            "requested": "덕명동",
+            "declared": null,
+            "status": "UNKNOWN",
+            "code": "CAPABILITY_UNDECLARED",
+            "action": "PROVIDER_DECLARATION_REQUIRED",
+            "required": true
+          }
+        ]
+      },
+      {
+        "serverId": "jangnyang-waste-sim",
+        "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+        "endpoint": "http://localhost:8090/mcp",
+        "fictional": false,
+        "reasons": [
+          "도메인: 쓰레기수거 → waste-collection",
+          "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED"
+        ],
+        "mismatches": [
+          "공간 규모: 동 전체 는 이 서버의 분석 단위(원룸촌 한 블록)와 맞지 않습니다"
+        ],
+        "ambiguities": [],
+        "requestAdjustments": [
+          {
+            "axis": "spatialScale",
+            "current": "동 전체",
+            "classification": "MISMATCH",
+            "suggestion": "공간 규모를 '원룸촌 한 블록' 로 바꾸면 됩니다. 카드가 적은 대안: scale:block",
+            "reason": "수거 지점 26개 상한. 장량동 전체(70,576명)는 약 2,700개가 필요하다",
+            "changesPurpose": false
+          }
+        ],
+        "conditionChecks": [
+          {
+            "field": "regionId",
+            "requested": "덕명동",
+            "declared": [
+              "jangnyang",
+              "synthetic-block"
+            ],
+            "status": "CONDITIONAL",
+            "code": "CONFIGURATION_CHECK_REQUIRED",
+            "action": "VERIFY_GENERATED_CONFIGURATION",
+            "required": true
+          }
+        ]
+      }
+    ]
+  }
+}

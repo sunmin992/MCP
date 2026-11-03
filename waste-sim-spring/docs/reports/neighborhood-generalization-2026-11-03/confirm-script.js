@@ -1,0 +1,166 @@
+
+const $list = document.getElementById('list');
+const $detail = document.getElementById('detail');
+let current = null;
+
+// 목록은 괄호를 살려 낸다. String([[660],[660,1380]]) 은 "660,660,1380" 이라 어디서 한 조건이
+// 끝나는지 사라진다 — 사람이 무엇을 승인하는지 읽을 수 없으면 확인이 확인이 아니다.
+const esc = s => (Array.isArray(s) ? JSON.stringify(s) : String(s))
+  .replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+
+async function loadList() {
+  const body = await (await fetch('/api/scenarios')).json();
+  const rows = body.scenarios;
+
+  // 이 서버에는 인증이 없다. 루프백 바인딩이 풀린 것을 조용히 넘기면, 확인하는 사람은
+  // 자기 화면이 같은 네트워크의 누구에게나 열려 있다는 사실을 모른 채 동의한다.
+  const $exp = document.getElementById('exposure');
+  if (!body.loopbackOnly) {
+    $exp.className = 'on';
+    $exp.textContent = `이 화면이 ${body.boundAddress} 로 열려 있습니다. `
+      + '인증이 없으므로 같은 네트워크의 누구나 이 시나리오를 확인해 줄 수 있습니다.';
+  } else {
+    $exp.className = '';
+  }
+
+  if (!rows.length) {
+    $list.innerHTML = '<p class="empty">보관된 시나리오가 없습니다.<br>build_scenario 를 먼저 부르십시오.</p>';
+    return;
+  }
+  $list.innerHTML = rows.map(r => `
+    <button data-id="${esc(r.scenarioId)}" aria-current="${r.scenarioId === current}">
+      <code>${esc(r.scenarioId)}</code><br>
+      <span class="state ${r.state}">${r.state}</span>
+      · ${r.runCount}벌${r.unapprovedCount
+          ? (r.state === 'UNCONFIRMED' ? ` · 미승인 ${r.unapprovedCount}` : ` · 기본값 ${r.unapprovedCount}`)
+          : ''}
+    </button>`).join('');
+  $list.querySelectorAll('button').forEach(b =>
+    b.onclick = () => loadDetail(b.dataset.id));
+}
+
+// 실행마다 달라지는 필드가 곧 실험 변수다 — 서버가 따로 알려줄 필요가 없다.
+function sweptKeys(runs) {
+  if (runs.length < 2) return [];
+  return Object.keys(runs[0]).filter(k =>
+    runs.some(r => JSON.stringify(r[k]) !== JSON.stringify(runs[0][k])));
+}
+
+// 출처를 사람이 읽는 말로 — 영문 표기만 보이면 무엇이 내가 말한 값인지 가를 수 없다.
+const ORIGIN = { UNVERIFIED: '발화 근거 미검증(확인 필요)', USER: '사용자가 말함', MODEL_DEFAULT: '기본값(사용자가 정하지 않음)', DERIVED: '요청에서 도출' };
+
+async function loadDetail(id) {
+  current = id;
+  const res = await fetch(`/api/scenarios/${encodeURIComponent(id)}`);
+  if (!res.ok) {
+    $detail.innerHTML = `<p class="empty">시나리오 <code>${esc(id)}</code> 를 찾지 못했습니다. 서버가 다시 시작되었으면 시나리오를 다시 만들어야 합니다.</p>`;
+    return;
+  }
+  const d = await res.json();
+  const unapproved = Object.entries(d.unapprovedDefaults || {});
+  // 항목은 이름으로 보이고, 영문 키는 옆에 작게 둔다 — LLM 과 같은 키로 이야기할 수 있게.
+  // 템플릿이 아닌, 실행 설정에만 있는 보조 칸의 이름.
+  const shown = Object.assign({ collectionTimeLabel: '수거 시각(시:분)' }, d.labels);
+  const name = k => shown[k] ? `${esc(shown[k])} <code>${esc(k)}</code>` : esc(k);
+  // 실행 설정에는 같은 값이 두 이름으로 들어 있기도 하다(truckCount · numTrucks). 이름과 값이 같은 열은 한 번만 보인다.
+  const seen = new Set();
+  const swept = sweptKeys(d.runs).filter(k => {
+    const sig = (shown[k] ?? k) + JSON.stringify(d.runs.map(r => r[k]));
+    return !seen.has(sig) && seen.add(sig);
+  });
+  $list.querySelectorAll('button').forEach(b => b.setAttribute('aria-current', String(b.dataset.id === id)));
+
+  $detail.innerHTML = `
+    <h2 style="font-size:16px;margin:0 0 6px">
+      <code>${esc(d.scenarioId)}</code> <span class="state ${d.state}">${d.state}</span>
+    </h2>
+    <p style="color:#666;font-size:13px;margin:0 0 14px">
+      SES ${esc(d.sesId)} ${esc(d.sesVersion)} · 실행 설정 ${d.runs.length}벌
+    </p>
+
+    <div class="ask"><strong>LLM 이 전달한 사용자 요청</strong>
+      <p>${d.request ? esc(d.request) : '<span style="color:#666">요청 원문이 함께 전달되지 않았습니다.</span>'}</p></div>
+
+    ${d.validation && d.validation.scenarioMode === 'ASSUMED_BLOCK'
+      ? `<div class="warn"><strong>${esc((d.validation.region || {}).label || '가상 동네 블록')}</strong>
+         <p>${esc(d.validation.dataNotice)}</p><p>아래 기본값과 지정한 조건을 확인한 뒤 실행을 승인해 주세요.</p></div>` : ''}
+
+    ${unapproved.length ? (d.state === 'UNCONFIRMED'
+      ? `<div class="warn"><strong>확인이 필요한 기본값·근거 미검증 값 ${unapproved.length}개</strong>
+      <table><tr><th>항목</th><th>값</th></tr>
+      ${unapproved.map(([k, v]) => `<tr><td>${name(k)}</td><td>${esc(v)}</td></tr>`).join('')}
+      </table>확인하면 이 값으로 돌아갑니다.</div>`
+      // 확인은 시나리오 전체를 승인한다. 값의 출처(MODEL_DEFAULT)는 기록이라 바꾸지 않지만,
+      // 확인한 뒤에도 "승인하지 않은" 이라고 쓰면 사람이 누른 확인이 없던 일처럼 읽힌다.
+      : `<div class="approved"><strong>확인 때 함께 승인된 값 ${unapproved.length}개</strong>
+      <table><tr><th>항목</th><th>값</th></tr>
+      ${unapproved.map(([k, v]) => `<tr><td>${name(k)}</td><td>${esc(v)}</td></tr>`).join('')}
+      </table>기본값 또는 발화 근거가 미검증인 값을 확인 화면에서 승인했습니다.</div>`) : ''}
+
+    ${d.blocks.length ? `<div class="warn"><strong>막힌 사유</strong><ul>
+      ${d.blocks.map(b => `<li>${esc(b)}</li>`).join('')}</ul></div>` : ''}
+
+    <h3 style="font-size:14px;margin:16px 0 0">모든 항목과 정한 근거</h3>
+    <table><tr><th>항목</th><th>값</th><th>정한 근거</th></tr>
+    ${Object.entries(d.values).map(([k, v]) =>
+      `<tr><td>${name(k)}</td><td>${esc(v)}</td><td>${esc((d.evidenceChecks?.[k] ? '발화 근거 미검증 · ' : '') + (ORIGIN[d.origins[k]] ?? d.origins[k] ?? ''))}</td></tr>`).join('')}
+    </table>
+
+    <h3 style="font-size:14px;margin:0 0 0">조건마다 달라지는 것</h3>
+    ${swept.length ? `<div class="scroll"><table><tr>${swept.map(k => `<th>${name(k)}</th>`).join('')}</tr>
+      ${d.runs.map(r => `<tr>${swept.map(k => `<td>${typeof r[k] === 'boolean' ? (r[k] ? '적용' : '적용 안 함') : esc(r[k])}</td>`).join('')}</tr>`).join('')}
+      </table></div>` : '<p style="color:#666">설정 한 벌뿐입니다.</p>'}
+
+    ${readinessPanel(d)}
+    <button class="go" ${d.state !== 'CONFIRMED' && d.state !== 'STALE' && !d.blocks.length ? '' : 'disabled'}>
+      ${{ UNCONFIRMED: '이 설정으로 돌린다', STALE: '재검증 필요', EXECUTED: '다시 확인하고 돌린다' }[d.state] ?? '이미 확인됨'}
+    </button>
+    ${d.confirmToken ? `<p style="color:#666;font-size:13px">확인 토큰
+      <code>${esc(d.confirmToken)}</code> · 이 토큰으로만 실행됩니다.
+      설정이 바뀌면 무효가 됩니다.</p>` : ''}
+    <p id="out" style="color:#666;font-size:13px"></p>`;
+
+  const $go = $detail.querySelector('button.go');
+  if ($go && !$go.disabled) $go.onclick = () => confirmIt(id);
+}
+
+function readinessPanel(d) {
+  const v = d.validation;
+  if (!v || !v.taskReadiness) return '';
+  const purpose = v.purposeCheck || {};
+  const labels = Object.fromEntries((v.taskDefinitions || []).map(t => [t.id, t.label]));
+  const definitions = Object.fromEntries((v.taskDefinitions || []).map(t => [t.id, t]));
+  const status = {COMPLETE:'완료', BLOCKED:'선행 작업·입력 대기', INVALID:'검증 실패'};
+  const metricNames = {'meanComplaints':'평균 민원 수', 'avgRouteDurationMinutes':'평균 운행 소요 시간', 'judgement.meanSearchMinutesAll':'평균 주차 탐색 시간', 'judgement.meanWaitMinutesAll':'평균 대기 시간', 'judgement.leftoverKgPerCollectionDay':'수거일당 잔여 폐기물량'};
+  const pstatus = {SATISFIED:'목적 명세와 일치', MISMATCH:'목적과 불일치', NOT_SPECIFIED:'목적 명세 미제공 — 요청과 설정을 직접 확인하세요'};
+  return `<h3>작업 완료 판정</h3>
+    ${v.current === false ? '<div class="warn">입력·데이터 또는 요청 단계가 바뀌었습니다. 시나리오를 다시 생성하고 검증해야 합니다.</div>' : ''}
+    <table><tr><th>실행 조건·작업</th><th>판정</th><th>산출물·판정 근거</th></tr>
+    ${(v.taskReadiness.tasks || []).map(t => {
+      const parts = t.taskId.split('/'); const key = parts.slice(1).join('/'); const def = definitions[key] || {};
+      return `<tr><td>조건 ${esc(Number(parts[0].replace('run-','')) + 1)} · ${esc(labels[key] || key)}</td><td>${esc(status[t.status] || t.status)}</td>
+      <td>${esc((t.reasons?.length ? t.reasons : [{INPUTS:'필요한 입력 결정 완료', CONFIG:'실행 설정·데이터 검증 통과', ROUNDTRIP:'입력 결정의 실행 설정 반영 확인', SCENARIO:'전체 실행 준비 조건 충족'}[def.validator] || '완료 조건 충족']).join(' · '))}</td></tr>`;
+    }).join('')}</table>
+    <h3>사용자 목적과의 대조</h3><p>${esc(pstatus[purpose.status] || '확인 안 됨')}</p>
+    ${purpose.specification ? `<p>비교 변수: ${esc(d.labels?.[purpose.specification.comparisonKey] || purpose.specification.comparisonKey || '해당 없음')}<br>
+      비교 값: ${esc(JSON.stringify(purpose.specification.comparisonValues || []))}<br>
+      관측 지표: ${esc((purpose.specification.observations || []).map(k => metricNames[k] || k).join(', '))}</p>` : ''}
+    ${(purpose.reasons || []).length ? `<ul>${purpose.reasons.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    <details><summary>검증 기록</summary><p style="color:#666;font-size:12px">검증 시각: ${esc(v.validatedAt || '')} · 실행 설정 ${esc(v.runArtifactCount)}벌<br>
+    검증 식별값: ${esc((v.fingerprint || '').slice(0,20))}</p></details>`;
+}
+
+async function confirmIt(id) {
+  const res = await fetch(`/api/scenarios/${encodeURIComponent(id)}/confirm`, { method: 'POST' });
+  const body = await res.json();
+  if (!res.ok) {
+    document.getElementById('out').textContent = '확인하지 못했습니다: ' + JSON.stringify(body);
+    return;
+  }
+  await loadList();
+  await loadDetail(id);
+}
+
+// LLM 이 안내한 주소(?id=...)로 들어오면 그 시나리오를 바로 연다.
+const wanted = new URLSearchParams(location.search).get('id');
+loadList().then(() => { if (wanted) loadDetail(wanted); });

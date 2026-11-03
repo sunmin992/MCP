@@ -1,0 +1,80 @@
+{
+  "mcp-common": {
+    "reports": 0,
+    "tests": 0,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "problems": []
+  },
+  "broker": {
+    "reports": 11,
+    "tests": 148,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "problems": []
+  },
+  "template-generator": {
+    "reports": 4,
+    "tests": 45,
+    "failures": 1,
+    "errors": 0,
+    "skipped": 0,
+    "problems": [
+      {
+        "test": "com.wastesim.templategen.JangnyangSourceTest.뽑은_생성_조건은_물어야_할_때를_빠뜨리지_않는다",
+        "kind": "failure",
+        "message": "더 좁은 조건은 필요한 질문을 건너뛴다: [ConditionRow[templateId=jn.truckType, configField=truckType, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.truckCount, configField=numTrucks, handName=ALWAYS, handExpr=true, generatedExpr=!(numBuildings < 1 || numBuildings > 26), relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.dispatchInterval, configField=dispatchIntervalMinutes, handName=jn.dispatchInterval, handExpr=numTrucks >= 2 && numBuildings >= 2, generatedExpr=?{반복 변수 k ≥ 1 일 때만 값이 쓰인다 — 반복이 두 번 이상 돌아야 함 (k < routes.size())} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}, relation=WEAKER, counterexample={numTrucks=1.0, numBuildings=1.0} → 손 false · 생성 true, hints=[반복 변수 k ≥ 1 일 때만 값이 쓰인다 — 반복이 두 번 이상 돌아야 함 (k < routes.size()), route.isEmpty(), isTruckDay(d, cfg, types)]], ConditionRow[templateId=jn.collectionTime, configField=collectionTimeMinutes, handName=jn.collectionTime, handExpr=!given(collectionTimesMinutes), generatedExpr=?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && !(present(collectionTimesMinutes) && !empty(collectionTimesMinutes)), relation=EQUIVALENT, counterexample=null, hints=[isTruckDay(d, cfg, types), isWeekend(day)]], ConditionRow[templateId=jn.collectionTimes, configField=collectionTimesMinutes, handName=jn.collectionTimes, handExpr=given(collectionTimesMinutes), generatedExpr=(?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes))) || (?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && ?{자기 자신: present(collectionTimesMinutes)}) || (?{isTruckDay(d, cfg, types)} && !(?{isWeekend(day)} && present(weekendCollectionTimeMinutes)) && ?{자기 자신: present(collectionTimesMinutes)} && !?{자기 자신: empty(collectionTimesMinutes)}), relation=WEAKER, counterexample={collectionTimesMinutes=NULL, weekendCollectionTimeMinutes=0.0} → 손 false · 생성 true, hints=[isTruckDay(d, cfg, types), isWeekend(day)]], ConditionRow[templateId=jn.trafficMode, configField=trafficEnabled, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.trafficProfile, configField=trafficProfileId, handName=jn.trafficProfile, handExpr=trafficEnabled == true, generatedExpr=trafficEnabled == true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.travelTimeMode, configField=travelTimeMode, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.zoneAssignmentRule, configField=zoneAssignmentRule, handName=jn.zoneAssignmentRule, handExpr=travelTimeMode == ZONE_PROXY_HYBRID && numBuildings > 4, generatedExpr=(?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT)) || travelTimeMode == ZONE_PROXY_HYBRID || (trafficEnabled == true && ?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)}), relation=WEAKER, counterexample={travelTimeMode=LEGACY_CONSTANT, numBuildings=1.0, trafficEnabled=true} → 손 false · 생성 true, hints=[pos > 0, route.isEmpty(), isTruckDay(d, cfg, types)]], ConditionRow[templateId=jn.intraZoneTravel, configField=intraZoneTravelMinutes, handName=jn.intraZoneTravel, handExpr=travelTimeMode == ZONE_PROXY_HYBRID && numBuildings > 4 && zoneAssignmentRule == CONTIGUOUS, generatedExpr=(?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{fromZone.equals(toZone)}) || (?{pos > 0} && !?{route.isEmpty()} && ?{isTruckDay(d, cfg, types)} && travelTimeMode == ZONE_PROXY_HYBRID && !(travelTimeMode == LEGACY_CONSTANT) && ?{자기 자신: present(intraZoneTravelMinutes)} && ?{fromZone.equals(toZone)}), relation=WEAKER, counterexample={travelTimeMode=ZONE_PROXY_HYBRID, numBuildings=1.0, zoneAssignmentRule=NONE} → 손 false · 생성 true, hints=[pos > 0, route.isEmpty(), isTruckDay(d, cfg, types), fromZone.equals(toZone)]], ConditionRow[templateId=jn.numBuildings, configField=numBuildings, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.residentsPerBuilding, configField=residentsPerBuilding, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.occupationMix, configField=occupationMix, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.dischargeTimeMode, configField=dischargeTimeMode, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.days, configField=days, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.seeds, configField=seeds, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.routeAvailableCapacity, configField=routeAvailableCapacityKg, handName=ALWAYS, handExpr=true, generatedExpr=true, relation=EQUIVALENT, counterexample=null, hints=[]], ConditionRow[templateId=jn.binCapacity, configField=capacity, handName=ALWAYS, handExpr=true, generatedExpr=!present(wasteTypes) || empty(wasteTypes), relation=STRONGER, counterexample={wasteTypes=0.0} → 손 true · 생성 false, hints=[]], ConditionRow[templateId=jn.complaintThreshold, configField=threshold, handName=ALWAYS, handExpr=true, generatedExpr=!present(wasteTypes) || empty(wasteTypes), relation=STRONGER, counterexample={wasteTypes=0.0} → 손 true · 생성 false, hints=[]]] ==> expected: <0> but was: <2>"
+      }
+    ]
+  },
+  "jangnyang": {
+    "reports": 77,
+    "tests": 687,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 3,
+    "problems": [
+      {
+        "test": "com.wastesim.mcp.PythonWasteSimAdapterTest.realPythonEnginePreservesExplicitZeroWhenAvailable",
+        "kind": "skipped",
+        "message": ""
+      },
+      {
+        "test": "com.wastesim.mcp.PythonWasteSimAdapterTest.runsRealPythonEngineWhenAvailable",
+        "kind": "skipped",
+        "message": ""
+      },
+      {
+        "test": "com.wastesim.mcp.PythonWasteSimAdapterTest.forwardsTrafficParamsToPythonEngine",
+        "kind": "skipped",
+        "message": ""
+      }
+    ]
+  },
+  "parking": {
+    "reports": 15,
+    "tests": 89,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "problems": []
+  },
+  "counter": {
+    "reports": 7,
+    "tests": 31,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "problems": []
+  },
+  "district": {
+    "reports": 9,
+    "tests": 40,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "problems": []
+  }
+}

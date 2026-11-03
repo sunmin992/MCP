@@ -1,0 +1,44 @@
+{
+  "broker": {
+    "tests": 155,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "simulator": {
+    "tests": 692,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 3
+  },
+  "template-generator": {
+    "tests": 45,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "parking-sim": {
+    "tests": 89,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "counter-sim": {
+    "tests": 31,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "district-waste-sim": {
+    "tests": 40,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "total": {
+    "tests": 1052,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 3
+  }
+}

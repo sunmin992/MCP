@@ -1,0 +1,6 @@
+{"id":"E1","utterance":"합성 블록에서 이틀 동안 민원 수를 비교해줘","expected":{"regionId":"synthetic-block","simulationDuration":{"value":2,"unit":"day"},"requiredOutputs":["meanComplaints"]}}
+{"id":"E2","utterance":"장량동에서 한 시간 단위로 결과를 보고 싶어","expected":{"regionId":"jangnyang","timeResolution":{"value":1,"unit":"hour"}}}
+{"id":"E3","utterance":"쓰레기 수거 시뮬레이션 해줘","expected":{}}
+{"id":"E4","utterance":"장량동에서 건물 4개로 실행해줘","expected":{"regionId":"jangnyang","constraints":{"numBuildings":4}}}
+{"id":"E5","utterance":"2주 동안 실행하고 반복은 3회로 해줘","expected":{"simulationDuration":{"value":2,"unit":"week"},"constraints":{"seeds":3}}}
+{"id":"E6","utterance":"반복은 가능하면 5번이 좋겠어","expected":{"preferences":{"seeds":5}}}
