@@ -124,9 +124,9 @@
             "alleyAccess" : true
           }
         ],
-        "default" : "LARGE_5TON",
         "homogeneity" : "집합 전체 단일값 — 차량별 개별 선택 미지원",
-        "evidence" : "model/TruckType.java"
+        "evidence" : "model/TruckType.java",
+        "default" : "LARGE_5TON"
       },
       {
         "path" : "수거차량집합",
@@ -138,12 +138,12 @@
           "수거차 수",
           "몇 대"
         ],
+        "derived" : "실제 운행 대수 = min(numBuildings, numTrucks)",
+        "evidence" : "tool/SimulationConfigValidator.java, simulation/RoutePlanner.java",
         "range" : {
           "min" : 1
         },
-        "default" : 1,
-        "derived" : "실제 운행 대수 = min(numBuildings, numTrucks)",
-        "evidence" : "tool/SimulationConfigValidator.java, simulation/RoutePlanner.java"
+        "default" : 1
       },
       {
         "path" : "수거차량집합/배차간격",
@@ -154,15 +154,15 @@
           "배차",
           "출발 간격"
         ],
+        "generateWhenReason" : "실제 운행 차량이 1대면 차량 간 시간차가 없어 결과에 영향을 주지 않는다",
+        "evidence" : "SimulationEngine: slot + k * dispatchIntervalMinutes",
+        "generateWhen" : "numBuildings >= 2 && truckCount >= 2",
         "range" : {
           "min" : 0,
           "max" : 1439,
           "unit" : "minute"
         },
-        "default" : 0,
-        "generateWhen" : "min(numBuildings, numTrucks) >= 2",
-        "generateWhenReason" : "실제 운행 차량이 1대면 차량 간 시간차가 없어 결과에 영향을 주지 않는다",
-        "evidence" : "SimulationEngine: slot + k * dispatchIntervalMinutes"
+        "default" : 0
       },
       {
         "path" : "실험프레임/수거시각",
@@ -173,14 +173,15 @@
           "수거 시간",
           "몇 시"
         ],
+        "multiValueField" : "collectionTimesMinutes",
+        "evidence" : "tool/SimulationConfigValidator.java",
+        "generateWhen" : "!given(collectionTimesMinutes)",
         "range" : {
           "min" : 0,
           "max" : 1439,
           "unit" : "minute"
         },
-        "default" : 720,
-        "multiValueField" : "collectionTimesMinutes",
-        "evidence" : "tool/SimulationConfigValidator.java"
+        "default" : 720
       },
       {
         "path" : "경로교통/교통결합",
@@ -195,9 +196,9 @@
           "APPLY",
           "IGNORE"
         ],
-        "default" : "IGNORE",
         "structuralEffect" : "APPLY이면 교통 프로파일 결정이 추가로 생성된다",
-        "evidence" : "ledger/JangnyangRules.java"
+        "evidence" : "ledger/JangnyangRules.java",
+        "default" : "IGNORE"
       },
       {
         "path" : "경로교통/교통구역집합/프로파일",
@@ -222,8 +223,9 @@
             "caution" : "피크가 13시로 실측(18시)과 달라 결론이 뒤집힌다"
           }
         ],
-        "generateWhen" : "trafficEnabled == true",
-        "evidence" : "service/TrafficDataService.java"
+        "evidence" : "service/TrafficDataService.java",
+        "generateWhen" : "trafficMode == APPLY",
+        "default" : "jangryang-weekday"
       },
       {
         "path" : "경로교통/이동시간",
@@ -254,8 +256,8 @@
             "evidence" : "traffic/jangryang-travel-times.json 의 pairs 가 빈 객체, collection/jangnyang-collection-sites.json 의 sites 가 빈 객체"
           }
         ],
-        "default" : "LEGACY_CONSTANT",
-        "evidence" : "model/TravelTimeMode.java, simulation/TravelTimeCalculator.java"
+        "evidence" : "model/TravelTimeMode.java, simulation/TravelTimeCalculator.java",
+        "default" : "LEGACY_CONSTANT"
       },
       {
         "path" : "건물집합",
@@ -267,13 +269,13 @@
           "몇 동",
           "건물 개수"
         ],
+        "maxReason" : "노드 id가 Node_A~Node_Z 한 글자 체계다. 27번째부터 Node_[ 같은 값이 나와 역변환이 깨진다",
+        "evidence" : "tool/SimulationConfigValidator.java",
         "range" : {
           "min" : 1,
           "max" : 26
         },
-        "default" : 4,
-        "maxReason" : "노드 id가 Node_A~Node_Z 한 글자 체계다. 27번째부터 Node_[ 같은 값이 나와 역변환이 깨진다",
-        "evidence" : "tool/SimulationConfigValidator.java"
+        "default" : 4
       },
       {
         "path" : "건물/거주민집합",
@@ -284,11 +286,11 @@
           "거주민 수",
           "입주 세대"
         ],
+        "note" : "검증기에 상한 검사가 없다",
         "range" : {
           "min" : 1
         },
-        "default" : 25,
-        "note" : "검증기에 상한 검사가 없다"
+        "default" : 25
       },
       {
         "path" : "건물/거주민집합/직업구성",
@@ -336,11 +338,6 @@
             "inBaseMix" : false
           }
         ],
-        "default" : [
-          "BlueCollar",
-          "Student",
-          "Housewife"
-        ],
         "assignment" : "순환 배정 — mix.get((b * residentsPerBuilding + k) % mix.size())",
         "presets" : [
           "UNIVERSITY",
@@ -348,7 +345,12 @@
           "FAMILY",
           "BALANCED"
         ],
-        "evidence" : "model/OccupationType.java"
+        "evidence" : "model/OccupationType.java",
+        "default" : [
+          "BlueCollar",
+          "Student",
+          "Housewife"
+        ]
       },
       {
         "path" : "건물/거주민집합/배출시간",
@@ -372,8 +374,8 @@
             "caution" : "이 모드에서는 직업이 배출 시각에 영향을 주지 않는다. 직업 구성이 결과를 바꾸는 기제가 사라진다"
           }
         ],
-        "default" : "PAPER_BASELINE",
-        "evidence" : "model/DischargeTimeMode.java"
+        "evidence" : "model/DischargeTimeMode.java",
+        "default" : "PAPER_BASELINE"
       },
       {
         "path" : "수거차량집합/경로적재몫",
@@ -385,13 +387,11 @@
           "적재 용량"
         ],
         "range" : {
-          "min" : null,
-          "max" : null,
           "rule" : "0 초과, 차종 정격용량 이하. 상한이 차종에 따라 달라 SimulationConfigValidator 가 정본이다"
         },
-        "default" : null,
         "semantics" : "청소차 한 대 전체가 아니라 이 블록에 배정된 몫. 가동률의 분모다 — 지정하지 않으면 5톤 기준 1.8%로 죽는다",
-        "evidence" : "docs/reports/2026-09-23-장량동-실행가능-기능과-범위.md §9"
+        "evidence" : "docs/reports/2026-09-23-장량동-실행가능-기능과-범위.md §9",
+        "default" : null
       },
       {
         "path" : "수거장/용량",
@@ -404,12 +404,12 @@
           "수거함 용량"
         ],
         "range" : {
-          "min" : 0,
           "exclusiveMin" : true,
+          "min" : 0,
           "unit" : "kg"
         },
-        "default" : 30.0,
-        "note" : "원룸 건물 하나의 쓰레기장 용량"
+        "note" : "원룸 건물 하나의 쓰레기장 용량",
+        "default" : 30.0
       },
       {
         "path" : "민원감시/임계",
@@ -419,12 +419,12 @@
           "민원 임계",
           "민원 기준"
         ],
+        "semantics" : "배출 시점에 적재율이 이 값 이상이면 민원",
         "range" : {
           "min" : 0,
           "max" : 1
         },
-        "default" : 0.8,
-        "semantics" : "배출 시점에 적재율이 이 값 이상이면 민원"
+        "default" : 0.8
       }
     ]
   },
@@ -1053,19 +1053,19 @@
     "한계: 교통구역 근사면 같은 구역 안 방문 순서가 반영되지 않는다",
     "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
   ],
-  "schemaVersion": "1.0.0",
-  "capabilities": {
-    "simulationDuration": {
-      "min": {
-        "value": 1,
-        "unit": "day"
+  "schemaVersion" : "1.0.0",
+  "capabilities" : {
+    "simulationDuration" : {
+      "min" : {
+        "value" : 1,
+        "unit" : "day"
       },
-      "max": {
-        "value": 365,
-        "unit": "day"
+      "max" : {
+        "value" : 365,
+        "unit" : "day"
       }
     },
-    "outputs": [
+    "outputs" : [
       "meanComplaints",
       "stdComplaints",
       "complaintsByOccupation",
@@ -1078,35 +1078,49 @@
       "residualWasteKg",
       "avgRouteDurationMinutes"
     ],
-    "constraints": {
-      "dispatchIntervalMinutes": {
-        "min": 0,
-        "max": 1439
+    "constraints" : {
+      "dispatchIntervalMinutes" : {
+        "min" : 0,
+        "max" : 1439
       },
-      "collectionTimeMinutes": {
-        "min": 0,
-        "max": 1439
+      "collectionTimeMinutes" : {
+        "min" : 0,
+        "max" : 1439
       },
-      "numBuildings": {
-        "min": 1,
-        "max": 26
+      "numBuildings" : {
+        "min" : 1,
+        "max" : 26
       },
-      "days": {
-        "min": 1,
-        "max": 365
+      "days" : {
+        "min" : 1,
+        "max" : 365
       },
-      "seeds": {
-        "min": 1,
-        "max": 100
+      "seeds" : {
+        "min" : 1,
+        "max" : 100
       },
-      "threshold": {
-        "min": 0,
-        "max": 1
+      "threshold" : {
+        "min" : 0,
+        "max" : 1
       }
     },
-    "conditionalOutputs": ["peakFillRatio", "siteCapacityKg", "complaintThresholdRatio", "avgRouteDurationMinutes"],
-    "regionPolicy": {"mode":"PUBLIC_MAP_BLOCK_FOR_ANY_LABEL","scope":"block","maxBuildings":26,"dataSource":"OpenStreetMap (Nominatim · Overpass · OSRM)","fallback":"ASSUMED_BLOCK","asksWhenAmbiguous":true,"requiresHumanConfirmation":true,"notMeasuredRegionData":false},
-    "regions": [
+    "conditionalOutputs" : [
+      "peakFillRatio",
+      "siteCapacityKg",
+      "complaintThresholdRatio",
+      "avgRouteDurationMinutes"
+    ],
+    "regionPolicy" : {
+      "mode" : "PUBLIC_MAP_BLOCK_FOR_ANY_LABEL",
+      "scope" : "block",
+      "maxBuildings" : 26,
+      "dataSource" : "OpenStreetMap (Nominatim · Overpass · OSRM)",
+      "fallback" : "ASSUMED_BLOCK",
+      "asksWhenAmbiguous" : true,
+      "requiresHumanConfirmation" : true,
+      "notMeasuredRegionData" : false
+    },
+    "regions" : [
       "jangnyang",
       "synthetic-block"
     ]

@@ -1,0 +1,49 @@
+[
+  {
+    "id": "C1", "title": "조건 변경: 배차 간격이 필요한 실제 운행 차량 수 2대 → 3대",
+    "primary": [
+      {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/generateWhen/all/0/gte/1", "value": 3},
+      {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/generateWhen/all/1/gte/1", "value": 3}
+    ],
+    "complete": [
+      {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/card/generateWhen", "value": "min(numBuildings, numTrucks) >= 3"}
+    ]
+  },
+  {
+    "id": "C2", "title": "가지 추가: 구역 근사 이동일 때만 묻는 지점별 정차 시간(serviceMinutesPerSite)",
+    "primary": [
+      {"file": "ses", "op": "add", "path": "/entities/경로교통/attrs/-", "value": "정차시간"},
+      {"file": "ses", "op": "add", "path": "/decisions/-", "value": {
+        "at": "경로교통/정차시간", "templateId": "jn.serviceMinutes", "answerKey": "serviceMinutesPerSite",
+        "label": "지점별 정차 시간(분)", "valueType": "INTEGER",
+        "generateWhen": {"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]},
+        "min": 0, "max": 60, "unit": "minute", "defaultValue": 2, "defaultBasis": "정차·상차 가정",
+        "question": "수거 지점마다 정차·상차에 몇 분이 걸리나요?", "configField": "serviceMinutesPerSite"}}
+    ],
+    "complete": [
+      {"file": "ses", "op": "add", "path": "decision:serviceMinutesPerSite/card", "value": {
+        "range": {"min": 0, "max": 60, "unit": "minute"}, "default": 2,
+        "generateWhen": "travelTimeMode == ZONE_PROXY_HYBRID"}},
+      {"file": "manifest", "op": "add", "path": "/tasks/3/subtasks/-", "value": "serviceMinutesPerSite"}
+    ]
+  },
+  {
+    "id": "C3", "title": "조건 완화: 구역 배정을 건물 수와 관계없이 구역 근사 이동이면 묻기",
+    "primary": [
+      {"file": "ses", "op": "replace", "path": "decision:zoneAssignmentRule/generateWhen", "value": {"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}}
+    ],
+    "complete": [
+      {"file": "ses", "op": "replace", "path": "decision:intraZoneTravelMinutes/generateWhen", "value": {"all": [
+        {"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}, {"eq": ["zoneAssignmentRule", "CONTIGUOUS"]}]}}
+    ]
+  },
+  {
+    "id": "C4", "title": "범위 변경: 배차 간격 최대 1439분 → 120분",
+    "primary": [
+      {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/max", "value": 120}
+    ],
+    "complete": [
+      {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/card/range/max", "value": 120}
+    ]
+  }
+]

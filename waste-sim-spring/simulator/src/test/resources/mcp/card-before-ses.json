@@ -106,7 +106,7 @@
           "unit": "minute"
         },
         "default": 0,
-        "generateWhen": "min(numBuildings, numTrucks) >= 2",
+        "generateWhen": "numBuildings >= 2 && truckCount >= 2",
         "generateWhenReason": "실제 운행 차량이 1대면 차량 간 시간차가 없어 결과에 영향을 주지 않는다",
         "evidence": "SimulationEngine: slot + k * dispatchIntervalMinutes"
       },
@@ -122,6 +122,7 @@
         },
         "default": 720,
         "multiValueField": "collectionTimesMinutes",
+        "generateWhen": "!given(collectionTimesMinutes)",
         "evidence": "tool/SimulationConfigValidator.java"
       },
       {
@@ -157,7 +158,8 @@
             "caution": "피크가 13시로 실측(18시)과 달라 결론이 뒤집힌다"
           }
         ],
-        "generateWhen": "trafficEnabled == true",
+        "generateWhen": "trafficMode == APPLY",
+        "default": "jangryang-weekday",
         "evidence": "service/TrafficDataService.java"
       },
       {
@@ -320,8 +322,6 @@
         "field": "routeAvailableCapacityKg",
         "matchKeys": ["적재 몫", "경로 가용 용량", "적재 용량"],
         "range": {
-          "min": null,
-          "max": null,
           "rule": "0 초과, 차종 정격용량 이하. 상한이 차종에 따라 달라 SimulationConfigValidator 가 정본이다"
         },
         "default": null,

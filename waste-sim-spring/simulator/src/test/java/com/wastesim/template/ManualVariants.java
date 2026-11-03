@@ -40,8 +40,8 @@ final class ManualVariants {
         // <site:card>
         @Override public Map<String, Map<String, Object>> card() {
             Map<String, Map<String, Object>> c = new LinkedHashMap<>();
-            c.put("dispatchIntervalMinutes", Map.of("generateWhen", "min(numBuildings, numTrucks) >= 3", "max", 1439));
-            c.put("trafficProfileId", Map.of("generateWhen", "trafficEnabled == true"));
+            c.put("dispatchIntervalMinutes", Map.of("generateWhen", "numBuildings >= 3 && truckCount >= 3", "max", 1439));
+            c.put("trafficProfileId", Map.of("generateWhen", "trafficMode == APPLY"));
             return c;
         }
         // </site>
@@ -94,8 +94,8 @@ final class ManualVariants {
         // <site:card>
         @Override public Map<String, Map<String, Object>> card() {
             Map<String, Map<String, Object>> c = new LinkedHashMap<>();
-            c.put("dispatchIntervalMinutes", Map.of("generateWhen", "min(numBuildings, numTrucks) >= 2", "max", 1439));
-            c.put("trafficProfileId", Map.of("generateWhen", "trafficEnabled == true"));
+            c.put("dispatchIntervalMinutes", Map.of("generateWhen", "numBuildings >= 2 && truckCount >= 2", "max", 1439));
+            c.put("trafficProfileId", Map.of("generateWhen", "trafficMode == APPLY"));
             c.put("serviceMinutesPerSite", Map.of("generateWhen", "travelTimeMode == ZONE_PROXY_HYBRID", "max", 60));
             return c;
         }
@@ -143,8 +143,8 @@ final class ManualVariants {
         // <site:card>
         @Override public Map<String, Map<String, Object>> card() {
             Map<String, Map<String, Object>> c = new LinkedHashMap<>();
-            c.put("dispatchIntervalMinutes", Map.of("generateWhen", "min(numBuildings, numTrucks) >= 2", "max", 120));
-            c.put("trafficProfileId", Map.of("generateWhen", "trafficEnabled == true"));
+            c.put("dispatchIntervalMinutes", Map.of("generateWhen", "numBuildings >= 2 && truckCount >= 2", "max", 120));
+            c.put("trafficProfileId", Map.of("generateWhen", "trafficMode == APPLY"));
             return c;
         }
         // </site>

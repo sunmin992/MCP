@@ -13,16 +13,14 @@
       "changedLines" : 4,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json" ],
-      "inconsistencies" : {
-        "card" : 1
-      }
+      "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 2,
       "sites" : [ "dispatchActive" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
-      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 1
       }
@@ -32,18 +30,18 @@
     "title" : "조건 변경: 배차 간격이 필요한 실제 운행 차량 수 2대 → 3대",
     "mode" : "complete",
     "ses" : {
-      "editOps" : 3,
-      "changedLines" : 6,
+      "editOps" : 2,
+      "changedLines" : 4,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json" ],
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 4,
       "sites" : [ "dispatchActive", "card" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 2,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -61,11 +59,11 @@
       }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 4,
       "sites" : [ "serviceActive", "decisions" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 2,
-      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 2,
         "flatten" : 216,
@@ -79,17 +77,17 @@
     "mode" : "complete",
     "ses" : {
       "editOps" : 4,
-      "changedLines" : 29,
+      "changedLines" : 21,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json", "task-manifest.json" ],
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 15,
       "sites" : [ "serviceActive", "decisions", "ranges", "questions", "card", "taskGroups", "flatten" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 7,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -101,18 +99,14 @@
       "changedLines" : 6,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json" ],
-      "inconsistencies" : {
-        "readinessQuestion" : 24,
-        "staleInput" : 48,
-        "structure" : 72
-      }
+      "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 2,
       "sites" : [ "zoneActive" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -120,18 +114,18 @@
     "title" : "조건 완화: 구역 배정을 건물 수와 관계없이 구역 근사 이동이면 묻기",
     "mode" : "complete",
     "ses" : {
-      "editOps" : 2,
-      "changedLines" : 8,
+      "editOps" : 1,
+      "changedLines" : 6,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json" ],
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 2,
       "sites" : [ "zoneActive" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -143,16 +137,14 @@
       "changedLines" : 2,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json" ],
-      "inconsistencies" : {
-        "card" : 1
-      }
+      "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 2,
       "sites" : [ "ranges" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
-      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 1
       }
@@ -162,18 +154,18 @@
     "title" : "범위 변경: 배차 간격 최대 1439분 → 120분",
     "mode" : "complete",
     "ses" : {
-      "editOps" : 2,
-      "changedLines" : 4,
+      "editOps" : 1,
+      "changedLines" : 2,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json" ],
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "changedLines" : 4,
       "sites" : [ "ranges", "card" ],
       "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 2,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   } ]

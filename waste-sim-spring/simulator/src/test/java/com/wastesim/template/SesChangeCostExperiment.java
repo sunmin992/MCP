@@ -42,7 +42,7 @@ class SesChangeCostExperiment {
     /** 사례가 바꾼 결정의 카드 선언 기대값. 카드가 원래 조건을 적지 않는 결정(구역 배정)은 기대값이 없다. */
     static Map<String, Map<String, Object>> oracleCard(String c) {
         return switch (c) {
-            case "C1" -> Map.of("dispatchIntervalMinutes", Map.of("generateWhen", "min(numBuildings, numTrucks) >= 3"));
+            case "C1" -> Map.of("dispatchIntervalMinutes", Map.of("generateWhen", "numBuildings >= 3 && truckCount >= 3"));
             case "C2" -> Map.of("serviceMinutesPerSite", Map.of("generateWhen", "travelTimeMode == ZONE_PROXY_HYBRID", "max", 60));
             case "C4" -> Map.of("dispatchIntervalMinutes", Map.of("max", 120));
             default -> Map.of();
@@ -254,6 +254,7 @@ class SesChangeCostExperiment {
     List<String> pretty(JsonNode n) throws Exception { return json.writerWithDefaultPrettyPrinter().writeValueAsString(n).lines().toList(); }
 
     @Test void measureChangeCostAndConsistency() throws Exception {
+        // 개선 전 사례 · 결과는 cases-before.json · results-before.json 에 보존했다(카드 칸 손작성, active 없음).
         var cases = json.readTree(getClass().getResourceAsStream("/evaluation/ses-change/cases.json"));
         ObjectNode baseSes = resource("/ses/jangnyang-ses.json"), baseManifest = resource("/ses/task-manifest.json");
         var rows = json.createArrayNode();

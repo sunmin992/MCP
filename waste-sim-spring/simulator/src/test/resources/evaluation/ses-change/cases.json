@@ -5,9 +5,7 @@
       {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/generateWhen/all/0/gte/1", "value": 3},
       {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/generateWhen/all/1/gte/1", "value": 3}
     ],
-    "complete": [
-      {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/card/generateWhen", "value": "min(numBuildings, numTrucks) >= 3"}
-    ]
+    "complete": []
   },
   {
     "id": "C2", "title": "가지 추가: 구역 근사 이동일 때만 묻는 지점별 정차 시간(serviceMinutesPerSite)",
@@ -21,9 +19,7 @@
         "question": "수거 지점마다 정차·상차에 몇 분이 걸리나요?", "configField": "serviceMinutesPerSite"}}
     ],
     "complete": [
-      {"file": "ses", "op": "add", "path": "decision:serviceMinutesPerSite/card", "value": {
-        "range": {"min": 0, "max": 60, "unit": "minute"}, "default": 2,
-        "generateWhen": "travelTimeMode == ZONE_PROXY_HYBRID"}},
+      {"file": "ses", "op": "add", "path": "decision:serviceMinutesPerSite/card", "value": {}},
       {"file": "manifest", "op": "add", "path": "/tasks/3/subtasks/-", "value": "serviceMinutesPerSite"}
     ]
   },
@@ -32,18 +28,13 @@
     "primary": [
       {"file": "ses", "op": "replace", "path": "decision:zoneAssignmentRule/generateWhen", "value": {"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}}
     ],
-    "complete": [
-      {"file": "ses", "op": "replace", "path": "decision:intraZoneTravelMinutes/generateWhen", "value": {"all": [
-        {"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]}, {"eq": ["zoneAssignmentRule", "CONTIGUOUS"]}]}}
-    ]
+    "complete": []
   },
   {
     "id": "C4", "title": "범위 변경: 배차 간격 최대 1439분 → 120분",
     "primary": [
       {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/max", "value": 120}
     ],
-    "complete": [
-      {"file": "ses", "op": "replace", "path": "decision:dispatchIntervalMinutes/card/range/max", "value": 120}
-    ]
+    "complete": []
   }
 ]

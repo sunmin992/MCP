@@ -74,6 +74,12 @@ public record SesTree(String sesId, String sesVersion, JsonNode raw, List<Decisi
             if (card != null && !card.isObject()) {
                 throw new IllegalArgumentException("card 는 객체여야 합니다: " + at);
             }
+            // 조건 설명 · 범위 · 기본값은 결정의 칸에서 만든다(SesDerivation.digest). 카드에 다시 적으면 둘이 어긋난다.
+            if (card != null && (card.has("generateWhen") || card.has("default")
+                    || card.path("range").has("min") || card.path("range").has("max") || card.path("range").has("unit"))) {
+                throw new IllegalArgumentException("card 에 generateWhen · default · range 의 min/max/unit 을 적지 않습니다"
+                        + " — 결정의 generateWhen · defaultValue · min/max/unit 에서 만듭니다: " + at);
+            }
             decisions.add(new Decision(at, nodeKind, fields, (ObjectNode) card));
         }
         return new SesTree(sesId, sesVersion, root, List.copyOf(decisions));

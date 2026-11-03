@@ -249,7 +249,6 @@
             "alleyAccess": true
           }
         ],
-        "default": "LARGE_5TON",
         "homogeneity": "집합 전체 단일값 — 차량별 개별 선택 미지원",
         "evidence": "model/TruckType.java"
       }
@@ -273,10 +272,6 @@
           "수거차 수",
           "몇 대"
         ],
-        "range": {
-          "min": 1
-        },
-        "default": 1,
         "derived": "실제 운행 대수 = min(numBuildings, numTrucks)",
         "evidence": "tool/SimulationConfigValidator.java, simulation/RoutePlanner.java"
       }
@@ -316,13 +311,6 @@
           "배차",
           "출발 간격"
         ],
-        "range": {
-          "min": 0,
-          "max": 1439,
-          "unit": "minute"
-        },
-        "default": 0,
-        "generateWhen": "min(numBuildings, numTrucks) >= 2",
         "generateWhenReason": "실제 운행 차량이 1대면 차량 간 시간차가 없어 결과에 영향을 주지 않는다",
         "evidence": "SimulationEngine: slot + k * dispatchIntervalMinutes"
       }
@@ -351,12 +339,6 @@
           "수거 시간",
           "몇 시"
         ],
-        "range": {
-          "min": 0,
-          "max": 1439,
-          "unit": "minute"
-        },
-        "default": 720,
         "multiValueField": "collectionTimesMinutes",
         "evidence": "tool/SimulationConfigValidator.java"
       }
@@ -403,7 +385,6 @@
           "APPLY",
           "IGNORE"
         ],
-        "default": "IGNORE",
         "structuralEffect": "APPLY이면 교통 프로파일 결정이 추가로 생성된다",
         "evidence": "ledger/JangnyangRules.java"
       }
@@ -448,7 +429,6 @@
             "caution": "피크가 13시로 실측(18시)과 달라 결론이 뒤집힌다"
           }
         ],
-        "generateWhen": "trafficEnabled == true",
         "evidence": "service/TrafficDataService.java"
       }
     },
@@ -493,7 +473,6 @@
             "evidence": "traffic/jangryang-travel-times.json 의 pairs 가 빈 객체, collection/jangnyang-collection-sites.json 의 sites 가 빈 객체"
           }
         ],
-        "default": "LEGACY_CONSTANT",
         "evidence": "model/TravelTimeMode.java, simulation/TravelTimeCalculator.java"
       }
     },
@@ -537,16 +516,7 @@
       "generateWhen": {
         "all": [
           {
-            "eq": [
-              "travelTimeMode",
-              "ZONE_PROXY_HYBRID"
-            ]
-          },
-          {
-            "gt": [
-              "numBuildings",
-              4
-            ]
+            "active": "zoneAssignmentRule"
           },
           {
             "eq": [
@@ -583,11 +553,6 @@
           "몇 동",
           "건물 개수"
         ],
-        "range": {
-          "min": 1,
-          "max": 26
-        },
-        "default": 4,
         "maxReason": "노드 id가 Node_A~Node_Z 한 글자 체계다. 27번째부터 Node_[ 같은 값이 나와 역변환이 깨진다",
         "evidence": "tool/SimulationConfigValidator.java"
       }
@@ -610,10 +575,6 @@
           "거주민 수",
           "입주 세대"
         ],
-        "range": {
-          "min": 1
-        },
-        "default": 25,
         "note": "검증기에 상한 검사가 없다"
       }
     },
@@ -682,11 +643,6 @@
             "inBaseMix": false
           }
         ],
-        "default": [
-          "BlueCollar",
-          "Student",
-          "Housewife"
-        ],
         "assignment": "순환 배정 — mix.get((b * residentsPerBuilding + k) % mix.size())",
         "presets": [
           "UNIVERSITY",
@@ -731,7 +687,6 @@
             "caution": "이 모드에서는 직업이 배출 시각에 영향을 주지 않는다. 직업 구성이 결과를 바꾸는 기제가 사라진다"
           }
         ],
-        "default": "PAPER_BASELINE",
         "evidence": "model/DischargeTimeMode.java"
       }
     },
@@ -785,11 +740,8 @@
           "적재 용량"
         ],
         "range": {
-          "min": null,
-          "max": null,
           "rule": "0 초과, 차종 정격용량 이하. 상한이 차종에 따라 달라 SimulationConfigValidator 가 정본이다"
         },
-        "default": null,
         "semantics": "청소차 한 대 전체가 아니라 이 블록에 배정된 몫. 가동률의 분모다 — 지정하지 않으면 5톤 기준 1.8%로 죽는다",
         "evidence": "docs/reports/2026-09-23-장량동-실행가능-기능과-범위.md §9"
       }
@@ -815,11 +767,8 @@
           "수거함 용량"
         ],
         "range": {
-          "min": 0,
-          "exclusiveMin": true,
-          "unit": "kg"
+          "exclusiveMin": true
         },
-        "default": 30.0,
         "note": "원룸 건물 하나의 쓰레기장 용량"
       }
     },
@@ -841,11 +790,6 @@
           "민원 임계",
           "민원 기준"
         ],
-        "range": {
-          "min": 0,
-          "max": 1
-        },
-        "default": 0.8,
         "semantics": "배출 시점에 적재율이 이 값 이상이면 민원"
       }
     }
