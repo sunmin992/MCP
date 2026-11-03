@@ -16,7 +16,7 @@ class EvidenceGuardTest {
             "탐색은 15분까지 하고 포기해.",
             "갱신 주기는 기본값으로 해줘.");
 
-    private EvidenceGuard.Result check(Map<String, List<Object>> submitted, Map<String, String> origins,
+    private com.wastesim.evidence.EvidenceGuard.Result check(Map<String, List<Object>> submitted, Map<String, String> origins,
                                        Map<String, String> evidence) {
         return EvidenceGuard.check(submitted, origins, evidence, SAID, catalog);
     }
@@ -47,9 +47,14 @@ class EvidenceGuardTest {
     @Test
     void 말투만_바꾼_구절은_통과하고_지어낸_숫자는_막는다() {
         List<String> said = List.of("1톤 차량을 1대 쓸 때와 3대 쓸 때를 비교해줘. 14일 3회.");
-        var paraphrased = EvidenceGuard.check(Map.of("lotCount", List.of(1, 3)), Map.of("lotCount", "USER"),
-                Map.of("lotCount", "1대와 3대를 비교해 주세요"), said, catalog);
+        var paraphrased = EvidenceGuard.check(Map.of("dailyArrivals", List.of(1, 3)), Map.of("dailyArrivals", "USER"),
+                Map.of("dailyArrivals", "1대와 3대를 비교해 주세요"), said, catalog);
         assertThat(paraphrased.blocks()).isEmpty();
+
+        // 차량 "대" 를 주차장 수(곳 · 개)의 근거로 쓰면 다른 항목의 값으로 보고 막는다
+        var foreign = EvidenceGuard.check(Map.of("lotCount", List.of(1, 3)), Map.of("lotCount", "USER"),
+                Map.of("lotCount", "1대와 3대를 비교해 주세요"), said, catalog);
+        assertThat(foreign.blocks()).hasSize(2).allMatch(b -> b.contains("다른 단위"));
 
         var invented = EvidenceGuard.check(Map.of("seeds", List.of(30)), Map.of("seeds", "USER"),
                 Map.of("seeds", "30회 반복"), said, catalog);
@@ -69,11 +74,20 @@ class EvidenceGuardTest {
     }
 
     @Test
-    void 숫자가_없는_구절과_열거형은_판단하지_못한_것으로_남긴다() {
+    void 열거형은_선택지_표현으로_대조하고_표현이_없으면_판단하지_못한_것으로_남긴다() {
         var r = check(Map.of("pricingPolicy", List.of("TIME_OF_DAY")), Map.of("pricingPolicy", "USER"),
                 Map.of("pricingPolicy", "시간대 차등"));
         assertThat(r.blocks()).isEmpty();
-        assertThat(r.unverified()).containsExactly("pricingPolicy");
+        assertThat(r.unverified()).isEmpty();
+
+        var wrong = check(Map.of("pricingPolicy", List.of("FLAT")), Map.of("pricingPolicy", "USER"),
+                Map.of("pricingPolicy", "시간대 차등"));
+        assertThat(wrong.blocks()).singleElement().asString().contains("TIME_OF_DAY");
+
+        var vague = check(Map.of("pricingPolicy", List.of("FLAT")), Map.of("pricingPolicy", "USER"),
+                Map.of("pricingPolicy", "탐색은 15분까지"));
+        assertThat(vague.blocks()).isEmpty();
+        assertThat(vague.unverified()).containsExactly("pricingPolicy");
     }
 
     @Test

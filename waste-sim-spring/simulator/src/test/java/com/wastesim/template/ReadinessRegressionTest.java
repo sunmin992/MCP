@@ -1,6 +1,6 @@
 package com.wastesim.template;
 
-import com.wastesim.readiness.NumericEvidence;
+import com.wastesim.evidence.UnitEvidence;
 import com.wastesim.readiness.TaskCompletion;
 import org.junit.jupiter.api.Test;
 import java.util.List;
@@ -9,21 +9,23 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ReadinessRegressionTest {
     @Test void countsCannotUseTimeOrPercentConversions() {
-        assertFalse(NumericEvidence.explains(3, 180, "3회 반복", "seeds", null));
-        assertFalse(NumericEvidence.explains(3, 180, "3시간", "truckCount", null));
-        assertFalse(NumericEvidence.explains(3, 21, "3주", "seeds", null));
-        assertFalse(NumericEvidence.explains(80, .8, "80%", "seeds", null));
-        assertFalse(NumericEvidence.explains(80, .8, "80%", "arrivalRate", "people/hour"));
-        assertTrue(NumericEvidence.explains(30, .3, "30%", "reservationShare", null));
-        assertTrue(NumericEvidence.explains(3, 3, "3회 반복", "seeds", null));
-        assertTrue(NumericEvidence.explains(3, 180, "3시간", "dispatchIntervalMinutes", "minute"));
-        assertFalse(NumericEvidence.explains(3, 3, "3시간", "dispatchIntervalMinutes", "minute"));
-        assertFalse(NumericEvidence.explains(6, 1080, "오후 6시 30분", "collectionTimeMinutes", "minute"));
-        assertTrue(NumericEvidence.explains(6, 1110, "오후 6시 30분", "collectionTimeMinutes", "minute"));
-        assertTrue(NumericEvidence.explains(6, 1080, "오후 6시", "collectionTimeMinutes", "minute"));
-        assertTrue(NumericEvidence.explains(12, 720, "오후 12시", "collectionTimeMinutes", "minute"));
-        assertTrue(NumericEvidence.explains(2, 14, "2주", "days", null));
-        assertTrue(NumericEvidence.explains(80, .8, "80%", "complaintThreshold", null));
+        assertFalse(UnitEvidence.explains(3, 180, "3회 반복", null));
+        assertFalse(UnitEvidence.explains(3, 180, "3시간", null));
+        assertFalse(UnitEvidence.explains(3, 21, "3주", null));
+        assertFalse(UnitEvidence.explains(80, .8, "80%", null));
+        assertFalse(UnitEvidence.explains(80, .8, "80%", "people/hour"));
+        assertTrue(UnitEvidence.explains(30, .3, "30%", "ratio"));
+        assertTrue(UnitEvidence.explains(3, 3, "3회 반복", null));
+        assertTrue(UnitEvidence.explains(3, 180, "3시간", "minute"));
+        assertFalse(UnitEvidence.explains(3, 3, "3시간", "minute"));
+        assertFalse(UnitEvidence.explains(6, 1080, "오후 6시 30분", "minute"));
+        assertTrue(UnitEvidence.explains(6, 1110, "오후 6시 30분", "minute"));
+        assertTrue(UnitEvidence.explains(6, 1080, "오후 6시", "minute"));
+        assertTrue(UnitEvidence.explains(12, 720, "오후 12시", "minute"));
+        assertTrue(UnitEvidence.explains(2, 14, "2주", "day"));
+        assertTrue(UnitEvidence.explains(80, .8, "80%", "ratio"));
+        // 단위를 선언하지 않으면 필드 이름이 days · *Share 여도 바꾸지 않는다.
+        assertFalse(UnitEvidence.explains(2, 14, "2주", null));
     }
     @Test void theOriginalSeeds180BugIsBlockedByTheRealGuard() {
         var r = EvidenceGuard.check(Map.of("seeds", List.of(180)), Map.of("seeds", "USER"),

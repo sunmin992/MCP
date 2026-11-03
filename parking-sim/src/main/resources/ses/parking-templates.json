@@ -7,6 +7,7 @@
       "allowed": [], "min": 1.0, "max": 12.0, "unit": null,
       "defaultValue": 4, "defaultBasis": "lotCount 초기값 — 도심 한 구역의 공영주차장 수 가정",
       "question": "공영주차장은 몇 곳인가요? (1~12곳)",
+      "unitWords": ["곳", "개"],
       "configField": "lotCount", "sesPath": "주차장집합", "nodeKind": "MULTI_ASPECT"
     },
     {
@@ -14,6 +15,7 @@
       "allowed": [], "min": 10.0, "max": 1000.0, "unit": null,
       "defaultValue": 80, "defaultBasis": "spacesPerLot 초기값 — 노외 공영주차장 한 곳의 면수 가정",
       "question": "주차장 한 곳의 주차면은 몇 면인가요? (10~1000면, 모든 주차장이 같다고 봅니다)",
+      "unitWords": ["면", "칸", "대"],
       "configField": "spacesPerLot", "sesPath": "주차장집합/주차장/면수", "nodeKind": "ATTRIBUTE"
     },
     {
@@ -21,6 +23,7 @@
       "allowed": ["FLAT", "TIME_OF_DAY", "FREE"], "min": null, "max": null, "unit": null,
       "defaultValue": "FLAT", "defaultBasis": "pricingPolicy 초기값",
       "question": "요금은 어떻게 받을까요? (균일 / 시간대 차등 — 08~10시·17~19시 할증 / 무료)",
+      "valueTerms": {"FLAT": ["정액", "고정 요금", "균일"], "TIME_OF_DAY": ["시간대별", "시간대 차등", "차등"], "FREE": ["무료"]},
       "configField": "pricingPolicy", "sesPath": "주차장집합/주차장/요금정책", "nodeKind": "SPECIALIZATION"
     },
     {
@@ -32,7 +35,7 @@
     },
     {
       "templateId": "pk.peakSurcharge", "answerKey": "peakSurchargeRate", "label": "혼잡 시간대 할증률", "valueType": "NUMBER", "generateWhen": "TIME_OF_DAY_PRICING",
-      "allowed": [], "min": 0.0, "max": 3.0, "unit": null,
+      "allowed": [], "min": 0.0, "max": 3.0, "unit": "ratio",
       "defaultValue": null, "defaultBasis": null,
       "question": "혼잡 시간대(08~10시, 17~19시)에 요금을 얼마나 더 받을까요? (0.5 = 50% 할증)",
       "configField": "peakSurchargeRate", "sesPath": "주차장집합/주차장/요금정책/시간대할증", "nodeKind": "ATTRIBUTE"
@@ -46,7 +49,7 @@
     },
     {
       "templateId": "pk.residentPriority", "answerKey": "residentPriorityShare", "label": "거주자 우선 구획 비율", "valueType": "NUMBER", "generateWhen": "RESIDENT_IN_MIX",
-      "allowed": [], "min": 0.0, "max": 0.9, "unit": null,
+      "allowed": [], "min": 0.0, "max": 0.9, "unit": "ratio",
       "defaultValue": null, "defaultBasis": null,
       "question": "주차장마다 거주자만 쓸 수 있는 우선 구획을 몇 % 둘까요? (0~0.9, 0이면 두지 않음)",
       "configField": "residentPriorityShare", "sesPath": "주차장집합/주차장/거주자우선구획", "nodeKind": "ATTRIBUTE"
@@ -56,6 +59,7 @@
       "allowed": [], "min": 1.0, "max": 20000.0, "unit": null,
       "defaultValue": 900, "defaultBasis": "dailyArrivals 초기값 — 4곳 × 80면에 하루 약 2.8회전 가정",
       "question": "하루에 차량이 몇 대 도착하나요? (요금 때문에 오지 않는 차량을 빼기 전)",
+      "unitWords": ["대", "명"],
       "configField": "dailyArrivals", "sesPath": "이용자집합", "nodeKind": "MULTI_ASPECT"
     },
     {
@@ -77,6 +81,7 @@
       "allowed": ["APPLY", "IGNORE"], "min": null, "max": null, "unit": null,
       "defaultValue": "IGNORE", "defaultBasis": "congestionEnabled = false",
       "question": "주변 도로 혼잡을 주차장 사이 이동시간에 반영할까요?",
+      "valueTerms": {"APPLY": ["혼잡 반영", "혼잡 포함", "반영", "포함", "고려"], "IGNORE": ["반영하지", "반영 안", "반영없이", "빼고", "제외", "무시", "고려하지"]},
       "configField": "congestionEnabled", "sesPath": "도로혼잡결합", "nodeKind": "COUPLING_CONDITION"
     },
     {
@@ -102,7 +107,7 @@
     },
     {
       "templateId": "pk.days", "answerKey": "days", "label": "기간(일)", "valueType": "INTEGER", "generateWhen": "ALWAYS",
-      "allowed": [], "min": 1.0, "max": 90.0, "unit": null,
+      "allowed": [], "min": 1.0, "max": 90.0, "unit": "day",
       "defaultValue": 14, "defaultBasis": "days 초기값",
       "question": "며칠치를 볼까요? (1~90일)",
       "configField": "days", "sesPath": "실험프레임/기간", "nodeKind": "ATTRIBUTE"
@@ -112,6 +117,7 @@
       "allowed": [], "min": 1.0, "max": 100.0, "unit": null,
       "defaultValue": 30, "defaultBasis": "seeds 초기값",
       "question": "몇 번 반복할까요? (1~100회)",
+      "unitWords": ["회", "번"],
       "configField": "seeds", "sesPath": "실험프레임/반복", "nodeKind": "ATTRIBUTE"
     }
   ]

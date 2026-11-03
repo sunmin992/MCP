@@ -10,12 +10,17 @@
     </parent>
     <artifactId>mcp-common</artifactId>
     <name>mcp-common</name>
-    <description>MCP 도구 계약과 시뮬레이터 공통 완료 판정·숫자 근거 규칙</description>
+    <description>MCP 도구 계약과 시뮬레이터 공통 완료 판정·근거 검사 규칙</description>
 
     <dependencies>
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
         </dependency>
     </dependencies>
 </project>

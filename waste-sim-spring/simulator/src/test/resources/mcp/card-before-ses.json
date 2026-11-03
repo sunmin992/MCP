@@ -311,7 +311,8 @@
         "matchKeys": ["민원 임계", "민원 기준"],
         "range": {
           "min": 0,
-          "max": 1
+          "max": 1,
+          "unit": "ratio"
         },
         "default": 0.8,
         "semantics": "배출 시점에 적재율이 이 값 이상이면 민원"

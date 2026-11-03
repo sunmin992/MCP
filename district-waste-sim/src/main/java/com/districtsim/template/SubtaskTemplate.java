@@ -31,10 +31,14 @@ public record SubtaskTemplate(
         String configField,
         String sesPath,
         String nodeKind,
-        String label) {
+        String label,
+        java.util.Map<String, List<String>> valueTerms,
+        List<String> unitWords) {
 
     public SubtaskTemplate {
         allowed = allowed == null ? List.of() : List.copyOf(allowed);
+        valueTerms = valueTerms == null ? java.util.Map.of() : java.util.Map.copyOf(valueTerms);
+        unitWords = unitWords == null ? List.of() : List.copyOf(unitWords);
     }
 
     /** 기본값 제안 없이 반드시 물어야 하는 결정인가. */

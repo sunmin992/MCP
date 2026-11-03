@@ -93,6 +93,7 @@ public class FindSimulatorsTool implements McpToolProvider {
                "population":{"type":"array","items":{"type":"string"},
                  "description":"거주민에 관한 구절. 구절 하나에 거주민 하나로 나눠 사용자 말 그대로 적는다. 예: [\\"학생이 많음\\",\\"주부가 많음\\"]"},
                "requirements":{"type":"object","description":"Version 1.0.0: regionId, simulationDuration/timeResolution {value,unit}, requiredOutputs, constraints/preferences {configField:number}, evidence {field:original text}. Omit unknown values."},
+               "userUtterances":{"type":"array","items":{"type":"string"},"description":"이 요청과 관련된 사용자 발화 원문. 보내면 requirements 의 항목마다 evidence 구절이 실제 발화에 있는지와 값이 맞는지 검사한다"},
                "matchId":{"type":"string","description":"첫 조회 응답의 round.matchId. 고친 요청으로 다시 조회할 때만 보낸다"},
                "targetServerId":{"type":"string","description":"고친 요청으로 쓰려는 서버의 id. matchId 와 함께만 보낸다"}},
              "required":["domain"]}
@@ -125,6 +126,16 @@ public class FindSimulatorsTool implements McpToolProvider {
             return ToolFailure.of("request", e.getMessage());
         }
 
+        // 요구는 LLM 이 발화에서 옮긴 것이다. 발화가 오면 항목마다 근거를 대조하고, 어긋나면 매칭 전에 돌려보낸다 —
+        // 바퀴를 세지 않으므로 고쳐 다시 보내도 조정 횟수가 줄지 않는다.
+        List<String> utterances = java.util.Objects.requireNonNullElse(strings(args, "userUtterances"), List.of());
+        com.wastesim.evidence.EvidenceGuard.Result evidenceCheck = null;
+        if (!utterances.isEmpty()) {
+            evidenceCheck = com.wastesim.evidence.RequirementEvidence.check(args.get("requirements"), utterances);
+            if (!evidenceCheck.blocks().isEmpty())
+                return ToolFailure.of("evidence", "근거 검사(GUARD): " + String.join("; ", evidenceCheck.blocks()));
+        }
+
         int round;
         List<String> removed = List.of();
         boolean purposeChanged = false;
@@ -154,6 +165,12 @@ public class FindSimulatorsTool implements McpToolProvider {
             var root = mapper.createObjectNode();
             root.put("domain", profile.domain());
             root.set("requirements", profile.requirements());
+            var evidenceNode = root.putObject("requirementEvidence");
+            if (evidenceCheck == null) evidenceNode.put("status", "NOT_CHECKED");
+            else {
+                evidenceNode.put("status", evidenceCheck.unverified().isEmpty() ? "VERIFIED" : "PARTIAL");
+                evidenceNode.set("unverified", mapper.valueToTree(evidenceCheck.unverified()));
+            }
             root.put("schemaVersion", "1.0.0");
             var roundNode = root.putObject("round");
             roundNode.put("matchId", matchId);

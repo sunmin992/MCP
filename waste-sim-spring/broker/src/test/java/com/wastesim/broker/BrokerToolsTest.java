@@ -105,4 +105,25 @@ class BrokerToolsTest {
         }
         assertTrue(장량동확인 && 가상확인);
     }
+
+    @Test
+    void 발화를_보내면_요구의_근거를_대조하고_어긋나면_매칭_전에_돌려보낸다() throws Exception {
+        String said = "한 블록에서 이틀 동안 쓰레기 수거 민원 수 보여줘";
+        var bad = find.call(mapper.readTree("""
+            {"domain":"쓰레기수거","userUtterances":["%s"],
+             "requirements":{"simulationDuration":{"value":3,"unit":"day"},"evidence":{"simulationDuration":"3일 동안"}}}
+            """.formatted(said)));
+        assertFalse(bad.ready(), "발화에 없는 3일은 막아야 한다");
+        assertTrue(bad.toString().contains("근거 검사"), bad.toString());
+
+        JsonNode ok = call(find, mapper.readTree("""
+            {"domain":"쓰레기수거","userUtterances":["%s"],
+             "requirements":{"simulationDuration":{"value":2,"unit":"day"},"requiredOutputs":["meanComplaints"],
+               "evidence":{"simulationDuration":"이틀 동안","requiredOutputs":"민원 수 보여줘"}}}
+            """.formatted(said)));
+        assertEquals("PARTIAL", ok.path("requirementEvidence").path("status").asText());
+
+        JsonNode unchecked = call(find, mapper.readTree("{\"domain\":\"쓰레기수거\"}"));
+        assertEquals("NOT_CHECKED", unchecked.path("requirementEvidence").path("status").asText());
+    }
 }
