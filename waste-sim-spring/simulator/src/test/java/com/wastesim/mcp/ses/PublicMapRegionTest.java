@@ -92,11 +92,16 @@ class PublicMapRegionTest {
         assertEquals(region.path("defaults").path("numBuildings").asInt(), cfg.getNumBuildings());
         assertEquals(region.path("defaults").path("residentsPerBuilding").asInt(), cfg.getResidentsPerBuilding());
         assertEquals(region.path("modelOverrides").path("routeTravelMinutes").asInt(), cfg.getRouteTravelMinutes());
+        // 수거장 용량은 세대 수에 비례한다 — 기본 30kg(25세대)을 대규모 블록에 그대로 쓰지 않는다.
+        int households = region.path("defaults").path("residentsPerBuilding").asInt();
+        assertEquals(Math.round(households * OsmRegionResolver.BIN_KG_PER_HOUSEHOLD), Math.round(cfg.getCapacity()));
+        assertEquals("ESTIMATED", region.path("provenance").path("capacity").path("grade").asText());
         assertFalse(cfg.isTrafficEnabled());
         var pes = store.entry(out.path("scenarioId").asText()).orElseThrow().pes();
         assertEquals("REGION_DATA", pes.origins().get("numBuildings"));
         assertEquals("REGION_DATA", pes.origins().get("residentsPerBuilding"));
         assertFalse(pes.unapprovedDefaults().containsKey("numBuildings"));
+        assertEquals("REGION_DATA", pes.origins().get("binCapacityKg"));
 
         String id = out.path("scenarioId").asText();
         var runner = new RunScenarioByTokenTool(builder, store,
@@ -118,6 +123,19 @@ class PublicMapRegionTest {
         var again = resolver(uri -> { throw new IllegalStateException("네트워크를 쓰면 안 됩니다"); }).resolve("덕명동");
         assertEquals(OsmRegionResolver.Status.RESOLVED, again.status());
         assertEquals("cache", again.reason());
+    }
+
+    @Test void bundleFromOlderRulesIsRefetched() throws Exception {
+        assertEquals(OsmRegionResolver.Status.RESOLVED, resolver(replay()).resolve("덕명동").status());
+        Path bundle;
+        try (var files = Files.list(cache)) { bundle = files.filter(p -> !p.toString().endsWith(".raw.json")).findFirst().orElseThrow(); }
+        var old = (ObjectNode) json.readTree(bundle.toFile());
+        old.put("version", "1.0.0");
+        ((ObjectNode) old.get("defaults")).remove("capacity");
+        json.writeValue(bundle.toFile(), old);
+        var again = resolver(replay()).resolve("덕명동");
+        assertEquals("fetched", again.reason());
+        assertTrue(again.region().path("defaults").has("capacity"));
     }
 
     @Test void ambiguousNameAsksInsteadOfGuessing() throws Exception {

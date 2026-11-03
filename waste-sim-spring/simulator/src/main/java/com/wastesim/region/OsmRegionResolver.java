@@ -26,6 +26,10 @@ public final class OsmRegionResolver {
     static final double MIN_FOOTPRINT_M2 = 20;
     /** 장량동 기준선의 구간 상수 15분 − 장량동 OSRM 구간 약 3분. 정차·상차 몫으로 본다. */
     public static final int ASSUMED_STOP_MINUTES = 12;
+    /** 세대당 수거장 용량(kg). 장량동 기준선 30kg / 25세대의 비율을 지켜 블록 규모에 맞춘다. */
+    public static final double BIN_KG_PER_HOUSEHOLD = 30.0 / 25;
+    /** 묶음 산정 규칙의 버전. 1.1.0: 수거장 용량 추가. */
+    static final String BUNDLE_VERSION = "1.1.0";
     /** OSRM 을 못 쓸 때 직선거리 보정: 우회 계수 1.4, 주거지 주행 20km/h. */
     static final double DETOUR = 1.4, FALLBACK_KMH = 20;
     /**
@@ -51,7 +55,9 @@ public final class OsmRegionResolver {
 
     public Result resolve(String query) {
         var cached = RegionCatalog.cached(cacheDir, query);
-        if (cached != null) return new Result(Status.RESOLVED, cached, List.of(), "cache");
+        // 산정 규칙이 바뀐 옛 묶음은 다시 수집한다. 새 묶음은 식별값이 달라 이전 시나리오의 재검증을 요구한다.
+        if (cached != null && BUNDLE_VERSION.equals(cached.path("version").asText()))
+            return new Result(Status.RESOLVED, cached, List.of(), "cache");
         var raw = json.createObjectNode();
         try {
             var places = json.readTree(http.apply(URI.create(nominatim + "/search?format=jsonv2&addressdetails=1&limit=15&countrycodes=kr&q="
@@ -175,7 +181,7 @@ public final class OsmRegionResolver {
 
     private ObjectNode bundle(String query, JsonNode place, List<Building> block, ObjectNode raw) {
         var region = json.createObjectNode();
-        region.put("id", query).put("version", "1.0.0")
+        region.put("id", query).put("version", BUNDLE_VERSION)
                 .put("label", query + " — 공개 지도 자료로 구성한 실제 주거 블록 (" + block.size() + "동)")
                 .put("source", "OpenStreetMap 기여자(ODbL). Nominatim · Overpass · OSRM 조회")
                 .put("synthetic", false).put("basis", "PUBLIC_MAP_DATA").put("allowProviderTraffic", false)
@@ -218,7 +224,9 @@ public final class OsmRegionResolver {
         }
         int hop = Math.max(1, (int) Math.round(hopSeconds / 60.0 + ASSUMED_STOP_MINUTES));
         int perBuilding = (int) Math.max(1, Math.round(households / block.size()));
-        region.putObject("defaults").put("numBuildings", block.size()).put("residentsPerBuilding", perBuilding);
+        int binKg = (int) Math.max(1, Math.round(perBuilding * BIN_KG_PER_HOUSEHOLD));
+        region.putObject("defaults").put("numBuildings", block.size()).put("residentsPerBuilding", perBuilding)
+                .put("capacity", binKg);
         region.putObject("modelOverrides").put("routeTravelMinutes", hop);
 
         var prov = region.putObject("provenance");
@@ -228,6 +236,8 @@ public final class OsmRegionResolver {
         prov.putObject("routeTravelMinutes").put("grade", roadSource)
                 .put("basis", "블록 순회 구간 평균 도로 이동 " + round(hopSeconds / 60, 2) + "분(" + ("OBSERVED".equals(roadSource) ? "OSRM" : "직선거리×1.4, 20km/h")
                         + ") + 정차·상차 가정 " + ASSUMED_STOP_MINUTES + "분(ASSUMED)");
+        prov.putObject("capacity").put("grade", "ESTIMATED")
+                .put("basis", "동당 세대 수 " + perBuilding + " × 세대당 1.2kg(장량동 기준선 30kg/25세대 비율)");
         prov.putObject("dischargeWindow").put("grade", "ASSUMED").put("basis", "지역 배출 시간대는 자동 수집하지 않아 공통 기본값");
         prov.putObject("buildingUse").put("grade", assumedUse == 0 ? "OBSERVED" : "ASSUMED")
                 .put("basis", assumedUse == 0 ? "OSM building 태그" : assumedUse + "동은 용도 미상(building=yes)을 주거로 가정");

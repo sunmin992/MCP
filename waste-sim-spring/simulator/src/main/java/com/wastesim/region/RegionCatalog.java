@@ -31,7 +31,7 @@ public final class RegionCatalog {
                     || !r.path("allowProviderTraffic").isBoolean() || !r.path("supportedTravelModes").isArray()
                     || r.path("supportedTravelModes").isEmpty()) throw new IllegalArgumentException("불완전한 지역 설정");
             r.get("defaults").fields().forEachRemaining(e -> {
-                if (!Set.of("numBuildings", "residentsPerBuilding").contains(e.getKey())
+                if (!Set.of("numBuildings", "residentsPerBuilding", "capacity").contains(e.getKey())
                         || !e.getValue().canConvertToInt() || !e.getValue().isIntegralNumber()
                         || e.getValue().asInt() < 1 || e.getKey().equals("numBuildings") && e.getValue().asInt() > 26)
                     throw new IllegalArgumentException("지원하지 않거나 잘못된 지역 기본값: " + e.getKey());

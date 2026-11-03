@@ -40,6 +40,7 @@
 |---|---|---|
 | 건물 수 `numBuildings` | 블록 안 주거 건물 수 | OBSERVED |
 | 동당 세대 수 `residentsPerBuilding` | 바닥면적 × 층수 ÷ 유형별 세대당 면적의 블록 평균. 층수 태그가 없으면 유형별 기본 층수 | ESTIMATED |
+| 수거장 용량 `capacity` | 동당 세대 수 × 1.2kg(장량동 기준선 30kg/25세대 비율) | ESTIMATED |
 | 구간 이동시간 `routeTravelMinutes` | 도로 이동(OSRM) + 정차·상차 가정 12분 | 도로: OBSERVED, 정차: ASSUMED |
 | 배출 시간대 | 자동 수집하지 않음. 공통 기본값 | ASSUMED |
 | 건물 용도 | OSM building 태그. 주거 용도가 4동 미만이면 용도 미상(building=yes)을 주거로 가정 | OBSERVED 또는 ASSUMED |
@@ -48,6 +49,8 @@
 - 세대당 면적: 아파트 85㎡(기본 15층), 다세대·주거 60㎡(기본 4층), 기숙사 25㎡(기본 5층), 주택 60㎡(기본 2층).
 - 도로 경로 조회에 실패하면 직선거리 × 1.4를 시속 20km로 나눈 값을 쓰고 ESTIMATED로 표시한다.
 - 자료 등급: 도로 이동이 실측이고 용도 가정이 없으면 REAL_BLOCK, 아니면 PARTIAL_BLOCK.
+
+묶음에는 산정 규칙 버전(`version`)이 붙는다. 규칙이 바뀌어 버전이 다르면 캐시를 쓰지 않고 다시 수집한다(1.1.0: 수거장 용량 추가).
 
 수집한 블록과 조회 원문(Nominatim·Overpass·OSRM 응답)은 `region.cache-dir`(기본 `data/regions`)에 저장한다.
 같은 지역을 다시 요청하면 네트워크를 쓰지 않고 캐시를 쓴다. 블록 파일이 바뀌면 지역 식별값이 바뀌어 기존 검증·승인이 무효화된다.
