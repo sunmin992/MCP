@@ -161,6 +161,8 @@ R1·R2의 실행 사례마다 SES의 어떤 결정(이동 모델, 배차 방식,
 
 ## 5. R4. 역할 분리와 서버 분리 근거 (항목 7·8)
 
+상태: 작성 완료(2026-11-04). 문서: [역할 분리와 MCP 서버 분리 근거](specifications/roles-and-boundaries.md).
+
 문서 `docs/specifications/roles-and-boundaries.md`:
 
 1. 역할표: 사용자 / 클라이언트 LLM / 브로커 / 시뮬레이터 제공자 / 시스템 개발자가 각각

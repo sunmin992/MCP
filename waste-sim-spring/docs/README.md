@@ -37,6 +37,7 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 - [LLM 요구 추출 평가 준비와 고정 구성/SES 비교](reports/model-evaluation-2026-11-03/REPORT.md)
 - [P0 테스트 기준선과 계약 조사](reports/p0-baseline-2026-11-03/REPORT.md)
 - [요구·능력 계약 비교와 P1 호환 정책](specifications/request-capability-contract.md)
+- [역할 분리와 MCP 서버 분리 근거](specifications/roles-and-boundaries.md)
 
 - [설계 결정 기록](reference/DESIGN_DECISIONS.md)
 - [채팅 자연어 요청 카탈로그](reference/CHAT_REQUEST_CATALOG.md)
