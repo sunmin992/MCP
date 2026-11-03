@@ -1,0 +1,323 @@
+[ {
+  "query" : "덕명동",
+  "status" : "RESOLVED",
+  "reason" : "fetched",
+  "seconds" : 50.52,
+  "dataGrade" : "REAL_BLOCK",
+  "displayName" : "덕명동, 학하동, 유성구, 대전광역시, 34158, 대한민국",
+  "searchArea" : "반경 700m",
+  "numBuildings" : 9,
+  "residentsPerBuilding" : 111,
+  "routeTravelMinutes" : 13,
+  "roadHopMinutes" : 0.76,
+  "observedLevelShare" : 0.67,
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 6/9동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.76분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  }
+}, {
+  "query" : "장량동",
+  "status" : "RESOLVED",
+  "reason" : "fetched",
+  "seconds" : 29.833,
+  "dataGrade" : "REAL_BLOCK",
+  "displayName" : "장량동, 북구, 포항시, 경상북도, 대한민국",
+  "searchArea" : "행정 경계",
+  "numBuildings" : 26,
+  "residentsPerBuilding" : 33,
+  "routeTravelMinutes" : 12,
+  "roadHopMinutes" : 0.38,
+  "observedLevelShare" : 0.81,
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 21/26동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.38분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  }
+}, {
+  "query" : "중앙동",
+  "status" : "AMBIGUOUS",
+  "reason" : "같은 이름의 지역이 15곳입니다. 시·구를 함께 알려 주십시오",
+  "seconds" : 0.972,
+  "candidates" : [ {
+    "regionName" : "중앙동 북구 포항시",
+    "displayName" : "중앙동, 북구, 포항시, 경상북도, 대한민국"
+  }, {
+    "regionName" : "중앙동 진주시",
+    "displayName" : "중앙동, 진주시, 경상남도, 대한민국"
+  }, {
+    "regionName" : "중앙동 중구 부산광역시",
+    "displayName" : "중앙동, 중구, 부산광역시, 대한민국"
+  }, {
+    "regionName" : "중앙동 영천시",
+    "displayName" : "중앙동, 영천시, 경상북도, 대한민국"
+  }, {
+    "regionName" : "중앙동 동구 대전광역시",
+    "displayName" : "중앙동, 동구, 대전광역시, 대한민국"
+  }, {
+    "regionName" : "중앙동 강릉시",
+    "displayName" : "중앙동, 강릉시, 강원특별자치도, 대한민국"
+  }, {
+    "regionName" : "중앙동 북구 광주",
+    "displayName" : "중앙동, 북구, 광주, 전남광주통합특별시, 대한민국"
+  }, {
+    "regionName" : "중앙동 관악구 서울특별시",
+    "displayName" : "중앙동, 관악구, 서울특별시, 대한민국"
+  }, {
+    "regionName" : "중앙동 경산시",
+    "displayName" : "중앙동, 경산시, 경상북도, 38634, 대한민국"
+  }, {
+    "regionName" : "중앙동 중구 울산광역시",
+    "displayName" : "중앙동, 중구, 울산광역시, 대한민국"
+  }, {
+    "regionName" : "중앙동 완산구 전주시",
+    "displayName" : "중앙동, 완산구, 전주시, 전북특별자치도, 대한민국"
+  }, {
+    "regionName" : "중앙동 양산시",
+    "displayName" : "중앙동, 양산시, 경상남도, 대한민국"
+  }, {
+    "regionName" : "중앙동 서귀포시",
+    "displayName" : "중앙동, 서귀포시, 제주특별자치도, 대한민국"
+  }, {
+    "regionName" : "중앙동 중원구 성남시",
+    "displayName" : "중앙동, 중원구, 성남시, 경기도, 13255, 대한민국"
+  }, {
+    "regionName" : "중앙동 여수시",
+    "displayName" : "중앙동, 여수시, 전남광주통합특별시, 59735, 대한민국"
+  } ]
+}, {
+  "query" : "역삼동",
+  "status" : "RESOLVED",
+  "reason" : "fetched",
+  "seconds" : 40.201,
+  "dataGrade" : "REAL_BLOCK",
+  "displayName" : "역삼동, 역삼2동, 강남구, 서울특별시, 06220, 대한민국",
+  "searchArea" : "반경 700m",
+  "numBuildings" : 26,
+  "residentsPerBuilding" : 6,
+  "routeTravelMinutes" : 12,
+  "roadHopMinutes" : 0.31,
+  "observedLevelShare" : 0.04,
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 1/26동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.31분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  }
+}, {
+  "query" : "연남동",
+  "status" : "RESOLVED",
+  "reason" : "fetched",
+  "seconds" : 46.478,
+  "dataGrade" : "REAL_BLOCK",
+  "displayName" : "연남동, 마포구, 서울특별시, 대한민국",
+  "searchArea" : "행정 경계",
+  "numBuildings" : 26,
+  "residentsPerBuilding" : 3,
+  "routeTravelMinutes" : 12,
+  "roadHopMinutes" : 0.24,
+  "observedLevelShare" : 1.0,
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 26/26동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.24분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  }
+}, {
+  "query" : "둔산동",
+  "status" : "AMBIGUOUS",
+  "reason" : "같은 이름의 지역이 2곳입니다. 시·구를 함께 알려 주십시오",
+  "seconds" : 1.053,
+  "candidates" : [ {
+    "regionName" : "둔산동 대구광역시",
+    "displayName" : "둔산동, 해안동, 동구, 대구광역시, 41059, 대한민국"
+  }, {
+    "regionName" : "둔산동 서구 대전광역시",
+    "displayName" : "둔산동, 둔산1동, 서구, 대전광역시, 35237, 대한민국"
+  } ]
+}, {
+  "query" : "신림동",
+  "status" : "RESOLVED",
+  "reason" : "fetched",
+  "seconds" : 29.109,
+  "dataGrade" : "REAL_BLOCK",
+  "displayName" : "신림동, 관악구, 서울특별시, 대한민국",
+  "searchArea" : "행정 경계",
+  "numBuildings" : 15,
+  "residentsPerBuilding" : 65,
+  "routeTravelMinutes" : 12,
+  "roadHopMinutes" : 0.43,
+  "observedLevelShare" : 1.0,
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 15/15동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.43분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  }
+}, {
+  "query" : "송도동",
+  "status" : "AMBIGUOUS",
+  "reason" : "같은 이름의 지역이 2곳입니다. 시·구를 함께 알려 주십시오",
+  "seconds" : 0.996,
+  "candidates" : [ {
+    "regionName" : "송도동 남구 포항시",
+    "displayName" : "송도동, 남구, 포항시, 경상북도, 대한민국"
+  }, {
+    "regionName" : "송도동 연수구 인천광역시",
+    "displayName" : "송도동, 송도1동, 연수구, 인천광역시, 22000, 대한민국"
+  } ]
+}, {
+  "query" : "상도동",
+  "status" : "AMBIGUOUS",
+  "reason" : "같은 이름의 지역이 2곳입니다. 시·구를 함께 알려 주십시오",
+  "seconds" : 1.022,
+  "candidates" : [ {
+    "regionName" : "상도동 동작구 서울특별시",
+    "displayName" : "상도동, 상도4동, 동작구, 서울특별시, 07036, 대한민국"
+  }, {
+    "regionName" : "상도동 남구 포항시",
+    "displayName" : "상도동, 상대동, 남구, 포항시, 경상북도, 37766, 대한민국"
+  } ]
+}, {
+  "query" : "봉명동",
+  "status" : "AMBIGUOUS",
+  "reason" : "같은 이름의 지역이 3곳입니다. 시·구를 함께 알려 주십시오",
+  "seconds" : 1.053,
+  "candidates" : [ {
+    "regionName" : "봉명동 동남구 천안시",
+    "displayName" : "봉명동, 동남구, 천안시, 충청남도, 대한민국"
+  }, {
+    "regionName" : "봉명동 유성구 대전광역시",
+    "displayName" : "봉명동, 온천1동, 유성구, 대전광역시, 34187, 대한민국"
+  }, {
+    "regionName" : "봉명동 흥덕구 청주시",
+    "displayName" : "봉명동, 봉명2·송정동, 흥덕구, 청주시, 충청북도, 28452, 대한민국"
+  } ]
+}, {
+  "query" : "중앙동 중구 부산광역시",
+  "status" : "RESOLVED",
+  "reason" : "fetched",
+  "seconds" : 40.636,
+  "dataGrade" : "REAL_BLOCK",
+  "displayName" : "중앙동, 중구, 부산광역시, 대한민국",
+  "searchArea" : "행정 경계",
+  "numBuildings" : 6,
+  "residentsPerBuilding" : 80,
+  "routeTravelMinutes" : 12,
+  "roadHopMinutes" : 0.49,
+  "observedLevelShare" : 1.0,
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 6/6동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.49분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  }
+}, {
+  "query" : "풍천면",
+  "status" : "INSUFFICIENT_DATA",
+  "reason" : "지도에 주거 건물이 1동뿐이라 블록을 만들 수 없습니다",
+  "seconds" : 24.763
+}, {
+  "query" : "가나다라마동",
+  "status" : "NOT_FOUND",
+  "reason" : "지도에서 행정구역을 찾지 못했습니다: 가나다라마동",
+  "seconds" : 1.023
+} ]

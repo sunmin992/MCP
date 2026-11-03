@@ -1,0 +1,313 @@
+{
+  "id" : "연남동",
+  "version" : "1.0.0",
+  "label" : "연남동 — 공개 지도 자료로 구성한 실제 주거 블록 (26동)",
+  "source" : "OpenStreetMap 기여자(ODbL). Nominatim · Overpass · OSRM 조회",
+  "synthetic" : false,
+  "basis" : "PUBLIC_MAP_DATA",
+  "allowProviderTraffic" : false,
+  "retrievedAt" : "2026-11-03T13:33:38.761068Z",
+  "supportedTravelModes" : [ "LEGACY_CONSTANT" ],
+  "osm" : {
+    "type" : "relation",
+    "id" : 3884283,
+    "displayName" : "연남동, 마포구, 서울특별시, 대한민국",
+    "searchArea" : "행정 경계"
+  },
+  "defaults" : {
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 3
+  },
+  "modelOverrides" : {
+    "routeTravelMinutes" : 12
+  },
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 26/26동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.24분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  },
+  "dataGrade" : "REAL_BLOCK",
+  "block" : {
+    "roadHopMinutes" : 0.24,
+    "assumedStopMinutes" : 12,
+    "observedLevelShare" : 1.0,
+    "buildings" : [ {
+      "node" : "Node_A",
+      "osmWayId" : 686563711,
+      "building" : "residential",
+      "lat" : 37.562163,
+      "lon" : 126.924899,
+      "footprintM2" : 68,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_B",
+      "osmWayId" : 686563874,
+      "building" : "residential",
+      "lat" : 37.562167,
+      "lon" : 126.924831,
+      "footprintM2" : 51,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_C",
+      "osmWayId" : 686563892,
+      "building" : "residential",
+      "lat" : 37.562062,
+      "lon" : 126.924817,
+      "footprintM2" : 52,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_D",
+      "osmWayId" : 686563700,
+      "building" : "residential",
+      "lat" : 37.562064,
+      "lon" : 126.924897,
+      "footprintM2" : 56,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_E",
+      "osmWayId" : 686563697,
+      "building" : "residential",
+      "lat" : 37.562044,
+      "lon" : 126.924999,
+      "footprintM2" : 89,
+      "levels" : 2,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_F",
+      "osmWayId" : 686563693,
+      "building" : "residential",
+      "lat" : 37.562141,
+      "lon" : 126.925045,
+      "footprintM2" : 126,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 2
+    }, {
+      "node" : "Node_G",
+      "osmWayId" : 686563881,
+      "building" : "residential",
+      "lat" : 37.562229,
+      "lon" : 126.925106,
+      "footprintM2" : 63,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_H",
+      "osmWayId" : 686563688,
+      "building" : "residential",
+      "lat" : 37.562222,
+      "lon" : 126.925222,
+      "footprintM2" : 74,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 4
+    }, {
+      "node" : "Node_I",
+      "osmWayId" : 686563735,
+      "building" : "residential",
+      "lat" : 37.562342,
+      "lon" : 126.925202,
+      "footprintM2" : 67,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_J",
+      "osmWayId" : 686563662,
+      "building" : "residential",
+      "lat" : 37.562362,
+      "lon" : 126.925106,
+      "footprintM2" : 67,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_K",
+      "osmWayId" : 686563728,
+      "building" : "residential",
+      "lat" : 37.562382,
+      "lon" : 126.925002,
+      "footprintM2" : 79,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_L",
+      "osmWayId" : 686563713,
+      "building" : "residential",
+      "lat" : 37.56245,
+      "lon" : 126.925057,
+      "footprintM2" : 77,
+      "levels" : 2,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_M",
+      "osmWayId" : 686563705,
+      "building" : "residential",
+      "lat" : 37.562446,
+      "lon" : 126.924844,
+      "footprintM2" : 55,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_N",
+      "osmWayId" : 686563865,
+      "building" : "residential",
+      "lat" : 37.562377,
+      "lon" : 126.924844,
+      "footprintM2" : 52,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_O",
+      "osmWayId" : 686563721,
+      "building" : "residential",
+      "lat" : 37.562389,
+      "lon" : 126.924727,
+      "footprintM2" : 99,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 5
+    }, {
+      "node" : "Node_P",
+      "osmWayId" : 686563717,
+      "building" : "residential",
+      "lat" : 37.56229,
+      "lon" : 126.924679,
+      "footprintM2" : 90,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 5
+    }, {
+      "node" : "Node_Q",
+      "osmWayId" : 686563712,
+      "building" : "residential",
+      "lat" : 37.562193,
+      "lon" : 126.924682,
+      "footprintM2" : 75,
+      "levels" : 2,
+      "levelsSource" : "OBSERVED",
+      "households" : 2
+    }, {
+      "node" : "Node_R",
+      "osmWayId" : 686563822,
+      "building" : "residential",
+      "lat" : 37.562116,
+      "lon" : 126.924642,
+      "footprintM2" : 70,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 5
+    }, {
+      "node" : "Node_S",
+      "osmWayId" : 686563872,
+      "building" : "residential",
+      "lat" : 37.562021,
+      "lon" : 126.924687,
+      "footprintM2" : 69,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_T",
+      "osmWayId" : 686563898,
+      "building" : "residential",
+      "lat" : 37.561936,
+      "lon" : 126.924643,
+      "footprintM2" : 57,
+      "levels" : 2,
+      "levelsSource" : "OBSERVED",
+      "households" : 2
+    }, {
+      "node" : "Node_U",
+      "osmWayId" : 686563919,
+      "building" : "apartments",
+      "lat" : 37.561911,
+      "lon" : 126.924737,
+      "footprintM2" : 84,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_V",
+      "osmWayId" : 686563798,
+      "building" : "residential",
+      "lat" : 37.561901,
+      "lon" : 126.924986,
+      "footprintM2" : 88,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_W",
+      "osmWayId" : 686563888,
+      "building" : "residential",
+      "lat" : 37.561926,
+      "lon" : 126.925059,
+      "footprintM2" : 56,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 4
+    }, {
+      "node" : "Node_X",
+      "osmWayId" : 686563748,
+      "building" : "residential",
+      "lat" : 37.562065,
+      "lon" : 126.925144,
+      "footprintM2" : 72,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 5
+    }, {
+      "node" : "Node_Y",
+      "osmWayId" : 686563671,
+      "building" : "residential",
+      "lat" : 37.562048,
+      "lon" : 126.925248,
+      "footprintM2" : 69,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_Z",
+      "osmWayId" : 686563680,
+      "building" : "residential",
+      "lat" : 37.562333,
+      "lon" : 126.924568,
+      "footprintM2" : 116,
+      "levels" : 2,
+      "levelsSource" : "OBSERVED",
+      "households" : 4
+    } ]
+  }
+}

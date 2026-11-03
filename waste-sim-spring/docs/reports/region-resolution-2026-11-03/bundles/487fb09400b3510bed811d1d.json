@@ -1,0 +1,113 @@
+{
+  "id" : "중앙동 중구 부산광역시",
+  "version" : "1.0.0",
+  "label" : "중앙동 중구 부산광역시 — 공개 지도 자료로 구성한 실제 주거 블록 (6동)",
+  "source" : "OpenStreetMap 기여자(ODbL). Nominatim · Overpass · OSRM 조회",
+  "synthetic" : false,
+  "basis" : "PUBLIC_MAP_DATA",
+  "allowProviderTraffic" : false,
+  "retrievedAt" : "2026-11-03T13:34:52.445867Z",
+  "supportedTravelModes" : [ "LEGACY_CONSTANT" ],
+  "osm" : {
+    "type" : "relation",
+    "id" : 3972457,
+    "displayName" : "중앙동, 중구, 부산광역시, 대한민국",
+    "searchArea" : "행정 경계"
+  },
+  "defaults" : {
+    "numBuildings" : 6,
+    "residentsPerBuilding" : 80
+  },
+  "modelOverrides" : {
+    "routeTravelMinutes" : 12
+  },
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 6/6동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.49분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  },
+  "dataGrade" : "REAL_BLOCK",
+  "block" : {
+    "roadHopMinutes" : 0.49,
+    "assumedStopMinutes" : 12,
+    "observedLevelShare" : 1.0,
+    "buildings" : [ {
+      "node" : "Node_A",
+      "osmWayId" : 1157958037,
+      "building" : "apartments",
+      "lat" : 35.101896,
+      "lon" : 129.035935,
+      "footprintM2" : 395,
+      "levels" : 20,
+      "levelsSource" : "OBSERVED",
+      "households" : 93
+    }, {
+      "node" : "Node_B",
+      "osmWayId" : 1390098213,
+      "building" : "apartments",
+      "lat" : 35.101748,
+      "lon" : 129.035533,
+      "footprintM2" : 252,
+      "levels" : 15,
+      "levelsSource" : "OBSERVED",
+      "households" : 45
+    }, {
+      "node" : "Node_C",
+      "osmWayId" : 1158192834,
+      "building" : "apartments",
+      "lat" : 35.10222,
+      "lon" : 129.03551,
+      "footprintM2" : 290,
+      "levels" : 17,
+      "levelsSource" : "OBSERVED",
+      "households" : 58
+    }, {
+      "node" : "Node_D",
+      "osmWayId" : 1156991590,
+      "building" : "apartments",
+      "lat" : 35.102692,
+      "lon" : 129.036776,
+      "footprintM2" : 474,
+      "levels" : 15,
+      "levelsSource" : "OBSERVED",
+      "households" : 84
+    }, {
+      "node" : "Node_E",
+      "osmWayId" : 1158190817,
+      "building" : "apartments",
+      "lat" : 35.100996,
+      "lon" : 129.035536,
+      "footprintM2" : 670,
+      "levels" : 20,
+      "levelsSource" : "OBSERVED",
+      "households" : 158
+    }, {
+      "node" : "Node_F",
+      "osmWayId" : 1157958036,
+      "building" : "apartments",
+      "lat" : 35.100481,
+      "lon" : 129.035979,
+      "footprintM2" : 257,
+      "levels" : 14,
+      "levelsSource" : "OBSERVED",
+      "households" : 42
+    } ]
+  }
+}

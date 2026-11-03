@@ -1,0 +1,203 @@
+{
+  "id" : "신림동",
+  "version" : "1.0.0",
+  "label" : "신림동 — 공개 지도 자료로 구성한 실제 주거 블록 (15동)",
+  "source" : "OpenStreetMap 기여자(ODbL). Nominatim · Overpass · OSRM 조회",
+  "synthetic" : false,
+  "basis" : "PUBLIC_MAP_DATA",
+  "allowProviderTraffic" : false,
+  "retrievedAt" : "2026-11-03T13:34:09.340537500Z",
+  "supportedTravelModes" : [ "LEGACY_CONSTANT" ],
+  "osm" : {
+    "type" : "relation",
+    "id" : 3878791,
+    "displayName" : "신림동, 관악구, 서울특별시, 대한민국",
+    "searchArea" : "행정 경계"
+  },
+  "defaults" : {
+    "numBuildings" : 15,
+    "residentsPerBuilding" : 65
+  },
+  "modelOverrides" : {
+    "routeTravelMinutes" : 12
+  },
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 15/15동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.43분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  },
+  "dataGrade" : "REAL_BLOCK",
+  "block" : {
+    "roadHopMinutes" : 0.43,
+    "assumedStopMinutes" : 12,
+    "observedLevelShare" : 1.0,
+    "buildings" : [ {
+      "node" : "Node_A",
+      "osmWayId" : 1455169008,
+      "building" : "apartments",
+      "lat" : 37.486345,
+      "lon" : 126.930311,
+      "footprintM2" : 450,
+      "levels" : 16,
+      "levelsSource" : "OBSERVED",
+      "households" : 85
+    }, {
+      "node" : "Node_B",
+      "osmWayId" : 1455169010,
+      "building" : "apartments",
+      "lat" : 37.486096,
+      "lon" : 126.930285,
+      "footprintM2" : 133,
+      "levels" : 13,
+      "levelsSource" : "OBSERVED",
+      "households" : 20
+    }, {
+      "node" : "Node_C",
+      "osmWayId" : 1455169005,
+      "building" : "apartments",
+      "lat" : 37.485486,
+      "lon" : 126.929956,
+      "footprintM2" : 566,
+      "levels" : 23,
+      "levelsSource" : "OBSERVED",
+      "households" : 153
+    }, {
+      "node" : "Node_D",
+      "osmWayId" : 641389093,
+      "building" : "apartments",
+      "lat" : 37.485166,
+      "lon" : 126.929918,
+      "footprintM2" : 1089,
+      "levels" : 14,
+      "levelsSource" : "OBSERVED",
+      "households" : 179
+    }, {
+      "node" : "Node_E",
+      "osmWayId" : 1455186959,
+      "building" : "apartments",
+      "lat" : 37.485407,
+      "lon" : 126.930956,
+      "footprintM2" : 153,
+      "levels" : 12,
+      "levelsSource" : "OBSERVED",
+      "households" : 22
+    }, {
+      "node" : "Node_F",
+      "osmWayId" : 1455186960,
+      "building" : "apartments",
+      "lat" : 37.485433,
+      "lon" : 126.931115,
+      "footprintM2" : 153,
+      "levels" : 10,
+      "levelsSource" : "OBSERVED",
+      "households" : 18
+    }, {
+      "node" : "Node_G",
+      "osmWayId" : 1455186961,
+      "building" : "apartments",
+      "lat" : 37.485817,
+      "lon" : 126.931968,
+      "footprintM2" : 219,
+      "levels" : 9,
+      "levelsSource" : "OBSERVED",
+      "households" : 23
+    }, {
+      "node" : "Node_H",
+      "osmWayId" : 1455186058,
+      "building" : "apartments",
+      "lat" : 37.484939,
+      "lon" : 126.932816,
+      "footprintM2" : 299,
+      "levels" : 10,
+      "levelsSource" : "OBSERVED",
+      "households" : 35
+    }, {
+      "node" : "Node_I",
+      "osmWayId" : 612097308,
+      "building" : "apartments",
+      "lat" : 37.487024,
+      "lon" : 126.930032,
+      "footprintM2" : 2164,
+      "levels" : 10,
+      "levelsSource" : "OBSERVED",
+      "households" : 255
+    }, {
+      "node" : "Node_J",
+      "osmWayId" : 1455185141,
+      "building" : "apartments",
+      "lat" : 37.487261,
+      "lon" : 126.929835,
+      "footprintM2" : 209,
+      "levels" : 13,
+      "levelsSource" : "OBSERVED",
+      "households" : 32
+    }, {
+      "node" : "Node_K",
+      "osmWayId" : 1455185142,
+      "building" : "apartments",
+      "lat" : 37.487365,
+      "lon" : 126.929828,
+      "footprintM2" : 294,
+      "levels" : 15,
+      "levelsSource" : "OBSERVED",
+      "households" : 52
+    }, {
+      "node" : "Node_L",
+      "osmWayId" : 1455170042,
+      "building" : "apartments",
+      "lat" : 37.487401,
+      "lon" : 126.929396,
+      "footprintM2" : 217,
+      "levels" : 11,
+      "levelsSource" : "OBSERVED",
+      "households" : 28
+    }, {
+      "node" : "Node_M",
+      "osmWayId" : 1150917664,
+      "building" : "apartments",
+      "lat" : 37.484979,
+      "lon" : 126.928573,
+      "footprintM2" : 145,
+      "levels" : 10,
+      "levelsSource" : "OBSERVED",
+      "households" : 17
+    }, {
+      "node" : "Node_N",
+      "osmWayId" : 1150917663,
+      "building" : "apartments",
+      "lat" : 37.484803,
+      "lon" : 126.928622,
+      "footprintM2" : 267,
+      "levels" : 12,
+      "levelsSource" : "OBSERVED",
+      "households" : 38
+    }, {
+      "node" : "Node_O",
+      "osmWayId" : 1455121136,
+      "building" : "apartments",
+      "lat" : 37.484771,
+      "lon" : 126.928081,
+      "footprintM2" : 175,
+      "levels" : 11,
+      "levelsSource" : "OBSERVED",
+      "households" : 23
+    } ]
+  }
+}

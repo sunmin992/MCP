@@ -1,0 +1,143 @@
+{
+  "id" : "덕명동",
+  "version" : "1.0.0",
+  "label" : "덕명동 — 공개 지도 자료로 구성한 실제 주거 블록 (9동)",
+  "source" : "OpenStreetMap 기여자(ODbL). Nominatim · Overpass · OSRM 조회",
+  "synthetic" : false,
+  "basis" : "PUBLIC_MAP_DATA",
+  "allowProviderTraffic" : false,
+  "retrievedAt" : "2026-11-03T13:31:41.097142400Z",
+  "supportedTravelModes" : [ "LEGACY_CONSTANT" ],
+  "osm" : {
+    "type" : "node",
+    "id" : 415161455,
+    "displayName" : "덕명동, 학하동, 유성구, 대전광역시, 34158, 대한민국",
+    "searchArea" : "반경 700m"
+  },
+  "defaults" : {
+    "numBuildings" : 9,
+    "residentsPerBuilding" : 111
+  },
+  "modelOverrides" : {
+    "routeTravelMinutes" : 13
+  },
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 6/9동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.76분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  },
+  "dataGrade" : "REAL_BLOCK",
+  "block" : {
+    "roadHopMinutes" : 0.76,
+    "assumedStopMinutes" : 12,
+    "observedLevelShare" : 0.67,
+    "buildings" : [ {
+      "node" : "Node_A",
+      "osmWayId" : 1566338082,
+      "building" : "apartments",
+      "lat" : 36.346847,
+      "lon" : 127.299914,
+      "footprintM2" : 583,
+      "levels" : 29,
+      "levelsSource" : "OBSERVED",
+      "households" : 199
+    }, {
+      "node" : "Node_B",
+      "osmWayId" : 1566338084,
+      "building" : "apartments",
+      "lat" : 36.346407,
+      "lon" : 127.299628,
+      "footprintM2" : 526,
+      "levels" : 28,
+      "levelsSource" : "OBSERVED",
+      "households" : 173
+    }, {
+      "node" : "Node_C",
+      "osmWayId" : 1566338083,
+      "building" : "apartments",
+      "lat" : 36.346401,
+      "lon" : 127.300207,
+      "footprintM2" : 251,
+      "levels" : 29,
+      "levelsSource" : "OBSERVED",
+      "households" : 86
+    }, {
+      "node" : "Node_D",
+      "osmWayId" : 1566338081,
+      "building" : "apartments",
+      "lat" : 36.346194,
+      "lon" : 127.300589,
+      "footprintM2" : 583,
+      "levels" : 29,
+      "levelsSource" : "OBSERVED",
+      "households" : 199
+    }, {
+      "node" : "Node_E",
+      "osmWayId" : 921961723,
+      "building" : "apartments",
+      "lat" : 36.3457,
+      "lon" : 127.300897,
+      "footprintM2" : 514,
+      "levels" : 29,
+      "levelsSource" : "OBSERVED",
+      "households" : 175
+    }, {
+      "node" : "Node_F",
+      "osmWayId" : 1566338086,
+      "building" : "apartments",
+      "lat" : 36.345856,
+      "lon" : 127.299524,
+      "footprintM2" : 497,
+      "levels" : 27,
+      "levelsSource" : "OBSERVED",
+      "households" : 158
+    }, {
+      "node" : "Node_G",
+      "osmWayId" : 620843169,
+      "building" : "house",
+      "lat" : 36.348014,
+      "lon" : 127.3002,
+      "footprintM2" : 154,
+      "levels" : 2,
+      "levelsSource" : "ASSUMED",
+      "households" : 5
+    }, {
+      "node" : "Node_H",
+      "osmWayId" : 620843167,
+      "building" : "house",
+      "lat" : 36.348105,
+      "lon" : 127.300357,
+      "footprintM2" : 104,
+      "levels" : 2,
+      "levelsSource" : "ASSUMED",
+      "households" : 3
+    }, {
+      "node" : "Node_I",
+      "osmWayId" : 620843168,
+      "building" : "house",
+      "lat" : 36.348173,
+      "lon" : 127.30024,
+      "footprintM2" : 114,
+      "levels" : 2,
+      "levelsSource" : "ASSUMED",
+      "households" : 4
+    } ]
+  }
+}

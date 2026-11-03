@@ -1,0 +1,313 @@
+{
+  "id" : "장량동",
+  "version" : "1.0.0",
+  "label" : "장량동 — 공개 지도 자료로 구성한 실제 주거 블록 (26동)",
+  "source" : "OpenStreetMap 기여자(ODbL). Nominatim · Overpass · OSRM 조회",
+  "synthetic" : false,
+  "basis" : "PUBLIC_MAP_DATA",
+  "allowProviderTraffic" : false,
+  "retrievedAt" : "2026-11-03T13:32:11.495610600Z",
+  "supportedTravelModes" : [ "LEGACY_CONSTANT" ],
+  "osm" : {
+    "type" : "relation",
+    "id" : 7740683,
+    "displayName" : "장량동, 북구, 포항시, 경상북도, 대한민국",
+    "searchArea" : "행정 경계"
+  },
+  "defaults" : {
+    "numBuildings" : 26,
+    "residentsPerBuilding" : 33
+  },
+  "modelOverrides" : {
+    "routeTravelMinutes" : 12
+  },
+  "provenance" : {
+    "numBuildings" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 안 OSM 주거 건물 수"
+    },
+    "residentsPerBuilding" : {
+      "grade" : "ESTIMATED",
+      "basis" : "건물 바닥면적 × 층수 ÷ 유형별 세대당 면적의 평균. 층수 태그 21/26동 실측"
+    },
+    "routeTravelMinutes" : {
+      "grade" : "OBSERVED",
+      "basis" : "블록 순회 구간 평균 도로 이동 0.38분(OSRM) + 정차·상차 가정 12분(ASSUMED)"
+    },
+    "dischargeWindow" : {
+      "grade" : "ASSUMED",
+      "basis" : "지역 배출 시간대는 자동 수집하지 않아 공통 기본값"
+    },
+    "buildingUse" : {
+      "grade" : "OBSERVED",
+      "basis" : "OSM building 태그"
+    }
+  },
+  "dataGrade" : "REAL_BLOCK",
+  "block" : {
+    "roadHopMinutes" : 0.38,
+    "assumedStopMinutes" : 12,
+    "observedLevelShare" : 0.81,
+    "buildings" : [ {
+      "node" : "Node_A",
+      "osmWayId" : 469907404,
+      "building" : "apartments",
+      "lat" : 36.07781,
+      "lon" : 129.384456,
+      "footprintM2" : 1046,
+      "levels" : 15,
+      "levelsSource" : "ASSUMED",
+      "households" : 185
+    }, {
+      "node" : "Node_B",
+      "osmWayId" : 469907405,
+      "building" : "apartments",
+      "lat" : 36.077503,
+      "lon" : 129.384806,
+      "footprintM2" : 798,
+      "levels" : 15,
+      "levelsSource" : "ASSUMED",
+      "households" : 141
+    }, {
+      "node" : "Node_C",
+      "osmWayId" : 746330612,
+      "building" : "house",
+      "lat" : 36.07779,
+      "lon" : 129.385396,
+      "footprintM2" : 185,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 12
+    }, {
+      "node" : "Node_D",
+      "osmWayId" : 746330613,
+      "building" : "house",
+      "lat" : 36.077941,
+      "lon" : 129.385364,
+      "footprintM2" : 128,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 9
+    }, {
+      "node" : "Node_E",
+      "osmWayId" : 746332306,
+      "building" : "detached",
+      "lat" : 36.078091,
+      "lon" : 129.385325,
+      "footprintM2" : 83,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_F",
+      "osmWayId" : 746327849,
+      "building" : "detached",
+      "lat" : 36.078182,
+      "lon" : 129.385337,
+      "footprintM2" : 127,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 2
+    }, {
+      "node" : "Node_G",
+      "osmWayId" : 746327848,
+      "building" : "detached",
+      "lat" : 36.078349,
+      "lon" : 129.385258,
+      "footprintM2" : 141,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 2
+    }, {
+      "node" : "Node_H",
+      "osmWayId" : 746353132,
+      "building" : "house",
+      "lat" : 36.078624,
+      "lon" : 129.3852,
+      "footprintM2" : 195,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 13
+    }, {
+      "node" : "Node_I",
+      "osmWayId" : 746388025,
+      "building" : "house",
+      "lat" : 36.078827,
+      "lon" : 129.385145,
+      "footprintM2" : 255,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 17
+    }, {
+      "node" : "Node_J",
+      "osmWayId" : 746353134,
+      "building" : "detached",
+      "lat" : 36.078606,
+      "lon" : 129.384863,
+      "footprintM2" : 82,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_K",
+      "osmWayId" : 746388028,
+      "building" : "house",
+      "lat" : 36.078817,
+      "lon" : 129.384707,
+      "footprintM2" : 148,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 10
+    }, {
+      "node" : "Node_L",
+      "osmWayId" : 746388029,
+      "building" : "house",
+      "lat" : 36.078817,
+      "lon" : 129.384588,
+      "footprintM2" : 205,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 10
+    }, {
+      "node" : "Node_M",
+      "osmWayId" : 746369266,
+      "building" : "detached",
+      "lat" : 36.078601,
+      "lon" : 129.384552,
+      "footprintM2" : 64,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 1
+    }, {
+      "node" : "Node_N",
+      "osmWayId" : 746388021,
+      "building" : "detached",
+      "lat" : 36.078587,
+      "lon" : 129.384439,
+      "footprintM2" : 111,
+      "levels" : 2,
+      "levelsSource" : "ASSUMED",
+      "households" : 4
+    }, {
+      "node" : "Node_O",
+      "osmWayId" : 746388022,
+      "building" : "house",
+      "lat" : 36.078575,
+      "lon" : 129.384283,
+      "footprintM2" : 168,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 8
+    }, {
+      "node" : "Node_P",
+      "osmWayId" : 746388023,
+      "building" : "house",
+      "lat" : 36.078554,
+      "lon" : 129.384075,
+      "footprintM2" : 174,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 9
+    }, {
+      "node" : "Node_Q",
+      "osmWayId" : 469907403,
+      "building" : "apartments",
+      "lat" : 36.078246,
+      "lon" : 129.384429,
+      "footprintM2" : 902,
+      "levels" : 15,
+      "levelsSource" : "ASSUMED",
+      "households" : 159
+    }, {
+      "node" : "Node_R",
+      "osmWayId" : 746347508,
+      "building" : "house",
+      "lat" : 36.078196,
+      "lon" : 129.383553,
+      "footprintM2" : 166,
+      "levels" : 3,
+      "levelsSource" : "OBSERVED",
+      "households" : 8
+    }, {
+      "node" : "Node_S",
+      "osmWayId" : 746347509,
+      "building" : "house",
+      "lat" : 36.078071,
+      "lon" : 129.383556,
+      "footprintM2" : 152,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 10
+    }, {
+      "node" : "Node_T",
+      "osmWayId" : 746347510,
+      "building" : "detached",
+      "lat" : 36.077966,
+      "lon" : 129.383558,
+      "footprintM2" : 157,
+      "levels" : 2,
+      "levelsSource" : "OBSERVED",
+      "households" : 5
+    }, {
+      "node" : "Node_U",
+      "osmWayId" : 746349976,
+      "building" : "house",
+      "lat" : 36.077831,
+      "lon" : 129.383553,
+      "footprintM2" : 91,
+      "levels" : 2,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_V",
+      "osmWayId" : 746349977,
+      "building" : "detached",
+      "lat" : 36.077695,
+      "lon" : 129.383586,
+      "footprintM2" : 162,
+      "levels" : 1,
+      "levelsSource" : "OBSERVED",
+      "households" : 3
+    }, {
+      "node" : "Node_W",
+      "osmWayId" : 746349978,
+      "building" : "house",
+      "lat" : 36.077518,
+      "lon" : 129.383576,
+      "footprintM2" : 164,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 11
+    }, {
+      "node" : "Node_X",
+      "osmWayId" : 746324380,
+      "building" : "house",
+      "lat" : 36.077442,
+      "lon" : 129.385788,
+      "footprintM2" : 111,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 7
+    }, {
+      "node" : "Node_Y",
+      "osmWayId" : 746597815,
+      "building" : "house",
+      "lat" : 36.07567,
+      "lon" : 129.385978,
+      "footprintM2" : 198,
+      "levels" : 4,
+      "levelsSource" : "OBSERVED",
+      "households" : 13
+    }, {
+      "node" : "Node_Z",
+      "osmWayId" : 469907396,
+      "building" : "apartments",
+      "lat" : 36.075757,
+      "lon" : 129.385067,
+      "footprintM2" : 1162,
+      "levels" : 15,
+      "levelsSource" : "ASSUMED",
+      "households" : 205
+    } ]
+  }
+}
