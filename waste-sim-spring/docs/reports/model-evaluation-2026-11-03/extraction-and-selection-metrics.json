@@ -1,0 +1,4410 @@
+{
+  "goldRuleMatching": {
+    "cases": 24,
+    "correct": 24,
+    "interpretation": "Gold structured inputs, not LLM extraction accuracy"
+  },
+  "modelEvaluation": {
+    "status": "NOT_MEASURED",
+    "successfulModelRuns": 0,
+    "extractionExactRate": null,
+    "candidateExactRate": null,
+    "reason": "No successful model predictions; API failures are not extraction failures"
+  },
+  "oracleRuns": [
+    {
+      "id": "E01",
+      "expectedCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "regionId": "덕명동",
+          "simulationDuration": {
+            "value": 2,
+            "unit": "day"
+          },
+          "requiredOutputs": [
+            "meanComplaints"
+          ]
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "731498d5-d9d3-4fb4-be71-c9345d42e7d3",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "jangnyang-waste-sim",
+          "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+          "endpoint": "http://localhost:8090/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: waste-collection → waste-collection",
+            "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED",
+            "simulationDuration: {\"value\":2,\"unit\":\"day\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED",
+            "requiredOutputs.meanComplaints: \"meanComplaints\" / [\"meanComplaints\",\"stdComplaints\",\"complaintsByOccupation\",\"truckUtilizationPercent\",\"uncollectedDemandKg\",\"peakFillKg\",\"peakFillRatio\",\"siteCapacityKg\",\"complaintThresholdRatio\",\"residualWasteKg\",\"avgRouteDurationMinutes\"] — SUPPORTED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "regionId",
+              "requested": "덕명동",
+              "declared": [
+                "jangnyang",
+                "synthetic-block"
+              ],
+              "status": "CONDITIONAL",
+              "code": "CONFIGURATION_CHECK_REQUIRED",
+              "action": "VERIFY_GENERATED_CONFIGURATION",
+              "required": true
+            },
+            {
+              "field": "simulationDuration",
+              "requested": {
+                "value": 2,
+                "unit": "day"
+              },
+              "declared": {
+                "min": {
+                  "value": 1,
+                  "unit": "day"
+                },
+                "max": {
+                  "value": 365,
+                  "unit": "day"
+                }
+              },
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            },
+            {
+              "field": "requiredOutputs.meanComplaints",
+              "requested": "meanComplaints",
+              "declared": [
+                "meanComplaints",
+                "stdComplaints",
+                "complaintsByOccupation",
+                "truckUtilizationPercent",
+                "uncollectedDemandKg",
+                "peakFillKg",
+                "peakFillRatio",
+                "siteCapacityKg",
+                "complaintThresholdRatio",
+                "residualWasteKg",
+                "avgRouteDurationMinutes"
+              ],
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "731498d5-d9d3-4fb4-be71-c9345d42e7d3",
+          "serverId": "jangnyang-waste-sim",
+          "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+          "requirements": {
+            "regionId": "덕명동",
+            "simulationDuration": {
+              "value": 2,
+              "unit": "day"
+            },
+            "requiredOutputs": [
+              "meanComplaints"
+            ]
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8090/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다. 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. 공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. 실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.",
+        "scenarioCreationTool": "create_neighborhood_scenario",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "simulationDuration: {\"value\":2,\"unit\":\"day\"} / {\"min\":{\"value\":7.0,\"unit\":\"day\"},\"max\":{\"value\":365.0,\"unit\":\"day\"}} — CAPABILITY_MISMATCH",
+              "requiredOutputs.meanComplaints: \"meanComplaints\" / [\"judgement.leftoverKgPerCollectionDay\",\"judgement.stdLeftoverKgPerCollectionDay\",\"judgement.leftoverZoneDaysPerWeek\",\"judgement.maxWaitDays\",\"explanation.maxZoneBacklogKg\",\"explanation.preCollectionKgPerCollectionDay\",\"explanation.leftoverKgByHousingType\",\"explanation.generatedKgByWeekday\",\"explanation.collectedKgByWeekday\",\"explanation.collectionDaysRun\",\"explanation.skippedForHoliday\",\"reference.truckUtilization\",\"reference.workMinutesPerTruckDay\",\"reference.tripsPerCollectionDay\"] — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [
+              "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "regionId",
+                "current": "\"덕명동\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              },
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":2,\"unit\":\"day\"}",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              },
+              {
+                "axis": "requiredOutputs.meanComplaints",
+                "current": "\"meanComplaints\"",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              },
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 7.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              },
+              {
+                "field": "requiredOutputs.meanComplaints",
+                "requested": "meanComplaints",
+                "declared": [
+                  "judgement.leftoverKgPerCollectionDay",
+                  "judgement.stdLeftoverKgPerCollectionDay",
+                  "judgement.leftoverZoneDaysPerWeek",
+                  "judgement.maxWaitDays",
+                  "explanation.maxZoneBacklogKg",
+                  "explanation.preCollectionKgPerCollectionDay",
+                  "explanation.leftoverKgByHousingType",
+                  "explanation.generatedKgByWeekday",
+                  "explanation.collectedKgByWeekday",
+                  "explanation.collectionDaysRun",
+                  "explanation.skippedForHoliday",
+                  "reference.truckUtilization",
+                  "reference.workMinutesPerTruckDay",
+                  "reference.tripsPerCollectionDay"
+                ],
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED",
+              "simulationDuration: {\"value\":2,\"unit\":\"day\"} /  — CAPABILITY_UNDECLARED",
+              "requiredOutputs.meanComplaints: \"meanComplaints\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "regionId",
+                "current": "\"덕명동\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              },
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":2,\"unit\":\"day\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              },
+              {
+                "axis": "requiredOutputs.meanComplaints",
+                "current": "\"meanComplaints\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              },
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "day"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              },
+              {
+                "field": "requiredOutputs.meanComplaints",
+                "requested": "meanComplaints",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED",
+              "simulationDuration: {\"value\":2,\"unit\":\"day\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED",
+              "requiredOutputs.meanComplaints: \"meanComplaints\" / [\"meanComplaints\",\"stdComplaints\",\"complaintsByOccupation\",\"truckUtilizationPercent\",\"uncollectedDemandKg\",\"peakFillKg\",\"peakFillRatio\",\"siteCapacityKg\",\"complaintThresholdRatio\",\"residualWasteKg\",\"avgRouteDurationMinutes\"] — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": [
+                  "jangnyang",
+                  "synthetic-block"
+                ],
+                "status": "CONDITIONAL",
+                "code": "CONFIGURATION_CHECK_REQUIRED",
+                "action": "VERIFY_GENERATED_CONFIGURATION",
+                "required": true
+              },
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              },
+              {
+                "field": "requiredOutputs.meanComplaints",
+                "requested": "meanComplaints",
+                "declared": [
+                  "meanComplaints",
+                  "stdComplaints",
+                  "complaintsByOccupation",
+                  "truckUtilizationPercent",
+                  "uncollectedDemandKg",
+                  "peakFillKg",
+                  "peakFillRatio",
+                  "siteCapacityKg",
+                  "complaintThresholdRatio",
+                  "residualWasteKg",
+                  "avgRouteDurationMinutes"
+                ],
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E02",
+      "expectedCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {},
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "7eb7f01f-0fd8-4036-acd6-a6f940ebf126",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "CHOOSE",
+        "candidates": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": []
+          }
+        ],
+        "selections": [
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "7eb7f01f-0fd8-4036-acd6-a6f940ebf126",
+            "serverId": "bukgu-district-waste-sim",
+            "cardDigest": "85e7dcf17f4b82ec84317a32b439582253a3953f01f2a4d007fc1362db02aaa2",
+            "requirements": {}
+          },
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "7eb7f01f-0fd8-4036-acd6-a6f940ebf126",
+            "serverId": "jangnyang-waste-sim",
+            "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+            "requirements": {}
+          }
+        ],
+        "differences": [
+          {
+            "item": "region",
+            "values": {
+              "bukgu-district-waste-sim": "포항시 북구 (행정동 단위)",
+              "jangnyang-waste-sim": "대한민국 경상북도 포항시 북구 장량동"
+            }
+          },
+          {
+            "item": "unit",
+            "values": {
+              "bukgu-district-waste-sim": "행정동 전체(구역 집계)",
+              "jangnyang-waste-sim": "원룸촌 한 블록"
+            }
+          },
+          {
+            "item": "calibration",
+            "values": {
+              "bukgu-district-waste-sim": "포항 북구 생활쓰레기 수거 요일 · 배출 창(20:00~06:00) (행정안전부 생활쓰레기 배출정보 표준데이터(2024-02-27 기준))",
+              "jangnyang-waste-sim": "교통 지체 배수 (SK TMAP 경로예측 API), 교통 구역 위치 (공공데이터포털 포항 장량동 인근 실측 교통량 CSV 15개 링크), 수거 일정·배출 시각 (포항시 북구 공식 자료)"
+            }
+          }
+        ],
+        "nextStep": "사용자에게 differences 를 보여 주고 어느 서버를 쓸지 물으십시오. 고른 서버의 endpoint 로 가고, 그 대화에서는 브로커를 다시 부르지 마십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "E03",
+      "expectedCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "simulationDuration": {
+            "value": 2,
+            "unit": "week"
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "4b501c8e-bdec-4635-8752-815d675ff879",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "CHOOSE",
+        "candidates": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":2,\"unit\":\"week\"} / {\"min\":{\"value\":7.0,\"unit\":\"day\"},\"max\":{\"value\":365.0,\"unit\":\"day\"}} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 7.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":2,\"unit\":\"week\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "selections": [
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "4b501c8e-bdec-4635-8752-815d675ff879",
+            "serverId": "bukgu-district-waste-sim",
+            "cardDigest": "85e7dcf17f4b82ec84317a32b439582253a3953f01f2a4d007fc1362db02aaa2",
+            "requirements": {
+              "simulationDuration": {
+                "value": 2,
+                "unit": "week"
+              }
+            }
+          },
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "4b501c8e-bdec-4635-8752-815d675ff879",
+            "serverId": "jangnyang-waste-sim",
+            "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+            "requirements": {
+              "simulationDuration": {
+                "value": 2,
+                "unit": "week"
+              }
+            }
+          }
+        ],
+        "differences": [
+          {
+            "item": "region",
+            "values": {
+              "bukgu-district-waste-sim": "포항시 북구 (행정동 단위)",
+              "jangnyang-waste-sim": "대한민국 경상북도 포항시 북구 장량동"
+            }
+          },
+          {
+            "item": "unit",
+            "values": {
+              "bukgu-district-waste-sim": "행정동 전체(구역 집계)",
+              "jangnyang-waste-sim": "원룸촌 한 블록"
+            }
+          },
+          {
+            "item": "calibration",
+            "values": {
+              "bukgu-district-waste-sim": "포항 북구 생활쓰레기 수거 요일 · 배출 창(20:00~06:00) (행정안전부 생활쓰레기 배출정보 표준데이터(2024-02-27 기준))",
+              "jangnyang-waste-sim": "교통 지체 배수 (SK TMAP 경로예측 API), 교통 구역 위치 (공공데이터포털 포항 장량동 인근 실측 교통량 CSV 15개 링크), 수거 일정·배출 시각 (포항시 북구 공식 자료)"
+            }
+          }
+        ],
+        "nextStep": "사용자에게 differences 를 보여 주고 어느 서버를 쓸지 물으십시오. 고른 서버의 endpoint 로 가고, 그 대화에서는 브로커를 다시 부르지 마십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":2,\"unit\":\"week\"} / {\"min\":{\"value\":7.0,\"unit\":\"day\"},\"max\":{\"value\":365.0,\"unit\":\"day\"}} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 7.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "simulationDuration: {\"value\":2,\"unit\":\"week\"} /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":2,\"unit\":\"week\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "week"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":2,\"unit\":\"week\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 2,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E04",
+      "expectedCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "simulationDuration": {
+            "value": 3,
+            "unit": "day"
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "d0ca2a3e-7d33-4fe1-a9d3-967f4c5b44f6",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "jangnyang-waste-sim",
+          "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+          "endpoint": "http://localhost:8090/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: waste-collection → waste-collection",
+            "simulationDuration: {\"value\":3,\"unit\":\"day\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "simulationDuration",
+              "requested": {
+                "value": 3,
+                "unit": "day"
+              },
+              "declared": {
+                "min": {
+                  "value": 1,
+                  "unit": "day"
+                },
+                "max": {
+                  "value": 365,
+                  "unit": "day"
+                }
+              },
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "d0ca2a3e-7d33-4fe1-a9d3-967f4c5b44f6",
+          "serverId": "jangnyang-waste-sim",
+          "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+          "requirements": {
+            "simulationDuration": {
+              "value": 3,
+              "unit": "day"
+            }
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8090/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다. 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. 공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. 실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.",
+        "scenarioCreationTool": "create_neighborhood_scenario",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "simulationDuration: {\"value\":3,\"unit\":\"day\"} / {\"min\":{\"value\":7.0,\"unit\":\"day\"},\"max\":{\"value\":365.0,\"unit\":\"day\"}} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":3,\"unit\":\"day\"}",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 7.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "simulationDuration: {\"value\":3,\"unit\":\"day\"} /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":3,\"unit\":\"day\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "day"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":3,\"unit\":\"day\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E05",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "timeResolution": {
+            "value": 1,
+            "unit": "hour"
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "bb386718-bfca-43bb-b58c-af4c3bc8b579",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "timeResolution: {\"value\":1,\"unit\":\"hour\"} /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "timeResolution",
+                "current": "{\"value\":1,\"unit\":\"hour\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "timeResolution",
+                "requested": {
+                  "value": 1,
+                  "unit": "hour"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "timeResolution: {\"value\":1,\"unit\":\"hour\"} /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "timeResolution",
+                "current": "{\"value\":1,\"unit\":\"hour\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "timeResolution",
+                "requested": {
+                  "value": 1,
+                  "unit": "hour"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "timeResolution: {\"value\":1,\"unit\":\"hour\"} /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "timeResolution",
+                "current": "{\"value\":1,\"unit\":\"hour\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "timeResolution",
+                "requested": {
+                  "value": 1,
+                  "unit": "hour"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "timeResolution: {\"value\":1,\"unit\":\"hour\"} /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "timeResolution",
+                "current": "{\"value\":1,\"unit\":\"hour\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "timeResolution",
+                "requested": {
+                  "value": 1,
+                  "unit": "hour"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "timeResolution: {\"value\":1,\"unit\":\"hour\"} /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "timeResolution",
+                "current": "{\"value\":1,\"unit\":\"hour\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "timeResolution",
+                "requested": {
+                  "value": 1,
+                  "unit": "hour"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E06",
+      "expectedCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "regionId": "덕명동"
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "ef048be9-0220-4d08-987b-b17401fd9fa1",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "jangnyang-waste-sim",
+          "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+          "endpoint": "http://localhost:8090/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: waste-collection → waste-collection",
+            "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "regionId",
+              "requested": "덕명동",
+              "declared": [
+                "jangnyang",
+                "synthetic-block"
+              ],
+              "status": "CONDITIONAL",
+              "code": "CONFIGURATION_CHECK_REQUIRED",
+              "action": "VERIFY_GENERATED_CONFIGURATION",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "ef048be9-0220-4d08-987b-b17401fd9fa1",
+          "serverId": "jangnyang-waste-sim",
+          "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+          "requirements": {
+            "regionId": "덕명동"
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8090/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다. 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. 공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. 실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.",
+        "scenarioCreationTool": "create_neighborhood_scenario",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "regionId",
+                "current": "\"덕명동\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "regionId",
+                "current": "\"덕명동\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": [
+                  "jangnyang",
+                  "synthetic-block"
+                ],
+                "status": "CONDITIONAL",
+                "code": "CONFIGURATION_CHECK_REQUIRED",
+                "action": "VERIFY_GENERATED_CONFIGURATION",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E07",
+      "expectedCandidates": [
+        "bukgu-district-waste-sim"
+      ],
+      "actualCandidates": [
+        "bukgu-district-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {},
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "e45f6737-bb9e-4573-9008-852e49dda34b",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "bukgu-district-waste-sim",
+          "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+          "endpoint": "http://localhost:8091/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: waste-collection → waste-collection",
+            "공간 규모: 행정동 → 행정동 전체(구역 집계)(district)"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": []
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "e45f6737-bb9e-4573-9008-852e49dda34b",
+          "serverId": "bukgu-district-waste-sim",
+          "cardDigest": "85e7dcf17f4b82ec84317a32b439582253a3953f01f2a4d007fc1362db02aaa2",
+          "requirements": {}
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8091/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 행정동 → 행정동 전체(구역 집계)(district)"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 행정동 → 행정동 전체(district)"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "공간 규모: 행정동 는 이 서버의 분석 단위(원룸촌 한 블록)와 맞지 않습니다"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "행정동",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '원룸촌 한 블록' 로 바꾸면 됩니다",
+                "reason": "수거 지점이 건물마다 1개이고 건물이 최대 26동이므로 지점 상한이 26개다. 장량동 전체(70,576명)는 지점 약 2,700개가 필요해 표현할 수 없다.",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "E08",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "regionId": "덕명동"
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "da471550-43c1-4a2c-a3d2-ca4d6f6c9891",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 행정동 → 행정동 전체(구역 집계)(district)"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "regionId",
+                "current": "\"덕명동\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED"
+            ],
+            "mismatches": [
+              "공간 규모: 행정동 는 이 서버의 분석 단위(원룸촌 한 블록)와 맞지 않습니다"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "행정동",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '원룸촌 한 블록' 로 바꾸면 됩니다",
+                "reason": "수거 지점이 건물마다 1개이고 건물이 최대 26동이므로 지점 상한이 26개다. 장량동 전체(70,576명)는 지점 약 2,700개가 필요해 표현할 수 없다.",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": [
+                  "jangnyang",
+                  "synthetic-block"
+                ],
+                "status": "CONDITIONAL",
+                "code": "CONFIGURATION_CHECK_REQUIRED",
+                "action": "VERIFY_GENERATED_CONFIGURATION",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 행정동 → 행정동 전체(구역 집계)(district)"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "regionId",
+                "current": "\"덕명동\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 행정동 → 행정동 전체(district)"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "regionId: \"덕명동\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "regionId",
+                "current": "\"덕명동\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "regionId: \"덕명동\" / [\"jangnyang\",\"synthetic-block\"] — CONFIGURATION_CHECK_REQUIRED"
+            ],
+            "mismatches": [
+              "공간 규모: 행정동 는 이 서버의 분석 단위(원룸촌 한 블록)와 맞지 않습니다"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "행정동",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '원룸촌 한 블록' 로 바꾸면 됩니다",
+                "reason": "수거 지점이 건물마다 1개이고 건물이 최대 26동이므로 지점 상한이 26개다. 장량동 전체(70,576명)는 지점 약 2,700개가 필요해 표현할 수 없다.",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "regionId",
+                "requested": "덕명동",
+                "declared": [
+                  "jangnyang",
+                  "synthetic-block"
+                ],
+                "status": "CONDITIONAL",
+                "code": "CONFIGURATION_CHECK_REQUIRED",
+                "action": "VERIFY_GENERATED_CONFIGURATION",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E09",
+      "expectedCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "constraints": {
+            "numBuildings": 26
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "5379ec76-2478-49e1-9874-473fb5829302",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "jangnyang-waste-sim",
+          "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+          "endpoint": "http://localhost:8090/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: waste-collection → waste-collection",
+            "공간 규모: 한 블록 → 원룸촌 한 블록(block)",
+            "constraints.numBuildings: 26 / {\"min\":1,\"max\":26} — SUPPORTED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "constraints.numBuildings",
+              "requested": 26,
+              "declared": {
+                "min": 1,
+                "max": 26
+              },
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "5379ec76-2478-49e1-9874-473fb5829302",
+          "serverId": "jangnyang-waste-sim",
+          "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+          "requirements": {
+            "constraints": {
+              "numBuildings": 26
+            }
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8090/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다. 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. 공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. 실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.",
+        "scenarioCreationTool": "create_neighborhood_scenario",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "공간 규모: 한 블록 는 이 서버의 분석 단위(행정동 전체(구역 집계))와 맞지 않습니다"
+            ],
+            "ambiguities": [
+              "constraints.numBuildings: 26 /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "한 블록",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '행정동 전체(구역 집계)' 로 바꾸면 됩니다",
+                "reason": "행정동을 1~40개 구역으로 나눠 구역 합계로만 본다. 수거 지점 좌표가 없어 지점 수 상한이 없지만, 지점 하나하나의 적재 · 민원은 보지 못한다.",
+                "changesPurpose": false
+              },
+              {
+                "axis": "constraints.numBuildings",
+                "current": "26",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 26,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "공간 규모: 한 블록 는 이 서버의 분석 단위(행정동 전체)와 맞지 않습니다"
+            ],
+            "ambiguities": [
+              "constraints.numBuildings: 26 /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "한 블록",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '행정동 전체' 로 바꾸면 됩니다",
+                "reason": "수거 지점을 좌표 없이 집계 단위로 다루므로 지점 수 상한이 없다. 대신 지점 하나하나의 적재·민원을 보지 못한다.",
+                "changesPurpose": false
+              },
+              {
+                "axis": "constraints.numBuildings",
+                "current": "26",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 26,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 한 블록 → 원룸촌 한 블록(block)",
+              "constraints.numBuildings: 26 / {\"min\":1,\"max\":26} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 26,
+                "declared": {
+                  "min": 1,
+                  "max": 26
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E10",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "constraints": {
+            "numBuildings": 27
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "972e6170-d9c9-42d5-a88b-2eb6bcc16aad",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 한 블록 → 원룸촌 한 블록(block)"
+            ],
+            "mismatches": [
+              "constraints.numBuildings: 27 / {\"min\":1,\"max\":26} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.numBuildings",
+                "current": "27",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 27,
+                "declared": {
+                  "min": 1,
+                  "max": 26
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "공간 규모: 한 블록 는 이 서버의 분석 단위(행정동 전체(구역 집계))와 맞지 않습니다"
+            ],
+            "ambiguities": [
+              "constraints.numBuildings: 27 /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "한 블록",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '행정동 전체(구역 집계)' 로 바꾸면 됩니다",
+                "reason": "행정동을 1~40개 구역으로 나눠 구역 합계로만 본다. 수거 지점 좌표가 없어 지점 수 상한이 없지만, 지점 하나하나의 적재 · 민원은 보지 못한다.",
+                "changesPurpose": false
+              },
+              {
+                "axis": "constraints.numBuildings",
+                "current": "27",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 27,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "공간 규모: 한 블록 는 이 서버의 분석 단위(행정동 전체(구역 집계))와 맞지 않습니다"
+            ],
+            "ambiguities": [
+              "constraints.numBuildings: 27 /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "한 블록",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '행정동 전체(구역 집계)' 로 바꾸면 됩니다",
+                "reason": "행정동을 1~40개 구역으로 나눠 구역 합계로만 본다. 수거 지점 좌표가 없어 지점 수 상한이 없지만, 지점 하나하나의 적재 · 민원은 보지 못한다.",
+                "changesPurpose": false
+              },
+              {
+                "axis": "constraints.numBuildings",
+                "current": "27",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 27,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "공간 규모: 한 블록 는 이 서버의 분석 단위(행정동 전체)와 맞지 않습니다"
+            ],
+            "ambiguities": [
+              "constraints.numBuildings: 27 /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "spatialScale",
+                "current": "한 블록",
+                "classification": "MISMATCH",
+                "suggestion": "공간 규모를 '행정동 전체' 로 바꾸면 됩니다",
+                "reason": "수거 지점을 좌표 없이 집계 단위로 다루므로 지점 수 상한이 없다. 대신 지점 하나하나의 적재·민원을 보지 못한다.",
+                "changesPurpose": false
+              },
+              {
+                "axis": "constraints.numBuildings",
+                "current": "27",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 27,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "공간 규모: 한 블록 → 원룸촌 한 블록(block)"
+            ],
+            "mismatches": [
+              "constraints.numBuildings: 27 / {\"min\":1,\"max\":26} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.numBuildings",
+                "current": "27",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.numBuildings",
+                "requested": 27,
+                "declared": {
+                  "min": 1,
+                  "max": 26
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E11",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "toolError": true,
+        "response": {
+          "jsonrpc": "2.0",
+          "id": 1,
+          "result": {
+            "content": [
+              {
+                "type": "text",
+                "text": "검증 실패: [{\"code\":\"EXECUTION_ERROR\",\"field\":\"request\",\"message\":\"Time must be finite and positive\"}]"
+              }
+            ],
+            "isError": true
+          }
+        }
+      }
+    },
+    {
+      "id": "E12",
+      "expectedCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "requiredOutputs": [
+            "avgRouteDurationMinutes"
+          ]
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "b0f641f7-d70f-420a-89b9-fabd70f669f6",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "jangnyang-waste-sim",
+          "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+          "endpoint": "http://localhost:8090/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: waste-collection → waste-collection",
+            "requiredOutputs.avgRouteDurationMinutes: \"avgRouteDurationMinutes\" / [\"meanComplaints\",\"stdComplaints\",\"complaintsByOccupation\",\"truckUtilizationPercent\",\"uncollectedDemandKg\",\"peakFillKg\",\"peakFillRatio\",\"siteCapacityKg\",\"complaintThresholdRatio\",\"residualWasteKg\",\"avgRouteDurationMinutes\"] — CONFIGURATION_CHECK_REQUIRED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "requiredOutputs.avgRouteDurationMinutes",
+              "requested": "avgRouteDurationMinutes",
+              "declared": [
+                "meanComplaints",
+                "stdComplaints",
+                "complaintsByOccupation",
+                "truckUtilizationPercent",
+                "uncollectedDemandKg",
+                "peakFillKg",
+                "peakFillRatio",
+                "siteCapacityKg",
+                "complaintThresholdRatio",
+                "residualWasteKg",
+                "avgRouteDurationMinutes"
+              ],
+              "status": "CONDITIONAL",
+              "code": "CONFIGURATION_CHECK_REQUIRED",
+              "action": "VERIFY_GENERATED_CONFIGURATION",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "b0f641f7-d70f-420a-89b9-fabd70f669f6",
+          "serverId": "jangnyang-waste-sim",
+          "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+          "requirements": {
+            "requiredOutputs": [
+              "avgRouteDurationMinutes"
+            ]
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8090/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다. 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. 공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. 실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.",
+        "scenarioCreationTool": "create_neighborhood_scenario",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "requiredOutputs.avgRouteDurationMinutes: \"avgRouteDurationMinutes\" / [\"judgement.leftoverKgPerCollectionDay\",\"judgement.stdLeftoverKgPerCollectionDay\",\"judgement.leftoverZoneDaysPerWeek\",\"judgement.maxWaitDays\",\"explanation.maxZoneBacklogKg\",\"explanation.preCollectionKgPerCollectionDay\",\"explanation.leftoverKgByHousingType\",\"explanation.generatedKgByWeekday\",\"explanation.collectedKgByWeekday\",\"explanation.collectionDaysRun\",\"explanation.skippedForHoliday\",\"reference.truckUtilization\",\"reference.workMinutesPerTruckDay\",\"reference.tripsPerCollectionDay\"] — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "requiredOutputs.avgRouteDurationMinutes",
+                "current": "\"avgRouteDurationMinutes\"",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "requiredOutputs.avgRouteDurationMinutes",
+                "requested": "avgRouteDurationMinutes",
+                "declared": [
+                  "judgement.leftoverKgPerCollectionDay",
+                  "judgement.stdLeftoverKgPerCollectionDay",
+                  "judgement.leftoverZoneDaysPerWeek",
+                  "judgement.maxWaitDays",
+                  "explanation.maxZoneBacklogKg",
+                  "explanation.preCollectionKgPerCollectionDay",
+                  "explanation.leftoverKgByHousingType",
+                  "explanation.generatedKgByWeekday",
+                  "explanation.collectedKgByWeekday",
+                  "explanation.collectionDaysRun",
+                  "explanation.skippedForHoliday",
+                  "reference.truckUtilization",
+                  "reference.workMinutesPerTruckDay",
+                  "reference.tripsPerCollectionDay"
+                ],
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "requiredOutputs.avgRouteDurationMinutes: \"avgRouteDurationMinutes\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "requiredOutputs.avgRouteDurationMinutes",
+                "current": "\"avgRouteDurationMinutes\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "requiredOutputs.avgRouteDurationMinutes",
+                "requested": "avgRouteDurationMinutes",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "requiredOutputs.avgRouteDurationMinutes: \"avgRouteDurationMinutes\" / [\"meanComplaints\",\"stdComplaints\",\"complaintsByOccupation\",\"truckUtilizationPercent\",\"uncollectedDemandKg\",\"peakFillKg\",\"peakFillRatio\",\"siteCapacityKg\",\"complaintThresholdRatio\",\"residualWasteKg\",\"avgRouteDurationMinutes\"] — CONFIGURATION_CHECK_REQUIRED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "requiredOutputs.avgRouteDurationMinutes",
+                "requested": "avgRouteDurationMinutes",
+                "declared": [
+                  "meanComplaints",
+                  "stdComplaints",
+                  "complaintsByOccupation",
+                  "truckUtilizationPercent",
+                  "uncollectedDemandKg",
+                  "peakFillKg",
+                  "peakFillRatio",
+                  "siteCapacityKg",
+                  "complaintThresholdRatio",
+                  "residualWasteKg",
+                  "avgRouteDurationMinutes"
+                ],
+                "status": "CONDITIONAL",
+                "code": "CONFIGURATION_CHECK_REQUIRED",
+                "action": "VERIFY_GENERATED_CONFIGURATION",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E13",
+      "expectedCandidates": [
+        "bukgu-district-waste-sim"
+      ],
+      "actualCandidates": [
+        "bukgu-district-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "requiredOutputs": [
+            "judgement.leftoverKgPerCollectionDay"
+          ]
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "795ce216-f115-43fa-8c51-bd64edfe9c46",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "bukgu-district-waste-sim",
+          "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+          "endpoint": "http://localhost:8091/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: waste-collection → waste-collection",
+            "requiredOutputs.judgement.leftoverKgPerCollectionDay: \"judgement.leftoverKgPerCollectionDay\" / [\"judgement.leftoverKgPerCollectionDay\",\"judgement.stdLeftoverKgPerCollectionDay\",\"judgement.leftoverZoneDaysPerWeek\",\"judgement.maxWaitDays\",\"explanation.maxZoneBacklogKg\",\"explanation.preCollectionKgPerCollectionDay\",\"explanation.leftoverKgByHousingType\",\"explanation.generatedKgByWeekday\",\"explanation.collectedKgByWeekday\",\"explanation.collectionDaysRun\",\"explanation.skippedForHoliday\",\"reference.truckUtilization\",\"reference.workMinutesPerTruckDay\",\"reference.tripsPerCollectionDay\"] — SUPPORTED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "requiredOutputs.judgement.leftoverKgPerCollectionDay",
+              "requested": "judgement.leftoverKgPerCollectionDay",
+              "declared": [
+                "judgement.leftoverKgPerCollectionDay",
+                "judgement.stdLeftoverKgPerCollectionDay",
+                "judgement.leftoverZoneDaysPerWeek",
+                "judgement.maxWaitDays",
+                "explanation.maxZoneBacklogKg",
+                "explanation.preCollectionKgPerCollectionDay",
+                "explanation.leftoverKgByHousingType",
+                "explanation.generatedKgByWeekday",
+                "explanation.collectedKgByWeekday",
+                "explanation.collectionDaysRun",
+                "explanation.skippedForHoliday",
+                "reference.truckUtilization",
+                "reference.workMinutesPerTruckDay",
+                "reference.tripsPerCollectionDay"
+              ],
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "795ce216-f115-43fa-8c51-bd64edfe9c46",
+          "serverId": "bukgu-district-waste-sim",
+          "cardDigest": "85e7dcf17f4b82ec84317a32b439582253a3953f01f2a4d007fc1362db02aaa2",
+          "requirements": {
+            "requiredOutputs": [
+              "judgement.leftoverKgPerCollectionDay"
+            ]
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8091/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "requiredOutputs.judgement.leftoverKgPerCollectionDay: \"judgement.leftoverKgPerCollectionDay\" / [\"judgement.leftoverKgPerCollectionDay\",\"judgement.stdLeftoverKgPerCollectionDay\",\"judgement.leftoverZoneDaysPerWeek\",\"judgement.maxWaitDays\",\"explanation.maxZoneBacklogKg\",\"explanation.preCollectionKgPerCollectionDay\",\"explanation.leftoverKgByHousingType\",\"explanation.generatedKgByWeekday\",\"explanation.collectedKgByWeekday\",\"explanation.collectionDaysRun\",\"explanation.skippedForHoliday\",\"reference.truckUtilization\",\"reference.workMinutesPerTruckDay\",\"reference.tripsPerCollectionDay\"] — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "requiredOutputs.judgement.leftoverKgPerCollectionDay",
+                "requested": "judgement.leftoverKgPerCollectionDay",
+                "declared": [
+                  "judgement.leftoverKgPerCollectionDay",
+                  "judgement.stdLeftoverKgPerCollectionDay",
+                  "judgement.leftoverZoneDaysPerWeek",
+                  "judgement.maxWaitDays",
+                  "explanation.maxZoneBacklogKg",
+                  "explanation.preCollectionKgPerCollectionDay",
+                  "explanation.leftoverKgByHousingType",
+                  "explanation.generatedKgByWeekday",
+                  "explanation.collectedKgByWeekday",
+                  "explanation.collectionDaysRun",
+                  "explanation.skippedForHoliday",
+                  "reference.truckUtilization",
+                  "reference.workMinutesPerTruckDay",
+                  "reference.tripsPerCollectionDay"
+                ],
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "requiredOutputs.judgement.leftoverKgPerCollectionDay: \"judgement.leftoverKgPerCollectionDay\" /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "requiredOutputs.judgement.leftoverKgPerCollectionDay",
+                "current": "\"judgement.leftoverKgPerCollectionDay\"",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "requiredOutputs.judgement.leftoverKgPerCollectionDay",
+                "requested": "judgement.leftoverKgPerCollectionDay",
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "requiredOutputs.judgement.leftoverKgPerCollectionDay: \"judgement.leftoverKgPerCollectionDay\" / [\"meanComplaints\",\"stdComplaints\",\"complaintsByOccupation\",\"truckUtilizationPercent\",\"uncollectedDemandKg\",\"peakFillKg\",\"peakFillRatio\",\"siteCapacityKg\",\"complaintThresholdRatio\",\"residualWasteKg\",\"avgRouteDurationMinutes\"] — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "requiredOutputs.judgement.leftoverKgPerCollectionDay",
+                "current": "\"judgement.leftoverKgPerCollectionDay\"",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "requiredOutputs.judgement.leftoverKgPerCollectionDay",
+                "requested": "judgement.leftoverKgPerCollectionDay",
+                "declared": [
+                  "meanComplaints",
+                  "stdComplaints",
+                  "complaintsByOccupation",
+                  "truckUtilizationPercent",
+                  "uncollectedDemandKg",
+                  "peakFillKg",
+                  "peakFillRatio",
+                  "siteCapacityKg",
+                  "complaintThresholdRatio",
+                  "residualWasteKg",
+                  "avgRouteDurationMinutes"
+                ],
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E14",
+      "expectedCandidates": [
+        "pohang-parking-sim"
+      ],
+      "actualCandidates": [
+        "pohang-parking-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "public-parking",
+        "requirements": {
+          "simulationDuration": {
+            "value": 10,
+            "unit": "day"
+          },
+          "requiredOutputs": [
+            "judgement.meanSearchMinutesAll"
+          ]
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "6fb4f4b0-4b55-4d8e-8f35-dc6c754e41f9",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 1,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "pohang-parking-sim",
+          "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+          "endpoint": "http://localhost:8092/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: public-parking → public-parking",
+            "공간 규모: 도심 → 도심 한 구역의 공영주차장 묶음(area)",
+            "simulationDuration: {\"value\":10,\"unit\":\"day\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":90.0,\"unit\":\"day\"}} — SUPPORTED",
+            "requiredOutputs.judgement.meanSearchMinutesAll: \"judgement.meanSearchMinutesAll\" / [\"judgement.meanSearchMinutesAll\",\"judgement.stdSearchMinutesAll\",\"judgement.meanSearchMinutesParked\",\"judgement.stdSearchMinutesParked\",\"judgement.giveUpsPerDay\",\"judgement.stdGiveUpsPerDay\",\"judgement.giveUpRate\",\"judgement.byUserType\",\"explanation.peakOccupancyRatio\",\"explanation.lotPeakOccupancy\",\"explanation.hourlyOccupancy\",\"explanation.fullMinutesPerLotPerDay\",\"explanation.priceAvoidedPerDay\",\"reference.revenuePerDay\",\"reference.interLotMovesPerDay\"] — SUPPORTED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "simulationDuration",
+              "requested": {
+                "value": 10,
+                "unit": "day"
+              },
+              "declared": {
+                "min": {
+                  "value": 1.0,
+                  "unit": "day"
+                },
+                "max": {
+                  "value": 90.0,
+                  "unit": "day"
+                }
+              },
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            },
+            {
+              "field": "requiredOutputs.judgement.meanSearchMinutesAll",
+              "requested": "judgement.meanSearchMinutesAll",
+              "declared": [
+                "judgement.meanSearchMinutesAll",
+                "judgement.stdSearchMinutesAll",
+                "judgement.meanSearchMinutesParked",
+                "judgement.stdSearchMinutesParked",
+                "judgement.giveUpsPerDay",
+                "judgement.stdGiveUpsPerDay",
+                "judgement.giveUpRate",
+                "judgement.byUserType",
+                "explanation.peakOccupancyRatio",
+                "explanation.lotPeakOccupancy",
+                "explanation.hourlyOccupancy",
+                "explanation.fullMinutesPerLotPerDay",
+                "explanation.priceAvoidedPerDay",
+                "reference.revenuePerDay",
+                "reference.interLotMovesPerDay"
+              ],
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "6fb4f4b0-4b55-4d8e-8f35-dc6c754e41f9",
+          "serverId": "pohang-parking-sim",
+          "cardDigest": "3f5e8b786cdc02918ac8fe6d45d5da9318374721c38e35d8a8ddbbf50c280d85",
+          "requirements": {
+            "simulationDuration": {
+              "value": 10,
+              "unit": "day"
+            },
+            "requiredOutputs": [
+              "judgement.meanSearchMinutesAll"
+            ]
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8092/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.",
+        "matches": [
+          {
+            "serverId": "pohang-parking-sim",
+            "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+            "endpoint": "http://localhost:8092/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: public-parking → public-parking",
+              "공간 규모: 도심 → 도심 한 구역의 공영주차장 묶음(area)",
+              "simulationDuration: {\"value\":10,\"unit\":\"day\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":90.0,\"unit\":\"day\"}} — SUPPORTED",
+              "requiredOutputs.judgement.meanSearchMinutesAll: \"judgement.meanSearchMinutesAll\" / [\"judgement.meanSearchMinutesAll\",\"judgement.stdSearchMinutesAll\",\"judgement.meanSearchMinutesParked\",\"judgement.stdSearchMinutesParked\",\"judgement.giveUpsPerDay\",\"judgement.stdGiveUpsPerDay\",\"judgement.giveUpRate\",\"judgement.byUserType\",\"explanation.peakOccupancyRatio\",\"explanation.lotPeakOccupancy\",\"explanation.hourlyOccupancy\",\"explanation.fullMinutesPerLotPerDay\",\"explanation.priceAvoidedPerDay\",\"reference.revenuePerDay\",\"reference.interLotMovesPerDay\"] — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 10,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 90.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              },
+              {
+                "field": "requiredOutputs.judgement.meanSearchMinutesAll",
+                "requested": "judgement.meanSearchMinutesAll",
+                "declared": [
+                  "judgement.meanSearchMinutesAll",
+                  "judgement.stdSearchMinutesAll",
+                  "judgement.meanSearchMinutesParked",
+                  "judgement.stdSearchMinutesParked",
+                  "judgement.giveUpsPerDay",
+                  "judgement.stdGiveUpsPerDay",
+                  "judgement.giveUpRate",
+                  "judgement.byUserType",
+                  "explanation.peakOccupancyRatio",
+                  "explanation.lotPeakOccupancy",
+                  "explanation.hourlyOccupancy",
+                  "explanation.fullMinutesPerLotPerDay",
+                  "explanation.priceAvoidedPerDay",
+                  "reference.revenuePerDay",
+                  "reference.interLotMovesPerDay"
+                ],
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E15",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "public-parking",
+        "requirements": {
+          "simulationDuration": {
+            "value": 100,
+            "unit": "day"
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "dc668fe6-4eb1-402d-a75c-ff87779e97c1",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 1,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "pohang-parking-sim",
+            "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+            "endpoint": "http://localhost:8092/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: public-parking → public-parking"
+            ],
+            "mismatches": [
+              "simulationDuration: {\"value\":100,\"unit\":\"day\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":90.0,\"unit\":\"day\"}} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":100,\"unit\":\"day\"}",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 100,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 90.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": [
+          {
+            "serverId": "pohang-parking-sim",
+            "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+            "endpoint": "http://localhost:8092/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: public-parking → public-parking"
+            ],
+            "mismatches": [
+              "simulationDuration: {\"value\":100,\"unit\":\"day\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":90.0,\"unit\":\"day\"}} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":100,\"unit\":\"day\"}",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 100,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 90.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E16",
+      "expectedCandidates": [
+        "pohang-counter-sim"
+      ],
+      "actualCandidates": [
+        "pohang-counter-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "civil-service-counter",
+        "requirements": {
+          "simulationDuration": {
+            "value": 1,
+            "unit": "week"
+          },
+          "requiredOutputs": [
+            "judgement.meanWaitMinutesAll"
+          ]
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "111bb65b-192d-475b-8f1c-9dfd254f563e",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 1,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "pohang-counter-sim",
+          "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+          "endpoint": "http://localhost:8093/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: civil-service-counter → civil-service-counter",
+            "simulationDuration: {\"value\":1,\"unit\":\"week\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":60.0,\"unit\":\"day\"}} — SUPPORTED",
+            "requiredOutputs.judgement.meanWaitMinutesAll: \"judgement.meanWaitMinutesAll\" / [\"judgement.meanWaitMinutesAll\",\"judgement.stdWaitMinutesAll\",\"judgement.meanWaitMinutesServed\",\"judgement.renegesPerDay\",\"judgement.stdRenegesPerDay\",\"judgement.renegeRate\",\"judgement.byVisitorType\",\"explanation.utilization\",\"explanation.hourlyMeanWait\",\"explanation.peakQueueLength\",\"explanation.overtimeMinutesPerDay\",\"reference.servedPerCounterPerDay\"] — SUPPORTED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "simulationDuration",
+              "requested": {
+                "value": 1,
+                "unit": "week"
+              },
+              "declared": {
+                "min": {
+                  "value": 1.0,
+                  "unit": "day"
+                },
+                "max": {
+                  "value": 60.0,
+                  "unit": "day"
+                }
+              },
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            },
+            {
+              "field": "requiredOutputs.judgement.meanWaitMinutesAll",
+              "requested": "judgement.meanWaitMinutesAll",
+              "declared": [
+                "judgement.meanWaitMinutesAll",
+                "judgement.stdWaitMinutesAll",
+                "judgement.meanWaitMinutesServed",
+                "judgement.renegesPerDay",
+                "judgement.stdRenegesPerDay",
+                "judgement.renegeRate",
+                "judgement.byVisitorType",
+                "explanation.utilization",
+                "explanation.hourlyMeanWait",
+                "explanation.peakQueueLength",
+                "explanation.overtimeMinutesPerDay",
+                "reference.servedPerCounterPerDay"
+              ],
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "111bb65b-192d-475b-8f1c-9dfd254f563e",
+          "serverId": "pohang-counter-sim",
+          "cardDigest": "e4a438b9064f05c609aa16f48efa5407cc0b667e619e635cfd9e6f340c430fb0",
+          "requirements": {
+            "simulationDuration": {
+              "value": 1,
+              "unit": "week"
+            },
+            "requiredOutputs": [
+              "judgement.meanWaitMinutesAll"
+            ]
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8093/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.",
+        "matches": [
+          {
+            "serverId": "pohang-counter-sim",
+            "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+            "endpoint": "http://localhost:8093/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: civil-service-counter → civil-service-counter",
+              "simulationDuration: {\"value\":1,\"unit\":\"week\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":60.0,\"unit\":\"day\"}} — SUPPORTED",
+              "requiredOutputs.judgement.meanWaitMinutesAll: \"judgement.meanWaitMinutesAll\" / [\"judgement.meanWaitMinutesAll\",\"judgement.stdWaitMinutesAll\",\"judgement.meanWaitMinutesServed\",\"judgement.renegesPerDay\",\"judgement.stdRenegesPerDay\",\"judgement.renegeRate\",\"judgement.byVisitorType\",\"explanation.utilization\",\"explanation.hourlyMeanWait\",\"explanation.peakQueueLength\",\"explanation.overtimeMinutesPerDay\",\"reference.servedPerCounterPerDay\"] — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 1,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 60.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              },
+              {
+                "field": "requiredOutputs.judgement.meanWaitMinutesAll",
+                "requested": "judgement.meanWaitMinutesAll",
+                "declared": [
+                  "judgement.meanWaitMinutesAll",
+                  "judgement.stdWaitMinutesAll",
+                  "judgement.meanWaitMinutesServed",
+                  "judgement.renegesPerDay",
+                  "judgement.stdRenegesPerDay",
+                  "judgement.renegeRate",
+                  "judgement.byVisitorType",
+                  "explanation.utilization",
+                  "explanation.hourlyMeanWait",
+                  "explanation.peakQueueLength",
+                  "explanation.overtimeMinutesPerDay",
+                  "reference.servedPerCounterPerDay"
+                ],
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E17",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "civil-service-counter",
+        "requirements": {
+          "simulationDuration": {
+            "value": 61,
+            "unit": "day"
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "9117390f-460c-4a92-a5b3-a05aa70c9909",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 1,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "pohang-counter-sim",
+            "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+            "endpoint": "http://localhost:8093/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: civil-service-counter → civil-service-counter"
+            ],
+            "mismatches": [
+              "simulationDuration: {\"value\":61,\"unit\":\"day\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":60.0,\"unit\":\"day\"}} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":61,\"unit\":\"day\"}",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 61,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 60.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": [
+          {
+            "serverId": "pohang-counter-sim",
+            "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+            "endpoint": "http://localhost:8093/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: civil-service-counter → civil-service-counter"
+            ],
+            "mismatches": [
+              "simulationDuration: {\"value\":61,\"unit\":\"day\"} / {\"min\":{\"value\":1.0,\"unit\":\"day\"},\"max\":{\"value\":60.0,\"unit\":\"day\"}} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":61,\"unit\":\"day\"}",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 61,
+                  "unit": "day"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 60.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E18",
+      "expectedCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "preferences": {
+            "seeds": 10
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "555cab42-9b51-4d24-a82b-c340ca330771",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "CHOOSE",
+        "candidates": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.seeds",
+                "requested": 10,
+                "declared": {
+                  "min": 1.0,
+                  "max": 100.0
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": false
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.seeds",
+                "requested": 10,
+                "declared": {
+                  "min": 1,
+                  "max": 100
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": false
+              }
+            ]
+          }
+        ],
+        "selections": [
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "555cab42-9b51-4d24-a82b-c340ca330771",
+            "serverId": "bukgu-district-waste-sim",
+            "cardDigest": "85e7dcf17f4b82ec84317a32b439582253a3953f01f2a4d007fc1362db02aaa2",
+            "requirements": {
+              "preferences": {
+                "seeds": 10
+              }
+            }
+          },
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "555cab42-9b51-4d24-a82b-c340ca330771",
+            "serverId": "jangnyang-waste-sim",
+            "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+            "requirements": {
+              "preferences": {
+                "seeds": 10
+              }
+            }
+          }
+        ],
+        "differences": [
+          {
+            "item": "region",
+            "values": {
+              "bukgu-district-waste-sim": "포항시 북구 (행정동 단위)",
+              "jangnyang-waste-sim": "대한민국 경상북도 포항시 북구 장량동"
+            }
+          },
+          {
+            "item": "unit",
+            "values": {
+              "bukgu-district-waste-sim": "행정동 전체(구역 집계)",
+              "jangnyang-waste-sim": "원룸촌 한 블록"
+            }
+          },
+          {
+            "item": "calibration",
+            "values": {
+              "bukgu-district-waste-sim": "포항 북구 생활쓰레기 수거 요일 · 배출 창(20:00~06:00) (행정안전부 생활쓰레기 배출정보 표준데이터(2024-02-27 기준))",
+              "jangnyang-waste-sim": "교통 지체 배수 (SK TMAP 경로예측 API), 교통 구역 위치 (공공데이터포털 포항 장량동 인근 실측 교통량 CSV 15개 링크), 수거 일정·배출 시각 (포항시 북구 공식 자료)"
+            }
+          }
+        ],
+        "nextStep": "사용자에게 differences 를 보여 주고 어느 서버를 쓸지 물으십시오. 고른 서버의 endpoint 로 가고, 그 대화에서는 브로커를 다시 부르지 마십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.seeds",
+                "requested": 10,
+                "declared": {
+                  "min": 1.0,
+                  "max": 100.0
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": false
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.seeds",
+                "requested": 10,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": false
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.seeds",
+                "requested": 10,
+                "declared": {
+                  "min": 1,
+                  "max": 100
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E19",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "constraints": {
+            "seeds": 101
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "e1ccb6a4-388c-4b9c-ba37-56e9fe171179",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "constraints.seeds: 101 / {\"min\":1.0,\"max\":100.0} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.seeds",
+                "current": "101",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.seeds",
+                "requested": 101,
+                "declared": {
+                  "min": 1.0,
+                  "max": 100.0
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "constraints.seeds: 101 / {\"min\":1,\"max\":100} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.seeds",
+                "current": "101",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.seeds",
+                "requested": 101,
+                "declared": {
+                  "min": 1,
+                  "max": 100
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "constraints.seeds: 101 / {\"min\":1.0,\"max\":100.0} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.seeds",
+                "current": "101",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.seeds",
+                "requested": 101,
+                "declared": {
+                  "min": 1.0,
+                  "max": 100.0
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "constraints.seeds: 101 /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.seeds",
+                "current": "101",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.seeds",
+                "requested": 101,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [
+              "constraints.seeds: 101 / {\"min\":1,\"max\":100} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.seeds",
+                "current": "101",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.seeds",
+                "requested": 101,
+                "declared": {
+                  "min": 1,
+                  "max": 100
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E20",
+      "expectedCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "preferences": {
+            "numBuildings": 8
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "0f65aff0-8b54-4437-a136-b02155eb9dd4",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "CHOOSE",
+        "candidates": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.numBuildings",
+                "requested": 8,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": false
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.numBuildings",
+                "requested": 8,
+                "declared": {
+                  "min": 1,
+                  "max": 26
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": false
+              }
+            ]
+          }
+        ],
+        "selections": [
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "0f65aff0-8b54-4437-a136-b02155eb9dd4",
+            "serverId": "bukgu-district-waste-sim",
+            "cardDigest": "85e7dcf17f4b82ec84317a32b439582253a3953f01f2a4d007fc1362db02aaa2",
+            "requirements": {
+              "preferences": {
+                "numBuildings": 8
+              }
+            }
+          },
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "0f65aff0-8b54-4437-a136-b02155eb9dd4",
+            "serverId": "jangnyang-waste-sim",
+            "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+            "requirements": {
+              "preferences": {
+                "numBuildings": 8
+              }
+            }
+          }
+        ],
+        "differences": [
+          {
+            "item": "region",
+            "values": {
+              "bukgu-district-waste-sim": "포항시 북구 (행정동 단위)",
+              "jangnyang-waste-sim": "대한민국 경상북도 포항시 북구 장량동"
+            }
+          },
+          {
+            "item": "unit",
+            "values": {
+              "bukgu-district-waste-sim": "행정동 전체(구역 집계)",
+              "jangnyang-waste-sim": "원룸촌 한 블록"
+            }
+          },
+          {
+            "item": "calibration",
+            "values": {
+              "bukgu-district-waste-sim": "포항 북구 생활쓰레기 수거 요일 · 배출 창(20:00~06:00) (행정안전부 생활쓰레기 배출정보 표준데이터(2024-02-27 기준))",
+              "jangnyang-waste-sim": "교통 지체 배수 (SK TMAP 경로예측 API), 교통 구역 위치 (공공데이터포털 포항 장량동 인근 실측 교통량 CSV 15개 링크), 수거 일정·배출 시각 (포항시 북구 공식 자료)"
+            }
+          }
+        ],
+        "nextStep": "사용자에게 differences 를 보여 주고 어느 서버를 쓸지 물으십시오. 고른 서버의 endpoint 로 가고, 그 대화에서는 브로커를 다시 부르지 마십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.numBuildings",
+                "requested": 8,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": false
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.numBuildings",
+                "requested": 8,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": false
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "preferences.numBuildings",
+                "requested": 8,
+                "declared": {
+                  "min": 1,
+                  "max": 26
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": false
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E21",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "public-parking",
+        "requirements": {
+          "constraints": {
+            "lotCount": 13
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "7ca916e7-17d8-4678-b8f9-6f272db10abf",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 1,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "pohang-parking-sim",
+            "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+            "endpoint": "http://localhost:8092/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: public-parking → public-parking"
+            ],
+            "mismatches": [
+              "constraints.lotCount: 13 / {\"min\":1.0,\"max\":12.0} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.lotCount",
+                "current": "13",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.lotCount",
+                "requested": 13,
+                "declared": {
+                  "min": 1.0,
+                  "max": 12.0
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "note": "요청을 그대로 받을 수 있는 서버가 없습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": [
+          {
+            "serverId": "pohang-parking-sim",
+            "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+            "endpoint": "http://localhost:8092/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: public-parking → public-parking"
+            ],
+            "mismatches": [
+              "constraints.lotCount: 13 / {\"min\":1.0,\"max\":12.0} — CAPABILITY_MISMATCH"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "constraints.lotCount",
+                "current": "13",
+                "classification": "MISMATCH",
+                "suggestion": "CHANGE_REQUEST_OR_PROVIDER",
+                "reason": "CAPABILITY_MISMATCH",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "constraints.lotCount",
+                "requested": 13,
+                "declared": {
+                  "min": 1.0,
+                  "max": 12.0
+                },
+                "status": "UNSATISFIED",
+                "code": "CAPABILITY_MISMATCH",
+                "action": "CHANGE_REQUEST_OR_PROVIDER",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E22",
+      "expectedCandidates": [
+        "pohang-counter-sim"
+      ],
+      "actualCandidates": [
+        "pohang-counter-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "civil-service-counter",
+        "requirements": {
+          "constraints": {
+            "counterCount": 4
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "bb2128b4-41dd-45d9-978f-9af660251c44",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 1,
+        "verdict": "MATCH",
+        "recommended": {
+          "serverId": "pohang-counter-sim",
+          "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+          "endpoint": "http://localhost:8093/mcp",
+          "fictional": false,
+          "reasons": [
+            "도메인: civil-service-counter → civil-service-counter",
+            "constraints.counterCount: 4 / {\"min\":1.0,\"max\":20.0} — SUPPORTED"
+          ],
+          "mismatches": [],
+          "ambiguities": [],
+          "requestAdjustments": [],
+          "conditionChecks": [
+            {
+              "field": "constraints.counterCount",
+              "requested": 4,
+              "declared": {
+                "min": 1.0,
+                "max": 20.0
+              },
+              "status": "SATISFIED",
+              "code": "SUPPORTED",
+              "action": "NONE",
+              "required": true
+            }
+          ]
+        },
+        "selection": {
+          "schemaVersion": "1.0.0",
+          "matchId": "bb2128b4-41dd-45d9-978f-9af660251c44",
+          "serverId": "pohang-counter-sim",
+          "cardDigest": "e4a438b9064f05c609aa16f48efa5407cc0b667e619e635cfd9e6f340c430fb0",
+          "requirements": {
+            "constraints": {
+              "counterCount": 4
+            }
+          }
+        },
+        "nextStep": "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 http://localhost:8093/mcp 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → plan_subtasks → validate_answers → build_scenario → get_scenario_status → run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.",
+        "matches": [
+          {
+            "serverId": "pohang-counter-sim",
+            "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+            "endpoint": "http://localhost:8093/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: civil-service-counter → civil-service-counter",
+              "constraints.counterCount: 4 / {\"min\":1.0,\"max\":20.0} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "constraints.counterCount",
+                "requested": 4,
+                "declared": {
+                  "min": 1.0,
+                  "max": 20.0
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "E23",
+      "expectedCandidates": [],
+      "actualCandidates": [],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "public-bus",
+        "requirements": {},
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "e7acc735-2185-43b3-af3e-c528b2159de7",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 0,
+        "verdict": "ADJUST_REQUEST",
+        "nextStep": "사용자에게 후보별 requestAdjustments 를 모두 보이고, 어느 서버를 목표로 할지와 고친 요청을 함께 받으십시오. 고친 요청으로 find_simulators 를 다시 부를 때 matchId 와 targetServerId 를 넘깁니다. 남은 고친 조회: 5번.",
+        "suggestions": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [],
+            "mismatches": [
+              "도메인: public-bus 는 이 서버의 도메인(waste-collection)이 아닙니다"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "domain",
+                "current": "public-bus",
+                "classification": "MISMATCH",
+                "suggestion": "이 서버는 쓰레기수거, 생활쓰레기, 생활폐기물, 폐기물 수거, 쓰레기 를 다룹니다. 답할 수 있는 질문: 수거 못 하고 남는 양, 쓰레기가 기다린 날 수, 수거 요일 · 주기, 차량 수, 차종, 수거 시작 시각, 공휴일 · 연휴 영향, 적환장 효과, 구역 배정 방식, 근무 시간 안에 끝나는지",
+                "reason": "요청한 도메인을 다루지 않습니다 — 요청을 고치는 게 아니라 다른 질문을 하게 됩니다",
+                "changesPurpose": true
+              }
+            ],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [],
+            "mismatches": [
+              "도메인: public-bus 는 이 서버의 도메인(waste-collection)이 아닙니다"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "domain",
+                "current": "public-bus",
+                "classification": "MISMATCH",
+                "suggestion": "이 서버는 쓰레기수거, 생활쓰레기, 생활폐기물, 폐기물 수거, 쓰레기 를 다룹니다. 답할 수 있는 질문: 수거 시각, 하루 수거 횟수, 수거 주기, 수거 요일, 차량 수, 차종, 배차 간격, 교통 영향, 거주민 구성, 분리배출, 임대인 점검, 민원 수, 최대 적재량, 차량 가동률, 수거 완료 시각",
+                "reason": "요청한 도메인을 다루지 않습니다 — 요청을 고치는 게 아니라 다른 질문을 하게 됩니다",
+                "changesPurpose": true
+              }
+            ],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "pohang-counter-sim",
+            "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+            "endpoint": "http://localhost:8093/mcp",
+            "fictional": false,
+            "reasons": [],
+            "mismatches": [
+              "도메인: public-bus 는 이 서버의 도메인(civil-service-counter)이 아닙니다"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "domain",
+                "current": "public-bus",
+                "classification": "MISMATCH",
+                "suggestion": "이 서버는 민원 창구, 민원실, 민원 대기, 창구 대기, 행정복지센터 창구, 주민센터 창구, 번호표, 대기 줄 를 다룹니다. 답할 수 있는 질문: 민원 대기 시간, 기다리다 돌아간 민원인, 창구 가동률, 창구 수, 예약제 효과, 줄 서는 방식 효과, 마감 뒤 초과 근무",
+                "reason": "요청한 도메인을 다루지 않습니다 — 요청을 고치는 게 아니라 다른 질문을 하게 됩니다",
+                "changesPurpose": true
+              }
+            ],
+            "conditionChecks": []
+          },
+          {
+            "serverId": "pohang-parking-sim",
+            "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+            "endpoint": "http://localhost:8092/mcp",
+            "fictional": false,
+            "reasons": [],
+            "mismatches": [
+              "도메인: public-bus 는 이 서버의 도메인(public-parking)이 아닙니다"
+            ],
+            "ambiguities": [],
+            "requestAdjustments": [
+              {
+                "axis": "domain",
+                "current": "public-bus",
+                "classification": "MISMATCH",
+                "suggestion": "이 서버는 공영주차장, 주차장, 주차, 주차난, 주차 공간, 주차면 를 다룹니다. 답할 수 있는 질문: 주차 탐색 시간, 주차 포기 차량, 주차장 혼잡도 · 점유율, 요금 정책 효과, 안내 방식 효과, 거주자 우선 구획 효과, 주차장 수 · 면수",
+                "reason": "요청한 도메인을 다루지 않습니다 — 요청을 고치는 게 아니라 다른 질문을 하게 됩니다",
+                "changesPurpose": true
+              }
+            ],
+            "conditionChecks": []
+          }
+        ],
+        "note": "도메인 'public-bus' 을 다루는 서버가 등록돼 있지 않습니다. suggestions 의 requestAdjustments 대로 요청을 고치면 그 서버를 쓸 수 있습니다 — 사용자에게 전하고 고칠지 물으십시오.",
+        "matches": []
+      }
+    },
+    {
+      "id": "E24",
+      "expectedCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "actualCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "correct": true,
+      "brokerResponse": {
+        "domain": "waste-collection",
+        "requirements": {
+          "simulationDuration": {
+            "value": 3,
+            "unit": "week"
+          },
+          "constraints": {
+            "seeds": 3
+          }
+        },
+        "schemaVersion": "1.0.0",
+        "round": {
+          "matchId": "12f4a3a9-bd21-4f47-9751-49ed63c25d2c",
+          "round": 1,
+          "revisions": 0,
+          "remainingRevisions": 5,
+          "removedConditions": [],
+          "purposeChanged": false
+        },
+        "matchCount": 3,
+        "verdict": "CHOOSE",
+        "candidates": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":3,\"unit\":\"week\"} / {\"min\":{\"value\":7.0,\"unit\":\"day\"},\"max\":{\"value\":365.0,\"unit\":\"day\"}} — SUPPORTED",
+              "constraints.seeds: 3 / {\"min\":1.0,\"max\":100.0} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 7.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              },
+              {
+                "field": "constraints.seeds",
+                "requested": 3,
+                "declared": {
+                  "min": 1.0,
+                  "max": 100.0
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":3,\"unit\":\"week\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED",
+              "constraints.seeds: 3 / {\"min\":1,\"max\":100} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              },
+              {
+                "field": "constraints.seeds",
+                "requested": 3,
+                "declared": {
+                  "min": 1,
+                  "max": 100
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ],
+        "selections": [
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "12f4a3a9-bd21-4f47-9751-49ed63c25d2c",
+            "serverId": "bukgu-district-waste-sim",
+            "cardDigest": "85e7dcf17f4b82ec84317a32b439582253a3953f01f2a4d007fc1362db02aaa2",
+            "requirements": {
+              "simulationDuration": {
+                "value": 3,
+                "unit": "week"
+              },
+              "constraints": {
+                "seeds": 3
+              }
+            }
+          },
+          {
+            "schemaVersion": "1.0.0",
+            "matchId": "12f4a3a9-bd21-4f47-9751-49ed63c25d2c",
+            "serverId": "jangnyang-waste-sim",
+            "cardDigest": "3d4a534cfafbd137a75e087cd7e36327d829de27ba00a6a914154a28fb7ecad8",
+            "requirements": {
+              "simulationDuration": {
+                "value": 3,
+                "unit": "week"
+              },
+              "constraints": {
+                "seeds": 3
+              }
+            }
+          }
+        ],
+        "differences": [
+          {
+            "item": "region",
+            "values": {
+              "bukgu-district-waste-sim": "포항시 북구 (행정동 단위)",
+              "jangnyang-waste-sim": "대한민국 경상북도 포항시 북구 장량동"
+            }
+          },
+          {
+            "item": "unit",
+            "values": {
+              "bukgu-district-waste-sim": "행정동 전체(구역 집계)",
+              "jangnyang-waste-sim": "원룸촌 한 블록"
+            }
+          },
+          {
+            "item": "calibration",
+            "values": {
+              "bukgu-district-waste-sim": "포항 북구 생활쓰레기 수거 요일 · 배출 창(20:00~06:00) (행정안전부 생활쓰레기 배출정보 표준데이터(2024-02-27 기준))",
+              "jangnyang-waste-sim": "교통 지체 배수 (SK TMAP 경로예측 API), 교통 구역 위치 (공공데이터포털 포항 장량동 인근 실측 교통량 CSV 15개 링크), 수거 일정·배출 시각 (포항시 북구 공식 자료)"
+            }
+          }
+        ],
+        "nextStep": "사용자에게 differences 를 보여 주고 어느 서버를 쓸지 물으십시오. 고른 서버의 endpoint 로 가고, 그 대화에서는 브로커를 다시 부르지 마십시오.",
+        "matches": [
+          {
+            "serverId": "bukgu-district-waste-sim",
+            "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+            "endpoint": "http://localhost:8091/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":3,\"unit\":\"week\"} / {\"min\":{\"value\":7.0,\"unit\":\"day\"},\"max\":{\"value\":365.0,\"unit\":\"day\"}} — SUPPORTED",
+              "constraints.seeds: 3 / {\"min\":1.0,\"max\":100.0} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 7.0,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365.0,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              },
+              {
+                "field": "constraints.seeds",
+                "requested": 3,
+                "declared": {
+                  "min": 1.0,
+                  "max": 100.0
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "district-waste-sim",
+            "name": "행정동 단위 생활폐기물 수거 시뮬레이터 (가상)",
+            "endpoint": "http://example.invalid/mcp",
+            "fictional": true,
+            "reasons": [
+              "도메인: waste-collection → waste-collection"
+            ],
+            "mismatches": [],
+            "ambiguities": [
+              "simulationDuration: {\"value\":3,\"unit\":\"week\"} /  — CAPABILITY_UNDECLARED",
+              "constraints.seeds: 3 /  — CAPABILITY_UNDECLARED"
+            ],
+            "requestAdjustments": [
+              {
+                "axis": "simulationDuration",
+                "current": "{\"value\":3,\"unit\":\"week\"}",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              },
+              {
+                "axis": "constraints.seeds",
+                "current": "3",
+                "classification": "AMBIGUOUS",
+                "suggestion": "PROVIDER_DECLARATION_REQUIRED",
+                "reason": "CAPABILITY_UNDECLARED",
+                "changesPurpose": false
+              }
+            ],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "week"
+                },
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              },
+              {
+                "field": "constraints.seeds",
+                "requested": 3,
+                "declared": null,
+                "status": "UNKNOWN",
+                "code": "CAPABILITY_UNDECLARED",
+                "action": "PROVIDER_DECLARATION_REQUIRED",
+                "required": true
+              }
+            ]
+          },
+          {
+            "serverId": "jangnyang-waste-sim",
+            "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+            "endpoint": "http://localhost:8090/mcp",
+            "fictional": false,
+            "reasons": [
+              "도메인: waste-collection → waste-collection",
+              "simulationDuration: {\"value\":3,\"unit\":\"week\"} / {\"min\":{\"value\":1,\"unit\":\"day\"},\"max\":{\"value\":365,\"unit\":\"day\"}} — SUPPORTED",
+              "constraints.seeds: 3 / {\"min\":1,\"max\":100} — SUPPORTED"
+            ],
+            "mismatches": [],
+            "ambiguities": [],
+            "requestAdjustments": [],
+            "conditionChecks": [
+              {
+                "field": "simulationDuration",
+                "requested": {
+                  "value": 3,
+                  "unit": "week"
+                },
+                "declared": {
+                  "min": {
+                    "value": 1,
+                    "unit": "day"
+                  },
+                  "max": {
+                    "value": 365,
+                    "unit": "day"
+                  }
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              },
+              {
+                "field": "constraints.seeds",
+                "requested": 3,
+                "declared": {
+                  "min": 1,
+                  "max": 100
+                },
+                "status": "SATISFIED",
+                "code": "SUPPORTED",
+                "action": "NONE",
+                "required": true
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ],
+  "modelRuns": []
+}

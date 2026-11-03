@@ -1,0 +1,1 @@
+{"id": "E01", "run": 1, "requestedModel": "gpt-4.1-mini", "promptVersion": "requirements-v1", "promptSha256": "a88ae3e07195242f486286ae719f268f8786e6c7845c6b922e2195ba41177f0a", "startedAt": "2026-11-03T12:40:10.315610+00:00", "status": "API_ERROR", "httpStatus": 429, "apiErrorCode": "credit_balance_exhausted", "apiErrorType": "insufficient_quota", "seconds": 6.465}

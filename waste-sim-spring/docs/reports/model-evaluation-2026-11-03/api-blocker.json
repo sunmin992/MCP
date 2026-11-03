@@ -1,0 +1,8 @@
+{
+  "status": "API_ERROR",
+  "httpStatus": 429,
+  "apiErrorCode": "credit_balance_exhausted",
+  "apiErrorType": "insufficient_quota",
+  "startedAt": "2026-11-03T12:40:10.315610+00:00",
+  "requestedModel": "gpt-4.1-mini"
+}

@@ -1,0 +1,3441 @@
+{
+  "8090": {
+    "_comment": "0단계 broker.register_simulator 페이로드. 근거: docs/reports/2026-09-23-장량동-실행가능-기능과-범위.md, docs/superpowers/specs/2026-09-23-지원범위-계약.md. 값은 SimulationConfigValidator와 리소스 파일에서 확인한 것이다.",
+    "serverId": "jangnyang-waste-sim",
+    "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+    "endpoint": "http://localhost:8090/mcp",
+    "domain": [
+      "waste-collection"
+    ],
+    "domainAliases": [
+      "쓰레기수거",
+      "생활쓰레기",
+      "생활폐기물",
+      "폐기물 수거",
+      "쓰레기"
+    ],
+    "region": "대한민국 경상북도 포항시 북구 장량동",
+    "sourceSha": "13530df",
+    "analysisUnit": {
+      "scope": "block",
+      "label": "원룸촌 한 블록",
+      "notDistrict": true,
+      "rationale": "수거 지점이 건물마다 1개이고 건물이 최대 26동이므로 지점 상한이 26개다. 장량동 전체(70,576명)는 지점 약 2,700개가 필요해 표현할 수 없다.",
+      "coherence": "기본 4동 × 25명 × 0.9kg = 90kg/일, 지점당 22.5kg. 용량 30kg × 임계 0.8 = 24kg이라 임계 직전 구간이며 수거 시각·주기에 민감하다.",
+      "matchKeys": [
+        "한 동네",
+        "동네",
+        "블록",
+        "원룸촌",
+        "주택가",
+        "한 블록"
+      ]
+    },
+    "populationTypes": [
+      {
+        "key": "BlueCollar",
+        "matchKeys": [
+          "생산직",
+          "공장",
+          "현장직",
+          "노동자"
+        ],
+        "model": "07:22 ± 30분에 배출"
+      },
+      {
+        "key": "Student",
+        "matchKeys": [
+          "학생",
+          "대학생"
+        ],
+        "model": "08:58 ± 30분에 배출"
+      },
+      {
+        "key": "Housewife",
+        "matchKeys": [
+          "주부",
+          "전업주부"
+        ],
+        "model": "14:00 ± 30분에 배출"
+      },
+      {
+        "key": "NightShift",
+        "matchKeys": [
+          "야간",
+          "교대 근무",
+          "교대근무",
+          "야근"
+        ],
+        "model": "21:00 ± 30분에 배출"
+      },
+      {
+        "key": "OfficeWorker",
+        "matchKeys": [
+          "직장인",
+          "회사원",
+          "1인 직장인"
+        ],
+        "model": "07:50 ± 30분에 배출"
+      }
+    ],
+    "sesDigest": {
+      "sesId": "jangnyang-ses",
+      "sesVersion": "1.1.0",
+      "entities": [
+        "건물 집합",
+        "거주민",
+        "수거장",
+        "수거차량 집합",
+        "경로·교통 시스템",
+        "민원 감시 시스템",
+        "이벤트 실행 시스템"
+      ],
+      "decisionPoints": [
+        {
+          "path": "수거차량집합/차량유형",
+          "kind": "SPECIALIZATION",
+          "field": "truckType",
+          "level": "SET",
+          "matchKeys": [
+            "차종",
+            "차량 크기",
+            "톤 차",
+            "몇 톤"
+          ],
+          "choices": [
+            {
+              "value": "LARGE_5TON",
+              "label": "5톤",
+              "capacityKg": 5000,
+              "mobility": 1.0,
+              "alleyAccess": false
+            },
+            {
+              "value": "MEDIUM_2P5T",
+              "label": "2.5톤",
+              "capacityKg": 2500,
+              "mobility": 1.2,
+              "alleyAccess": true
+            },
+            {
+              "value": "SMALL_1TON",
+              "label": "1톤",
+              "capacityKg": 1000,
+              "mobility": 1.6,
+              "alleyAccess": true
+            }
+          ],
+          "default": "LARGE_5TON",
+          "homogeneity": "집합 전체 단일값 — 차량별 개별 선택 미지원",
+          "evidence": "model/TruckType.java"
+        },
+        {
+          "path": "수거차량집합",
+          "kind": "MULTI_ASPECT",
+          "field": "numTrucks",
+          "matchKeys": [
+            "차량 수",
+            "차량 대수",
+            "수거차 수",
+            "몇 대"
+          ],
+          "range": {
+            "min": 1
+          },
+          "default": 1,
+          "derived": "실제 운행 대수 = min(numBuildings, numTrucks)",
+          "evidence": "tool/SimulationConfigValidator.java, simulation/RoutePlanner.java"
+        },
+        {
+          "path": "수거차량집합/배차간격",
+          "kind": "ATTRIBUTE",
+          "field": "dispatchIntervalMinutes",
+          "matchKeys": [
+            "배차 간격",
+            "배차",
+            "출발 간격"
+          ],
+          "range": {
+            "min": 0,
+            "max": 1439,
+            "unit": "minute"
+          },
+          "default": 0,
+          "generateWhen": "min(numBuildings, numTrucks) >= 2",
+          "generateWhenReason": "실제 운행 차량이 1대면 차량 간 시간차가 없어 결과에 영향을 주지 않는다",
+          "evidence": "SimulationEngine: slot + k * dispatchIntervalMinutes"
+        },
+        {
+          "path": "실험프레임/수거시각",
+          "kind": "ATTRIBUTE",
+          "field": "collectionTimeMinutes",
+          "matchKeys": [
+            "수거 시각",
+            "수거 시간",
+            "몇 시"
+          ],
+          "range": {
+            "min": 0,
+            "max": 1439,
+            "unit": "minute"
+          },
+          "default": 720,
+          "multiValueField": "collectionTimesMinutes",
+          "evidence": "tool/SimulationConfigValidator.java"
+        },
+        {
+          "path": "경로교통/교통결합",
+          "kind": "COUPLING_CONDITION",
+          "field": "trafficEnabled",
+          "matchKeys": [
+            "교통 반영",
+            "교통량",
+            "교통 영향"
+          ],
+          "choices": [
+            "APPLY",
+            "IGNORE"
+          ],
+          "default": "IGNORE",
+          "structuralEffect": "APPLY이면 교통 프로파일 결정이 추가로 생성된다",
+          "evidence": "ledger/JangnyangRules.java"
+        },
+        {
+          "path": "경로교통/교통구역집합/프로파일",
+          "kind": "ATTRIBUTE",
+          "field": "trafficProfileId",
+          "matchKeys": [
+            "교통 프로파일",
+            "교통 자료"
+          ],
+          "choices": [
+            {
+              "value": "jangryang-weekday",
+              "default": true,
+              "what": "TMAP 실측 지체 배수 24시간. 4구역 × 12순서쌍 × 24시간 = 288회 조회",
+              "range": "전역 최저 04시 1.01 / 최고 18시 1.73, 구역별 최고 Node_A·C 18시 2.12~2.14",
+              "redThreshold": 1.45
+            },
+            {
+              "value": "jangryang-volume-weekday",
+              "default": false,
+              "what": "공공데이터 실측 통행량 기반 구 프로파일",
+              "caution": "피크가 13시로 실측(18시)과 달라 결론이 뒤집힌다"
+            }
+          ],
+          "generateWhen": "trafficEnabled == true",
+          "evidence": "service/TrafficDataService.java"
+        },
+        {
+          "path": "경로교통/이동시간",
+          "kind": "SPECIALIZATION",
+          "field": "travelTimeMode",
+          "matchKeys": [
+            "이동시간 계산",
+            "이동 시간 계산",
+            "이동시간 방식"
+          ],
+          "choices": [
+            {
+              "value": "LEGACY_CONSTANT",
+              "available": true,
+              "what": "구간마다 같은 상수(routeTravelMinutes)를 쓰고 기동성·혼잡으로 보정",
+              "caution": "기본 15분에 이동과 정차·상차가 섞여 있다. OSRM 기준 순수 주행은 구간당 2.5~3.2분"
+            },
+            {
+              "value": "ZONE_PROXY_HYBRID",
+              "available": true,
+              "what": "구역 간 자유주행시간(OSRM 산출, 12쌍 10.2~190.8초) × 시간대 지체 배수 + 정차시간",
+              "caution": "같은 구역 안의 방문 순서는 결과에 반영되지 않는다"
+            },
+            {
+              "value": "OSRM_HYBRID",
+              "available": false,
+              "blockedReason": "DATA_UNAVAILABLE",
+              "evidence": "traffic/jangryang-travel-times.json 의 pairs 가 빈 객체, collection/jangnyang-collection-sites.json 의 sites 가 빈 객체"
+            }
+          ],
+          "default": "LEGACY_CONSTANT",
+          "evidence": "model/TravelTimeMode.java, simulation/TravelTimeCalculator.java"
+        },
+        {
+          "path": "건물집합",
+          "kind": "MULTI_ASPECT",
+          "field": "numBuildings",
+          "matchKeys": [
+            "건물 수",
+            "동 수",
+            "몇 동",
+            "건물 개수"
+          ],
+          "range": {
+            "min": 1,
+            "max": 26
+          },
+          "default": 4,
+          "maxReason": "노드 id가 Node_A~Node_Z 한 글자 체계다. 27번째부터 Node_[ 같은 값이 나와 역변환이 깨진다",
+          "evidence": "tool/SimulationConfigValidator.java"
+        },
+        {
+          "path": "건물/거주민집합",
+          "kind": "MULTI_ASPECT",
+          "field": "residentsPerBuilding",
+          "matchKeys": [
+            "세대 수",
+            "거주민 수",
+            "입주 세대"
+          ],
+          "range": {
+            "min": 1
+          },
+          "default": 25,
+          "note": "검증기에 상한 검사가 없다"
+        },
+        {
+          "path": "건물/거주민집합/직업구성",
+          "kind": "SPECIALIZATION",
+          "field": "occupationMix",
+          "matchKeys": [
+            "직업 구성",
+            "거주민 구성",
+            "직업"
+          ],
+          "choices": [
+            {
+              "value": "BlueCollar",
+              "label": "생산직(일용직)",
+              "leaveMinutes": 442,
+              "returnMinutes": 1080,
+              "inBaseMix": true
+            },
+            {
+              "value": "Student",
+              "label": "학생",
+              "leaveMinutes": 538,
+              "returnMinutes": 1020,
+              "inBaseMix": true
+            },
+            {
+              "value": "Housewife",
+              "label": "전업주부",
+              "leaveMinutes": 840,
+              "returnMinutes": 960,
+              "inBaseMix": true
+            },
+            {
+              "value": "NightShift",
+              "label": "야간 교대근무자",
+              "leaveMinutes": 1260,
+              "returnMinutes": 420,
+              "inBaseMix": false
+            },
+            {
+              "value": "OfficeWorker",
+              "label": "1인 직장인",
+              "leaveMinutes": 470,
+              "returnMinutes": 1140,
+              "inBaseMix": false
+            }
+          ],
+          "default": [
+            "BlueCollar",
+            "Student",
+            "Housewife"
+          ],
+          "assignment": "순환 배정 — mix.get((b * residentsPerBuilding + k) % mix.size())",
+          "presets": [
+            "UNIVERSITY",
+            "INDUSTRIAL",
+            "FAMILY",
+            "BALANCED"
+          ],
+          "evidence": "model/OccupationType.java"
+        },
+        {
+          "path": "건물/거주민집합/배출시간",
+          "kind": "SPECIALIZATION",
+          "field": "dischargeTimeMode",
+          "matchKeys": [
+            "배출 시각",
+            "배출 시간",
+            "내놓는 시간"
+          ],
+          "choices": [
+            {
+              "value": "PAPER_BASELINE",
+              "what": "집을 나설 때 버린다. 직업별 외출 시각 ± leaveSigma(기본 30분)",
+              "basis": "Choi 외(2020) Table 1, 갤럽 2014"
+            },
+            {
+              "value": "POHANG_ACTUAL",
+              "what": "배출 허용 창(기본 20:00~06:00) 안 균등분포",
+              "basis": "포항시 북구 공식 배출 시각",
+              "caution": "이 모드에서는 직업이 배출 시각에 영향을 주지 않는다. 직업 구성이 결과를 바꾸는 기제가 사라진다"
+            }
+          ],
+          "default": "PAPER_BASELINE",
+          "evidence": "model/DischargeTimeMode.java"
+        },
+        {
+          "path": "수거차량집합/경로적재몫",
+          "kind": "ATTRIBUTE",
+          "field": "routeAvailableCapacityKg",
+          "matchKeys": [
+            "적재 몫",
+            "경로 가용 용량",
+            "적재 용량"
+          ],
+          "range": {
+            "min": null,
+            "max": null,
+            "rule": "0 초과, 차종 정격용량 이하. 상한이 차종에 따라 달라 SimulationConfigValidator 가 정본이다"
+          },
+          "default": null,
+          "semantics": "청소차 한 대 전체가 아니라 이 블록에 배정된 몫. 가동률의 분모다 — 지정하지 않으면 5톤 기준 1.8%로 죽는다",
+          "evidence": "docs/reports/2026-09-23-장량동-실행가능-기능과-범위.md §9"
+        },
+        {
+          "path": "수거장/용량",
+          "kind": "ATTRIBUTE",
+          "field": "capacity",
+          "matchKeys": [
+            "수거장 용량",
+            "쓰레기장 용량",
+            "쓰레기장 크기",
+            "수거함 용량"
+          ],
+          "range": {
+            "min": 0,
+            "exclusiveMin": true,
+            "unit": "kg"
+          },
+          "default": 30.0,
+          "note": "원룸 건물 하나의 쓰레기장 용량"
+        },
+        {
+          "path": "민원감시/임계",
+          "kind": "ATTRIBUTE",
+          "field": "threshold",
+          "matchKeys": [
+            "민원 임계",
+            "민원 기준"
+          ],
+          "range": {
+            "min": 0,
+            "max": 1
+          },
+          "default": 0.8,
+          "semantics": "배출 시점에 적재율이 이 값 이상이면 민원"
+        }
+      ]
+    },
+    "applicability": {
+      "spatialScale": {
+        "buildings": {
+          "min": 1,
+          "max": 26,
+          "default": 4
+        },
+        "residentsPerBuilding": {
+          "min": 1,
+          "default": 25
+        },
+        "collectionSites": {
+          "rule": "건물마다 1개",
+          "max": 26
+        }
+      },
+      "period": {
+        "days": {
+          "min": 1,
+          "max": 365,
+          "default": 30
+        }
+      },
+      "replication": {
+        "seeds": {
+          "min": 1,
+          "max": 100,
+          "default": 30
+        }
+      },
+      "environment": [
+        "traffic-profile",
+        "waste-separation",
+        "landlord-inspection",
+        "weekday-schedule",
+        "holidays",
+        "monthly-variation",
+        "discharge-time"
+      ],
+      "answerableQuestions": [
+        "collection-time",
+        "collection-count",
+        "collection-interval",
+        "collection-days",
+        "truck-count",
+        "truck-type",
+        "dispatch-interval",
+        "traffic-effect",
+        "occupation-mix",
+        "discharge-time-model",
+        "waste-separation",
+        "landlord-inspection",
+        "complaint-rate",
+        "peak-fill",
+        "truck-utilization",
+        "completion-time"
+      ],
+      "scenarioTypes": [
+        "occupation-mix",
+        "collection-sweep",
+        "behavior-grid",
+        "infra-grid",
+        "density",
+        "collection-schedule",
+        "multi-truck",
+        "waste-separation",
+        "new-occupations",
+        "coupling-variants",
+        "monthly-waste"
+      ],
+      "tools": [
+        {
+          "name": "run_waste_simulation",
+          "what": "Java 엔진 단일 실행",
+          "status": "OK"
+        },
+        {
+          "name": "run_waste_simulation_devs",
+          "what": "Python DEVS 엔진",
+          "status": "UNVERIFIED",
+          "note": "저장소 밖 경로를 참조한다. 가동 여부를 확인하지 않았다"
+        },
+        {
+          "name": "run_scenario",
+          "what": "정책 시나리오 실험",
+          "status": "OK"
+        },
+        {
+          "name": "list_scenarios",
+          "what": "시나리오 유형 목록",
+          "status": "OK"
+        },
+        {
+          "name": "update_route_sequence",
+          "what": "방문 순서만 교체 후 재실행",
+          "status": "OK"
+        }
+      ],
+      "environmentMatchKeys": [
+        {
+          "key": "traffic-profile",
+          "matchKeys": [
+            "교통",
+            "교통량",
+            "평일 교통량",
+            "지체",
+            "혼잡"
+          ]
+        },
+        {
+          "key": "waste-separation",
+          "matchKeys": [
+            "분리배출",
+            "분리수거"
+          ]
+        },
+        {
+          "key": "weekday-schedule",
+          "matchKeys": [
+            "평일",
+            "요일",
+            "수거 요일"
+          ]
+        },
+        {
+          "key": "holidays",
+          "matchKeys": [
+            "공휴일",
+            "휴일"
+          ]
+        },
+        {
+          "key": "monthly-variation",
+          "matchKeys": [
+            "월별",
+            "계절"
+          ]
+        },
+        {
+          "key": "discharge-time",
+          "matchKeys": [
+            "배출 시간",
+            "배출시간",
+            "배출 시각",
+            "내놓는 시간",
+            "공식 배출"
+          ],
+          "model": "dischargeTimeMode=POHANG_ACTUAL — 배출 허용 창(기본 20:00~06:00) 안에서만 배출한다. 이 모드에서는 직업이 배출 시각에 영향을 주지 않는다"
+        }
+      ],
+      "objectiveMatchKeys": [
+        {
+          "key": "collection-time",
+          "label": "수거 시각",
+          "matchKeys": [
+            "수거 시각",
+            "수거시각",
+            "몇 시",
+            "시각",
+            "시에 하는",
+            "시에 수거",
+            "시에 걷"
+          ]
+        },
+        {
+          "key": "collection-count",
+          "label": "하루 수거 횟수",
+          "matchKeys": [
+            "하루에 몇 번",
+            "하루 몇 번",
+            "수거 횟수",
+            "몇 번 수거"
+          ]
+        },
+        {
+          "key": "collection-interval",
+          "label": "수거 주기",
+          "matchKeys": [
+            "수거 주기",
+            "격일",
+            "며칠마다",
+            "며칠에 한 번"
+          ]
+        },
+        {
+          "key": "collection-days",
+          "label": "수거 요일",
+          "matchKeys": [
+            "수거 요일",
+            "요일",
+            "주말 수거"
+          ]
+        },
+        {
+          "key": "truck-count",
+          "label": "차량 수",
+          "matchKeys": [
+            "차량 수",
+            "몇 대",
+            "대수"
+          ]
+        },
+        {
+          "key": "truck-type",
+          "label": "차종",
+          "matchKeys": [
+            "차종",
+            "차량 크기",
+            "톤 차"
+          ]
+        },
+        {
+          "key": "dispatch-interval",
+          "label": "배차 간격",
+          "matchKeys": [
+            "배차 간격",
+            "배차"
+          ]
+        },
+        {
+          "key": "traffic-effect",
+          "label": "교통 영향",
+          "matchKeys": [
+            "교통 영향",
+            "교통량 영향",
+            "정체"
+          ]
+        },
+        {
+          "key": "occupation-mix",
+          "label": "거주민 구성",
+          "matchKeys": [
+            "거주민 구성",
+            "직업"
+          ]
+        },
+        {
+          "key": "waste-separation",
+          "label": "분리배출",
+          "matchKeys": [
+            "분리배출",
+            "재활용"
+          ]
+        },
+        {
+          "key": "landlord-inspection",
+          "label": "임대인 점검",
+          "matchKeys": [
+            "임대인",
+            "점검"
+          ]
+        },
+        {
+          "key": "complaint-rate",
+          "label": "민원 수",
+          "matchKeys": [
+            "민원"
+          ]
+        },
+        {
+          "key": "peak-fill",
+          "label": "최대 적재량",
+          "matchKeys": [
+            "적재",
+            "넘침",
+            "넘치",
+            "가득"
+          ]
+        },
+        {
+          "key": "truck-utilization",
+          "label": "차량 가동률",
+          "matchKeys": [
+            "가동률"
+          ]
+        },
+        {
+          "key": "completion-time",
+          "label": "수거 완료 시각",
+          "matchKeys": [
+            "완료 시각",
+            "수거 완료",
+            "끝나는 시각"
+          ]
+        }
+      ]
+    },
+    "quality": {
+      "fidelity": "event-driven-stochastic",
+      "engine": "우선순위 큐 기반 이벤트 시뮬레이션 (DEVS 형식 모델 아님)",
+      "calibration": [
+        {
+          "what": "교통 지체 배수",
+          "source": "SK TMAP 경로예측 API",
+          "measuredAt": "2026-09-02 조회, 2026-09-03(목) 출발 기준",
+          "calls": 288,
+          "measured": true
+        },
+        {
+          "what": "교통 구역 위치",
+          "source": "공공데이터포털 포항 장량동 인근 실측 교통량 CSV 15개 링크",
+          "measured": true
+        },
+        {
+          "what": "수거 일정·배출 시각",
+          "source": "포항시 북구 공식 자료",
+          "measured": true
+        },
+        {
+          "what": "구역 간 자유주행시간",
+          "source": "OSRM (OpenStreetMap 도로망 + 도로 등급별 가정 속도)",
+          "measured": false,
+          "note": "현장 주행 기록이 아니다. '실측'이라 부르지 않는다"
+        },
+        {
+          "what": "건물 수·세대수·1인 배출량",
+          "source": "Choi 외(2020) 논문값",
+          "measured": false
+        }
+      ],
+      "knownGaps": [
+        "수거 지점 좌표 미확보 — collection/jangnyang-collection-sites.json 의 sites 가 비어 있다",
+        "지점 간 자유주행시간 행렬 미확보 — traffic/jangryang-travel-times.json 의 pairs 가 비어 있다",
+        "지점 정차·상차 시간 미확보 — serviceMinutesPerSite 기본 0",
+        "실제 민원 기록 미확보 — 모델 타당성을 검증할 대조군이 없다",
+        "실제 투입 차량 대수·차종 미확보 — 운영 기준선이 없다",
+        "규모는 실측이 아니다 — 4동 25명은 논문값, 26동 40명은 용량 축이 작동하는 구간을 찾아 고른 값"
+      ],
+      "resultFields": {
+        "judgement": [
+          "meanComplaints",
+          "stdComplaints",
+          "wasteOverflowComplaints",
+          "landlordComplaints",
+          "byOccupation",
+          "byDay"
+        ],
+        "explanation": [
+          "peakFillKg",
+          "residualWasteKg",
+          "uncollectedDemandKg",
+          "maxResidualBuilding"
+        ],
+        "reference": [
+          "truckUtilizationPercent",
+          "collectionCapacityUtilizationPercent",
+          "avgCompletionMinutes",
+          "trafficPenalty",
+          "partialPickupCount",
+          "unservedPickupCount",
+          "capacityExhaustedTripCount",
+          "tripMetrics"
+        ],
+        "integrity": [
+          "massBalanceErrorKg",
+          "coordinateQuality",
+          "dataQualityFlags",
+          "assumptionNotes",
+          "seed",
+          "allTotals"
+        ],
+        "note": "reference 항목은 serviceMinutesPerSite 가 0이면 실제보다 짧게 나온다. 판정 근거로 쓰지 않는다"
+      }
+    },
+    "cost": {
+      "currency": "none",
+      "perRun": 0,
+      "compute": "local"
+    },
+    "performance": {
+      "model": "days × seeds 에 비례",
+      "typicalSeconds": 2,
+      "maxSeconds": 120
+    },
+    "conditional": [
+      {
+        "capability": "배차 간격 비교",
+        "requires": "min(numBuildings, numTrucks) >= 2",
+        "ifUnmet": "DO_NOT_GENERATE",
+        "message": "실제 운행 차량이 1대면 배차 간격이 결과에 영향을 주지 않아 이 결정을 만들지 않습니다."
+      },
+      {
+        "capability": "교통 반영",
+        "requires": "trafficProfileId 지정",
+        "ifUnmet": "REJECT",
+        "message": "교통 레이어를 사용하려면 교통 프로파일이 필요합니다. 지정하지 않으면 실행하지 않습니다 — 조용히 끄지 않습니다."
+      },
+      {
+        "capability": "교통구역 근사 (건물 5동 이상)",
+        "requires": "zoneAssignmentRule ∈ {CONTIGUOUS, ROUND_ROBIN}",
+        "ifUnmet": "REJECT",
+        "message": "건물 4동까지는 지점 id를 구역 id로 보는 폴백이 통하지만 5동부터는 배정 규칙이 필요합니다.",
+        "note": "구역 배정은 조사값이 아니라 가정이다. 결과에 ZONE_ASSIGNMENT_ASSUMED 로 표시되며, 두 규칙을 함께 돌려 범위로 보고한다"
+      },
+      {
+        "capability": "교통구역 근사 (덩어리 배정)",
+        "requires": "intraZoneTravelMinutes 명시",
+        "ifUnmet": "REJECT",
+        "message": "같은 구역 안의 이동이 있는데 구역 내 이동시간이 없습니다. 0분으로 가정하지 않습니다 — 0도 명시하면 받아들이고 결과에 INTRA_ZONE_TIME_ASSUMED 로 표시합니다."
+      },
+      {
+        "capability": "용량·가동률 비교",
+        "requires": "routeAvailableCapacityKg 지정",
+        "ifUnmet": "WARN",
+        "message": "지정하지 않으면 차종 정격용량 전체가 분모가 됩니다. 90kg/일 블록에 5톤을 통째로 배정하면 가동률이 1.8%로 고정되어 축이 작동하지 않습니다.",
+        "guidance": "이 블록에 배정된 몫을 지정하십시오. 150kg이면 60%, 100kg이면 90%가 됩니다"
+      },
+      {
+        "capability": "분리배출",
+        "requires": "wasteTypes[].fraction 합 = 1.0 ± 0.001",
+        "ifUnmet": "REJECT",
+        "message": "배출 비율의 합이 1.0이 아니면 실제보다 많거나 적은 폐기물이 생성됩니다."
+      }
+    ],
+    "unsupported": [
+      {
+        "code": "UNSUPPORTED_METRIC",
+        "capability": "비용·예산 산출",
+        "matchKeys": [
+          "metric:cost",
+          "metric:budget",
+          "비용",
+          "예산",
+          "저렴",
+          "경제적",
+          "돈"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "모델에 연료·인건비·차량 운영비 항이 없다",
+        "alternatives": [
+          "metric:complaints",
+          "metric:truckUtilization",
+          "metric:completionTime",
+          "metric:peakFill"
+        ],
+        "message": "비용은 산출하지 않습니다. 연료·인건비·차량 운영비 항이 모델에 없습니다. 민원 수·적재율·차량 가동률·수거 완료 시각으로 비교하실 수 있습니다."
+      },
+      {
+        "code": "DATA_UNAVAILABLE",
+        "capability": "실제 도로 기반 이동시간",
+        "matchKeys": [
+          "feature:realRoadTravel",
+          "실제 도로",
+          "실도로",
+          "실측 이동시간",
+          "OSRM"
+        ],
+        "reasonType": "NO_DATA",
+        "reason": "수거 지점 좌표 미확보. 구현은 되어 있다",
+        "alternatives": [
+          "feature:zoneProxyTravel"
+        ],
+        "message": "수거 지점 좌표가 없어 실제 도로 기반 계산을 할 수 없습니다. 교통구역 근사로 진행할 수 있으며, 같은 구역 안의 방문 순서는 결과에 반영되지 않습니다."
+      },
+      {
+        "code": "UNSUPPORTED_STRUCTURE",
+        "capability": "차량마다 다른 차종",
+        "matchKeys": [
+          "feature:perTruckType",
+          "차량별 차종",
+          "차종 섞",
+          "트럭마다 다른"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "truckType 이 전역 단일값이다",
+        "alternatives": [
+          "차종을 바꿔 여러 번 실행해 비교"
+        ],
+        "message": "차종은 투입 차량 전체에 하나만 적용됩니다. 차종별 비교가 필요하면 차종을 바꿔 여러 번 실행해 비교하십시오."
+      },
+      {
+        "code": "OUT_OF_RANGE",
+        "capability": "건물 27동 이상",
+        "matchKeys": [
+          "scale:buildings>26"
+        ],
+        "reasonType": "OUT_OF_RANGE",
+        "reason": "노드 id가 Node_A~Node_Z 한 글자 체계다",
+        "alternatives": [
+          "건물 1~26동"
+        ],
+        "message": "건물은 최대 26동까지 다룹니다."
+      },
+      {
+        "code": "OUT_OF_SCOPE",
+        "capability": "행정동 전체 규모",
+        "matchKeys": [
+          "scale:district",
+          "동 전체",
+          "장량동 전체",
+          "만 명",
+          "전 지역"
+        ],
+        "reasonType": "OUT_OF_SCOPE",
+        "reason": "수거 지점 26개 상한. 장량동 전체(70,576명)는 약 2,700개가 필요하다",
+        "alternatives": [
+          "scale:block"
+        ],
+        "message": "이 시뮬레이터는 원룸촌 한 블록을 다룹니다. 장량동 전체는 수거 지점이 약 2,700개 필요한데 26개가 상한입니다. 블록 하나로 실행한 뒤 해석하십시오."
+      },
+      {
+        "code": "OUT_OF_RANGE",
+        "capability": "반복 101회 이상 / 기간 366일 이상",
+        "matchKeys": [
+          "scale:seeds>100",
+          "scale:days>365"
+        ],
+        "reasonType": "OUT_OF_RANGE",
+        "reason": "검증기 상한",
+        "alternatives": [
+          "반복 1~100회, 기간 1~365일"
+        ],
+        "message": "반복은 100회, 기간은 365일까지입니다."
+      },
+      {
+        "code": "DATA_UNAVAILABLE",
+        "capability": "골목 진입 가능 여부 판정",
+        "matchKeys": [
+          "feature:alleyAccess",
+          "골목 진입",
+          "이면도로 접근",
+          "좁은 길"
+        ],
+        "reasonType": "NO_DATA",
+        "reason": "수거 지점이 등록되어 있지 않아 판정할 대상이 없다. 코드는 있으나 발동하지 않는다",
+        "alternatives": [],
+        "message": "수거 지점이 등록되어 있지 않아 접근성을 판정할 수 없습니다. 5톤 차량의 진입 가능 여부는 이 실행에서 검증되지 않습니다."
+      },
+      {
+        "code": "UNSUPPORTED_RESOLUTION",
+        "capability": "같은 구역 안 방문 순서 최적화",
+        "matchKeys": [
+          "feature:intraZoneRouting",
+          "방문 순서 최적화",
+          "경로 최적화"
+        ],
+        "reasonType": "NO_DATA",
+        "reason": "교통구역 근사에서는 같은 구역 안의 이동이 모두 같은 평균값이다",
+        "alternatives": [
+          "구역이 바뀌는 순서 비교"
+        ],
+        "message": "교통구역 근사에서는 같은 구역 안의 이동이 모두 같은 평균값이라 순서 차이가 결과에 나타나지 않습니다."
+      },
+      {
+        "code": "NO_BASELINE",
+        "capability": "현재 운영과의 비교",
+        "matchKeys": [
+          "compare:currentOperation",
+          "현재 운영",
+          "지금보다",
+          "기존 방식",
+          "현행",
+          "지금 운영",
+          "지금 방식",
+          "현재 방식"
+        ],
+        "reasonType": "NO_DATA",
+        "reason": "실제 투입 차량 대수·차종 자료가 없다",
+        "alternatives": [
+          "설정 간 비교"
+        ],
+        "message": "실제 투입 차량 대수·차종 자료가 없어 현재 운영을 기준선으로 둘 수 없습니다."
+      },
+      {
+        "code": "NO_GROUND_TRUTH",
+        "capability": "실측 대조 검증",
+        "matchKeys": [
+          "validate:groundTruth",
+          "실제와 맞는지",
+          "정확한지",
+          "맞나요",
+          "검증"
+        ],
+        "reasonType": "NO_DATA",
+        "reason": "실제 민원 기록이 없다",
+        "alternatives": [
+          "설정 간 비교로만 사용"
+        ],
+        "message": "실제 민원 기록이 없어 결과를 실측과 대조할 수 없습니다. 이 결과는 설정 간 비교에 쓰는 것이며 운영 예측이 아닙니다."
+      },
+      {
+        "code": "OUT_OF_SCOPE",
+        "capability": "새 모델·엔진 생성",
+        "matchKeys": [
+          "feature:modelGeneration",
+          "새 모델",
+          "엔진 만들",
+          "코드 생성"
+        ],
+        "reasonType": "OUT_OF_SCOPE",
+        "reason": "기존 시뮬레이터가 지원하는 구성·실험만 다룬다",
+        "alternatives": [],
+        "message": "기존 시뮬레이터가 지원하는 구성·실험만 다룹니다."
+      },
+      {
+        "code": "OUT_OF_SCOPE",
+        "capability": "다른 지역",
+        "matchKeys": [
+          "region:other"
+        ],
+        "reasonType": "OUT_OF_SCOPE",
+        "reason": "장량동만 다룬다",
+        "alternatives": [],
+        "message": "장량동만 다룹니다."
+      }
+    ],
+    "neverDo": [
+      "데이터가 없을 때 기본값으로 대체하고 실행한다",
+      "실제 도로 모드를 조용히 상수 모드로 낮춘다",
+      "교통 프로파일이 없을 때 교통을 조용히 끈다",
+      "구역 내 이동시간을 0분으로 가정한다",
+      "사용자가 승인하지 않은 기본값으로 실행한다",
+      "잘못된 선택지를 가까운 값으로 보정한다"
+    ],
+    "alwaysAttachToResult": [
+      "coordinateQuality — 무엇으로 계산했는지",
+      "dataQualityFlags — 구역 배정 가정 등",
+      "assumptionNotes — 사용자 미승인 기본값",
+      "massBalanceErrorKg — 배출 − 수거 − 잔여 = 0 인지",
+      "seed, allTotals — 재현 정보",
+      "전제: 거주민 구성·배출 시각·1인 배출량은 논문값이며 장량동 실측이 아니다",
+      "전제: 지점 정차시간이 0분이면 가동률·완료 시각은 참고치다",
+      "한계: 교통구역 근사면 같은 구역 안 방문 순서가 반영되지 않는다",
+      "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
+    ],
+    "schemaVersion": "1.0.0",
+    "capabilities": {
+      "simulationDuration": {
+        "min": {
+          "value": 1,
+          "unit": "day"
+        },
+        "max": {
+          "value": 365,
+          "unit": "day"
+        }
+      },
+      "outputs": [
+        "meanComplaints",
+        "stdComplaints",
+        "complaintsByOccupation",
+        "truckUtilizationPercent",
+        "uncollectedDemandKg",
+        "peakFillKg",
+        "peakFillRatio",
+        "siteCapacityKg",
+        "complaintThresholdRatio",
+        "residualWasteKg",
+        "avgRouteDurationMinutes"
+      ],
+      "constraints": {
+        "dispatchIntervalMinutes": {
+          "min": 0,
+          "max": 1439
+        },
+        "collectionTimeMinutes": {
+          "min": 0,
+          "max": 1439
+        },
+        "numBuildings": {
+          "min": 1,
+          "max": 26
+        },
+        "days": {
+          "min": 1,
+          "max": 365
+        },
+        "seeds": {
+          "min": 1,
+          "max": 100
+        },
+        "threshold": {
+          "min": 0,
+          "max": 1
+        }
+      },
+      "conditionalOutputs": [
+        "peakFillRatio",
+        "siteCapacityKg",
+        "complaintThresholdRatio",
+        "avgRouteDurationMinutes"
+      ],
+      "regionPolicy": {
+        "mode": "ASSUMED_BLOCK_FOR_ANY_LABEL",
+        "scope": "block",
+        "requiresHumanConfirmation": true,
+        "notMeasuredRegionData": true
+      },
+      "regions": [
+        "jangnyang",
+        "synthetic-block"
+      ]
+    }
+  },
+  "8091": {
+    "_comment": "포항 북구 행정동 생활폐기물 수거 시뮬레이터의 능력 카드. 장량동 시뮬레이터와 도메인은 같고 분석 단위(행정동 전체 · 구역 집계) · 교통(미지원) · 주민 구분(주거 유형)이 다르다.",
+    "serverId": "bukgu-district-waste-sim",
+    "name": "포항 북구 행정동 생활폐기물 수거 시뮬레이터",
+    "endpoint": "http://localhost:8091/mcp",
+    "fictional": false,
+    "domain": [
+      "waste-collection"
+    ],
+    "domainAliases": [
+      "쓰레기수거",
+      "생활쓰레기",
+      "생활폐기물",
+      "폐기물 수거",
+      "쓰레기"
+    ],
+    "region": "포항시 북구 (행정동 단위)",
+    "analysisUnit": {
+      "scope": "district",
+      "label": "행정동 전체(구역 집계)",
+      "notDistrict": false,
+      "rationale": "행정동을 1~40개 구역으로 나눠 구역 합계로만 본다. 수거 지점 좌표가 없어 지점 수 상한이 없지만, 지점 하나하나의 적재 · 민원은 보지 못한다.",
+      "coherence": "기본 8구역 × 600세대(약 4.6톤/일)를 5톤 2대가 월·화·목·금 수거하면 평일은 다 싣고, 연휴 뒤에는 남는 구간이다.",
+      "matchKeys": [
+        "행정동",
+        "동 전체",
+        "읍면동",
+        "동 단위",
+        "전체",
+        "아파트 단지",
+        "한 동네",
+        "동네"
+      ]
+    },
+    "populationTypes": [
+      {
+        "key": "Apartment",
+        "matchKeys": [
+          "아파트",
+          "공동주택",
+          "단지"
+        ],
+        "model": "세대당 1.0kg/일, 거점 수거함이라 빨리 싣는다(60kg/분)"
+      },
+      {
+        "key": "Detached",
+        "matchKeys": [
+          "단독주택",
+          "다가구",
+          "주택가"
+        ],
+        "model": "세대당 1.3kg/일, 문전 수거라 느리다(25kg/분)"
+      },
+      {
+        "key": "Studio",
+        "matchKeys": [
+          "원룸",
+          "오피스텔",
+          "1인 가구",
+          "자취"
+        ],
+        "model": "세대당 0.6kg/일(35kg/분)"
+      },
+      {
+        "key": "Commercial",
+        "matchKeys": [
+          "상가",
+          "상업",
+          "식당",
+          "가게",
+          "점포"
+        ],
+        "model": "점포당 3.0kg/일(40kg/분), 수거에서 제외할 수 있다"
+      }
+    ],
+    "sesDigest": {
+      "sesId": "bukgu-district-ses",
+      "sesVersion": "1.0.0",
+      "entities": [
+        "구역 집합",
+        "구역",
+        "수거차량 집합",
+        "수거 일정",
+        "공휴일 결합",
+        "적환장 결합",
+        "실험 프레임"
+      ],
+      "decisionPoints": [
+        {
+          "path": "구역집합",
+          "kind": "MULTI_ASPECT",
+          "field": "zoneCount",
+          "matchKeys": [
+            "구역 수",
+            "구역 개수",
+            "몇 구역"
+          ],
+          "range": {
+            "min": 1,
+            "max": 40
+          },
+          "default": 8
+        },
+        {
+          "path": "구역집합/구역/세대수",
+          "kind": "ATTRIBUTE",
+          "field": "householdsPerZone",
+          "matchKeys": [
+            "세대 수",
+            "구역당 세대",
+            "가구 수"
+          ],
+          "range": {
+            "min": 50,
+            "max": 5000
+          },
+          "default": 600
+        },
+        {
+          "path": "구역집합/구역/주거구성",
+          "kind": "SPECIALIZATION",
+          "field": "housingMix",
+          "matchKeys": [
+            "주거 구성",
+            "주거 유형",
+            "주택 구성"
+          ],
+          "choices": [
+            "Apartment",
+            "Detached",
+            "Studio",
+            "Commercial"
+          ],
+          "default": [
+            "Apartment",
+            "Detached",
+            "Studio"
+          ]
+        },
+        {
+          "path": "구역집합/구역/주거구성/상가처리",
+          "kind": "SPECIALIZATION",
+          "field": "commercialHandling",
+          "matchKeys": [
+            "상가 처리",
+            "상가 제외",
+            "상가 수거"
+          ],
+          "generateWhen": "Commercial ∈ housingMix",
+          "default": "INCLUDED"
+        },
+        {
+          "path": "수거차량집합/차량/차종",
+          "kind": "SPECIALIZATION",
+          "field": "truckType",
+          "matchKeys": [
+            "차종",
+            "차량 크기",
+            "톤 차",
+            "몇 톤"
+          ],
+          "choices": [
+            "LARGE_5TON",
+            "MEDIUM_2P5T",
+            "SMALL_1TON"
+          ],
+          "default": "LARGE_5TON"
+        },
+        {
+          "path": "수거차량집합",
+          "kind": "MULTI_ASPECT",
+          "field": "truckCount",
+          "matchKeys": [
+            "차량 수",
+            "차량 대수",
+            "수거차 수",
+            "몇 대"
+          ],
+          "range": {
+            "min": 1,
+            "max": 20
+          },
+          "default": 2
+        },
+        {
+          "path": "수거차량집합/구역배정",
+          "kind": "ATTRIBUTE",
+          "field": "zoneAllocation",
+          "matchKeys": [
+            "구역 배정",
+            "구역 나누"
+          ],
+          "generateWhen": "min(zoneCount, truckCount) >= 2",
+          "default": "EQUAL_COUNT"
+        },
+        {
+          "path": "수거일정/주기",
+          "kind": "SPECIALIZATION",
+          "field": "scheduleMode",
+          "matchKeys": [
+            "수거 주기",
+            "수거 일정",
+            "격일",
+            "매일"
+          ],
+          "choices": [
+            "POHANG_BUKGU",
+            "DAILY",
+            "ALTERNATE",
+            "WEEKDAYS"
+          ],
+          "default": "POHANG_BUKGU"
+        },
+        {
+          "path": "수거일정/요일목록",
+          "kind": "ATTRIBUTE",
+          "field": "collectionDays",
+          "matchKeys": [
+            "수거 요일",
+            "요일"
+          ],
+          "generateWhen": "scheduleMode == WEEKDAYS",
+          "default": null
+        },
+        {
+          "path": "수거일정/공휴일결합",
+          "kind": "COUPLING_CONDITION",
+          "field": "holidayEnabled",
+          "matchKeys": [
+            "공휴일 반영"
+          ],
+          "default": false
+        },
+        {
+          "path": "수거일정/공휴일결합/정책",
+          "kind": "SPECIALIZATION",
+          "field": "holidayPolicy",
+          "matchKeys": [
+            "공휴일 처리",
+            "공휴일 수거",
+            "건너뛸",
+            "다음 날"
+          ],
+          "generateWhen": "holidayEnabled && scheduleMode != DAILY",
+          "default": null
+        },
+        {
+          "path": "적환장결합",
+          "kind": "COUPLING_CONDITION",
+          "field": "transferEnabled",
+          "matchKeys": [
+            "적환장"
+          ],
+          "default": false
+        },
+        {
+          "path": "적환장결합/왕복시간",
+          "kind": "ATTRIBUTE",
+          "field": "transferRoundTripMinutes",
+          "matchKeys": [
+            "적환장 왕복",
+            "왕복 시간"
+          ],
+          "generateWhen": "transferEnabled",
+          "default": null
+        },
+        {
+          "path": "실험프레임/수거시작시각",
+          "kind": "ATTRIBUTE",
+          "field": "collectionStartMinutes",
+          "matchKeys": [
+            "수거 시작 시각",
+            "시작 시각",
+            "수거 시각"
+          ],
+          "range": {
+            "min": 0,
+            "max": 1439
+          },
+          "default": 360
+        },
+        {
+          "path": "수거차량집합/근무시간",
+          "kind": "ATTRIBUTE",
+          "field": "shiftMinutes",
+          "matchKeys": [
+            "근무 시간",
+            "근무시간",
+            "작업 시간",
+            "근무"
+          ],
+          "range": {
+            "min": 120,
+            "max": 720
+          },
+          "default": 480
+        },
+        {
+          "path": "실험프레임/기간",
+          "kind": "ATTRIBUTE",
+          "field": "days",
+          "matchKeys": [
+            "기간",
+            "며칠"
+          ],
+          "range": {
+            "min": 7,
+            "max": 365
+          },
+          "default": 28
+        },
+        {
+          "path": "실험프레임/반복",
+          "kind": "ATTRIBUTE",
+          "field": "seeds",
+          "matchKeys": [
+            "반복 횟수"
+          ],
+          "range": {
+            "min": 1,
+            "max": 100
+          },
+          "default": 30
+        }
+      ]
+    },
+    "applicability": {
+      "spatialScale": {
+        "zones": {
+          "min": 1,
+          "max": 40,
+          "default": 8
+        },
+        "householdsPerZone": {
+          "min": 50,
+          "max": 5000,
+          "default": 600
+        }
+      },
+      "period": {
+        "days": {
+          "min": 7,
+          "max": 365,
+          "default": 28
+        },
+        "startDate": "2026-09-21"
+      },
+      "replication": {
+        "seeds": {
+          "min": 1,
+          "max": 100,
+          "default": 30
+        }
+      },
+      "environment": [
+        "weekday-schedule",
+        "holidays",
+        "transfer-station"
+      ],
+      "answerableQuestions": [
+        "uncollected",
+        "wait-days",
+        "schedule",
+        "truck-count",
+        "truck-type",
+        "collection-time",
+        "holiday-effect",
+        "transfer-effect",
+        "zone-allocation",
+        "shift"
+      ],
+      "scenarioTypes": [
+        "schedule-compare",
+        "fleet-sweep",
+        "holiday-week",
+        "transfer-station",
+        "housing-mix"
+      ],
+      "tools": [
+        {
+          "name": "get_templates",
+          "what": "서브태스크 템플릿",
+          "status": "OK"
+        },
+        {
+          "name": "plan_subtasks",
+          "what": "생성 조건 평가",
+          "status": "OK"
+        },
+        {
+          "name": "validate_answers",
+          "what": "답변 계약 대조",
+          "status": "OK"
+        },
+        {
+          "name": "build_scenario",
+          "what": "실행 설정 N벌 생성 · 검증",
+          "status": "OK"
+        },
+        {
+          "name": "get_scenario_status",
+          "what": "확인 상태 · 토큰 읽기",
+          "status": "OK"
+        },
+        {
+          "name": "run_scenario_by_token",
+          "what": "확인된 시나리오 실행",
+          "status": "OK"
+        }
+      ],
+      "environmentMatchKeys": [
+        {
+          "key": "weekday-schedule",
+          "matchKeys": [
+            "요일",
+            "수거 요일",
+            "격일",
+            "주말",
+            "매일"
+          ]
+        },
+        {
+          "key": "holidays",
+          "matchKeys": [
+            "공휴일",
+            "휴일",
+            "명절",
+            "추석",
+            "연휴",
+            "개천절",
+            "한글날",
+            "성탄절",
+            "크리스마스"
+          ],
+          "model": "기간은 2026-09-21(월)부터라 들어오는 공휴일은 추석 연휴(9/24~26) · 개천절(10/3, 대체 10/5) · 한글날(10/9) · 성탄절(12/25)뿐이다. 2027년 날짜는 공휴일 없이 계산된다"
+        },
+        {
+          "key": "transfer-station",
+          "matchKeys": [
+            "적환장",
+            "중간 처리",
+            "중계"
+          ]
+        }
+      ],
+      "objectiveMatchKeys": [
+        {
+          "key": "uncollected",
+          "label": "수거 못 하고 남는 양",
+          "matchKeys": [
+            "미수거",
+            "수거 못",
+            "쌓이",
+            "남는",
+            "잔여",
+            "밀리"
+          ]
+        },
+        {
+          "key": "wait-days",
+          "label": "쓰레기가 기다린 날 수",
+          "matchKeys": [
+            "며칠",
+            "기다",
+            "지연"
+          ]
+        },
+        {
+          "key": "schedule",
+          "label": "수거 요일 · 주기",
+          "matchKeys": [
+            "수거 요일",
+            "격일",
+            "매일",
+            "주기",
+            "요일",
+            "몇 번"
+          ]
+        },
+        {
+          "key": "truck-count",
+          "label": "차량 수",
+          "matchKeys": [
+            "몇 대",
+            "차량 수",
+            "대수"
+          ]
+        },
+        {
+          "key": "truck-type",
+          "label": "차종",
+          "matchKeys": [
+            "차종",
+            "톤",
+            "차량 크기"
+          ]
+        },
+        {
+          "key": "collection-time",
+          "label": "수거 시작 시각",
+          "matchKeys": [
+            "수거 시각",
+            "몇 시",
+            "시작 시각",
+            "시각"
+          ]
+        },
+        {
+          "key": "holiday-effect",
+          "label": "공휴일 · 연휴 영향",
+          "matchKeys": [
+            "공휴일",
+            "명절",
+            "연휴",
+            "추석"
+          ]
+        },
+        {
+          "key": "transfer-effect",
+          "label": "적환장 효과",
+          "matchKeys": [
+            "적환장"
+          ]
+        },
+        {
+          "key": "zone-allocation",
+          "label": "구역 배정 방식",
+          "matchKeys": [
+            "구역 배정",
+            "구역 나누",
+            "구역을 나"
+          ]
+        },
+        {
+          "key": "shift",
+          "label": "근무 시간 안에 끝나는지",
+          "matchKeys": [
+            "근무 시간",
+            "근무시간",
+            "작업 시간",
+            "다 끝나",
+            "끝나는지",
+            "끝날까"
+          ]
+        }
+      ]
+    },
+    "quality": {
+      "fidelity": "daily-aggregate-stochastic",
+      "engine": "하루 단위 구역 집계 시뮬레이션 (이산사건 · DEVS 아님)",
+      "calibration": [
+        {
+          "what": "포항 북구 생활쓰레기 수거 요일 · 배출 창(20:00~06:00)",
+          "source": "행정안전부 생활쓰레기 배출정보 표준데이터(2024-02-27 기준)",
+          "measured": true,
+          "note": "수거 요일은 배출 요일에 하루를 더한 해석이다"
+        },
+        {
+          "what": "주거 유형별 세대당 배출량",
+          "source": "가정값",
+          "measured": false
+        },
+        {
+          "what": "주거 유형별 싣는 속도 · 구역 간 이동 · 하차 왕복",
+          "source": "가정값",
+          "measured": false
+        },
+        {
+          "what": "2026년 공휴일 달력",
+          "source": "관공서 공휴일 규정을 사람이 옮겨 적음",
+          "measured": false
+        }
+      ]
+    },
+    "resultFields": {
+      "judgement": [
+        "leftoverKgPerCollectionDay",
+        "stdLeftoverKgPerCollectionDay",
+        "leftoverZoneDaysPerWeek",
+        "maxWaitDays"
+      ],
+      "explanation": [
+        "maxZoneBacklogKg",
+        "preCollectionKgPerCollectionDay",
+        "leftoverKgByHousingType",
+        "generatedKgByWeekday",
+        "collectedKgByWeekday",
+        "collectionDaysRun",
+        "skippedForHoliday"
+      ],
+      "reference": [
+        "truckUtilization",
+        "workMinutesPerTruckDay",
+        "tripsPerCollectionDay"
+      ],
+      "integrity": [
+        "seeds",
+        "generatedKgPerDay",
+        "excludedKgPerDay",
+        "massBalanceErrorKgMax",
+        "allLeftoverKgPerCollectionDay",
+        "dataQualityFlags",
+        "assumptionNotes"
+      ],
+      "note": "reference 항목은 싣는 속도 · 이동 · 하차 시간 가정에 크게 기대므로 판정 근거로 쓰지 않는다"
+    },
+    "cost": {
+      "currency": "none",
+      "perRun": 0,
+      "compute": "local"
+    },
+    "performance": {
+      "model": "zoneCount × days × seeds 에 비례",
+      "typicalSeconds": 1,
+      "maxSeconds": 30
+    },
+    "conditional": [
+      {
+        "capability": "구역 배정 비교",
+        "requires": "min(zoneCount, truckCount) >= 2",
+        "ifUnmet": "DO_NOT_GENERATE",
+        "message": "실제로 나가는 차가 1대면 나눌 구역이 없습니다."
+      },
+      {
+        "capability": "요일 지정 수거",
+        "requires": "collectionDays 명시",
+        "ifUnmet": "REJECT",
+        "message": "요일을 정하지 않으면 실행하지 않습니다."
+      },
+      {
+        "capability": "공휴일 반영",
+        "requires": "holidayPolicy 명시 (매일 수거가 아닐 때)",
+        "ifUnmet": "REJECT",
+        "message": "수거일이 공휴일일 때 건너뛸지 다음 날 할지 정해야 합니다."
+      },
+      {
+        "capability": "적환장",
+        "requires": "transferRoundTripMinutes 명시",
+        "ifUnmet": "REJECT",
+        "message": "적환장 왕복 시간을 정하지 않으면 실행하지 않습니다."
+      }
+    ],
+    "unsupported": [
+      {
+        "code": "UNSUPPORTED_FEATURE",
+        "capability": "교통량 · 도로 혼잡 반영",
+        "matchKeys": [
+          "교통",
+          "교통량",
+          "정체",
+          "혼잡",
+          "출퇴근 시간"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "구역 사이 이동시간을 상수로만 다룬다. 시간대별 지체가 모델에 없다",
+        "alternatives": [
+          "구역 간 이동시간 상수"
+        ],
+        "message": "교통량은 반영하지 않습니다. 구역 사이 이동시간은 고정값입니다."
+      },
+      {
+        "code": "UNSUPPORTED_METRIC",
+        "capability": "수거장별 적재 · 민원",
+        "matchKeys": [
+          "민원",
+          "악취",
+          "넘침",
+          "넘치",
+          "수거장별",
+          "지점별",
+          "배출장소별"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "구역 합계만 본다 — 수거 지점 하나하나가 없다",
+        "alternatives": [
+          "metric:leftoverKg",
+          "metric:waitDays"
+        ],
+        "message": "수거장별 적재와 민원은 다루지 않습니다. 구역에 남는 양과 기다린 날 수로 비교하실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_SCALE",
+        "capability": "시 · 구 전체",
+        "matchKeys": [
+          "포항 전체",
+          "포항시 전체",
+          "시 전체",
+          "구 전체",
+          "북구 전체",
+          "남구 전체"
+        ],
+        "reasonType": "OUT_OF_RANGE",
+        "reason": "행정동 하나(최대 40구역)까지만 표현한다",
+        "alternatives": [
+          "행정동 하나를 1~40구역으로"
+        ],
+        "message": "시 · 구 전체는 다루지 않습니다. 행정동 하나로 실험하실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_METRIC",
+        "capability": "비용 · 예산",
+        "matchKeys": [
+          "비용",
+          "예산",
+          "인건비",
+          "연료비",
+          "돈"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "연료 · 인건비 · 차량 운영비 항이 없다",
+        "alternatives": [
+          "metric:leftoverKg",
+          "metric:truckUtilization"
+        ],
+        "message": "비용은 산출하지 않습니다."
+      },
+      {
+        "code": "UNSUPPORTED_SCOPE",
+        "capability": "모의 기간 밖의 공휴일",
+        "matchKeys": [
+          "설 연휴",
+          "설날",
+          "설 명절",
+          "구정",
+          "신정",
+          "삼일절",
+          "어린이날",
+          "부처님오신날",
+          "석가탄신일",
+          "현충일",
+          "광복절",
+          "지방선거"
+        ],
+        "reasonType": "OUT_OF_SCOPE",
+        "reason": "기간이 2026-09-21 부터 시작해 그 앞의 공휴일(설날 · 어린이날 · 광복절 등)은 들어오지 않고, 2027년 공휴일 달력은 없다",
+        "alternatives": [
+          "추석 연휴가 낀 4주",
+          "개천절 · 한글날이 낀 10월"
+        ],
+        "message": "설날 등 9월 21일 이전의 공휴일은 모의 기간 밖이라 넣을 수 없습니다. 추석 연휴(+개천절 · 한글날)가 낀 기간으로 공휴일 효과를 보실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_SCOPE",
+        "capability": "재활용 · 음식물",
+        "matchKeys": [
+          "재활용",
+          "음식물",
+          "분리수거",
+          "분리배출"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "생활쓰레기(일반) 한 종류만 다룬다",
+        "alternatives": [],
+        "message": "재활용품 · 음식물은 다루지 않습니다."
+      }
+    ],
+    "neverDo": [
+      "기본값이 없는 값(수거 요일 · 공휴일 정책 · 적환장 왕복 시간)을 대신 채워 실행한다",
+      "잘못된 선택지를 가까운 값으로 보정한다",
+      "구역 집계 결과를 수거장별 결과처럼 말한다",
+      "사용자가 승인하지 않은 설정으로 실행한다"
+    ],
+    "alwaysAttachToResult": [
+      "dataQualityFlags — GENERATION_ASSUMED · SERVICE_RATE_ASSUMED · SCHEDULE_INTERPRETED · HOLIDAY_CALENDAR_TRANSCRIBED",
+      "assumptionNotes — 기본값으로 승인된 값, PES 에 없어 초기값으로 돈 값",
+      "massBalanceErrorKgMax — 배출 = 수거 + 남은 양 인지",
+      "seeds, allLeftoverKgPerCollectionDay — 재현 정보",
+      "전제: 세대당 배출량 · 싣는 속도는 가정값이다",
+      "한계: 구역 합계만 본다 — 수거장별 적재 · 민원은 말할 수 없다",
+      "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
+    ],
+    "schemaVersion": "1.0.0",
+    "capabilities": {
+      "simulationDuration": {
+        "min": {
+          "value": 7.0,
+          "unit": "day"
+        },
+        "max": {
+          "value": 365.0,
+          "unit": "day"
+        }
+      },
+      "outputs": [
+        "judgement.leftoverKgPerCollectionDay",
+        "judgement.stdLeftoverKgPerCollectionDay",
+        "judgement.leftoverZoneDaysPerWeek",
+        "judgement.maxWaitDays",
+        "explanation.maxZoneBacklogKg",
+        "explanation.preCollectionKgPerCollectionDay",
+        "explanation.leftoverKgByHousingType",
+        "explanation.generatedKgByWeekday",
+        "explanation.collectedKgByWeekday",
+        "explanation.collectionDaysRun",
+        "explanation.skippedForHoliday",
+        "reference.truckUtilization",
+        "reference.workMinutesPerTruckDay",
+        "reference.tripsPerCollectionDay"
+      ],
+      "constraints": {
+        "zoneCount": {
+          "min": 1.0,
+          "max": 40.0
+        },
+        "householdsPerZone": {
+          "min": 50.0,
+          "max": 5000.0
+        },
+        "truckCount": {
+          "min": 1.0,
+          "max": 20.0
+        },
+        "transferRoundTripMinutes": {
+          "min": 10.0,
+          "max": 300.0
+        },
+        "collectionStartMinutes": {
+          "min": 0.0,
+          "max": 1439.0
+        },
+        "shiftMinutes": {
+          "min": 120.0,
+          "max": 720.0
+        },
+        "days": {
+          "min": 7.0,
+          "max": 365.0
+        },
+        "seeds": {
+          "min": 1.0,
+          "max": 100.0
+        }
+      }
+    }
+  },
+  "8092": {
+    "_comment": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터의 능력 카드. 브로커가 이 카드로 요청과 대조한다. 거주민(이용자) 유형 key 는 한 카드 안에서 겹치면 안 된다.",
+    "serverId": "pohang-parking-sim",
+    "name": "포항 도심 공영주차장 탐색·혼잡 시뮬레이터",
+    "endpoint": "http://localhost:8092/mcp",
+    "fictional": false,
+    "domain": [
+      "public-parking"
+    ],
+    "domainAliases": [
+      "공영주차장",
+      "주차장",
+      "주차",
+      "주차난",
+      "주차 공간",
+      "주차면"
+    ],
+    "region": "포항시 도심 (가정 배치, 선택 시 공공데이터 시설·실시간 면수 적용)",
+    "analysisUnit": {
+      "scope": "area",
+      "label": "도심 한 구역의 공영주차장 묶음",
+      "notDistrict": true,
+      "rationale": "주차장 1~12곳을 한 줄로 늘어선 것으로 본다. Parking_v1 시설·실시간 정보로 주차장별 면수와 초기 점유를 적용할 수 있다. API 좌표는 참고용이며 도로망·노상 주차는 표현하지 못한다.",
+      "coherence": "기본 4곳 × 80면 = 320면에 하루 900대(평균 체류 약 4시간)면 수요가 공급의 약 80% 로, 출근 · 점심 시간대에 만차가 생기는 구간이다.",
+      "matchKeys": [
+        "도심",
+        "시내",
+        "한 구역",
+        "상업지역",
+        "번화가",
+        "구도심",
+        "역 주변",
+        "동네",
+        "상가 주변"
+      ]
+    },
+    "populationTypes": [
+      {
+        "key": "Commuter",
+        "matchKeys": [
+          "출퇴근",
+          "직장인",
+          "통근",
+          "출근"
+        ],
+        "model": "08:15 ± 30분 도착, 약 9시간 체류, 요금 민감도 낮음"
+      },
+      {
+        "key": "Shopper",
+        "matchKeys": [
+          "쇼핑",
+          "장보기",
+          "상가 이용",
+          "쇼핑객"
+        ],
+        "model": "11~19시 고르게 도착, 약 1.5시간 체류, 요금 민감도 높음"
+      },
+      {
+        "key": "Visitor",
+        "matchKeys": [
+          "방문객",
+          "방문",
+          "관광객",
+          "민원인"
+        ],
+        "model": "10~17시 고르게 도착, 약 2시간 체류"
+      },
+      {
+        "key": "Resident",
+        "matchKeys": [
+          "거주자",
+          "주민",
+          "야간 주차",
+          "입주민"
+        ],
+        "model": "19:00 ± 45분 도착, 다음날 07:30 무렵 출차"
+      }
+    ],
+    "sesDigest": {
+      "sesId": "pohang-parking-ses",
+      "sesVersion": "1.0.0",
+      "entities": [
+        "주차장 집합",
+        "주차장",
+        "이용자 집합",
+        "안내 체계",
+        "도로 혼잡 결합",
+        "실험 프레임"
+      ],
+      "decisionPoints": [
+        {
+          "path": "주차장집합",
+          "kind": "MULTI_ASPECT",
+          "field": "lotCount",
+          "matchKeys": [
+            "주차장 수",
+            "주차장 개수",
+            "몇 곳"
+          ],
+          "range": {
+            "min": 1,
+            "max": 12
+          },
+          "default": 4
+        },
+        {
+          "path": "주차장집합/주차장/면수",
+          "kind": "ATTRIBUTE",
+          "field": "spacesPerLot",
+          "matchKeys": [
+            "면수",
+            "주차면",
+            "주차 공간 수"
+          ],
+          "range": {
+            "min": 10,
+            "max": 1000
+          },
+          "default": 80
+        },
+        {
+          "path": "주차장집합/주차장/요금정책",
+          "kind": "SPECIALIZATION",
+          "field": "pricingPolicy",
+          "matchKeys": [
+            "요금 정책",
+            "요금 방식",
+            "유료",
+            "무료"
+          ],
+          "choices": [
+            "FLAT",
+            "TIME_OF_DAY",
+            "FREE"
+          ],
+          "default": "FLAT"
+        },
+        {
+          "path": "주차장집합/주차장/요금정책/기본요금",
+          "kind": "ATTRIBUTE",
+          "field": "baseFeePer30Min",
+          "matchKeys": [
+            "기본 요금",
+            "주차 요금"
+          ],
+          "generateWhen": "pricingPolicy != FREE",
+          "default": 500
+        },
+        {
+          "path": "주차장집합/주차장/요금정책/시간대할증",
+          "kind": "ATTRIBUTE",
+          "field": "peakSurchargeRate",
+          "matchKeys": [
+            "할증률",
+            "할증"
+          ],
+          "generateWhen": "pricingPolicy == TIME_OF_DAY",
+          "default": null
+        },
+        {
+          "path": "이용자집합/이용자구성",
+          "kind": "SPECIALIZATION",
+          "field": "userMix",
+          "matchKeys": [
+            "이용자 구성",
+            "이용자 유형"
+          ],
+          "choices": [
+            "Commuter",
+            "Shopper",
+            "Visitor",
+            "Resident"
+          ],
+          "default": [
+            "Commuter",
+            "Shopper",
+            "Visitor"
+          ]
+        },
+        {
+          "path": "주차장집합/주차장/거주자우선구획",
+          "kind": "ATTRIBUTE",
+          "field": "residentPriorityShare",
+          "matchKeys": [
+            "거주자 우선",
+            "거주자 구획"
+          ],
+          "generateWhen": "Resident ∈ userMix",
+          "default": null
+        },
+        {
+          "path": "이용자집합",
+          "kind": "MULTI_ASPECT",
+          "field": "dailyArrivals",
+          "matchKeys": [
+            "도착 차량",
+            "도착 대수",
+            "하루 차량",
+            "이용 차량",
+            "수요"
+          ],
+          "range": {
+            "min": 1,
+            "max": 20000
+          },
+          "default": 900
+        },
+        {
+          "path": "안내체계/안내방식",
+          "kind": "SPECIALIZATION",
+          "field": "guidanceMode",
+          "matchKeys": [
+            "안내 방식",
+            "안내판",
+            "실시간 앱"
+          ],
+          "choices": [
+            "NONE",
+            "STATIC_SIGN",
+            "REALTIME_APP"
+          ],
+          "generateWhen": "lotCount >= 2",
+          "default": "NONE"
+        },
+        {
+          "path": "안내체계/갱신주기",
+          "kind": "ATTRIBUTE",
+          "field": "guidanceRefreshMinutes",
+          "matchKeys": [
+            "갱신 주기"
+          ],
+          "generateWhen": "lotCount >= 2 && guidanceMode == REALTIME_APP",
+          "default": 5
+        },
+        {
+          "path": "도로혼잡결합",
+          "kind": "COUPLING_CONDITION",
+          "field": "congestionEnabled",
+          "matchKeys": [
+            "도로 혼잡",
+            "혼잡 반영"
+          ],
+          "default": false
+        },
+        {
+          "path": "도로혼잡결합/프로파일",
+          "kind": "ATTRIBUTE",
+          "field": "congestionProfileId",
+          "matchKeys": [
+            "혼잡 프로파일"
+          ],
+          "generateWhen": "congestionEnabled",
+          "default": "weekday-downtown"
+        },
+        {
+          "path": "이용자집합/이용자/탐색포기시간",
+          "kind": "ATTRIBUTE",
+          "field": "maxSearchMinutes",
+          "matchKeys": [
+            "탐색 포기 시간",
+            "포기 시간",
+            "찾다가 포기"
+          ],
+          "range": {
+            "min": 1,
+            "max": 60
+          },
+          "default": null
+        },
+        {
+          "path": "주차장집합/주차장간격",
+          "kind": "ATTRIBUTE",
+          "field": "lotSpacingMinutes",
+          "matchKeys": [
+            "주차장 간격",
+            "주차장 사이",
+            "주차장끼리",
+            "옮겨 다니",
+            "이동 시간"
+          ],
+          "range": {
+            "min": 0.5,
+            "max": 30
+          },
+          "generateWhen": "lotCount >= 2",
+          "default": 3.0
+        },
+        {
+          "path": "실험프레임/기간",
+          "kind": "ATTRIBUTE",
+          "field": "days",
+          "matchKeys": [
+            "기간",
+            "며칠"
+          ],
+          "range": {
+            "min": 1,
+            "max": 90
+          },
+          "default": 14
+        },
+        {
+          "path": "실험프레임/반복",
+          "kind": "ATTRIBUTE",
+          "field": "seeds",
+          "matchKeys": [
+            "반복 횟수"
+          ],
+          "range": {
+            "min": 1,
+            "max": 100
+          },
+          "default": 30
+        }
+      ]
+    },
+    "applicability": {
+      "spatialScale": {
+        "lots": {
+          "min": 1,
+          "max": 12,
+          "default": 4
+        },
+        "spacesPerLot": {
+          "min": 10,
+          "max": 1000,
+          "default": 80
+        }
+      },
+      "period": {
+        "days": {
+          "min": 1,
+          "max": 90,
+          "default": 14
+        }
+      },
+      "replication": {
+        "seeds": {
+          "min": 1,
+          "max": 100,
+          "default": 30
+        }
+      },
+      "environment": [
+        "road-congestion",
+        "time-of-day-demand",
+        "guidance",
+        "pricing",
+        "resident-priority",
+        "lot-spacing",
+        "api-initial-occupancy",
+        "standard-parking-facility"
+      ],
+      "answerableQuestions": [
+        "search-time",
+        "give-up",
+        "occupancy",
+        "pricing-effect",
+        "guidance-effect",
+        "resident-priority",
+        "lot-count",
+        "congestion-effect"
+      ],
+      "scenarioTypes": [
+        "guidance-compare",
+        "pricing-compare",
+        "capacity-sweep",
+        "demand-sweep",
+        "user-mix"
+      ],
+      "tools": [
+        {
+          "name": "fetch_standard_parking",
+          "what": "전국주차장 표준데이터의 공영·노외 시설면수 및 요금·운영시간 참고정보 조회(초기 빈자리는 사용자 가정)",
+          "status": "CONDITIONAL"
+        },
+        {
+          "name": "fetch_parking_snapshot",
+          "what": "공영 시설·실시간 잔여면수 조회 및 선택 스냅샷 생성(인증키 필요)",
+          "status": "CONDITIONAL"
+        },
+        {
+          "name": "get_templates",
+          "what": "서브태스크 템플릿",
+          "status": "OK"
+        },
+        {
+          "name": "plan_subtasks",
+          "what": "생성 조건 평가",
+          "status": "OK"
+        },
+        {
+          "name": "validate_answers",
+          "what": "답변 계약 대조",
+          "status": "OK"
+        },
+        {
+          "name": "build_scenario",
+          "what": "실행 설정 N벌 생성 · 검증",
+          "status": "OK"
+        },
+        {
+          "name": "get_scenario_status",
+          "what": "확인 상태 · 토큰 읽기",
+          "status": "OK"
+        },
+        {
+          "name": "run_scenario_by_token",
+          "what": "확인된 시나리오 실행",
+          "status": "OK"
+        }
+      ],
+      "environmentMatchKeys": [
+        {
+          "key": "standard-parking-facility",
+          "matchKeys": [
+            "전국주차장",
+            "표준데이터",
+            "표준 데이터",
+            "실제 시설면수",
+            "실제 면수",
+            "시설면수"
+          ],
+          "model": "표준 API 시설면수를 적용하고 초기 빈자리는 사용자 가정으로 명시한다. 요금·운영시간은 참고정보로 보존하며 자동 적용하지 않는다"
+        },
+        {
+          "key": "api-initial-occupancy",
+          "matchKeys": [
+            "잔여면수",
+            "실제 빈자리",
+            "API 데이터",
+            "공공데이터",
+            "실제 데이터",
+            "실데이터",
+            "지금 상태",
+            "현재 상태",
+            "현재 점유",
+            "지금 점유",
+            "실제 점유"
+          ],
+          "model": "인증키와 지역별 제공 여부에 따라 시설·실시간 정보를 조회하고 초기 점유만 고정한다. 관측 시각은 미제공이다"
+        },
+        {
+          "key": "road-congestion",
+          "matchKeys": [
+            "혼잡",
+            "교통",
+            "도로 혼잡",
+            "정체"
+          ]
+        },
+        {
+          "key": "time-of-day-demand",
+          "matchKeys": [
+            "주말",
+            "평일",
+            "오전",
+            "오후",
+            "저녁",
+            "야간",
+            "점심",
+            "출근",
+            "퇴근",
+            "시간대",
+            "피크",
+            "첨두"
+          ],
+          "model": "이용자 유형별 도착 시각 분포(userMix)로 시간대 수요를 만들고 hourlyOccupancy 로 시간대별 점유를 본다. 평일 · 주말 수요를 따로 두지 않으므로 주말은 이용자 구성 · 하루 도착 대수로 표현한다"
+        },
+        {
+          "key": "guidance",
+          "matchKeys": [
+            "실시간",
+            "안내판",
+            "주차 안내",
+            "앱"
+          ]
+        },
+        {
+          "key": "pricing",
+          "matchKeys": [
+            "요금",
+            "유료",
+            "무료",
+            "할증",
+            "차등"
+          ]
+        },
+        {
+          "key": "resident-priority",
+          "matchKeys": [
+            "거주자 우선",
+            "거주자 구획",
+            "거주자 전용"
+          ]
+        },
+        {
+          "key": "lot-spacing",
+          "matchKeys": [
+            "주차장끼리",
+            "주차장 사이",
+            "주차장 간",
+            "옮겨 다니",
+            "멀어서",
+            "떨어져"
+          ],
+          "model": "주차장을 한 줄로 두고 이웃한 두 곳 사이의 이동시간(lotSpacingMinutes)으로 표현한다. 실제 거리 · 도로망은 없다"
+        }
+      ],
+      "objectiveMatchKeys": [
+        {
+          "key": "search-time",
+          "label": "주차 탐색 시간",
+          "matchKeys": [
+            "찾는 시간",
+            "탐색",
+            "배회",
+            "주차 찾",
+            "주차장 찾",
+            "자리 찾",
+            "세울",
+            "세우",
+            "대는 데",
+            "댈 수",
+            "주차하는 데"
+          ]
+        },
+        {
+          "key": "give-up",
+          "label": "주차 포기 차량",
+          "matchKeys": [
+            "포기",
+            "못 대",
+            "주차 못",
+            "돌아가"
+          ]
+        },
+        {
+          "key": "occupancy",
+          "label": "주차장 혼잡도 · 점유율",
+          "matchKeys": [
+            "혼잡도",
+            "점유율",
+            "만차",
+            "빈자리",
+            "얼마나 차"
+          ]
+        },
+        {
+          "key": "pricing-effect",
+          "label": "요금 정책 효과",
+          "matchKeys": [
+            "요금",
+            "할증",
+            "차등",
+            "유료화",
+            "무료"
+          ]
+        },
+        {
+          "key": "guidance-effect",
+          "label": "안내 방식 효과",
+          "matchKeys": [
+            "안내",
+            "실시간 앱",
+            "안내판",
+            "앱"
+          ]
+        },
+        {
+          "key": "resident-priority",
+          "label": "거주자 우선 구획 효과",
+          "matchKeys": [
+            "거주자 우선",
+            "거주자 구획"
+          ]
+        },
+        {
+          "key": "lot-count",
+          "label": "주차장 수 · 면수",
+          "matchKeys": [
+            "몇 곳",
+            "주차장 수",
+            "면수",
+            "증설",
+            "더 지으",
+            "한 곳 더"
+          ]
+        }
+      ]
+    },
+    "quality": {
+      "fidelity": "event-driven-stochastic",
+      "engine": "우선순위 큐 기반 이산사건 시뮬레이션 (DEVS 형식 모델 아님)",
+      "calibration": [
+        {
+          "what": "이용자 유형별 도착 시각 · 체류 시간",
+          "source": "가정값",
+          "measured": false
+        },
+        {
+          "what": "요금 민감도",
+          "source": "가정값",
+          "measured": false
+        },
+        {
+          "what": "주차장 배치 · 주차장 사이 이동시간(3분 간격)",
+          "source": "가정값 — 한 줄 배치",
+          "measured": false
+        },
+        {
+          "what": "목적지 분포 · 실시간 앱 우회 거리",
+          "source": "가정값 — 1번(중심 상권) 쪽 가중 1/(i+1), 앱 이용자는 첫 우회 거리의 절반",
+          "measured": false
+        },
+        {
+          "what": "도로 혼잡 배수",
+          "source": "가정값 프로파일 2종",
+          "measured": false
+        }
+      ]
+    },
+    "resultFields": {
+      "judgement": [
+        "meanSearchMinutesAll",
+        "stdSearchMinutesAll",
+        "meanSearchMinutesParked",
+        "stdSearchMinutesParked",
+        "giveUpsPerDay",
+        "stdGiveUpsPerDay",
+        "giveUpRate",
+        "byUserType"
+      ],
+      "judgementNote": "탐색 시간은 meanSearchMinutesAll(주차 + 포기)로 비교한다. Parked 는 포기가 많을수록 오래 찾던 차가 빠져 낮게 나온다",
+      "explanation": [
+        "peakOccupancyRatio",
+        "lotPeakOccupancy",
+        "hourlyOccupancy",
+        "fullMinutesPerLotPerDay",
+        "priceAvoidedPerDay"
+      ],
+      "reference": [
+        "revenuePerDay",
+        "interLotMovesPerDay"
+      ],
+      "integrity": [
+        "seeds",
+        "vehicleBalanceErrorMax",
+        "allGiveUps",
+        "dataQualityFlags",
+        "assumptionNotes"
+      ],
+      "note": "reference 항목은 요금 민감도 · 주차장 배치 가정에 크게 기대므로 판정 근거로 쓰지 않는다"
+    },
+    "cost": {
+      "currency": "none",
+      "perRun": 0,
+      "compute": "local"
+    },
+    "performance": {
+      "model": "lotCount × dailyArrivals × days × seeds 에 비례",
+      "typicalSeconds": 2,
+      "maxSeconds": 120
+    },
+    "conditional": [
+      {
+        "capability": "안내 방식 비교",
+        "requires": "lotCount >= 2",
+        "ifUnmet": "DO_NOT_GENERATE",
+        "message": "주차장이 한 곳이면 다른 곳으로 안내할 수 없어 안내 방식이 결과를 바꾸지 않습니다."
+      },
+      {
+        "capability": "시간대 차등 요금",
+        "requires": "peakSurchargeRate 명시",
+        "ifUnmet": "REJECT",
+        "message": "할증률을 정하지 않으면 실행하지 않습니다 — 0% 로 조용히 돌리지 않습니다."
+      },
+      {
+        "capability": "거주자 이용",
+        "requires": "residentPriorityShare 명시",
+        "ifUnmet": "REJECT",
+        "message": "거주자가 있으면 우선 구획 비율(0 포함)을 정해야 합니다."
+      },
+      {
+        "capability": "탐색 포기",
+        "requires": "maxSearchMinutes 명시",
+        "ifUnmet": "REJECT",
+        "message": "운전자가 언제 포기하는지는 결과를 크게 바꾸므로 기본값을 두지 않습니다."
+      }
+    ],
+    "unsupported": [
+      {
+        "code": "UNSUPPORTED_METRIC",
+        "capability": "비용편익 · 건설비 산출",
+        "matchKeys": [
+          "건설비",
+          "공사비",
+          "비용편익",
+          "예산",
+          "투자"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "주차장 건설 · 운영 비용 항이 모델에 없다",
+        "alternatives": [
+          "metric:giveUps",
+          "metric:searchTime",
+          "metric:revenue"
+        ],
+        "message": "건설비 · 비용편익은 산출하지 않습니다. 포기 차량 · 탐색 시간 · 요금 수입(참고)으로 비교하실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_SCOPE",
+        "capability": "노상 · 불법 주차",
+        "matchKeys": [
+          "노상",
+          "불법 주차",
+          "불법주차",
+          "갓길",
+          "단속"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "노외 공영주차장만 표현한다",
+        "alternatives": [
+          "공영주차장 면수 · 요금 변경"
+        ],
+        "message": "노상 · 불법 주차는 다루지 않습니다. 공영주차장 면수와 요금을 바꿔 보는 실험은 할 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_SCALE",
+        "capability": "도시 전체 · 실제 지도",
+        "matchKeys": [
+          "도시 전체",
+          "포항 전체",
+          "시 전체",
+          "지도",
+          "길안내"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "API 좌표는 참고 정보이며 엔진은 실제 도로망 대신 한 줄 배치를 사용한다",
+        "alternatives": [
+          "도심 한 구역 1~12곳"
+        ],
+        "message": "도시 전체나 실제 지도 위 길안내는 할 수 없습니다. 도심 한 구역의 주차장 1~12곳으로 실험하실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_FEATURE",
+        "capability": "전기차 충전",
+        "matchKeys": [
+          "전기차",
+          "충전"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "충전면 · 충전 시간 항이 없다",
+        "alternatives": [],
+        "message": "전기차 충전은 모델에 없습니다."
+      },
+      {
+        "code": "UNSUPPORTED_METRIC",
+        "capability": "실시간 운영 예측",
+        "matchKeys": [
+          "실시간 예측",
+          "오늘 몇 시"
+        ],
+        "reasonType": "OUT_OF_SCOPE",
+        "reason": "API 초기 점유는 적용할 수 있으나 이후 도착·출차는 가정에 따른 설정 비교 실험이다",
+        "alternatives": [
+          "API 잔여면수 조회",
+          "설정 간 비교"
+        ],
+        "message": "API가 제공하는 잔여면수는 조회할 수 있습니다. 미래 빈자리의 실시간 운영 예측은 하지 않습니다."
+      }
+    ],
+    "neverDo": [
+      "기본값이 없는 값(할증률 · 거주자 우선 비율 · 탐색 포기 시간)을 대신 채워 실행한다",
+      "혼잡을 반영하라고 했는데 프로파일이 없을 때 조용히 끈다",
+      "잘못된 선택지를 가까운 값으로 보정한다",
+      "사용자가 승인하지 않은 설정으로 실행한다"
+    ],
+    "alwaysAttachToResult": [
+      "dataQualityFlags — DEMAND_ASSUMED · LOT_LAYOUT_ASSUMED · CONGESTION_ASSUMED",
+      "assumptionNotes — 기본값으로 승인된 값, PES 에 없어 초기값으로 돈 값",
+      "vehicleBalanceErrorMax — 도착 = 주차 + 포기 + 요금 회피 + 탐색 중 인지",
+      "seeds, allGiveUps — 재현 정보",
+      "전제: 이용자 도착 분포 · 체류 · 요금 민감도는 가정값이다",
+      "한계: 주차장은 한 줄로 늘어선 것으로 가정하며 실제 좌표 · 도로망이 아니다",
+      "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
+    ],
+    "schemaVersion": "1.0.0",
+    "capabilities": {
+      "simulationDuration": {
+        "min": {
+          "value": 1.0,
+          "unit": "day"
+        },
+        "max": {
+          "value": 90.0,
+          "unit": "day"
+        }
+      },
+      "outputs": [
+        "judgement.meanSearchMinutesAll",
+        "judgement.stdSearchMinutesAll",
+        "judgement.meanSearchMinutesParked",
+        "judgement.stdSearchMinutesParked",
+        "judgement.giveUpsPerDay",
+        "judgement.stdGiveUpsPerDay",
+        "judgement.giveUpRate",
+        "judgement.byUserType",
+        "explanation.peakOccupancyRatio",
+        "explanation.lotPeakOccupancy",
+        "explanation.hourlyOccupancy",
+        "explanation.fullMinutesPerLotPerDay",
+        "explanation.priceAvoidedPerDay",
+        "reference.revenuePerDay",
+        "reference.interLotMovesPerDay"
+      ],
+      "constraints": {
+        "lotCount": {
+          "min": 1.0,
+          "max": 12.0
+        },
+        "spacesPerLot": {
+          "min": 10.0,
+          "max": 1000.0
+        },
+        "baseFeePer30Min": {
+          "min": 0.0,
+          "max": 10000.0
+        },
+        "peakSurchargeRate": {
+          "min": 0.0,
+          "max": 3.0
+        },
+        "residentPriorityShare": {
+          "min": 0.0,
+          "max": 0.9
+        },
+        "dailyArrivals": {
+          "min": 1.0,
+          "max": 20000.0
+        },
+        "guidanceRefreshMinutes": {
+          "min": 1.0,
+          "max": 60.0
+        },
+        "maxSearchMinutes": {
+          "min": 1.0,
+          "max": 60.0
+        },
+        "lotSpacingMinutes": {
+          "min": 0.5,
+          "max": 30.0
+        },
+        "days": {
+          "min": 1.0,
+          "max": 90.0
+        },
+        "seeds": {
+          "min": 1.0,
+          "max": 100.0
+        }
+      }
+    }
+  },
+  "8093": {
+    "_comment": "포항 행정복지센터 민원 창구 대기 시뮬레이터의 능력 카드. 브로커가 이 카드로 요청과 대조한다. 거주민(이용자) 유형 key 는 한 카드 안에서 겹치면 안 된다.",
+    "serverId": "pohang-counter-sim",
+    "name": "포항 행정복지센터 민원 창구 대기 시뮬레이터",
+    "endpoint": "http://localhost:8093/mcp",
+    "fictional": false,
+    "domain": [
+      "civil-service-counter"
+    ],
+    "domainAliases": [
+      "민원 창구",
+      "민원실",
+      "민원 대기",
+      "창구 대기",
+      "행정복지센터 창구",
+      "주민센터 창구",
+      "번호표",
+      "대기 줄"
+    ],
+    "region": "포항시 행정복지센터 한 곳 (가정 배치)",
+    "analysisUnit": {
+      "scope": "facility",
+      "label": "행정복지센터 한 곳의 민원 창구 묶음",
+      "notDistrict": true,
+      "rationale": "창구 1~20개가 있는 민원실 하나를 본다. 여러 센터 사이의 분산이나 시 전체 민원량은 표현하지 못한다.",
+      "coherence": "기본 창구 3개 × 540분에 하루 180명(평균 8분)이면 수요가 공급의 약 89% 로, 오전 10시 · 오후 2시 무렵에 줄이 길어지는 구간이다.",
+      "matchKeys": [
+        "행정복지센터",
+        "주민센터",
+        "동사무소",
+        "민원실",
+        "센터 한 곳",
+        "구청 민원실"
+      ]
+    },
+    "populationTypes": [
+      {
+        "key": "WalkIn",
+        "matchKeys": [
+          "방문 민원인",
+          "그냥 오는",
+          "현장 방문",
+          "번호표 뽑"
+        ],
+        "model": "09~18시 시간대 가중치대로 도착(10시 · 14시 많고 12시 적음), 대기 한도가 지나면 돌아감"
+      },
+      {
+        "key": "Reserved",
+        "matchKeys": [
+          "예약한 사람",
+          "예약 방문",
+          "예약 민원인",
+          "사전 예약"
+        ],
+        "model": "하루에 고르게 나뉜 예약 시각에 도착, 같은 줄의 방문 민원인보다 먼저 불림"
+      }
+    ],
+    "sesDigest": {
+      "sesId": "pohang-counter-ses",
+      "sesVersion": "1.0.0",
+      "entities": [
+        "창구 집합",
+        "창구",
+        "민원인 집합",
+        "예약제 결합",
+        "실험 프레임"
+      ],
+      "decisionPoints": [
+        {
+          "path": "창구집합",
+          "kind": "MULTI_ASPECT",
+          "field": "counterCount",
+          "matchKeys": [
+            "창구 수",
+            "창구 개수",
+            "창구를 하나 더",
+            "창구 늘",
+            "창구 줄"
+          ],
+          "range": {
+            "min": 1,
+            "max": 20
+          },
+          "default": 3
+        },
+        {
+          "path": "창구집합/대기열방식",
+          "kind": "SPECIALIZATION",
+          "field": "queueDiscipline",
+          "matchKeys": [
+            "줄 서는 방식",
+            "번호표",
+            "창구마다 줄",
+            "한 줄"
+          ],
+          "choices": [
+            "SINGLE_LINE",
+            "PER_COUNTER"
+          ],
+          "generateWhen": "counterCount >= 2",
+          "default": "SINGLE_LINE"
+        },
+        {
+          "path": "민원인집합",
+          "kind": "MULTI_ASPECT",
+          "field": "dailyVisitors",
+          "matchKeys": [
+            "방문객",
+            "민원인 수",
+            "하루 방문",
+            "몇 명",
+            "수요"
+          ],
+          "range": {
+            "min": 1,
+            "max": 5000
+          },
+          "default": 180
+        },
+        {
+          "path": "창구집합/창구/처리시간",
+          "kind": "ATTRIBUTE",
+          "field": "serviceMinutes",
+          "matchKeys": [
+            "처리 시간",
+            "한 건",
+            "업무 시간",
+            "응대 시간"
+          ],
+          "range": {
+            "min": 1,
+            "max": 60
+          },
+          "default": 8.0
+        },
+        {
+          "path": "예약제결합",
+          "kind": "COUPLING_CONDITION",
+          "field": "reservationEnabled",
+          "matchKeys": [
+            "예약제",
+            "방문 예약",
+            "사전 예약"
+          ],
+          "default": false
+        },
+        {
+          "path": "예약제결합/예약비율",
+          "kind": "ATTRIBUTE",
+          "field": "reservationShare",
+          "matchKeys": [
+            "예약 비율",
+            "예약하는 사람"
+          ],
+          "generateWhen": "reservationEnabled",
+          "default": null
+        },
+        {
+          "path": "민원인집합/민원인/대기한도",
+          "kind": "ATTRIBUTE",
+          "field": "maxWaitMinutes",
+          "matchKeys": [
+            "대기 한도",
+            "기다리다",
+            "참다가",
+            "포기"
+          ],
+          "range": {
+            "min": 1,
+            "max": 240
+          },
+          "default": null
+        },
+        {
+          "path": "실험프레임/기간",
+          "kind": "ATTRIBUTE",
+          "field": "days",
+          "matchKeys": [
+            "기간",
+            "며칠"
+          ],
+          "range": {
+            "min": 1,
+            "max": 60
+          },
+          "default": 5
+        },
+        {
+          "path": "실험프레임/반복",
+          "kind": "ATTRIBUTE",
+          "field": "seeds",
+          "matchKeys": [
+            "반복 횟수"
+          ],
+          "range": {
+            "min": 1,
+            "max": 100
+          },
+          "default": 30
+        }
+      ]
+    },
+    "applicability": {
+      "spatialScale": {
+        "counters": {
+          "min": 1,
+          "max": 20,
+          "default": 3
+        }
+      },
+      "period": {
+        "days": {
+          "min": 1,
+          "max": 60,
+          "default": 5
+        }
+      },
+      "replication": {
+        "seeds": {
+          "min": 1,
+          "max": 100,
+          "default": 30
+        }
+      },
+      "environment": [
+        "time-of-day-demand",
+        "reservation",
+        "queue-discipline"
+      ],
+      "answerableQuestions": [
+        "wait-time",
+        "renege",
+        "utilization",
+        "counter-count",
+        "reservation-effect",
+        "queue-discipline-effect",
+        "overtime"
+      ],
+      "scenarioTypes": [
+        "counter-sweep",
+        "demand-sweep",
+        "reservation-compare",
+        "queue-discipline-compare",
+        "service-time-sweep"
+      ],
+      "tools": [
+        {
+          "name": "get_templates",
+          "what": "서브태스크 템플릿",
+          "status": "OK"
+        },
+        {
+          "name": "plan_subtasks",
+          "what": "생성 조건 평가",
+          "status": "OK"
+        },
+        {
+          "name": "validate_answers",
+          "what": "답변 계약 대조",
+          "status": "OK"
+        },
+        {
+          "name": "build_scenario",
+          "what": "실행 설정 N벌 생성 · 검증",
+          "status": "OK"
+        },
+        {
+          "name": "get_scenario_status",
+          "what": "확인 상태 · 토큰 읽기",
+          "status": "OK"
+        },
+        {
+          "name": "run_scenario_by_token",
+          "what": "확인된 시나리오 실행",
+          "status": "OK"
+        }
+      ],
+      "environmentMatchKeys": [
+        {
+          "key": "time-of-day-demand",
+          "matchKeys": [
+            "오전",
+            "오후",
+            "점심",
+            "시간대",
+            "몰리는",
+            "붐비는",
+            "피크"
+          ],
+          "model": "시간대(09~17시) 가중치로 방문을 만들고 hourlyMeanWait 로 도착 시간대별 대기를 본다. 요일별 수요는 따로 두지 않으므로 월요일 · 월말은 하루 방문객 수로 표현한다"
+        },
+        {
+          "key": "reservation",
+          "matchKeys": [
+            "예약제",
+            "예약",
+            "사전 예약"
+          ]
+        },
+        {
+          "key": "queue-discipline",
+          "matchKeys": [
+            "번호표",
+            "한 줄",
+            "창구마다 줄",
+            "줄 서는"
+          ]
+        }
+      ],
+      "objectiveMatchKeys": [
+        {
+          "key": "wait-time",
+          "label": "민원 대기 시간",
+          "matchKeys": [
+            "대기 시간",
+            "기다리는 시간",
+            "얼마나 기다",
+            "대기",
+            "기다려"
+          ]
+        },
+        {
+          "key": "renege",
+          "label": "기다리다 돌아간 민원인",
+          "matchKeys": [
+            "돌아가",
+            "돌아간",
+            "포기",
+            "그냥 가",
+            "이탈"
+          ]
+        },
+        {
+          "key": "utilization",
+          "label": "창구 가동률",
+          "matchKeys": [
+            "가동률",
+            "바쁜 정도",
+            "놀고 있",
+            "일이 몰"
+          ]
+        },
+        {
+          "key": "counter-count",
+          "label": "창구 수",
+          "matchKeys": [
+            "창구를 하나 더",
+            "창구 수",
+            "창구 늘",
+            "창구 줄",
+            "몇 개"
+          ]
+        },
+        {
+          "key": "reservation-effect",
+          "label": "예약제 효과",
+          "matchKeys": [
+            "예약제",
+            "예약"
+          ]
+        },
+        {
+          "key": "queue-discipline-effect",
+          "label": "줄 서는 방식 효과",
+          "matchKeys": [
+            "줄 서는 방식",
+            "번호표",
+            "한 줄",
+            "창구마다 줄"
+          ]
+        },
+        {
+          "key": "overtime",
+          "label": "마감 뒤 초과 근무",
+          "matchKeys": [
+            "초과 근무",
+            "야근",
+            "마감 뒤",
+            "늦게 끝"
+          ]
+        }
+      ]
+    },
+    "quality": {
+      "fidelity": "event-driven-stochastic",
+      "engine": "다음 사건 시각으로 건너뛰는 이산사건 시뮬레이션 (DEVS 형식 모델 아님)",
+      "calibration": [
+        {
+          "what": "시간대별 방문 가중치",
+          "source": "가정값 — 10시 · 14시 많고 12시 적음",
+          "measured": false
+        },
+        {
+          "what": "처리 시간 분포",
+          "source": "가정값 — 평균 serviceMinutes 의 지수분포",
+          "measured": false
+        },
+        {
+          "what": "예약 시각",
+          "source": "가정값 — 하루에 고르게 나눔, 예약자는 정시 도착",
+          "measured": false
+        }
+      ]
+    },
+    "resultFields": {
+      "judgement": [
+        "meanWaitMinutesAll",
+        "stdWaitMinutesAll",
+        "meanWaitMinutesServed",
+        "renegesPerDay",
+        "stdRenegesPerDay",
+        "renegeRate",
+        "byVisitorType"
+      ],
+      "judgementNote": "대기 시간은 meanWaitMinutesAll(처리 + 이탈)로 비교하되 renegesPerDay 와 함께 읽는다. 이탈이 늘면 줄이 짧아져 평균 대기가 낮아 보일 수 있다(예: 창구마다 줄). Served 는 이탈이 많을수록 오래 기다리던 사람이 빠져 더 낮게 나온다",
+      "explanation": [
+        "utilization",
+        "hourlyMeanWait",
+        "peakQueueLength",
+        "overtimeMinutesPerDay"
+      ],
+      "reference": [
+        "servedPerCounterPerDay"
+      ],
+      "integrity": [
+        "seeds",
+        "visitorBalanceErrorMax",
+        "allReneges",
+        "dataQualityFlags",
+        "assumptionNotes"
+      ],
+      "note": "reference 항목은 처리 시간 가정에 크게 기대므로 판정 근거로 쓰지 않는다"
+    },
+    "cost": {
+      "currency": "none",
+      "perRun": 0,
+      "compute": "local"
+    },
+    "performance": {
+      "model": "dailyVisitors × days × seeds 에 비례",
+      "typicalSeconds": 1,
+      "maxSeconds": 60
+    },
+    "conditional": [
+      {
+        "capability": "줄 서는 방식 비교",
+        "requires": "counterCount >= 2",
+        "ifUnmet": "DO_NOT_GENERATE",
+        "message": "창구가 하나면 줄도 하나뿐이라 줄 서는 방식이 결과를 바꾸지 않습니다."
+      },
+      {
+        "capability": "방문 예약제",
+        "requires": "reservationShare 명시",
+        "ifUnmet": "REJECT",
+        "message": "예약 비율을 정하지 않으면 실행하지 않습니다 — 0% 로 조용히 돌리지 않습니다."
+      },
+      {
+        "capability": "대기 이탈",
+        "requires": "maxWaitMinutes 명시",
+        "ifUnmet": "REJECT",
+        "message": "민원인이 언제 돌아가는지는 결과를 크게 바꾸므로 기본값을 두지 않습니다."
+      }
+    ],
+    "unsupported": [
+      {
+        "code": "UNSUPPORTED_METRIC",
+        "capability": "인건비 · 예산 산출",
+        "matchKeys": [
+          "인건비",
+          "예산",
+          "비용편익",
+          "채용 비용"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "창구 인력 비용 항이 모델에 없다",
+        "alternatives": [
+          "metric:waitTime",
+          "metric:utilization"
+        ],
+        "message": "인건비 · 예산은 산출하지 않습니다. 대기 시간 · 창구 가동률로 비교하실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_FEATURE",
+        "capability": "민원 종류별 전담 창구",
+        "matchKeys": [
+          "전담 창구",
+          "여권 창구",
+          "민원 종류별",
+          "업무별 창구"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "모든 창구가 모든 민원을 같은 평균 시간에 처리한다고 본다",
+        "alternatives": [
+          "평균 처리 시간 변경"
+        ],
+        "message": "민원 종류별 전담 창구는 다루지 않습니다. 평균 처리 시간을 바꿔 보는 실험은 할 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_FEATURE",
+        "capability": "무인 발급기 · 온라인 민원",
+        "matchKeys": [
+          "무인 발급기",
+          "무인민원",
+          "온라인 민원",
+          "정부24"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "창구 밖으로 빠지는 민원 경로가 없다",
+        "alternatives": [
+          "하루 방문객 수를 줄여 표현"
+        ],
+        "message": "무인 발급기 · 온라인 민원은 모델에 없습니다. 창구로 오는 방문객 수를 줄여 표현하실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_SCALE",
+        "capability": "여러 센터 · 시 전체",
+        "matchKeys": [
+          "모든 센터",
+          "시 전체",
+          "포항 전체",
+          "여러 주민센터"
+        ],
+        "reasonType": "NOT_IN_MODEL",
+        "reason": "센터 한 곳의 창구 묶음만 표현한다",
+        "alternatives": [
+          "센터 한 곳 창구 1~20개"
+        ],
+        "message": "여러 센터나 시 전체는 다루지 않습니다. 센터 한 곳의 창구 1~20개로 실험하실 수 있습니다."
+      },
+      {
+        "code": "UNSUPPORTED_METRIC",
+        "capability": "실시간 운영 예측",
+        "matchKeys": [
+          "지금 대기",
+          "오늘 몇 명",
+          "실시간 예측"
+        ],
+        "reasonType": "OUT_OF_SCOPE",
+        "reason": "실측 입력이 없는 설정 비교 실험이다",
+        "alternatives": [
+          "설정 간 비교"
+        ],
+        "message": "지금의 대기 인원을 예측하지 않습니다. 설정을 바꿔 가며 비교하는 실험입니다."
+      }
+    ],
+    "neverDo": [
+      "기본값이 없는 값(대기 한도 · 예약 비율)을 대신 채워 실행한다",
+      "잘못된 선택지를 가까운 값으로 보정한다",
+      "사용자가 승인하지 않은 설정으로 실행한다"
+    ],
+    "alwaysAttachToResult": [
+      "dataQualityFlags — DEMAND_ASSUMED · SERVICE_TIME_ASSUMED",
+      "assumptionNotes — 기본값으로 승인된 값, PES 에 없어 초기값으로 돈 값",
+      "visitorBalanceErrorMax — 방문 = 처리 + 이탈 인지",
+      "seeds, allReneges — 재현 정보",
+      "전제: 시간대별 방문 분포 · 처리 시간 분포는 가정값이다",
+      "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
+    ],
+    "schemaVersion": "1.0.0",
+    "capabilities": {
+      "simulationDuration": {
+        "min": {
+          "value": 1.0,
+          "unit": "day"
+        },
+        "max": {
+          "value": 60.0,
+          "unit": "day"
+        }
+      },
+      "outputs": [
+        "judgement.meanWaitMinutesAll",
+        "judgement.stdWaitMinutesAll",
+        "judgement.meanWaitMinutesServed",
+        "judgement.renegesPerDay",
+        "judgement.stdRenegesPerDay",
+        "judgement.renegeRate",
+        "judgement.byVisitorType",
+        "explanation.utilization",
+        "explanation.hourlyMeanWait",
+        "explanation.peakQueueLength",
+        "explanation.overtimeMinutesPerDay",
+        "reference.servedPerCounterPerDay"
+      ],
+      "constraints": {
+        "counterCount": {
+          "min": 1.0,
+          "max": 20.0
+        },
+        "dailyVisitors": {
+          "min": 1.0,
+          "max": 5000.0
+        },
+        "serviceMinutes": {
+          "min": 1.0,
+          "max": 60.0
+        },
+        "reservationShare": {
+          "min": 0.0,
+          "max": 1.0
+        },
+        "maxWaitMinutes": {
+          "min": 1.0,
+          "max": 240.0
+        },
+        "days": {
+          "min": 1.0,
+          "max": 60.0
+        },
+        "seeds": {
+          "min": 1.0,
+          "max": 100.0
+        }
+      }
+    }
+  }
+}
