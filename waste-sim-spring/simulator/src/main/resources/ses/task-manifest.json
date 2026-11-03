@@ -2,6 +2,16 @@
   "version": "1.0",
   "tasks": [
     {
+      "id": "region-data",
+      "label": "지역 데이터 검증",
+      "dependencies": [],
+      "subtasks": [],
+      "outputs": [
+        "validated-region-bundle"
+      ],
+      "validator": "REGION"
+    },
+    {
       "id": "vehicle",
       "label": "수거 차량 준비",
       "dependencies": [],
@@ -95,7 +105,8 @@
         "travel",
         "population",
         "site",
-        "experiment"
+        "experiment",
+        "region-data"
       ],
       "subtasks": [],
       "outputs": [
@@ -154,6 +165,7 @@
     "/traffic/jangryang-travel-times.json",
     "/traffic/jangryang-volume-weekday.json",
     "/traffic/jangryang-weekday.json",
-    "/traffic/jangryang-zone-travel-times.json"
+    "/traffic/jangryang-zone-travel-times.json",
+    "/regions/catalog.json"
   ]
 }

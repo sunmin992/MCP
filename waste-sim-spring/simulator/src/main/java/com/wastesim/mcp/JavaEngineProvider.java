@@ -28,8 +28,9 @@ public class JavaEngineProvider implements SimulationModelProvider {
 
     @Override
     public String description() {
-        return "장량동 원룸촌 생활쓰레기 DEVS 시뮬레이션을 Java 재구현 엔진으로 실행하고 "
-             + "월간 민원 통계를 반환한다.";
+        return "생활폐기물 수거 DEVS 모델을 이미 확인한 실행 설정으로 직접 실행한다. "
+             + "덕명동 등 지역명으로 기본 가상 실행을 요청한 경우에는 create_neighborhood_scenario로 "
+             + "지역과 기본값을 구성하고 확인 화면에서 승인한 뒤 run_scenario_by_token을 사용한다.";
     }
 
     @Override

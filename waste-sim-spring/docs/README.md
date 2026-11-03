@@ -23,11 +23,20 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 
 ## 운영 및 연동 가이드
 
+- [지역명으로 가상 시나리오 구성](guides/NEIGHBORHOOD_SCENARIOS.md)
+
 - [환경 설정](guides/ENV_SETUP.md)
 - [교통 CSV 연결](guides/CONNECT_TRAFFIC_CSV.md)
 - [MCP 모델 연결 방법](guides/MCP_MODEL_INTEGRATION.md)
 
 ## 참고 및 변경 기록
+
+- [시스템 구현 보완 계획](implementation-plan-2026-11-03.md)
+- [구현 보완 결과와 통합 검증](reports/implementation-2026-11-03/REPORT.md)
+- [임의 지역명 가상 시나리오 일반화와 검증](reports/neighborhood-generalization-2026-11-03/REPORT.md)
+- [LLM 요구 추출 평가 준비와 고정 구성/SES 비교](reports/model-evaluation-2026-11-03/REPORT.md)
+- [P0 테스트 기준선과 계약 조사](reports/p0-baseline-2026-11-03/REPORT.md)
+- [요구·능력 계약 비교와 P1 호환 정책](specifications/request-capability-contract.md)
 
 - [설계 결정 기록](reference/DESIGN_DECISIONS.md)
 - [채팅 자연어 요청 카탈로그](reference/CHAT_REQUEST_CATALOG.md)

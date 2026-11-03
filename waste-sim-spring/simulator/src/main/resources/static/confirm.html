@@ -139,6 +139,10 @@ async function loadDetail(id) {
     <div class="ask"><strong>LLM 이 전달한 사용자 요청</strong>
       <p>${d.request ? esc(d.request) : '<span style="color:#666">요청 원문이 함께 전달되지 않았습니다.</span>'}</p></div>
 
+    ${d.validation && d.validation.scenarioMode === 'ASSUMED_BLOCK'
+      ? `<div class="warn"><strong>${esc((d.validation.region || {}).label || '가상 동네 블록')}</strong>
+         <p>${esc(d.validation.dataNotice)}</p><p>아래 기본값과 지정한 조건을 확인한 뒤 실행을 승인해 주세요.</p></div>` : ''}
+
     ${unapproved.length ? (d.state === 'UNCONFIRMED'
       ? `<div class="warn"><strong>확인이 필요한 기본값·근거 미검증 값 ${unapproved.length}개</strong>
       <table><tr><th>항목</th><th>값</th></tr>

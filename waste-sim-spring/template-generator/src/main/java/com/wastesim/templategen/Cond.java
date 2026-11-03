@@ -115,6 +115,17 @@ sealed interface Cond {
         return and(List.of(new Atom(field, "present", null), not(new Atom(field, "empty", null))));
     }
 
+    /** Complex values outside the template type system are existential runtime inputs. */
+    static Cond opaqueFields(Cond c, Set<String> supported) {
+        return switch (c) {
+            case Atom a when !supported.contains(a.field()) -> new Runtime("지원하지 않는 값 종류: " + a);
+            case And a -> and(a.parts().stream().map(p -> opaqueFields(p, supported)).toList());
+            case Or o -> or(o.parts().stream().map(p -> opaqueFields(p, supported)).toList());
+            case Not n -> not(opaqueFields(n.inner(), supported));
+            default -> c;
+        };
+    }
+
     /** 이 필드에 대한 원자를 실행 조건으로 바꾼다. 필드 자신의 존재 확인은 생성 조건이 아니다. */
     static Cond selfAsRuntime(Cond c, String field) {
         return switch (c) {

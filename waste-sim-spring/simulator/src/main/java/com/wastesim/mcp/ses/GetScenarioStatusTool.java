@@ -76,6 +76,9 @@ public class GetScenarioStatusTool implements McpToolProvider {
             root.put("scenarioId", scenarioId);
             root.put("state", store.validationCurrent(scenarioId) ? e.state() : "STALE");
             root.set("validation", store.validation(scenarioId));
+            root.set("region", store.validation(scenarioId).path("region"));
+            root.set("scenarioMode", store.validation(scenarioId).path("scenarioMode"));
+            root.set("dataNotice", store.validation(scenarioId).path("dataNotice"));
             root.put("runCount", e.scenario().runs().size());
             root.put("unapprovedDefaultCount", e.pes().unapprovedDefaults().size());
             root.put("confirmUrl", confirmUrl);

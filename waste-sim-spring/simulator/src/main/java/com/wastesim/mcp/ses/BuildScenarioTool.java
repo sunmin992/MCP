@@ -75,9 +75,14 @@ public class BuildScenarioTool implements McpToolProvider {
 
     @Override
     public String inputSchemaJson() {
-        return """
+        return com.wastesim.contract.RequirementContract.toolSchema("""
             {"type":"object",
              "properties":{
+               "regionId":{"type":"string","description":"지역 데이터 ID 또는 사용자 지역명. 미등록 지역은 공통 기본값의 가상 블록으로 구성"},
+               "scenarioMode":{"enum":["ASSUMED_BLOCK"],"description":"가상 블록 구성 시 지정"},
+               "selection":{"type":"object","description":"Forward broker selection unchanged; client assertion, not approval"},
+               "requirements":{"type":"object","description":"Original broker requirements, schemaVersion 1.0.0"},
+               "matchId":{"type":"string","description":"Broker round.matchId, for trace correlation; not an authenticated selection"},
                "values":{"type":"object","description":"답변키 → 확정값"},
                "origins":{"type":"object","description":"답변키 → USER / MODEL_DEFAULT / DERIVED. 사용자가 값을 직접 말했을 때만 USER, '기본값으로' 처럼 값 없이 넘긴 것은 MODEL_DEFAULT. 적지 않으면 MODEL_DEFAULT"},
                "variableAnswerKey":{"type":"string","description":"실험 변수의 답변키"},
@@ -91,7 +96,7 @@ public class BuildScenarioTool implements McpToolProvider {
                "evidence":{"type":"object","description":"답변키 → 그 값의 근거가 된 사용자 발화 구절(그대로 옮긴다). USER 값과, 조건부 결정에 기본값을 쓸 때 필요하다"},
                "planId":{"type":"string","description":"plan_subtasks 가 준 planId. 주면 생성 결과와 이후 확인 · 실행을 그 요청의 기록에 잇는다"}},
              "required":["values","variableAnswerKey","variableValues","request"]}
-            """;
+            """);
     }
 
     @Override
@@ -147,11 +152,22 @@ public class BuildScenarioTool implements McpToolProvider {
                 guardUnverified = guard.unverified();
             }
 
+            String regionId = args.path("regionId").asText(args.path("requirements").path("regionId").asText(
+                    args.path("selection").path("requirements").path("regionId").asText("jangnyang")));
+            var region = new com.wastesim.region.RegionCatalog().region(regionId);
+            region.path("defaults").fields().forEachRemaining(e -> {
+                String key = catalog.all().stream().filter(t -> t.configField().equals(e.getKey()))
+                        .findFirst().orElseThrow(() -> new IllegalArgumentException("지역 필드에 템플릿이 없습니다: " + e.getKey())).answerKey();
+                if (!values.containsKey(key) && !key.equals(args.path("variableAnswerKey").asText())) {
+                    values.put(key, JsonValues.plain(e.getValue()));
+                    origins.put(key, "REGION_DATA");
+                }
+            });
             Pes pes = new Pes(catalog.sesId(), catalog.sesVersion(), values, origins);
             ExperimentFrame frame = new ExperimentFrame(
                     args.path("variableAnswerKey").asText(), variableValues, observations);
 
-            Scenario scenario = builder.build(pes, frame);
+            Scenario scenario = builder.build(pes, frame, region);
 
             // 빌더가 가지친 쪽이라 실행 설정에서 뺀 값(기본값, 또는 다른 비교 값에서만 생기는 결정의 값 —
             // 이쪽은 늘 일부 실행에서만 빠진다). 모든 실행에서 뺐으면 보관 PES 에서도 지운다 —
@@ -200,8 +216,41 @@ public class BuildScenarioTool implements McpToolProvider {
             var purposeSpec = args.path("purpose").isMissingNode() ? null : args.path("purpose").deepCopy();
             var purposeCheck = com.wastesim.readiness.PurposeCheck.evaluate(purposeSpec, frame.variableAnswerKey(),
                     frame.values(), builder.comparisonValues(frame, scenario), frame.observations(), builder.availableObservations(scenario));
-            boolean ready = scenario.valid() && taskReadiness.ready() && purposeCheck.acceptable();
+            var providerCard = new com.wastesim.capability.CapabilityCardLoader().rawJson();
+            var requirements = com.wastesim.contract.SelectionContract.requirements(args, providerCard);
+            var requirementReport = com.wastesim.contract.SelectionContract.verify(requirements, providerCard,
+                    mapper.valueToTree(scenario.runs()), observations, builder.availableObservations(scenario));
+            var requirementChecks = requirementReport.checks();
+            boolean requirementReady = requirementReport.ready();
+            boolean ready = requirementReady && scenario.valid() && taskReadiness.ready() && purposeCheck.acceptable();
             var proof = mapper.createObjectNode();
+            proof.put("matchId", args.path("selection").path("matchId").asText(args.path("matchId").asText(null)));
+            proof.set("selection", args.path("selection"));
+            proof.set("requirementErrors", mapper.valueToTree(requirementReport.errors()));
+            proof.set("requirements", requirements);
+            proof.set("requirementChecks", mapper.valueToTree(requirementChecks));
+            proof.put("requirementReady", requirementReady);
+            proof.set("region", region);
+            boolean assumed = region.path("synthetic").asBoolean() || args.path("scenarioMode").asText().equals("ASSUMED_BLOCK");
+            proof.put("scenarioMode", assumed ? "ASSUMED_BLOCK" : "CONFIGURED_MODEL");
+            proof.put("dataNotice", assumed ? "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다." : "제공자 모델과 지정한 입력을 사용합니다.");
+            var structural = proof.putArray("structureSelection");
+            for (Object comparison : frame.values()) {
+                var selectedValues = new LinkedHashMap<String, Object>(values);
+                selectedValues.put(frame.variableAnswerKey(), comparison);
+                var selection = structural.addObject();
+                selection.set("comparisonValue", mapper.valueToTree(comparison));
+                var decisions = selection.putArray("decisions");
+                for (var instance : builder.selection(selectedValues).instances()) {
+                    var template = catalog.byAnswerKey(instance.answerKey()).orElseThrow();
+                    var decision = decisions.addObject();
+                    decision.put("sesPath", template.sesPath());
+                    decision.put("nodeKind", template.nodeKind());
+                    decision.put("configField", template.configField());
+                    decision.put("selected", instance.status() != com.wastesim.template.SubtaskStatus.NOT_GENERATED);
+                    decision.set("input", mapper.valueToTree(instance));
+                }
+            }
             proof.set("taskReadiness", mapper.valueToTree(taskReadiness));
             proof.set("taskDefinitions", mapper.valueToTree(builder.manifest().tasks()));
             proof.set("purposeCheck", mapper.valueToTree(purposeCheck));
@@ -212,7 +261,8 @@ public class BuildScenarioTool implements McpToolProvider {
             proof.put("ready", ready);
             proof.put("requestId", requestId);
             final Pes validatedPes = pes;
-            java.util.function.Supplier<String> fingerprint = () -> builder.validationFingerprint(validatedPes, frame, scenario, purposeSpec);
+            java.util.function.Supplier<String> fingerprint = () -> builder.validationFingerprint(validatedPes, frame, scenario, purposeSpec)
+                    + ":" + com.wastesim.readiness.ValidationReceipt.fingerprint(requirements);
             final String linkedPlan = planId;
             final var baseFingerprint = fingerprint;
             fingerprint = () -> baseFingerprint.get() + ":" + (rounds == null || linkedPlan == null
@@ -244,6 +294,13 @@ public class BuildScenarioTool implements McpToolProvider {
             root.put("scenarioId", scenario.scenarioId());
             root.put("valid", ready);
             root.put("requestId", requestId);
+            root.put("requirementReady", requirementReady);
+            root.set("requirementErrors", mapper.valueToTree(requirementReport.errors()));
+            root.set("requirementChecks", mapper.valueToTree(requirementChecks));
+            root.set("region", region);
+            root.set("scenarioMode", proof.path("scenarioMode"));
+            root.set("dataNotice", proof.path("dataNotice"));
+            root.set("structureSelection", proof.path("structureSelection"));
             root.set("purposeCheck", mapper.valueToTree(purposeCheck));
             root.set("taskDefinitions", mapper.valueToTree(builder.manifest().tasks()));
             root.set("validation", ready ? store.validation(scenario.scenarioId()) : proof);

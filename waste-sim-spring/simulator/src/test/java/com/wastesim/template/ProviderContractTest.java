@@ -33,7 +33,7 @@ class ProviderContractTest {
         assertThrows(IllegalArgumentException.class,()->manifest.instantiateWithChecks("",checks));
     }
     @Test void providerManifestCoversEveryTemplateAndHasExplicitOutputs() {
-        var manifest = TaskManifest.load(ProviderContractTest.class);
+        var manifest = TaskManifest.load(ProviderContractTest.class, Set.of("INPUTS", "CONFIG", "ROUNDTRIP", "SCENARIO", "REGION"));
         manifest.verifyCoverage(new TemplateCatalog().all().stream().map(SubtaskTemplate::answerKey).collect(java.util.stream.Collectors.toSet()));
         assertTrue(manifest.tasks().stream().allMatch(t -> !t.outputs().isEmpty() && !t.label().isBlank()));
         assertFalse(manifest.resourceFingerprint(ProviderContractTest.class).isBlank());

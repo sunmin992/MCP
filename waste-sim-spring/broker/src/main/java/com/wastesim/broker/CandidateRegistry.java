@@ -160,6 +160,7 @@ public class CandidateRegistry {
 
     /** 검사하고 넣는다. 파일에서 되살릴 때는 다시 쓰지 않으려고 {@link #register} 와 나눴다. */
     private boolean accept(JsonNode card) {
+        com.wastesim.contract.RequirementContract.validateCard(card);
         String serverId = requireServerId(card, "등록 요청");
         if (card.path("endpoint").asText().isBlank()) {
             throw new IllegalArgumentException(

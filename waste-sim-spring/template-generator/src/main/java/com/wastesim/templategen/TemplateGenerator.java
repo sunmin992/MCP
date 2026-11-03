@@ -113,7 +113,16 @@ public final class TemplateGenerator {
                 new Truth.Kind(d.valueType(), d.allowed, d.min, d.max, d.minExclusive, d.maxExclusive)));
 
         List<GeneratedTemplate> out = new ArrayList<>();
-        for (Draft d : drafts.values()) out.add(d.build(conditions.get(d.f.name()), kinds, !modelClasses.isEmpty()));
+        for (Draft d : drafts.values()) {
+            var extracted = conditions.get(d.f.name());
+            if (extracted != null) {
+                var condition = Cond.opaqueFields(extracted.condition(), drafts.keySet());
+                var hints = new java.util.LinkedHashSet<String>(extracted.runtimeHints());
+                Cond.collect(condition, new java.util.LinkedHashSet<>(), hints, new LinkedHashMap<>());
+                extracted = new ConditionExtractor.Extracted(condition, extracted.readSites(), List.copyOf(hints));
+            }
+            out.add(d.build(extracted, kinds, !modelClasses.isEmpty()));
+        }
         return new Result(out, skipped);
     }
 

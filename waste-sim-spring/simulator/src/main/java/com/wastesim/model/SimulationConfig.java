@@ -8,6 +8,15 @@ import java.util.List;
 
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class SimulationConfig {
+    private static final String DEFAULT_REGION_DIGEST = com.wastesim.region.RegionCatalog.digest(
+            new com.wastesim.region.RegionCatalog().region("jangnyang"));
+    private String regionId = "jangnyang";
+    private String regionDataDigest = DEFAULT_REGION_DIGEST;
+    public String getRegionId() { return regionId; }
+    public void setRegionId(String value) { regionId = value; }
+    public String getRegionDataDigest() { return regionDataDigest; }
+    public void setRegionDataDigest(String value) { regionDataDigest = value; }
+
 
     private int collectionTimeMinutes = 12 * 60;   // 12:00 (720 min)
     private int days = 30;
@@ -435,6 +444,8 @@ public class SimulationConfig {
     /** 동일한 설정의 복사본(시나리오 sweep에서 일부 파라미터만 바꿔 재사용). */
     public SimulationConfig copy() {
         SimulationConfig c = new SimulationConfig();
+        c.regionId = regionId;
+        c.regionDataDigest = regionDataDigest;
         c.collectionTimeMinutes = collectionTimeMinutes;
         c.days = days;
         c.seeds = seeds;

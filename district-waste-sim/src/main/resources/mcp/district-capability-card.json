@@ -126,5 +126,68 @@
     "전제: 세대당 배출량 · 싣는 속도는 가정값이다",
     "한계: 구역 합계만 본다 — 수거장별 적재 · 민원은 말할 수 없다",
     "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
-  ]
+  ],
+  "schemaVersion": "1.0.0",
+  "capabilities": {
+    "simulationDuration": {
+      "min": {
+        "value": 7.0,
+        "unit": "day"
+      },
+      "max": {
+        "value": 365.0,
+        "unit": "day"
+      }
+    },
+    "outputs": [
+      "judgement.leftoverKgPerCollectionDay",
+      "judgement.stdLeftoverKgPerCollectionDay",
+      "judgement.leftoverZoneDaysPerWeek",
+      "judgement.maxWaitDays",
+      "explanation.maxZoneBacklogKg",
+      "explanation.preCollectionKgPerCollectionDay",
+      "explanation.leftoverKgByHousingType",
+      "explanation.generatedKgByWeekday",
+      "explanation.collectedKgByWeekday",
+      "explanation.collectionDaysRun",
+      "explanation.skippedForHoliday",
+      "reference.truckUtilization",
+      "reference.workMinutesPerTruckDay",
+      "reference.tripsPerCollectionDay"
+    ],
+    "constraints": {
+      "zoneCount": {
+        "min": 1.0,
+        "max": 40.0
+      },
+      "householdsPerZone": {
+        "min": 50.0,
+        "max": 5000.0
+      },
+      "truckCount": {
+        "min": 1.0,
+        "max": 20.0
+      },
+      "transferRoundTripMinutes": {
+        "min": 10.0,
+        "max": 300.0
+      },
+      "collectionStartMinutes": {
+        "min": 0.0,
+        "max": 1439.0
+      },
+      "shiftMinutes": {
+        "min": 120.0,
+        "max": 720.0
+      },
+      "days": {
+        "min": 7.0,
+        "max": 365.0
+      },
+      "seeds": {
+        "min": 1.0,
+        "max": 100.0
+      }
+    }
+  }
 }

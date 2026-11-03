@@ -209,6 +209,10 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             root.put("notForOperationalUse", true);
             root.put("limitation", "이 결과는 설정 간 비교이며 운영 예측이 아니다.");
             root.set("runs", runs);
+            root.set("validation", store.validation(scenarioId));
+            root.set("region", store.validation(scenarioId).path("region"));
+            root.set("scenarioMode", store.validation(scenarioId).path("scenarioMode"));
+            root.set("dataNotice", store.validation(scenarioId).path("dataNotice"));
             root.put("purposeResultCheck", requestedPurpose.isObject() ? "VERIFIED" : "NOT_SPECIFIED");
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {

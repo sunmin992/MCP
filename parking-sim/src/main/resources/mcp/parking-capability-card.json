@@ -131,5 +131,81 @@
     "전제: 이용자 도착 분포 · 체류 · 요금 민감도는 가정값이다",
     "한계: 주차장은 한 줄로 늘어선 것으로 가정하며 실제 좌표 · 도로망이 아니다",
     "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
-  ]
+  ],
+  "schemaVersion": "1.0.0",
+  "capabilities": {
+    "simulationDuration": {
+      "min": {
+        "value": 1.0,
+        "unit": "day"
+      },
+      "max": {
+        "value": 90.0,
+        "unit": "day"
+      }
+    },
+    "outputs": [
+      "judgement.meanSearchMinutesAll",
+      "judgement.stdSearchMinutesAll",
+      "judgement.meanSearchMinutesParked",
+      "judgement.stdSearchMinutesParked",
+      "judgement.giveUpsPerDay",
+      "judgement.stdGiveUpsPerDay",
+      "judgement.giveUpRate",
+      "judgement.byUserType",
+      "explanation.peakOccupancyRatio",
+      "explanation.lotPeakOccupancy",
+      "explanation.hourlyOccupancy",
+      "explanation.fullMinutesPerLotPerDay",
+      "explanation.priceAvoidedPerDay",
+      "reference.revenuePerDay",
+      "reference.interLotMovesPerDay"
+    ],
+    "constraints": {
+      "lotCount": {
+        "min": 1.0,
+        "max": 12.0
+      },
+      "spacesPerLot": {
+        "min": 10.0,
+        "max": 1000.0
+      },
+      "baseFeePer30Min": {
+        "min": 0.0,
+        "max": 10000.0
+      },
+      "peakSurchargeRate": {
+        "min": 0.0,
+        "max": 3.0
+      },
+      "residentPriorityShare": {
+        "min": 0.0,
+        "max": 0.9
+      },
+      "dailyArrivals": {
+        "min": 1.0,
+        "max": 20000.0
+      },
+      "guidanceRefreshMinutes": {
+        "min": 1.0,
+        "max": 60.0
+      },
+      "maxSearchMinutes": {
+        "min": 1.0,
+        "max": 60.0
+      },
+      "lotSpacingMinutes": {
+        "min": 0.5,
+        "max": 30.0
+      },
+      "days": {
+        "min": 1.0,
+        "max": 90.0
+      },
+      "seeds": {
+        "min": 1.0,
+        "max": 100.0
+      }
+    }
+  }
 }

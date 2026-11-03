@@ -24,9 +24,16 @@ public record MatchResult(
         List<String> reasons,
         List<String> mismatches,
         List<String> ambiguities,
-        List<RequestAdjustment> requestAdjustments) {
+        List<RequestAdjustment> requestAdjustments,
+        List<com.wastesim.contract.RequirementContract.Check> conditionChecks) {
+
+    public MatchResult(String serverId, String name, String endpoint, boolean fictional, List<String> reasons,
+            List<String> mismatches, List<String> ambiguities, List<RequestAdjustment> requestAdjustments) {
+        this(serverId, name, endpoint, fictional, reasons, mismatches, ambiguities, requestAdjustments, List.of());
+    }
 
     public MatchResult {
+        conditionChecks = List.copyOf(conditionChecks);
         reasons = List.copyOf(reasons);
         mismatches = List.copyOf(mismatches);
         ambiguities = List.copyOf(ambiguities);

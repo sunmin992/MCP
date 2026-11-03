@@ -75,6 +75,8 @@ public class SimulationConfigValidator {
             return ValidationResult.fail(errs);
         }
 
+        for (String error : new com.wastesim.region.RegionCatalog().check(c))
+            errs.add(new ValidationError(ErrorCode.INVALID_ARGUMENTS, "regionId", error));
         int t = c.getCollectionTimeMinutes();
         if (t < 0 || t > 1439)
             errs.add(new ValidationError(ErrorCode.OUT_OF_RANGE, "collectionTime", "수거 시각은 00:00~23:59(0~1439분) 범위여야 합니다."));
@@ -618,7 +620,9 @@ public class SimulationConfigValidator {
         // 같은 파일에 있어 측정치처럼 보이는 문제도 있었다.
         //
         // 등록되지 않은 지점은 막지 않는다 — 접근성을 모르는 것과 못 들어간다는 것은 다르다.
-        if (!truckType.alleyAccess) {
+        var regionCatalog = new com.wastesim.region.RegionCatalog();
+        if (!truckType.alleyAccess && regionCatalog.check(c).isEmpty()
+                && !regionCatalog.region(c.getRegionId()).path("synthetic").asBoolean()) {
             Set<String> targetNodes = (routeValid && seq != null && !seq.isEmpty())
                     ? new HashSet<>(seq) : allNodeIds(c.getNumBuildings());
             List<String> blocked = sites.largeTruckBlockedAmong(targetNodes);

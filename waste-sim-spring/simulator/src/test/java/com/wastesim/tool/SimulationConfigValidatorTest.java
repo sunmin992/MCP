@@ -146,6 +146,17 @@ class SimulationConfigValidatorTest {
         assertTrue(r.errors().stream().anyMatch(e -> e.code() == ErrorCode.TRAFFIC_INFEASIBLE));
     }
 
+    @Test
+    void assumedNeighborhoodDoesNotBorrowJangnyangSiteAccessRestrictions() {
+        SimulationConfig c = new SimulationConfig();
+        c.setRegionId("덕명동");
+        c.setRegionDataDigest(com.wastesim.region.RegionCatalog.digest(new com.wastesim.region.RegionCatalog().region("덕명동")));
+        c.setTrafficEnabled(false);
+        c.setTruckType("LARGE_5TON");
+        assertTrue(withAlleys.validate(c).errors().stream().noneMatch(e -> e.code() == ErrorCode.TRAFFIC_INFEASIBLE),
+                "다른 지역의 Node_A는 장량동 Node_A의 골목 접근성 자료를 가져오면 안 됩니다");
+    }
+
     /** 운영 데이터에는 골목이 없다 — 사실에 맞는 결과이므로 5톤이 막히지 않아야 한다. */
     @Test
     void operationalDataHasNoAlleysSoLargeTruckIsNotBlocked() {

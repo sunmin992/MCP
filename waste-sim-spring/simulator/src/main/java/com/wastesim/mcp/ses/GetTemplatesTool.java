@@ -44,7 +44,9 @@ public class GetTemplatesTool implements McpToolProvider {
             root.put("sesId", catalog.sesId());
             root.put("sesVersion", catalog.sesVersion());
             root.set("templates", mapper.valueToTree(catalog.all()));
-            root.set("taskManifest", mapper.valueToTree(com.wastesim.readiness.TaskManifest.load(GetTemplatesTool.class)));
+            root.set("regions", mapper.valueToTree(new com.wastesim.region.RegionCatalog().all()));
+            root.set("genericRegionProfile", new com.wastesim.region.RegionCatalog().genericProfile());
+            root.set("taskManifest", mapper.valueToTree(com.wastesim.readiness.TaskManifest.load(GetTemplatesTool.class, java.util.Set.of("INPUTS", "CONFIG", "ROUNDTRIP", "SCENARIO", "REGION"))));
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("templates", "템플릿을 직렬화하지 못했습니다: " + e.getMessage());

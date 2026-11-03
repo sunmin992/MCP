@@ -10,7 +10,7 @@ public final class RevisionInput {
         var json = new ObjectMapper();
         var out = json.createObjectNode();
         out.set("answers", args.path(args.has("answers") ? "answers" : "values"));
-        for (String k : new String[]{"origins", "variableAnswerKey", "variableValues", "userUtterances", "evidence", "purpose", "observations", "request"})
+        for (String k : new String[]{"selection", "regionName", "scenarioMode", "regionId", "requirements", "matchId", "origins", "variableAnswerKey", "variableValues", "userUtterances", "evidence", "purpose", "observations", "request"})
             out.set(k, args.path(k));
         return out;
     }

@@ -1,7 +1,7 @@
 {
   "_comment": "0단계 broker.register_simulator 페이로드. 근거: docs/reports/2026-09-23-장량동-실행가능-기능과-범위.md, docs/superpowers/specs/2026-09-23-지원범위-계약.md. 값은 SimulationConfigValidator와 리소스 파일에서 확인한 것이다.",
   "serverId": "jangnyang-waste-sim",
-  "name": "장량동 생활쓰레기 수거 시뮬레이터",
+  "name": "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
   "endpoint": "http://localhost:8090/mcp",
   "domain": [
     "waste-collection"
@@ -954,5 +954,68 @@
     "전제: 지점 정차시간이 0분이면 가동률·완료 시각은 참고치다",
     "한계: 교통구역 근사면 같은 구역 안 방문 순서가 반영되지 않는다",
     "한계: 이 결과는 설정 간 비교이며 운영 예측이 아니다"
-  ]
+  ],
+  "schemaVersion": "1.0.0",
+  "capabilities": {
+    "simulationDuration": {
+      "min": {
+        "value": 1,
+        "unit": "day"
+      },
+      "max": {
+        "value": 365,
+        "unit": "day"
+      }
+    },
+    "outputs": [
+      "meanComplaints",
+      "stdComplaints",
+      "complaintsByOccupation",
+      "truckUtilizationPercent",
+      "uncollectedDemandKg",
+      "peakFillKg",
+      "peakFillRatio",
+      "siteCapacityKg",
+      "complaintThresholdRatio",
+      "residualWasteKg",
+      "avgRouteDurationMinutes"
+    ],
+    "constraints": {
+      "dispatchIntervalMinutes": {
+        "min": 0,
+        "max": 1439
+      },
+      "collectionTimeMinutes": {
+        "min": 0,
+        "max": 1439
+      },
+      "numBuildings": {
+        "min": 1,
+        "max": 26
+      },
+      "days": {
+        "min": 1,
+        "max": 365
+      },
+      "seeds": {
+        "min": 1,
+        "max": 100
+      },
+      "threshold": {
+        "min": 0,
+        "max": 1
+      }
+    },
+    "regionPolicy": {"mode":"ASSUMED_BLOCK_FOR_ANY_LABEL","scope":"block","requiresHumanConfirmation":true,"notMeasuredRegionData":true},
+    "regions": [
+      "jangnyang",
+      "synthetic-block"
+    ],
+    "conditionalOutputs": [
+      "peakFillRatio",
+      "siteCapacityKg",
+      "complaintThresholdRatio",
+      "avgRouteDurationMinutes"
+    ]
+  }
 }

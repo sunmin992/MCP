@@ -64,9 +64,11 @@ public class BuildScenarioTool implements McpToolProvider {
 
     @Override
     public String inputSchemaJson() {
-        return """
+        return com.wastesim.contract.RequirementContract.toolSchema("""
             {"type":"object",
              "properties":{
+               "requirements":{"type":"object","description":"Original versioned broker requirements"},
+               "selection":{"type":"object","description":"Forward broker selection unchanged; not approval"},
                "values":{"type":"object","description":"답변키 → 확정값"},
                "origins":{"type":"object","description":"답변키 → USER / MODEL_DEFAULT / DERIVED. 사용자가 값을 직접 말했을 때만 USER, '기본값으로' 처럼 값 없이 넘긴 것은 MODEL_DEFAULT. 적지 않으면 MODEL_DEFAULT"},
                "variableAnswerKey":{"type":"string","description":"실험 변수의 답변키"},
@@ -79,7 +81,7 @@ public class BuildScenarioTool implements McpToolProvider {
                "evidence":{"type":"object"},
                "request":{"type":"string","description":"사용자가 처음 한 요청 원문(요약하거나 바꿔 쓰지 않는다). 확인 화면이 설정 옆에 그대로 보여 준다 — 사용자는 자기 요청과 설정이 맞는지 보고 승인한다"}},
              "required":["values","variableAnswerKey","variableValues","request"]}
-            """;
+            """);
     }
 
     @Override
@@ -165,8 +167,16 @@ public class BuildScenarioTool implements McpToolProvider {
             var purposeSpec = args.path("purpose").isMissingNode() ? null : args.path("purpose").deepCopy();
             var purposeCheck = com.wastesim.readiness.PurposeCheck.evaluate(purposeSpec, frame.variableAnswerKey(),
                     frame.values(), builder.comparisonValues(frame, scenario), frame.observations(), builder.availableObservations(scenario));
-            boolean ready = scenario.valid() && taskReadiness.ready() && purposeCheck.acceptable();
+            var providerCard = new com.countersim.capability.CapabilityCardLoader().rawJson();
+            var requirements = com.wastesim.contract.SelectionContract.requirements(args, providerCard);
+            var requirementReport = com.wastesim.contract.SelectionContract.verify(requirements, providerCard,
+                    mapper.valueToTree(scenario.runs()), observations, builder.availableObservations(scenario));
+            boolean ready = requirementReport.ready() && scenario.valid() && taskReadiness.ready() && purposeCheck.acceptable();
             var proof = mapper.createObjectNode();
+            proof.put("matchId", args.path("selection").path("matchId").asText(null));
+            proof.set("selection", args.path("selection"));
+            proof.set("requirements", requirements);
+            proof.set("requirementReport", mapper.valueToTree(requirementReport));
             proof.set("taskReadiness", mapper.valueToTree(taskReadiness));
             proof.set("taskDefinitions", mapper.valueToTree(builder.manifest().tasks()));
             proof.set("purposeCheck", mapper.valueToTree(purposeCheck));
@@ -177,7 +187,8 @@ public class BuildScenarioTool implements McpToolProvider {
             proof.put("ready", ready);
             proof.put("requestId", requestId);
             final Pes validatedPes = pes;
-            java.util.function.Supplier<String> fingerprint = () -> builder.validationFingerprint(validatedPes, frame, scenario, purposeSpec);
+            java.util.function.Supplier<String> fingerprint = () -> builder.validationFingerprint(validatedPes, frame, scenario, purposeSpec)
+                    + ":" + com.wastesim.readiness.ValidationReceipt.fingerprint(requirements);
 
             if (ready) store.putValidated(scenario, pes, args.path("request").asText(null), requestId, proof, fingerprint);
 
@@ -187,6 +198,7 @@ public class BuildScenarioTool implements McpToolProvider {
             root.put("scenarioId", scenario.scenarioId());
             root.put("valid", ready);
             root.put("requestId", requestId);
+            root.set("requirementReport", mapper.valueToTree(requirementReport));
             root.set("purposeCheck", mapper.valueToTree(purposeCheck));
             root.set("taskDefinitions", mapper.valueToTree(builder.manifest().tasks()));
             root.set("validation", ready ? store.validation(scenario.scenarioId()) : proof);

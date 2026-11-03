@@ -58,7 +58,7 @@ public class ScenarioBuilder {
     private final String loadedResources = manifest().resourceFingerprint(ScenarioBuilder.class);
 
     public com.wastesim.readiness.TaskManifest manifest() {
-        return com.wastesim.readiness.TaskManifest.load(ScenarioBuilder.class);
+        return com.wastesim.readiness.TaskManifest.load(ScenarioBuilder.class, java.util.Set.of("INPUTS", "CONFIG", "ROUNDTRIP", "SCENARIO", "REGION"));
     }
 
     public com.wastesim.readiness.TaskCompletion.Report readiness(Pes pes, ExperimentFrame frame, Scenario scenario) {
@@ -79,6 +79,8 @@ public class ScenarioBuilder {
             }
             Map<String, List<String>> errors = new LinkedHashMap<>();
             errors.put("INPUTS", List.of());
+            errors.put("REGION", runIndex < scenario.runs().size()
+                    ? new com.wastesim.region.RegionCatalog().check(scenario.runs().get(runIndex)) : List.of("실행 설정 누락"));
             List<String> configErrors = new ArrayList<>(scenario.blocks());
             if (scenario.runs().size() != frame.values().size()) configErrors.add("실험 조건과 실행 설정 수가 다릅니다");
             if (runIndex < scenario.runs().size()) {
@@ -136,7 +138,13 @@ public class ScenarioBuilder {
         return values;
     }
 
+    public com.wastesim.template.SubtaskPlan selection(Map<String, Object> values) { return planner.plan(values); }
+
     public Scenario build(Pes pes, ExperimentFrame frame) {
+        return build(pes, frame, new com.wastesim.region.RegionCatalog().region("jangnyang"));
+    }
+
+    public Scenario build(Pes pes, ExperimentFrame frame, com.fasterxml.jackson.databind.JsonNode region) {
         List<SimulationConfig> runs = new ArrayList<>();
         List<String> blocks = new ArrayList<>();
         List<String> backBlocks = new ArrayList<>();
@@ -214,6 +222,9 @@ public class ScenarioBuilder {
             if (dropped) runPes = new Pes(pes.sesId(), pes.sesVersion(), values, origins);
 
             SimulationConfig cfg = flattener.flatten(runPes);
+            cfg.setRegionId(region.path("id").asText());
+            cfg.setRegionDataDigest(com.wastesim.region.RegionCatalog.digest(region));
+            blocks.addAll(new com.wastesim.region.RegionCatalog().check(cfg));
             runs.add(cfg);
 
             ValidationResult result = validator.validate(cfg);
@@ -228,7 +239,7 @@ public class ScenarioBuilder {
         // 실험 프레임까지 넣어야 식별자가 된다. 값을 빼면 같은 PES 에 조건만 다른
         // 시나리오 둘이 같은 id 를 갖고 보관소에서 서로를 덮는다.
         String scenarioId = "scn-" + Integer.toHexString(
-                Objects.hash(pes.values(), frame.variableAnswerKey(), frame.values()));
+                Objects.hash(pes.values(), frame.variableAnswerKey(), frame.values(), region.path("id").asText()));
 
         // 토큰은 여기서 주지 않는다. 검증 통과는 "돌릴 수 있다" 이지 "사용자가 확인했다"가
         // 아니다. 확인 단계(confirm)가 발급하며, 그래서 토큰 없음 = 미확인이 된다.

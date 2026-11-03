@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0.0",
+  "genericProfile": {
+    "id": "generic-neighborhood-profile", "version": "1.0.0",
+    "label": "공통 가상 동네 블록", "source": "공통 모델 기본값. 해당 지역의 실측 자료가 아님",
+    "synthetic": true, "basis": "COMMON_MODEL_ASSUMPTIONS", "scope": "block",
+    "defaults": {"numBuildings": 4, "residentsPerBuilding": 25},
+    "supportedTravelModes": ["LEGACY_CONSTANT"], "allowProviderTraffic": false
+  },
+  "regions": [
+    {
+      "id": "jangnyang", "version": "1.0.0", "label": "장량동 블록 모델",
+      "source": "기존 장량동 제공자 모델 및 기본값", "synthetic": false,
+      "defaults": {}, "supportedTravelModes": ["LEGACY_CONSTANT", "ZONE_PROXY_HYBRID", "OSRM_HYBRID"],
+      "allowProviderTraffic": true
+    },
+    {
+      "id": "synthetic-block", "version": "1.0.0", "label": "다른 지역 구성 검증용 합성 블록",
+      "source": "구현 검증용 합성 데이터. 실제 덕명동 또는 다른 행정구역의 실측 데이터가 아님",
+      "synthetic": true,
+      "defaults": {"numBuildings": 6, "residentsPerBuilding": 12},
+      "supportedTravelModes": ["LEGACY_CONSTANT"], "allowProviderTraffic": false
+    }
+  ]
+}

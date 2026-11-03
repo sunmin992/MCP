@@ -27,9 +27,16 @@ public record RequestProfile(
         List<String> environmentConditions,
         String objective,
         List<String> comparisonAxes,
-        List<String> population) {
+        List<String> population,
+        com.fasterxml.jackson.databind.JsonNode requirements) {
+
+    public RequestProfile(String domain, String spatialScale, List<String> environmentConditions,
+                          String objective, List<String> comparisonAxes, List<String> population) {
+        this(domain, spatialScale, environmentConditions, objective, comparisonAxes, population, null);
+    }
 
     public RequestProfile {
+        requirements = com.wastesim.contract.RequirementContract.validate(requirements);
         if (domain == null || domain.isBlank()) {
             throw new IllegalArgumentException(
                     "도메인이 없습니다 — 도메인 없이는 후보를 거를 축이 하나도 없습니다");

@@ -1,8 +1,9 @@
 # Waste Sim Spring
 
-포항시 북구 장량동 원룸촌의 생활폐기물 수거 정책을 실험하는 Spring Boot 기반 DEVS
-시뮬레이션 및 MCP 서버다. 자연어로 조건을 받아 서버가 필요한 값을 순서대로 물어
-시뮬레이터를 구성하고 실행한다.
+생활폐기물 수거 정책을 실험하는 Spring Boot 기반 DEVS 시뮬레이션 및 MCP 서버다.
+장량동 원룸촌 모델을 기반으로 하며, 덕명동 등 미등록 지역도 공통 기본값의 가상 블록으로 구성하고
+사용자 확인 후 실행할 수 있다. 자연어 해석은 MCP 클라이언트 LLM이, 구성과 검증은 서버가 담당한다.
+[지역명으로 가상 시나리오 구성하기](docs/guides/NEIGHBORHOOD_SCENARIOS.md)를 참고한다.
 
 > **라즈베리파이 엣지 발열·냉각 도메인은 이 저장소에서 분리됐다.** 코드는 삭제됐고,
 > 과거 이력은 `git log -- src/main/java/com/wastesim/edge/`로 조회할 수 있다.
@@ -104,9 +105,10 @@ LLM 호출이 없다. 해석은 LLM 이, 완료 판정 · 값 검증 · 실행 �
 .\mvnw.cmd -B test
 ```
 
-macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 기준선은 **687건 모두 통과**
-다(브로커 92 · 시뮬레이터 555 · 템플릿 생성기 40). Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서는
-그중 3건(`PythonWasteSimAdapterTest`)이 시험을 중단해 스킵으로 나온다 — 실패가 아니다.
+macOS·Linux에서는 `./mvnw -B test`를 쓴다. 현재 루트 기준선은 **902건 중 899건 통과, 3건 스킵**이다
+(브로커 156 · 시뮬레이터 701 · 템플릿 생성기 45). Python 참조 엔진(`adev-master/waste_sim`)이 없는 머신에서는
+3건(`PythonWasteSimAdapterTest`)이 조건부 중단된다. 독립 제공자를 포함한 결과와 보완 범위는
+[지역 일반화 구현 결과](docs/reports/neighborhood-generalization-2026-11-03/REPORT.md)를 참고한다.
 
 브랜치를 크게 옮긴 직후에는 `clean`을 붙인다. `target/test-classes`에 남은 옛 테스트
 클래스가 삭제된 클래스를 참조해 JUnit 탐색 자체가 깨지고, 실패 지점이 테스트가 아니라

@@ -77,6 +77,13 @@ public class MatchRounds {
         list("comparisonAxes", r.comparisonAxes(), n.comparisonAxes(), out);
         scalar("spatialScale", r.spatialScale(), n.spatialScale(), out);
         scalar("objective", r.objective(), n.objective(), out);
+        r.requirements().fields().forEachRemaining(e -> {
+            if (java.util.Set.of("schemaVersion", "evidence", "preferences").contains(e.getKey())) return;
+            if (!e.getValue().equals(n.requirements().path(e.getKey()))) {
+                String item = "requirements." + e.getKey() + ": " + e.getValue();
+                if (!out.contains(item)) out.add(item);
+            }
+        });
     }
 
     private static void list(String axis, List<String> before, List<String> after, List<String> out) {

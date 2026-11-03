@@ -176,6 +176,7 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             root.put("limitation", "이 결과는 설정 간 비교이며 운영 예측이 아니다. 세대당 배출량 · 싣는 속도 · "
                     + "이동 · 하차 시간은 가정값이고, 지점별 적재 · 민원은 다루지 않는다.");
             root.set("runs", runs);
+            root.set("validation", store.validation(scenarioId));
             root.put("purposeResultCheck", requestedPurpose.isObject() ? "VERIFIED" : "NOT_SPECIFIED");
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {

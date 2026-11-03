@@ -337,9 +337,22 @@ public class CandidateMatcher {
             }
         }
 
+        var checks = com.wastesim.contract.RequirementContract.evaluate(profile.requirements(), card);
+        for (var check : checks) {
+            if (!check.required()) continue;
+            String message = check.field() + ": " + check.requested() + " / " + check.declared() + " — " + check.code();
+            if (check.status().equals("SATISFIED") || check.status().equals("CONDITIONAL")) reasons.add(message);
+            else {
+                boolean unknown = check.status().equals("UNKNOWN");
+                (unknown ? ambiguities : mismatches).add(message);
+                adjustments.add(new RequestAdjustment(check.field(), check.requested().toString(),
+                        unknown ? Classification.AMBIGUOUS : Classification.MISMATCH,
+                        check.action(), check.code(), false));
+            }
+        }
         return new MatchResult(card.path("serverId").asText(), card.path("name").asText(),
                 card.path("endpoint").asText(), card.path("fictional").asBoolean(false),
-                reasons, mismatches, ambiguities, adjustments);
+                reasons, mismatches, ambiguities, adjustments, checks);
     }
 
     /** 슬러그로도, 카드가 선언한 말로도 맞는다. */

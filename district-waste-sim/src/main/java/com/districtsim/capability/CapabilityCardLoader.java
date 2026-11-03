@@ -43,6 +43,7 @@ public class CapabilityCardLoader {
                 throw new IllegalStateException("능력 카드 리소스가 없습니다: " + resourcePath);
             }
             this.raw = mapper.readTree(in);
+            com.wastesim.contract.RequirementContract.validateCard(raw);
             this.card = mapper.treeToValue(raw, CapabilityCard.class);
         } catch (java.io.IOException e) {
             throw new UncheckedIOException("능력 카드를 읽지 못했습니다: " + resourcePath, e);

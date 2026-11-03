@@ -80,7 +80,7 @@ public class FindSimulatorsTool implements McpToolProvider {
 
     @Override
     public String inputSchemaJson() {
-        return """
+        return com.wastesim.contract.RequirementContract.toolSchema("""
             {"type":"object",
              "properties":{
                "domain":{"type":"string","description":"도메인. 예: \\"쓰레기수거\\""},
@@ -92,10 +92,11 @@ public class FindSimulatorsTool implements McpToolProvider {
                  "description":"무엇을 바꿔 가며 비교할 것인가 — 비교할 값이 아니라 바꾸는 항목의 이름을 적는다. 예: [\\"수거차 대수\\"] (\\"수거차 3대\\", \\"수거차 2대\\" 가 아니다), [\\"수거 시각\\"] (\\"밤 10시 수거\\" 가 아니다)"},
                "population":{"type":"array","items":{"type":"string"},
                  "description":"거주민에 관한 구절. 구절 하나에 거주민 하나로 나눠 사용자 말 그대로 적는다. 예: [\\"학생이 많음\\",\\"주부가 많음\\"]"},
+               "requirements":{"type":"object","description":"Version 1.0.0: regionId, simulationDuration/timeResolution {value,unit}, requiredOutputs, constraints/preferences {configField:number}, evidence {field:original text}. Omit unknown values."},
                "matchId":{"type":"string","description":"첫 조회 응답의 round.matchId. 고친 요청으로 다시 조회할 때만 보낸다"},
                "targetServerId":{"type":"string","description":"고친 요청으로 쓰려는 서버의 id. matchId 와 함께만 보낸다"}},
              "required":["domain"]}
-            """;
+            """);
     }
 
     @Override
@@ -119,9 +120,9 @@ public class FindSimulatorsTool implements McpToolProvider {
                     strings(args, "environmentConditions"),
                     args.path("objective").asText(null),
                     strings(args, "comparisonAxes"),
-                    strings(args, "population"));
+                    strings(args, "population"), args.get("requirements"));
         } catch (IllegalArgumentException e) {
-            return ToolFailure.of("domain", e.getMessage());
+            return ToolFailure.of("request", e.getMessage());
         }
 
         int round;
@@ -152,6 +153,8 @@ public class FindSimulatorsTool implements McpToolProvider {
         try {
             var root = mapper.createObjectNode();
             root.put("domain", profile.domain());
+            root.set("requirements", profile.requirements());
+            root.put("schemaVersion", "1.0.0");
             var roundNode = root.putObject("round");
             roundNode.put("matchId", matchId);
             roundNode.put("round", round);
@@ -201,12 +204,22 @@ public class FindSimulatorsTool implements McpToolProvider {
                 MatchResult fit = fits.get(0);
                 root.put("verdict", "MATCH");
                 root.set("recommended", mapper.valueToTree(fit));
+                root.set("selection", com.wastesim.contract.SelectionContract.handoff(matchId,
+                        matcher.card(fit.serverId()).orElseThrow(), profile.requirements()));
                 // 넘겨준 뒤에는 브로커가 할 일이 없다. 안내하지 않으면 LLM 이 단계마다 브로커를 다시
                 // 불러 같은 조회를 되풀이한다.
                 root.put("nextStep", "이 대화에서는 브로커를 다시 부르지 마십시오. 이후 단계는 "
                         + fit.endpoint() + " 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → "
                         + "plan_subtasks → validate_answers → build_scenario → get_scenario_status → "
                         + "run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.");
+                if (matcher.card(fit.serverId()).orElseThrow().path("capabilities").path("regionPolicy").path("mode")
+                        .asText().equals("ASSUMED_BLOCK_FOR_ANY_LABEL")) {
+                    root.put("scenarioCreationTool", "create_neighborhood_scenario");
+                    root.put("nextStep", root.path("nextStep").asText()
+                            + " 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. "
+                            + "공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. "
+                            + "실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.");
+                }
                 callLog.info("[4 매칭] {} — MATCH → {} ({}) · 근거 {}",
                         roundLog, fit.serverId(), fit.endpoint(), fit.reasons().size());
             } else if (fits.size() > 1) {
@@ -215,6 +228,9 @@ public class FindSimulatorsTool implements McpToolProvider {
                 List<Difference> diffs = matcher.differences(fits, profile);
                 root.put("verdict", "CHOOSE");
                 root.set("candidates", mapper.valueToTree(fits));
+                var selections = root.putArray("selections");
+                for (var fit : fits) selections.add(com.wastesim.contract.SelectionContract.handoff(matchId,
+                        matcher.card(fit.serverId()).orElseThrow(), profile.requirements()));
                 root.set("differences", mapper.valueToTree(diffs));
                 root.put("nextStep", diffs.isEmpty()
                         ? "후보들이 이 요청에 대해 같습니다. 첫 번째 서버(" + fits.get(0).serverId() + ")의 "

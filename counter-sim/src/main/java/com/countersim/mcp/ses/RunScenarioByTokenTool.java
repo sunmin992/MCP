@@ -168,6 +168,7 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             root.put("limitation", "이 결과는 설정 간 비교이며 운영 예측이 아니다. 시간대별 방문 분포 · "
                     + "처리 시간 분포 · 대기 한도는 가정값이다.");
             root.set("runs", runs);
+            root.set("validation", store.validation(scenarioId));
             root.put("purposeResultCheck", requestedPurpose.isObject() ? "VERIFIED" : "NOT_SPECIFIED");
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
