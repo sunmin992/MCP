@@ -152,4 +152,21 @@ class ScenarioFlowTest {
         assertThat(r.ready()).isFalse();
         assertThat(String.valueOf(r.errors())).contains("request");
     }
+
+    @Test
+    void 목적과_Task_명세를_검증하고_실제_결과_지표를_확인한다() throws Exception {
+        JsonNode built = call("build_scenario", """
+        {"values": {"queueDiscipline": "SINGLE_LINE", "dailyVisitors": 30, "serviceMinutes": 5, "reservationMode": "IGNORE", "maxWaitMinutes": 10, "days": 1, "seeds": 1}, "origins": {"queueDiscipline": "USER", "dailyVisitors": "USER", "serviceMinutes": "USER", "reservationMode": "USER", "maxWaitMinutes": "USER", "days": "USER", "seeds": "USER"}, "variableAnswerKey": "counterCount", "variableValues": [1, 2], "observations": ["judgement.meanWaitMinutesAll"], "purpose": {"mode": "COMPARE", "comparisonKey": "counterCount", "comparisonValues": [1, 2], "observations": ["judgement.meanWaitMinutesAll"]}}
+        """);
+        assertThat(built.path("valid").asBoolean()).as(built.toString()).isTrue();
+        assertThat(built.path("purposeCheck").path("status").asText()).isEqualTo("SATISFIED");
+        assertThat(built.path("validation").path("current").asBoolean()).isTrue();
+        assertThat(built.path("taskDefinitions").isEmpty()).isFalse();
+        String id = built.path("scenarioId").asText();
+        ToolResult confirmed = confirm.call(mapper.createObjectNode().put("scenarioId", id));
+        assertThat(confirmed.ready()).as(confirmed.errors().toString()).isTrue();
+        String token = call("get_scenario_status", "{\"scenarioId\":\"" + id + "\"}").path("confirmToken").asText();
+        JsonNode result = call("run_scenario_by_token", "{\"scenarioId\":\"" + id + "\",\"confirmToken\":\"" + token + "\"}");
+        assertThat(result.path("purposeResultCheck").asText()).isEqualTo("VERIFIED");
+    }
 }

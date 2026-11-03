@@ -1,0 +1,151 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "facility",
+      "label": "주차 시설 준비",
+      "dependencies": [],
+      "subtasks": [
+        "lotCount",
+        "spacesPerLot"
+      ],
+      "outputs": [
+        "decisions.facility"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "pricing",
+      "label": "요금 정책 준비",
+      "dependencies": [],
+      "subtasks": [
+        "pricingPolicy",
+        "baseFeePer30Min",
+        "peakSurchargeRate"
+      ],
+      "outputs": [
+        "decisions.pricing"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "demand",
+      "label": "수요·이용자 구성",
+      "dependencies": [],
+      "subtasks": [
+        "userMix",
+        "residentPriorityShare",
+        "dailyArrivals"
+      ],
+      "outputs": [
+        "decisions.demand"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "guidance",
+      "label": "주차 안내 정책 구성",
+      "dependencies": [],
+      "subtasks": [
+        "guidanceMode",
+        "guidanceRefreshMinutes"
+      ],
+      "outputs": [
+        "decisions.guidance"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "travel",
+      "label": "탐색·혼잡 조건 준비",
+      "dependencies": [],
+      "subtasks": [
+        "congestionMode",
+        "congestionProfileId",
+        "maxSearchMinutes",
+        "lotSpacingMinutes"
+      ],
+      "outputs": [
+        "decisions.travel"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "experiment",
+      "label": "실험 기간·반복 구성",
+      "dependencies": [],
+      "subtasks": [
+        "days",
+        "seeds"
+      ],
+      "outputs": [
+        "decisions.experiment"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "execution-settings",
+      "label": "실행 설정·입력 데이터 검증",
+      "dependencies": [
+        "facility",
+        "pricing",
+        "demand",
+        "guidance",
+        "travel",
+        "experiment"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "validated-run-configs"
+      ],
+      "validator": "CONFIG"
+    },
+    {
+      "id": "settings-roundtrip",
+      "label": "입력 결정의 실행 설정 반영 확인",
+      "dependencies": [
+        "execution-settings"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "verified-setting-mapping"
+      ],
+      "validator": "ROUNDTRIP"
+    },
+    {
+      "id": "scenario",
+      "label": "시나리오 통합 검증",
+      "dependencies": [
+        "settings-roundtrip"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "ready-scenario"
+      ],
+      "validator": "SCENARIO"
+    }
+  ],
+  "observations": [
+    "judgement.meanSearchMinutesAll",
+    "judgement.stdSearchMinutesAll",
+    "judgement.meanSearchMinutesParked",
+    "judgement.stdSearchMinutesParked",
+    "judgement.giveUpsPerDay",
+    "judgement.stdGiveUpsPerDay",
+    "judgement.giveUpRate",
+    "judgement.byUserType",
+    "explanation.peakOccupancyRatio",
+    "explanation.lotPeakOccupancy",
+    "explanation.hourlyOccupancy",
+    "explanation.fullMinutesPerLotPerDay",
+    "explanation.priceAvoidedPerDay",
+    "reference.revenuePerDay",
+    "reference.interLotMovesPerDay"
+  ],
+  "resources": [
+    "/mcp/parking-capability-card.json",
+    "/ses/parking-templates.json",
+    "/traffic/weekday-downtown.json",
+    "/traffic/weekend-downtown.json"
+  ]
+}

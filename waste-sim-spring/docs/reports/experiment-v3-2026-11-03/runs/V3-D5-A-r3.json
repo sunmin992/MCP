@@ -1,0 +1,27 @@
+{
+  "id": "V3-D5-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동을 50개 구역으로 나눔", "environmentConditions": ["상가가 많음"], "objective": "수거차 3대로 감당할 수 있는지"}, "verdict": "ADJUST_REQUEST", "matchId": "3e341787-73e0-49ef-8480-4ad92fb9a052", "round": 1, "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "district-waste-sim(fictional)"], "note": "북구 서버: '상가가 많음' 조건 제거 + 목적을 답할 수 있는 질문으로 바꾸라는 MISMATCH. 장량동: 공간 규모도 원룸촌 한 블록으로 줄여야 함."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동을 50개 구역으로 나눔", "objective": "근무 시간 안에 끝나는지", "matchId": "3e341787-73e0-49ef-8480-4ad92fb9a052", "targetServerId": "bukgu-district-waste-sim"}, "verdict": "MATCH", "matchId": "3e341787-73e0-49ef-8480-4ad92fb9a052", "round": 2, "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim"], "note": "removedConditions: environmentConditions 상가가 많음, purposeChanged=true"}
+  ],
+  "userChoice": "행정동 전체(구역 단위)로 볼게 → bukgu-district-waste-sim",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:build_scenario"],
+  "planIds": [],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. (1) 포항 북구 행정동 시뮬레이터 — '상가가 많음' 조건을 빼고 목적을 '근무 시간 안에 끝나는지/수거 못 하고 남는 양'으로 바꾸면 쓸 수 있음, (2) 장량동 원룸촌 한 블록 시뮬레이터 — 공간 규모를 원룸촌 한 블록으로 줄여야 함. 어느 쪽으로 요청을 고칠까요?", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "구역 수는 최대 40개까지라 50개는 안 됩니다 — 몇 개로 할까요? / 구역당 세대 수 / 주거 구성 / 차량 크기 / 수거 일정 / 공휴일 반영 / 적환장 사용 / 수거 시작 시각 / 근무 시간 / 기간 / 반복 횟수는?", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "scheduleMode", "holidayMode", "transferMode", "collectionStartMinutes", "shiftMinutes", "days", "seeds"], "answer": "그럼 되는 만큼 최대로 해줘 / 아파트 1 : 상가 1 / 28일, 10회 / 나머지는 기본값으로 해줘"},
+    {"text": "상가 쓰레기도 이 수거에서 함께 실을까요? (포함/제외) / 구역을 차량 3대에 어떻게 나눌까요? (같은 구역 수 / 예상 작업 시간이 같게)", "keys": ["commercialHandling", "zoneAllocation"], "answer": "이 수거에 포함해 / 작업 시간이 같게"},
+    {"text": "수거차 3대로는 수거일 하루 실어야 할 양이 근무 시간 안에 실을 수 있는 양의 246%라 시뮬레이터가 실행을 막았습니다. 차량 대수·수거 요일·차종·구역당 세대 수 중 무엇을 바꿀까요?", "keys": ["truckCount", "scheduleMode", "truckType", "householdsPerZone"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [
+    "zoneCount=50: OUT_OF_RANGE (40 이하여야 함) → 40 으로 고침",
+    "build_scenario truckCount=3: 수거일 하루 실어야 할 양이 근무 시간 내 적재 가능량의 246% — 매번 크게 남는 실험이라 실행하지 않음 (state INVALID)"
+  ],
+  "scenarioId": "scn-9ef5a898",
+  "scenarioState": "INVALID",
+  "toldUser": "구역당 600세대(점포), 5톤 차량, 포항 북구 수거 요일(월·화·목·금), 공휴일 미반영, 적환장 미사용, 06:00 시작, 근무 8시간은 기본값으로 넣었다. 구역 수 40은 '최대로'에서 정했다(50 불가). 상가 많음 조건은 브로커 조정으로 빠졌고 상가 비중은 주거 구성 아파트 1:상가 1 로만 반영됨.",
+  "stoppedBecause": "build_scenario 가 INVALID(3대로 적재 용량의 246%)로 막았고, 무엇을 바꿀지 물었으나 사용자는 '기본값으로 해줘'라 답해 바꿀 근거가 없음. 차량 대수를 늘리면 사용자의 질문(3대로 되는가) 자체가 바뀌므로 임의로 고치지 않음. 사실상 답은 '이 가정에서는 3대로 감당 못 함'.",
+  "difficulties": "브로커가 '수거차 3대로 감당할 수 있는지' 목적을 MISMATCH 로 판정해 '근무 시간 안에 끝나는지'로 바꿔야 했음(purposeChanged=true 로 표시됨). build_scenario 에 실험 변수(truckCount)를 values 에서 빼야 하는지 설명이 plan_subtasks 쪽에만 있어 헷갈림. 단일 값 비교도 variableValues 를 강제로 요구함. build 가 INVALID 일 때 사용자 질문의 답(못 한다)인지 고쳐야 할 오류인지 구분하는 안내가 없음. guardUnverified 에 housingMix·commercialHandling·zoneAllocation 이 남았는데 의미 설명 없음. 이 서버 도구에는 planId 인자가 없었음."
+}

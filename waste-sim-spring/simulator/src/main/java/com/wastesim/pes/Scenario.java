@@ -14,8 +14,9 @@ import java.util.Map;
  * @param blocks                  설정 검증에서 막힌 사유
  * @param backVerificationBlocks  평탄화 결과와 PES 가 어긋난 자리
  * @param branchBlocks            생성 조건이 거짓인(가지친) 결정에 실린 값
- * @param droppedDefaults         가지친 결정에 기본값(MODEL_DEFAULT)으로 실려 실행 설정에서 뺀 답변키 →
- *                                뺀 실행("변수=값") 목록. 보관 PES · 확인 화면에서 지울지 여기서 정한다
+ * @param droppedDefaults         가지친 결정에 실려 실행 설정에서 뺀 답변키 → 뺀 실행("변수=값") 목록.
+ *                                기본값(MODEL_DEFAULT)이거나, 다른 비교 값에서는 생기는 결정의 값이다.
+ *                                보관 PES · 확인 화면에서 지울지 여기서 정한다
  */
 public record Scenario(
         String scenarioId,

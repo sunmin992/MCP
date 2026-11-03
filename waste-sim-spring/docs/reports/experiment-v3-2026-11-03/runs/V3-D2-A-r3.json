@@ -1,0 +1,34 @@
+{
+  "id": "V3-D2-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "쓰레기가 얼마나 쌓일까", "comparisonAxes": ["수거 요일"]}, "verdict": "ADJUST_REQUEST", "matchId": "3c4ae38d-4c40-47a5-8d58-0e826bef4b84", "round": 1, "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "district-waste-sim"], "note": "bukgu 는 목적만 MISMATCH(답할 수 있는 질문으로 바꾸면 됨), jangnyang 은 '추석 연휴가 낀 주' 조건과 목적 둘 다 MISMATCH. district-waste-sim 은 fictional 이라 suggestions 에서 빠짐"},
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "수거 못 하고 남는 양", "comparisonAxes": ["수거 요일"], "matchId": "3c4ae38d-4c40-47a5-8d58-0e826bef4b84", "targetServerId": "bukgu-district-waste-sim"}, "verdict": "MATCH", "matchId": "3c4ae38d-4c40-47a5-8d58-0e826bef4b84", "round": 2, "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim"], "note": "목적을 '수거 못 하고 남는 양'으로 고치고 targetServerId 로 대조, purposeChanged=false"}
+  ],
+  "userChoice": "bukgu-district-waste-sim (행정동 전체(구역 단위)) — 목적을 '수거 못 하고 남는 양'으로 고침",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {"text": "요청을 그대로 받는 서버가 없습니다. 후보: (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 목적을 '수거 못 하고 남는 양' 등 이 서버가 답할 수 있는 질문으로 바꾸면 됨, (2) 장량동 생활쓰레기 수거 시뮬레이터 — '추석 연휴가 낀 주' 조건을 빼고 목적도 바꿔야 함. 어느 서버로 할지, 고친 요청을 알려 주세요.", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "몇 가지 정해 주세요. ① 비교할 수거 일정 두 가지 이상(포항 북구 현행 월·화·목·금 / 매일(일요일 제외) / 격일 월·수·금 / 요일 직접 지정) ② 수거일이 공휴일이면 어떻게 할까요?(건너뜀 / 다음 날 대신 수거) ③ 기간(7~365일, 2026-09-21부터)과 반복 횟수(1~100회) ④ 그 밖에 구역 수(기본 8), 구역당 세대 수(600), 주거 구성(아파트·단독·원룸), 차량 크기(5톤)·대수(2대)·구역 배정(같은 구역 수), 적환장 사용(안 함), 수거 시작 시각(06:00), 근무 시간(8시간)은 어떻게 할까요?", "keys": ["scheduleMode", "holidayPolicy", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "zoneAllocation", "transferMode", "collectionStartMinutes", "shiftMinutes"], "answer": "지금 포항 북구 일정(월화목금)과 매일 수거 / 공휴일엔 건너뛰어 / 28일, 10회 / 그 밖: 기본값으로 해줘"}
+  ],
+  "rejections": ["build_scenario 1차: EXECUTION_ERROR(evidence GUARD) — zoneAllocation 이 묻거나 동의받지 않은 기본값으로 판정됨. evidence 에 zoneAllocation='기본값으로 해줘' 를 넣어 재시도해 통과"],
+  "scenarioId": "scn-b9c31047",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "holidayMode=APPLY 는 '추석 연휴가 낀 주'에서 유도(DERIVED). 구역 수 8, 구역당 600세대, 주거 구성 Apartment/Detached/Studio, 5톤 2대, 구역 배정 EQUAL_COUNT, 적환장 미사용, 06:00 시작, 근무 480분은 사용자가 '기본값으로 해줘'라 해서 템플릿 기본값(MODEL_DEFAULT, 확인 화면에 미승인 기본값 9개로 표시)으로 넣었다. 목적은 '쌓일까'를 서버가 답하는 '수거 못 하고 남는 양'으로 바꿨다. 확인 화면: http://localhost:8091/confirm.html?id=scn-b9c31047",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 여기서 멈춤",
+  "difficulties": "브로커 질문 대본 답('행정동 전체(구역 단위)로 볼게')이 목적 수정까지 말해 주지 않아, 목적은 '쌓일까'에 가장 가까운 '수거 못 하고 남는 양'으로 내가 골랐다. zoneAllocation 은 첫 plan_subtasks 에서 DEFERRED 였는데 질문 묶음에 넣고 '기본값으로' 동의를 받았음에도 evidence 를 명시하지 않으면 GUARD 가 막는다 — 다른 MODEL_DEFAULT 값은 evidence 없이 통과해 기준이 헷갈렸다. 시뮬레이터 도구 스키마에 planId 인자가 없어 planIds 는 비었다. build 응답의 guardUnverified 에 holidayPolicy·scheduleMode 가 남은 이유는 설명되지 않았다."
+}

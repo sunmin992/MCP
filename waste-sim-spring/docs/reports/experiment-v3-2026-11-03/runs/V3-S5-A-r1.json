@@ -1,0 +1,23 @@
+{
+  "id": "V3-S5-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동네", "objective": "비용이 가장 적게 드는 차량 수", "comparisonAxes": ["수거차 대수"]}, "verdict": "ADJUST_REQUEST", "matchId": "967e27d4-e1b8-46f0-9885-2c5ff49eb4b6", "round": 1, "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "district-waste-sim"], "note": "목적(비용) MISMATCH — 모든 후보에 연료·인건비·운영비 항 없음. suggestions 는 실제 서버 2곳(bukgu, jangnyang), district-waste-sim 은 가상"},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "objective": "차량 수에 따라 수거가 언제 끝나는지", "comparisonAxes": ["수거차 대수"], "matchId": "967e27d4-e1b8-46f0-9885-2c5ff49eb4b6", "targetServerId": "jangnyang-waste-sim"}, "verdict": "MATCH", "matchId": "967e27d4-e1b8-46f0-9885-2c5ff49eb4b6", "round": 2, "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim"], "note": "사용자가 목적을 완료 시각으로 바꾸고 장량동 원룸촌 블록을 고른 뒤 고친 조회"}
+  ],
+  "userChoice": "jangnyang-waste-sim (목적을 비용 → 차량 수별 수거 완료 시각으로 변경)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:get_plan_history", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "planIds": ["plan-e792074c-1ea"],
+  "questions": [
+    {"text": "비용은 두 후보 서버 모두 계산할 수 없습니다(연료·인건비·운영비 항 없음). 목적을 바꾸면 쓸 수 있습니다 — 포항 북구 행정동(남는 쓰레기량·차량 가동률) 또는 장량동 원룸촌 한 블록(민원·차량 가동률·수거 완료 시각·최대 적재). 어느 서버로, 어떤 목적으로 바꿀까요?", "keys": ["objective", "targetServerId"], "answer": "그럼 원룸촌 한 블록에서 차량 수에 따라 수거가 언제 끝나는지만 볼게"},
+    {"text": "몇 가지 정할 게 있습니다: ① 비교할 차량 수(예: 1대와 2대) ② 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg; 모르면 차종 정격용량) ③ 차량 크기(5톤/2.5톤/1톤) ④ 수거 시각 ⑤ 교통량 반영 여부 ⑥ 이동시간 계산 방식 ⑦ 건물 수(1~26동) ⑧ 동당 세대 수 ⑨ 거주민 직업 구성 ⑩ 배출 시간 모델 ⑪ 기간(일) ⑫ 반복 횟수 ⑬ 수거장 용량(kg) ⑭ 민원 임계 적재율 — 정해 주시거나 기본값으로 할지 알려 주세요.", "keys": ["truckCount", "routeAvailableCapacityKg", "truckType", "collectionTimeMinutes", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "dischargeTimeMode", "days", "seeds", "binCapacityKg", "complaintThreshold"], "answer": "1대와 2대 / 150kg / 그 밖은 기본값으로 해줘"},
+    {"text": "차량 2대일 때 두 차량 사이 배차 간격을 몇 분으로 할까요? (기본 0분 = 동시 출발)", "keys": ["dispatchIntervalMinutes"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": ["plan_subtasks round 2: collectionTimeMinutes=720 (MODEL_DEFAULT) — NO_EVIDENCE: 동의 구절 evidence 없이 넣은 기본값. '기본값으로 해줘' 를 evidence 로 넣어 해결"],
+  "scenarioId": "scn-c44e6212",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "비용은 볼 수 없어 목적을 수거 완료 시각으로 바꿨음. 비교 차량 수 1대·2대와 적재 몫 150kg 만 사용자 값이고, 나머지 13개(5톤 차, 12:00 수거, 교통 미반영, 구간 상수 이동시간, 4동×25세대, 생산직/학생/주부 구성, 논문 기준 배출 시각, 30일, 30회 반복, 수거장 30kg, 민원 임계 0.8, 배차 간격 0분)는 기본값으로 넣었고 확인 화면에 승인 안 된 기본값으로 표시됨. 배차 간격은 1대 실행에서는 빠짐. 확인 화면: http://localhost:8090/confirm.html?id=scn-c44e6212",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 할 수 있어 멈춤",
+  "difficulties": "dispatchIntervalMinutes 는 첫 plan_subtasks 에서 DEFERRED 였다가 비교값 [1,2] 를 넣은 뒤에야 생성돼 질문이 한 번 더 필요했다(변수값을 몰라 첫 계획에서 드러나지 않음). collectionTimeMinutes 만 NO_EVIDENCE 로 막히고 다른 MODEL_DEFAULT 값은 NOT_CHECKED 로 통과해 기준이 헷갈렸다(생성 조건이 있는 결정이라 그런 듯). 브로커 nextStep 이 run_scenario_by_token 까지 안내하지만 실행은 금지라 멈춤. 불필요하게 get_plan_history 를 한 번 불렀다."
+}

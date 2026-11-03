@@ -1,0 +1,103 @@
+{
+ "scenarioId": "scn-4d8d6fef",
+ "state": "UNCONFIRMED",
+ "sesId": "pohang-parking-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "congestionProfileId": "weekend-downtown",
+  "maxSearchMinutes": 20,
+  "congestionMode": "APPLY",
+  "spacesPerLot": 80,
+  "seeds": 10,
+  "lotCount": 12,
+  "days": 14,
+  "baseFeePer30Min": 500,
+  "lotSpacingMinutes": 3.0,
+  "dailyArrivals": [
+   5525
+  ],
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "guidanceMode": "NONE",
+  "pricingPolicy": "FLAT"
+ },
+ "origins": {
+  "congestionProfileId": "DERIVED",
+  "maxSearchMinutes": "USER",
+  "congestionMode": "DERIVED",
+  "spacesPerLot": "MODEL_DEFAULT",
+  "seeds": "USER",
+  "lotCount": "USER",
+  "days": "USER",
+  "baseFeePer30Min": "MODEL_DEFAULT",
+  "lotSpacingMinutes": "MODEL_DEFAULT",
+  "dailyArrivals": "USER",
+  "userMix": "MODEL_DEFAULT",
+  "guidanceMode": "MODEL_DEFAULT",
+  "pricingPolicy": "MODEL_DEFAULT"
+ },
+ "unapprovedDefaults": {
+  "spacesPerLot": 80,
+  "baseFeePer30Min": 500,
+  "lotSpacingMinutes": 3.0,
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "guidanceMode": "NONE",
+  "pricingPolicy": "FLAT"
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "parkingSnapshot": null,
+   "initialVehicleRemainingMinutes": null,
+   "lotCount": 12,
+   "spacesPerLot": 80,
+   "pricingPolicy": "FLAT",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": null,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 5525,
+   "guidanceMode": "NONE",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": true,
+   "congestionProfileId": "weekend-downtown",
+   "maxSearchMinutes": 20,
+   "days": 14,
+   "seeds": 10,
+   "lotSpacingMinutes": 3.0,
+   "fullLotCircleMinutes": 2.0
+  }
+ ],
+ "confirmToken": null,
+ "request": "주말에 길이 막힐 때 도심 공영주차장 15곳에 하루 3만 대가 몰리면 주차장 찾는 데 얼마나 걸릴까?",
+ "labels": {
+  "lotCount": "주차장 수",
+  "spacesPerLot": "주차장당 면수",
+  "pricingPolicy": "요금 정책",
+  "baseFeePer30Min": "30분당 기본 요금(원)",
+  "peakSurchargeRate": "혼잡 시간대 할증률",
+  "userMix": "이용자 구성",
+  "residentPriorityShare": "거주자 우선 구획 비율",
+  "dailyArrivals": "하루 도착 차량 수",
+  "guidanceMode": "주차 안내 방식",
+  "guidanceRefreshMinutes": "실시간 앱 갱신 주기(분)",
+  "congestionMode": "도로 혼잡 반영",
+  "congestionProfileId": "혼잡 프로파일",
+  "maxSearchMinutes": "탐색 포기 시간(분)",
+  "lotSpacingMinutes": "주차장 사이 이동시간(분)",
+  "days": "기간(일)",
+  "seeds": "반복 횟수",
+  "congestionEnabled": "도로 혼잡 반영"
+ }
+}

@@ -17,7 +17,27 @@ public record Pes(
         String sesId,
         String sesVersion,
         Map<String, Object> values,
-        Map<String, String> origins) {
+        Map<String, String> origins,
+        Map<String, String> evidenceChecks) {
+
+    public Pes(String sesId, String sesVersion, Map<String, Object> values, Map<String, String> origins) {
+        this(sesId, sesVersion, values, origins, Map.of());
+    }
+
+    /** Review state is separate from claimed provenance and survives storage/confirmation. */
+    public Map<String, Object> unverifiedValues() {
+        Map<String, Object> out = new LinkedHashMap<>();
+        evidenceChecks.forEach((k, status) -> {
+            if (!"VERIFIED".equals(status) && values.containsKey(k)) out.put(k, values.get(k));
+        });
+        return out;
+    }
+
+    public Map<String, Object> reviewRequiredValues() {
+        Map<String, Object> out = new LinkedHashMap<>(unapprovedDefaults());
+        out.putAll(unverifiedValues());
+        return out;
+    }
 
     public Pes {
         // 빈 식별자를 받지 않는다. 템플릿 JSON 에 sesId/sesVersion 이 없으면
@@ -29,6 +49,7 @@ public record Pes(
 
         values = Map.copyOf(values);
         origins = Map.copyOf(origins);
+        evidenceChecks = Map.copyOf(evidenceChecks);
 
         // 출처 없는 값은 사용자 승인 여부를 판정할 수 없다 — unapprovedDefaults() 가
         // 그것을 조용히 "승인된 값"으로 세어 버린다.

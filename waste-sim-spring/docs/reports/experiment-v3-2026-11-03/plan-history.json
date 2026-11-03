@@ -1,0 +1,1536 @@
+[
+ {
+  "id": "V3-D1-A-r1",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D1-A-r2",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D1-A-r3",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D2-A-r1",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D2-A-r2",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D2-A-r3",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D3-A-r1",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D3-A-r2",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D3-A-r3",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D4-A-r1",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D4-A-r2",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D4-A-r3",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D5-A-r1",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "INVALID"
+ },
+ {
+  "id": "V3-D5-A-r2",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "INVALID"
+ },
+ {
+  "id": "V3-D5-A-r3",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "INVALID"
+ },
+ {
+  "id": "V3-D6-A-r1",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D6-A-r2",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-D6-A-r3",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J1-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-ae60fe84-7b0"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 1,
+  "completedAt": 2,
+  "minRounds": 2,
+  "excess": 0,
+  "evidence": {
+   "NOT_CHECKED": 9,
+   "VERIFIED": 5,
+   "UNVERIFIED": 1
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J1-A-r2",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-f04c751a-404"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 1,
+  "completedAt": 2,
+  "minRounds": 2,
+  "excess": 0,
+  "evidence": {
+   "NOT_CHECKED": 9,
+   "VERIFIED": 5,
+   "UNVERIFIED": 1
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J1-A-r3",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-3148ddc3-59e"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 1,
+  "completedAt": 2,
+  "minRounds": 2,
+  "excess": 0,
+  "evidence": {
+   "NOT_CHECKED": 9,
+   "VERIFIED": 5,
+   "UNVERIFIED": 1
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J2-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-23bbb6fa-0dc"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "CHOOSE"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 10,
+   "VERIFIED": 4
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J2-A-r2",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-5fe05fb1-b59"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "CHOOSE"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 10,
+   "VERIFIED": 4
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J2-A-r3",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-5449befa-79d"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "CHOOSE"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 10,
+   "VERIFIED": 4
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J3-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-2cad68f0-b60"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 4,
+  "rechecks": 0,
+  "completedAt": 4,
+  "minRounds": 3,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 6,
+   "UNVERIFIED": 3,
+   "VERIFIED": 9
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": false,
+    "rejectedBy": null
+   },
+   {
+    "valid": false,
+    "rejectedBy": null
+   },
+   {
+    "valid": false,
+    "rejectedBy": "ERROR"
+   },
+   {
+    "valid": true,
+    "rejectedBy": null
+   },
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J3-A-r2",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-9512948c-ca3"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 3,
+  "rechecks": 0,
+  "completedAt": 3,
+  "minRounds": 3,
+  "excess": 0,
+  "evidence": {
+   "NOT_CHECKED": 7,
+   "VERIFIED": 9,
+   "UNVERIFIED": 2
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": false,
+    "rejectedBy": null
+   },
+   {
+    "valid": false,
+    "rejectedBy": null
+   },
+   {
+    "valid": false,
+    "rejectedBy": "ERROR"
+   }
+  ],
+  "scenarioState": "INVALID"
+ },
+ {
+  "id": "V3-J3-A-r3",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-a7417951-7ab"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 3,
+  "rechecks": 0,
+  "completedAt": 3,
+  "minRounds": 3,
+  "excess": 0,
+  "evidence": {
+   "NOT_CHECKED": 7,
+   "VERIFIED": 9,
+   "UNVERIFIED": 2
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": false,
+    "rejectedBy": null
+   },
+   {
+    "valid": false,
+    "rejectedBy": null
+   },
+   {
+    "valid": false,
+    "rejectedBy": "ERROR"
+   }
+  ],
+  "scenarioState": "INVALID"
+ },
+ {
+  "id": "V3-J4-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-7042a65c-af3"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "UNVERIFIED": 1,
+   "NOT_CHECKED": 9,
+   "VERIFIED": 4
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J4-A-r2",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-51efd049-c1b"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "UNVERIFIED": 1,
+   "NOT_CHECKED": 9,
+   "VERIFIED": 4
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J4-A-r3",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-b2155e1a-159"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "UNVERIFIED": 1,
+   "NOT_CHECKED": 9,
+   "VERIFIED": 4
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J5-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-d238bd06-523"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 9,
+   "VERIFIED": 5
+  },
+  "reasons": {
+   "OUT_OF_RANGE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J5-A-r2",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-7e3d1872-3dc"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 8,
+   "VERIFIED": 5,
+   "UNVERIFIED": 1
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1,
+   "OUT_OF_RANGE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J5-A-r3",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-9c2cd854-6a3"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 8,
+   "VERIFIED": 5,
+   "UNVERIFIED": 1
+  },
+  "reasons": {
+   "OUT_OF_RANGE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J6-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-b9c18dcb-480"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 12,
+   "VERIFIED": 2
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J6-A-r2",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-8ddc3d20-e11"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 12,
+   "VERIFIED": 2
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-J6-A-r3",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-beaca7e7-119"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 12,
+   "VERIFIED": 2
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P1-A-r1",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P1-A-r2",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P1-A-r3",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P2-A-r1",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P2-A-r2",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P2-A-r3",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P3-A-r1",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P3-A-r2",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P3-A-r3",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P4-A-r1",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P4-A-r2",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P4-A-r3",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P5-A-r1",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P5-A-r2",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P5-A-r3",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P6-A-r1",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P6-A-r2",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-P6-A-r3",
+  "server": "pohang-parking-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-S1-A-r1",
+  "server": "pohang-counter-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "INVALID"
+ },
+ {
+  "id": "V3-S10-A-r1",
+  "server": null,
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "NONE"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "없음"
+ },
+ {
+  "id": "V3-S2-A-r1",
+  "server": "bukgu-district-waste-sim",
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "CHOOSE"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "없음"
+ },
+ {
+  "id": "V3-S3-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-9f4cc844-cfa"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "CHOOSE"
+  ],
+  "matchIdLinked": true,
+  "rounds": 3,
+  "rechecks": 0,
+  "completedAt": 3,
+  "minRounds": 2,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 11,
+   "VERIFIED": 4
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-S4-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-eb60ea53-095"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 2,
+  "completedAt": 2,
+  "minRounds": 2,
+  "excess": 0,
+  "evidence": {
+   "NOT_CHECKED": 12,
+   "VERIFIED": 3
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-S5-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-e792074c-1ea"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 3,
+  "rechecks": 0,
+  "completedAt": 3,
+  "minRounds": 2,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 11,
+   "VERIFIED": 4
+  },
+  "reasons": {
+   "NO_EVIDENCE": 1
+  },
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-S6-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-a83c72c2-863"
+  ],
+  "matchRounds": 2,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 2,
+  "rechecks": 0,
+  "completedAt": 2,
+  "minRounds": 1,
+  "excess": 1,
+  "evidence": {
+   "NOT_CHECKED": 12,
+   "VERIFIED": 2
+  },
+  "reasons": {},
+  "builds": [
+   {
+    "valid": true,
+    "rejectedBy": null
+   }
+  ],
+  "scenarioState": "UNCONFIRMED"
+ },
+ {
+  "id": "V3-S7-A-r1",
+  "server": null,
+  "planIds": [],
+  "matchRounds": 1,
+  "verdicts": [
+   "ADJUST_REQUEST"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "없음"
+ },
+ {
+  "id": "V3-S8-A-r1",
+  "server": "jangnyang-waste-sim",
+  "planIds": [
+   "plan-c5da9593-7eb"
+  ],
+  "matchRounds": 1,
+  "verdicts": [
+   "MATCH"
+  ],
+  "matchIdLinked": true,
+  "rounds": 1,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": 1,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "없음"
+ },
+ {
+  "id": "V3-S9-A-r1",
+  "server": null,
+  "planIds": [],
+  "matchRounds": 3,
+  "verdicts": [
+   "ADJUST_REQUEST",
+   "ADJUST_REQUEST",
+   "ADJUST_REQUEST"
+  ],
+  "matchIdLinked": false,
+  "rounds": 0,
+  "rechecks": 0,
+  "completedAt": null,
+  "minRounds": null,
+  "excess": null,
+  "evidence": {},
+  "reasons": {},
+  "builds": [],
+  "scenarioState": "없음"
+ }
+]

@@ -1,0 +1,22 @@
+{
+  "id": "V3-S6-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동네", "objective": "쓰레기를 걷기 좋은 시각", "comparisonAxes": ["수거 시각"], "population": ["노인이 많음"]}, "verdict": "ADJUST_REQUEST", "matchId": "9481ce07-a65f-40a5-a0fa-ef9b1e0b5fff", "round": 1, "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "district-waste-sim"], "note": "실제 서버 둘(bukgu, jangnyang)은 '노인이 많음'이 MISMATCH, 가상 서버 district-waste-sim 은 AMBIGUOUS(카드에 거주민 미기재). 사용자에게 고칠 방향을 물음"},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "objective": "쓰레기를 걷기 좋은 시각", "comparisonAxes": ["수거 시각"], "population": ["주부가 많음"], "matchId": "9481ce07-a65f-40a5-a0fa-ef9b1e0b5fff", "targetServerId": "jangnyang-waste-sim"}, "verdict": "MATCH", "matchId": "9481ce07-a65f-40a5-a0fa-ef9b1e0b5fff", "round": 2, "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim"], "note": "고친 조회 1회 사용(남은 4회). 주부가 많음 → Housewife"}
+  ],
+  "userChoice": "jangnyang-waste-sim (주부가 많은 원룸촌 한 블록으로 바꿈)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "planIds": ["plan-a83c72c2-863"],
+  "questions": [
+    {"text": "'노인이 많음'은 실제 서버 어느 것도 다루지 못합니다. (1) 장량동 원룸촌 한 블록 서버는 거주민을 생산직·학생·주부·야간·직장인 중에서, (2) 포항 북구 행정동 서버는 아파트·단독주택·원룸·상가 중에서 고르면 쓸 수 있습니다. 어느 서버로, 거주민 조건을 어떻게 바꿀까요?", "keys": ["population"], "answer": "그럼 주부가 많은 원룸촌 한 블록으로 바꿔서 볼게"},
+    {"text": "시나리오 설정을 정해 주세요: 비교할 수거 시각들, 차량 크기(5톤/2.5톤/1톤)와 대수, 교통량 반영 여부, 이동시간 계산 방식, 건물 수(1~26동), 동당 세대 수, 직업 구성(주부 비중), 배출 시간 모델(직업별/포항 공식 20:00~06:00), 기간(일), 반복 횟수, 청소차가 이 블록에 쓸 적재 몫(kg), 수거장 용량(kg), 민원 임계 적재율. 모르는 것은 기본값으로 넣겠습니다.", "keys": ["collectionTimeMinutes", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "dischargeTimeMode", "days", "seeds", "routeAvailableCapacityKg", "binCapacityKg", "complaintThreshold"], "answer": "비교할 수거 시각: 09시와 15시 / 적재 몫: 150kg / 그 밖: 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-c207f319",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "직업 구성은 '주부가 많은'에서 [Housewife, Housewife, BlueCollar, Student](주부 50%)로 정한 가정(DERIVED)이다. 차량 5톤 1대, 교통 미반영, 구간 상수 이동시간, 4동×25세대, 논문 기준 배출 시각, 30일, 30회 반복, 수거장 30kg, 민원 임계 0.8 은 기본값(MODEL_DEFAULT)으로 넣었다 — 확인 화면에 승인 안 된 기본값 11개로 따로 표시된다. 원래 요청한 '노인이 많은 동네'는 이 시뮬레이터로 다룰 수 없어 바꾼 질문이다.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 2벌: 09:00=540, 15:00=900). get_scenario_status 로 확인 화면 http://localhost:8090/confirm.html?id=scn-c207f319 을 얻었고, 승인은 사람만 하므로 멈춤",
+  "difficulties": "'주부가 많음'을 occupationMix 로 옮기는 비율 규칙이 없어 기본 구성(주부 1/3)을 쓸지 주부 비중을 높일지 직접 정해야 했다. 사용자가 '기본값'이라 답했지만 기본 구성은 '주부가 많은'과 맞지 않아 DERIVED 로 주부 2/4 를 넣었다. find_simulators 응답의 가상 서버(district-waste-sim)는 AMBIGUOUS 로 suggestions 에서 빠지고 matches 에만 있어 후보 제시 범위가 조금 헷갈렸다. get_templates/plan_subtasks 응답이 이중 JSON 문자열로 감싸져 읽기 번거로웠다."
+}

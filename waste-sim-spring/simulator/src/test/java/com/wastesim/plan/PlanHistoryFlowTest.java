@@ -89,6 +89,134 @@ class PlanHistoryFlowTest {
     }
 
     @Test
+    void 검증_기록_생성이_실패하면_미검증_시나리오를_보관하지_않는다() throws Exception {
+        var built=ok(new BuildScenarioTool(builder,store,catalog,m,rounds()).call(fullRequest()));
+        var entry=store.entry(built.path("scenarioId").asText()).orElseThrow();
+        var isolated=new ScenarioStore();
+        assertThrows(IllegalStateException.class,()->isolated.putValidated(entry.scenario(),entry.pes(),"request","id",m.createObjectNode(),
+                ()->{throw new IllegalStateException("검사 실패");}));
+        assertTrue(isolated.entry(entry.scenario().scenarioId()).isEmpty());
+    }
+
+    @Test
+    void 목적_지표가_실행_결과에_실제로_포함된다() throws Exception {
+        ObjectNode full=fullRequest();
+        full.putArray("observations").add("meanComplaints");
+        var purpose=full.putObject("purpose").put("mode","COMPARE").put("comparisonKey","collectionTimeMinutes");
+        purpose.putArray("comparisonValues").add(360).add(1080);
+        purpose.putArray("observations").add("meanComplaints");
+        var built=ok(new BuildScenarioTool(builder,store,catalog,m,rounds()).call(full));
+        String id=built.path("scenarioId").asText();
+        var confirmed=ok(new ConfirmScenarioTool(builder,store,m).call(m.createObjectNode().put("scenarioId",id)));
+        var result=ok(new RunScenarioByTokenTool(builder,store,new SimulationService(new SimulationEngine(new TrafficDataService())),m,rounds())
+                .call(m.createObjectNode().put("scenarioId",id).put("confirmToken",confirmed.path("confirmToken").asText())));
+        assertEquals("VERIFIED",result.path("purposeResultCheck").asText());
+        assertEquals(2,result.path("runs").size());
+        assertTrue(store.validationCurrent(id));
+    }
+
+    @Test
+    void 실행중_요청이_수정되면_이전_실행의_결과를_채택하지_않는다() throws Exception {
+        ObjectNode full=fullRequest().put("requestId","mid-run-change");
+        var built=ok(new BuildScenarioTool(builder,store,catalog,m,rounds()).call(full));
+        String id=built.path("scenarioId").asText();
+        ok(new ConfirmScenarioTool(builder,store,m).call(m.createObjectNode().put("scenarioId",id)));
+        var expected=store.entry(id).orElseThrow();
+        assertTrue(store.beginExecution(id,expected));
+        store.revise("mid-run-change",m.createObjectNode().put("changed",true));
+        assertFalse(store.completeExecution(id,expected));
+        assertNull(store.entry(id).orElseThrow().executedAt());
+        store.endExecution(id);
+    }
+
+    @Test
+    void 목적_불일치는_실행가능한_설정이라도_저장하지_않는다() throws Exception {
+        ObjectNode full=fullRequest();
+        full.putArray("observations").add("meanComplaints");
+        var purpose=full.putObject("purpose").put("mode","COMPARE").put("comparisonKey","truckCount");
+        purpose.putArray("comparisonValues").add(360).add(1080);
+        purpose.putArray("observations").add("meanComplaints");
+        JsonNode built=ok(new BuildScenarioTool(builder,store,catalog,m,rounds()).call(full));
+        assertFalse(built.path("valid").asBoolean());
+        assertEquals("MISMATCH",built.path("purposeCheck").path("status").asText());
+        assertTrue(store.entry(built.path("scenarioId").asText()).isEmpty());
+    }
+
+    @Test
+    void 검증한_설정이_바뀌면_이전_승인과_실행을_막는다() throws Exception {
+        ObjectNode full=fullRequest();
+        full.putArray("observations").add("meanComplaints");
+        var purpose=full.putObject("purpose").put("mode","COMPARE").put("comparisonKey","collectionTimeMinutes");
+        purpose.putArray("comparisonValues").add(360).add(1080);
+        purpose.putArray("observations").add("meanComplaints");
+        JsonNode built=ok(new BuildScenarioTool(builder,store,catalog,m,rounds()).call(full));
+        assertTrue(built.path("valid").asBoolean(),built.toString());
+        assertEquals("SATISFIED",built.path("purposeCheck").path("status").asText());
+        String id=built.path("scenarioId").asText();
+        var confirm=new ConfirmScenarioTool(builder,store,m);
+        var confirmed=ok(confirm.call(m.createObjectNode().put("scenarioId",id)));
+        String token=confirmed.path("confirmToken").asText();
+        store.entry(id).orElseThrow().scenario().runs().get(0).setDays(12);
+        assertFalse(store.validationCurrent(id));
+        assertFalse(confirm.call(m.createObjectNode().put("scenarioId",id)).ready());
+        assertFalse(new RunScenarioByTokenTool(builder,store,new SimulationService(new SimulationEngine(new TrafficDataService())),m,rounds())
+                .call(m.createObjectNode().put("scenarioId",id).put("confirmToken",token)).ready());
+    }
+
+    @Test
+    void 목적만_변경한_실패한_요청도_이전_승인을_무효화한다() throws Exception {
+        ObjectNode full=fullRequest().put("requestId","purpose-revision");
+        var tool=new BuildScenarioTool(builder,store,catalog,m,rounds());
+        var first=ok(tool.call(full));
+        String id=first.path("scenarioId").asText();
+        full.putObject("purpose").put("mode","RUN").putArray("observations").add("unsupportedMetric");
+        var changed=ok(tool.call(full));
+        assertFalse(changed.path("valid").asBoolean());
+        assertFalse(store.validationCurrent(id));
+    }
+
+    @Test
+    void 같은_요청의_실패한_수정도_이전_완료를_무효화한다() throws Exception {
+        var tool=new BuildScenarioTool(builder,store,catalog,m,rounds());
+        ObjectNode full=fullRequest().put("requestId","request-revision-test");
+        JsonNode first=ok(tool.call(full));
+        String id=first.path("scenarioId").asText();
+        assertTrue(store.validationCurrent(id));
+        ((ObjectNode)full.get("values")).put("seeds",0);
+        tool.call(full);
+        assertFalse(store.validationCurrent(id));
+    }
+
+    @Test
+    void 목적_지표가_현재_설정에서_측정되지_않으면_막는다() throws Exception {
+        ObjectNode full=fullRequest();
+        var purpose=m.createObjectNode().put("mode","RUN");
+        purpose.putArray("observations").add("avgRouteDurationMinutes");
+        var built=ok(new BuildScenarioTool(builder,store,catalog,m,rounds()).call(full));
+        var scenario=store.entry(built.path("scenarioId").asText()).orElseThrow().scenario();
+        scenario.runs().forEach(c -> { c.setTravelTimeMode("LEGACY_CONSTANT"); c.setRouteTravelMinutes(0); });
+        var checked=com.wastesim.readiness.PurposeCheck.evaluate(purpose,"collectionTimeMinutes",List.of(360,1080),
+                List.of("avgRouteDurationMinutes"),builder.availableObservations(scenario));
+        assertFalse(checked.acceptable());
+        assertTrue(checked.reasons().toString().contains("관측할 수 없는"));
+    }
+
+    @Test
+    void 근거_생략은_완료와_구별하여_보관하고_확인해야_실행한다() throws Exception {
+        JsonNode built = ok(new BuildScenarioTool(builder, store, catalog, m, rounds()).call(fullRequest()));
+        assertTrue(built.path("valid").asBoolean(), built.toString());
+        assertTrue(built.path("taskReadiness").path("ready").asBoolean());
+        assertEquals("NOT_CHECKED", built.path("evidenceStatus").asText());
+        String id = built.path("scenarioId").asText();
+        var entry = store.entry(id).orElseThrow();
+        assertEquals("UNCONFIRMED", entry.state());
+        assertNull(entry.scenario().confirmToken());
+        assertFalse(entry.pes().reviewRequiredValues().isEmpty());
+        assertTrue(entry.pes().evidenceChecks().values().stream().allMatch("NOT_CHECKED"::equals));
+        assertEquals("USER", entry.pes().origins().get("truckType"));
+    }
+
+    @Test
     void 한_요청의_사건이_순서대로_쌓인다() throws Exception {
         ObjectNode full = fullRequest();
         ObjectNode partial = m.createObjectNode().put("truckType", "LARGE_5TON");

@@ -1,0 +1,131 @@
+{
+ "scenarioId": "scn-d65c7aa9",
+ "state": "UNCONFIRMED",
+ "sesId": "pohang-parking-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "maxSearchMinutes": 15,
+  "peakSurchargeRate": 0.5,
+  "congestionMode": "IGNORE",
+  "spacesPerLot": 80,
+  "seeds": 10,
+  "lotCount": 4,
+  "days": 14,
+  "baseFeePer30Min": 500,
+  "lotSpacingMinutes": 3.0,
+  "dailyArrivals": 900,
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "guidanceMode": "NONE",
+  "pricingPolicy": [
+   "FLAT",
+   "TIME_OF_DAY"
+  ]
+ },
+ "origins": {
+  "maxSearchMinutes": "USER",
+  "peakSurchargeRate": "USER",
+  "congestionMode": "MODEL_DEFAULT",
+  "spacesPerLot": "MODEL_DEFAULT",
+  "seeds": "USER",
+  "lotCount": "MODEL_DEFAULT",
+  "days": "USER",
+  "baseFeePer30Min": "MODEL_DEFAULT",
+  "lotSpacingMinutes": "MODEL_DEFAULT",
+  "dailyArrivals": "MODEL_DEFAULT",
+  "userMix": "MODEL_DEFAULT",
+  "guidanceMode": "MODEL_DEFAULT",
+  "pricingPolicy": "DERIVED"
+ },
+ "unapprovedDefaults": {
+  "congestionMode": "IGNORE",
+  "spacesPerLot": 80,
+  "lotCount": 4,
+  "baseFeePer30Min": 500,
+  "lotSpacingMinutes": 3.0,
+  "dailyArrivals": 900,
+  "userMix": [
+   "Commuter",
+   "Shopper",
+   "Visitor"
+  ],
+  "guidanceMode": "NONE"
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "parkingSnapshot": null,
+   "initialVehicleRemainingMinutes": null,
+   "lotCount": 4,
+   "spacesPerLot": 80,
+   "pricingPolicy": "FLAT",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": 0.5,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 900,
+   "guidanceMode": "NONE",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": false,
+   "congestionProfileId": "weekday-downtown",
+   "maxSearchMinutes": 15,
+   "days": 14,
+   "seeds": 10,
+   "lotSpacingMinutes": 3.0,
+   "fullLotCircleMinutes": 2.0
+  },
+  {
+   "parkingSnapshot": null,
+   "initialVehicleRemainingMinutes": null,
+   "lotCount": 4,
+   "spacesPerLot": 80,
+   "pricingPolicy": "TIME_OF_DAY",
+   "baseFeePer30Min": 500,
+   "peakSurchargeRate": 0.5,
+   "userMix": [
+    "Commuter",
+    "Shopper",
+    "Visitor"
+   ],
+   "residentPriorityShare": null,
+   "dailyArrivals": 900,
+   "guidanceMode": "NONE",
+   "guidanceRefreshMinutes": 5,
+   "congestionEnabled": false,
+   "congestionProfileId": "weekday-downtown",
+   "maxSearchMinutes": 15,
+   "days": 14,
+   "seeds": 10,
+   "lotSpacingMinutes": 3.0,
+   "fullLotCircleMinutes": 2.0
+  }
+ ],
+ "confirmToken": null,
+ "request": "주차 요금을 시간대별로 다르게 받으면 공영주차장 만차가 좀 풀릴까?",
+ "labels": {
+  "lotCount": "주차장 수",
+  "spacesPerLot": "주차장당 면수",
+  "pricingPolicy": "요금 정책",
+  "baseFeePer30Min": "30분당 기본 요금(원)",
+  "peakSurchargeRate": "혼잡 시간대 할증률",
+  "userMix": "이용자 구성",
+  "residentPriorityShare": "거주자 우선 구획 비율",
+  "dailyArrivals": "하루 도착 차량 수",
+  "guidanceMode": "주차 안내 방식",
+  "guidanceRefreshMinutes": "실시간 앱 갱신 주기(분)",
+  "congestionMode": "도로 혼잡 반영",
+  "congestionProfileId": "혼잡 프로파일",
+  "maxSearchMinutes": "탐색 포기 시간(분)",
+  "lotSpacingMinutes": "주차장 사이 이동시간(분)",
+  "days": "기간(일)",
+  "seeds": "반복 횟수",
+  "congestionEnabled": "도로 혼잡 반영"
+ }
+}

@@ -74,17 +74,19 @@ public class GetScenarioStatusTool implements McpToolProvider {
         try {
             var root = mapper.createObjectNode();
             root.put("scenarioId", scenarioId);
-            root.put("state", e.state());
+            root.put("state", store.validationCurrent(scenarioId) ? e.state() : "STALE");
+            root.set("validation", store.validation(scenarioId));
             root.put("runCount", e.scenario().runs().size());
             root.put("unapprovedDefaultCount", e.pes().unapprovedDefaults().size());
             root.put("confirmUrl", confirmUrl);
-            root.put("nextStep", switch (e.state()) {
+            root.put("nextStep", switch (store.validationCurrent(scenarioId) ? e.state() : "STALE") {
+                case "STALE" -> "입력 또는 데이터가 바뀌었습니다. build_scenario로 다시 검증하고 승인하십시오.";
                 case "UNCONFIRMED" -> "사용자에게 " + confirmUrl + " 을 열어 설정을 확인하도록 안내하십시오. "
                         + "확인은 사람만 할 수 있습니다.";
                 case "CONFIRMED" -> "run_scenario_by_token 에 confirmToken 을 실어 실행하십시오.";
                 default -> "이미 실행했습니다. 다시 돌리려면 확인 화면에서 다시 확인하십시오.";
             });
-            if (e.scenario().confirmToken() != null) {
+            if (store.validationCurrent(scenarioId) && e.scenario().confirmToken() != null) {
                 root.put("confirmToken", e.scenario().confirmToken());
             }
             return ToolResult.ok(mapper.writeValueAsString(root));

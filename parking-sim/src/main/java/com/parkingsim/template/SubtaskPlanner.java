@@ -32,7 +32,7 @@ public class SubtaskPlanner {
      */
     public List<String> waitingOn(String answerKey, Map<String, Object> answers) {
         return catalog.byAnswerKey(answerKey)
-                .map(t -> t.generateWhen().inputs().stream().filter(k -> !answers.containsKey(k)).toList())
+                .map(t -> t.generateWhen().inputs().stream().filter(k -> plan(answers).instances().stream().noneMatch(i -> i.answerKey().equals(k) && i.status() == SubtaskStatus.FILLED)).toList())
                 .orElse(List.of());
     }
 
@@ -41,19 +41,32 @@ public class SubtaskPlanner {
      *                "사용자가 말했다" 고 넘겨짚으면 기본값으로 채운 값과 구별되지 않는다.
      */
     public SubtaskPlan plan(Map<String, Object> answers, Map<String, String> origins) {
+        Map<String, Object> passed = new java.util.LinkedHashMap<>();
+        for (SubtaskTemplate t : catalog.all()) {
+            Object raw = answers.get(t.answerKey());
+            if (raw == null) continue;
+            String text;
+            try {
+                text = raw instanceof java.util.Collection<?>
+                        ? new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(raw) : String.valueOf(raw);
+            } catch (com.fasterxml.jackson.core.JsonProcessingException e) { continue; }
+            if ("INTEGER".equals(t.valueType()) && raw instanceof Number n
+                    && Double.isFinite(n.doubleValue()) && n.doubleValue() == Math.rint(n.doubleValue()))
+                text = Long.toString(n.longValue());
+            var checked = new AnswerNormalizer().normalize(t, text);
+            if (checked.ok()) passed.put(t.answerKey(), checked.value());
+        }
         List<SubtaskInstance> out = new ArrayList<>();
         for (SubtaskTemplate t : catalog.all()) {
-            Activation activation = t.generateWhen().evaluate(answers);
+            Activation activation = t.generateWhen().evaluate(passed);
             SubtaskStatus status = switch (activation) {
                 case INACTIVE -> SubtaskStatus.NOT_GENERATED;
                 case UNKNOWN -> SubtaskStatus.DEFERRED;
-                case ACTIVE -> answers.containsKey(t.answerKey())
-                        ? SubtaskStatus.FILLED : SubtaskStatus.UNFILLED;
+                case ACTIVE -> passed.containsKey(t.answerKey()) ? SubtaskStatus.FILLED : SubtaskStatus.UNFILLED;
             };
-            Object value = status == SubtaskStatus.FILLED ? answers.get(t.answerKey()) : null;
+            Object value = status == SubtaskStatus.FILLED ? passed.get(t.answerKey()) : null;
             String origin = status == SubtaskStatus.FILLED ? origins.get(t.answerKey()) : null;
-            out.add(new SubtaskInstance(
-                    t.templateId(), t.answerKey(), status, value, origin, t.question()));
+            out.add(new SubtaskInstance(t.templateId(), t.answerKey(), status, value, origin, t.question()));
         }
         return new SubtaskPlan(out);
     }
@@ -107,7 +120,7 @@ public class SubtaskPlanner {
                 if (i.status() == SubtaskStatus.UNFILLED) unfilledFor.add(values.get(r));
                 if (i.status() == SubtaskStatus.DEFERRED) waits.addAll(waitingOn(i.answerKey(), runAnswers.get(r)));
             }
-            if (best.answerKey().equals(variableKey)) {
+            if (best.answerKey().equals(variableKey) && best.status() == SubtaskStatus.FILLED) {
                 best = new SubtaskInstance(best.templateId(), best.answerKey(), SubtaskStatus.FILLED,
                         List.copyOf(values), origins.get(variableKey), best.question());
             }

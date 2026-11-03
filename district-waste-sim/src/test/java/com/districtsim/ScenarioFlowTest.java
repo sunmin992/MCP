@@ -155,4 +155,21 @@ class ScenarioFlowTest {
         assertThat(r.ready()).isFalse();
         assertThat(String.valueOf(r.errors())).contains("request");
     }
+
+    @Test
+    void 목적과_Task_명세를_검증하고_실제_결과_지표를_확인한다() throws Exception {
+        JsonNode built = call("build_scenario", """
+        {"values": {"zoneCount": 8, "householdsPerZone": 600, "housingMix": ["Apartment", "Detached", "Studio"], "truckType": "LARGE_5TON", "zoneAllocation": "EQUAL_COUNT", "scheduleMode": "POHANG_BUKGU", "holidayMode": "IGNORE", "transferMode": "IGNORE", "collectionStartMinutes": 360, "shiftMinutes": 480, "days": 7, "seeds": 1}, "origins": {"zoneCount": "USER", "householdsPerZone": "USER", "housingMix": "USER", "truckType": "USER", "zoneAllocation": "USER", "scheduleMode": "USER", "holidayMode": "USER", "transferMode": "USER", "collectionStartMinutes": "USER", "shiftMinutes": "USER", "days": "USER", "seeds": "USER"}, "variableAnswerKey": "truckCount", "variableValues": [1, 2], "observations": ["judgement.leftoverKgPerCollectionDay"], "purpose": {"mode": "COMPARE", "comparisonKey": "truckCount", "comparisonValues": [1, 2], "observations": ["judgement.leftoverKgPerCollectionDay"]}}
+        """);
+        assertThat(built.path("valid").asBoolean()).as(built.toString()).isTrue();
+        assertThat(built.path("purposeCheck").path("status").asText()).isEqualTo("SATISFIED");
+        assertThat(built.path("validation").path("current").asBoolean()).isTrue();
+        assertThat(built.path("taskDefinitions").isEmpty()).isFalse();
+        String id = built.path("scenarioId").asText();
+        ToolResult confirmed = confirm.call(mapper.createObjectNode().put("scenarioId", id));
+        assertThat(confirmed.ready()).as(confirmed.errors().toString()).isTrue();
+        String token = call("get_scenario_status", "{\"scenarioId\":\"" + id + "\"}").path("confirmToken").asText();
+        JsonNode result = call("run_scenario_by_token", "{\"scenarioId\":\"" + id + "\",\"confirmToken\":\"" + token + "\"}");
+        assertThat(result.path("purposeResultCheck").asText()).isEqualTo("VERIFIED");
+    }
 }

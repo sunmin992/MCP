@@ -167,18 +167,34 @@ class ScenarioBuilderTest {
     }
 
     @Test
-    void 비교_값마다_따로_판정한다() {
-        Pes pes = withValue(basePes(), "dispatchIntervalMinutes", 10, "USER");
+    void 일부_비교_값에서만_생기는_사용자_값은_그쪽에만_싣는다() {
+        // 1대 대 3대 비교의 배차 간격(onlyFor 3대). values 는 모든 실행에 공통이라, 1대 쪽에서 막으면
+        // 넣어도(1대가 막힘) 빼도(3대가 물어야 할 결정) 시나리오를 만들 수 없다 — 2026-11-03 V3 실험 J3.
+        Pes pes = withValue(withValue(basePes(), "dispatchIntervalMinutes", 10, "USER"), "collectionTimeMinutes", 720, "USER");
+        Scenario s = builder.build(withoutTruckCount(pes),
+                new ExperimentFrame("truckCount", List.of(1, 3), List.of("meanComplaints")));
+        assertTrue(s.branchBlocks().isEmpty(), "막힌 값: " + s.branchBlocks());
+        assertTrue(s.valid(), "검증 실패: " + s.blocks() + s.backVerificationBlocks());
+        assertEquals(10, s.runs().get(1).getDispatchIntervalMinutes());
+        assertNotEquals(10, s.runs().get(0).getDispatchIntervalMinutes(), "1대 쪽에 배차 간격이 실리면 안 된다");
+        assertEquals(List.of("truckCount=1"), s.droppedDefaults().get("dispatchIntervalMinutes"));
+    }
+
+    @Test
+    void 어느_비교_값에서도_생기지_않는_사용자_값은_막는다() {
+        Scenario s = builder.build(withoutTruckCount(withValue(basePes(), "dispatchIntervalMinutes", 10, "USER")),
+                new ExperimentFrame("truckCount", List.of(1), List.of("meanComplaints")));
+        assertEquals(1, s.branchBlocks().size(), "막힌 값: " + s.branchBlocks());
+        assertTrue(s.branchBlocks().get(0).startsWith("truckCount=1: dispatchIntervalMinutes"),
+                s.branchBlocks().get(0));
+    }
+
+    private Pes withoutTruckCount(Pes pes) {
         Map<String, Object> v = new LinkedHashMap<>(pes.values());
         Map<String, String> o = new LinkedHashMap<>(pes.origins());
         v.remove("truckCount");
         o.remove("truckCount");
-        pes = new Pes(pes.sesId(), pes.sesVersion(), v, o);
-        Scenario s = builder.build(pes, new ExperimentFrame(
-                "truckCount", List.of(1, 3), List.of("meanComplaints")));
-        assertEquals(1, s.branchBlocks().size(), "막힌 값: " + s.branchBlocks());
-        assertTrue(s.branchBlocks().get(0).startsWith("truckCount=1: dispatchIntervalMinutes"),
-                s.branchBlocks().get(0));
+        return new Pes(pes.sesId(), pes.sesVersion(), v, o);
     }
 
     @Test

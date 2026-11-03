@@ -1,0 +1,34 @@
+{
+  "id": "V3-P2-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "주차", "objective": "공영주차장 만차 완화", "comparisonAxes": ["주차 요금 체계"]}, "verdict": "MATCH", "matchId": "7f1b0c30-ada9-4860-91b5-1d7a69565249", "round": 1, "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "matchCount 1, mismatches·ambiguities 없음. nextStep 대로 브로커는 다시 부르지 않음"}
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {"text": "시뮬레이션을 만들려면 몇 가지 정해야 합니다. (1) 무엇과 무엇을 비교할까요? 균일 요금 vs 시간대 차등(08~10시·17~19시 할증)으로 볼까요? (2) 혼잡 시간대(08~10시, 17~19시)에 요금을 얼마나 더 받을까요? (0.5 = 50% 할증) — 기본값이 없어 정해 주셔야 합니다 (3) 운전자는 주차장을 몇 분까지 찾다가 포기하나요? (1~60분) — 기본값이 없어 정해 주셔야 합니다 (4) 공영주차장은 몇 곳이고 한 곳에 몇 면인가요? (기본 4곳 × 80면) (5) 30분당 기본 요금은? (기본 500원) (6) 이용자 구성은? (기본 출퇴근·쇼핑·방문) (7) 하루 도착 차량 수는? (기본 900대) (8) 주변 도로 혼잡을 주차장 사이 이동시간에 반영할까요? (기본 반영 안 함) (9) 며칠치를 몇 번 반복해 볼까요? (기본 14일, 30회)", "keys": ["pricingPolicy", "peakSurchargeRate", "maxSearchMinutes", "lotCount", "spacesPerLot", "baseFeePer30Min", "userMix", "dailyArrivals", "congestionMode", "days", "seeds"], "answer": "비교: 균일 요금과 시간대 차등 / 할증률: 50% / 탐색 포기 시간: 15분 / 주차장: 기본값으로 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"},
+    {"text": "주차장이 여러 곳이라 두 가지가 더 생겼습니다. (1) 주차 안내는 어떻게 하나요? (없음 — 들어가 봐야 앎 / 입구 안내판 / 실시간 앱, 기본 없음) (2) 이웃한 두 주차장 사이를 차로 옮겨 가는 데 몇 분 걸리나요? (0.5~30분, 기본 3분)", "keys": ["guidanceMode", "lotSpacingMinutes"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [
+    "build_scenario 1차: 근거 검사(GUARD) — baseFeePer30Min·guidanceMode·lotSpacingMinutes 기본값에 동의 구절 evidence 가 없어 거절. '그 밖: 기본값으로 해줘' / '기본값으로 해줘' 를 evidence 로 넣어 재시도해 통과"
+  ],
+  "scenarioId": "scn-d65c7aa9",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 4곳×80면, 30분당 500원, 이용자 구성 Commuter·Shopper·Visitor, 하루 900대 도착, 도로 혼잡 반영 안 함, 주차 안내 없음, 주차장 사이 3분은 사용자가 '기본값으로' 넘긴 템플릿 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에서 승인하지 않은 기본값 8개로 따로 표시된다고 알림. 확인 화면: http://localhost:8092/confirm.html?id=scn-d65c7aa9",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음. 확인(승인)은 사람만 하므로 멈춤",
+  "difficulties": "도구 설명이 planId 를 언급하지 않고 어떤 응답에도 planId 가 없어 넘기지 못함. 기본값을 받은 결정도 evidence 에 동의 구절을 넣어야 한다는 점이 첫 build 거절 뒤에야 분명해짐(설명엔 '조건부 결정에 기본값을 쓸 때 필요'라 했으나 baseFeePer30Min 처럼 ALWAYS 가 아닌 NOT_FREE 조건 결정도 해당됨). guardUnverified 에 pricingPolicy 가 남았는데, 실험 변수의 근거가 어떻게 검사되는지 안내가 없었음"
+}

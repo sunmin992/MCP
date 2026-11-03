@@ -1,0 +1,50 @@
+{
+  "id": "V3-S2-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "environmentConditions": ["공휴일"], "objective": "필요한 수거차 대수", "comparisonAxes": ["수거차 대수"]},
+      "verdict": "CHOOSE",
+      "matchId": "1dc2d57d-38a2-41e0-8a39-a0109cba029a",
+      "round": 1,
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional, example.invalid)도 있었으나 candidates 에서 빠져 사용자에게 보이지 않음. differences: region/unit/calibration"
+    }
+  ],
+  "userChoice": "bukgu-district-waste-sim (행정동 전체(포항 북구) 쪽으로 할게)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_capability",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:plan_subtasks"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "요청에 맞는 시뮬레이터가 둘 있습니다. (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 포항시 북구, 행정동 전체(구역 집계), 수거 요일·배출 창 표준데이터 보정. (2) 장량동 생활쓰레기 수거 시뮬레이터 — 장량동 원룸촌 한 블록, TMAP 교통·실측 교통량 보정. 어느 쪽으로 할까요?",
+      "keys": [],
+      "answer": "행정동 전체(포항 북구) 쪽으로 할게"
+    },
+    {
+      "text": "포항 북구 행정동 시뮬레이터로 진행합니다. ① 비교할 수거차 대수는 몇 대와 몇 대인가요? (1~20대) ② 수거 일정은? (기본: 포항 북구 현행 월·화·목·금) ③ 수거일이 공휴일이면 건너뛸까요, 다음 날 대신 수거할까요? ④ 그 밖에 구역 수(8)·구역당 세대(600)·주거 구성·차종(5톤)·적환장(안 씀)·시작 시각(06:00)·근무(8시간)·기간(28일, 2026-09-21부터)·반복(30회)은 기본값으로 둘까요?",
+      "keys": ["truckCount", "scheduleMode", "holidayPolicy", "zoneCount", "householdsPerZone", "housingMix", "truckType", "transferMode", "collectionStartMinutes", "shiftMinutes", "days", "seeds"],
+      "answer": "비교할 차량 수: 2대와 3대 / 그 밖: 기본값으로 해줘"
+    },
+    {
+      "text": "수거일이 공휴일일 때의 처리에는 기본값이 없어 제가 대신 정할 수 없습니다. 공휴일 수거를 건너뛸까요(SKIP), 다음 날 대신 수거할까요(NEXT_DAY)?",
+      "keys": ["holidayPolicy"],
+      "answer": "기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "toldUser": "holidayMode=APPLY 는 '공휴일을 고려하면'에서 정했다(DERIVED). 구역 수 8, 구역당 600세대, 주거 구성 아파트·단독·원룸, 5톤 차, 포항 북구 현행 일정(월·화·목·금), 적환장 안 씀, 06:00 시작, 8시간 근무, 28일(2026-09-21~), 30회 반복은 기본값(MODEL_DEFAULT)으로 넣겠다고 알림. 구역 배정(EQUAL_COUNT)도 기본값 예정. 공휴일 처리는 기본값이 없어 대신 정할 수 없다고 알림.",
+  "stoppedBecause": "holidayPolicy 는 기본값이 없는 필수 결정(mustAskNoDefault)인데, 두 번 물었어도 사용자가 '기본값으로 해줘'라고만 답했다. 서버 neverDo 가 기본값 없는 값(공휴일 정책)을 대신 채우는 것을 금하므로 build_scenario 를 부르지 않고 사용자의 SKIP/NEXT_DAY 선택을 기다리며 멈췄다.",
+  "difficulties": "find_simulators 의 candidates(2개)와 matches(3개, 가상 서버 포함)가 달라 어느 쪽을 보여 줄지 잠시 헷갈렸다 — candidates 를 따랐다. 사용자 '기본값으로' 답이 기본값 없는 결정(holidayPolicy)에 부딪혔을 때 어떻게 할지 도구 설명에 안내가 없다. 이 서버의 도구에는 planId 매개변수가 없어 planIds 는 비었다."
+}

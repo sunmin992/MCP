@@ -1,0 +1,16 @@
+{
+  "id": "V3-P6-A-r2",
+  "method": "A",
+  "brokerCalls": [ {"profileSent": {"domain": "주차", "environmentConditions": ["주차장끼리 멀어 옮겨 다니는 데 10분씩 걸림"], "objective": "실시간 안내 앱의 효과", "comparisonAxes": ["주차 안내 방식"]}, "verdict": "MATCH", "matchId": "81232fe2-2a31-4c01-b13f-326522b15d00", "round": 1, "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "이동시간 조건이 lot-spacing 으로 매칭되어 바로 MATCH. spatialScale 은 모르므로 비워 둠" } ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:build_scenario", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "planIds": [],
+  "questions": [ {"text": "실시간 안내 앱 효과를 무엇과 비교할까요(안내 없음 / 입구 안내판 / 실시간 앱)? 운전자는 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 실시간 앱은 몇 분마다 갱신하나요? 그 밖에 주차장 수(기본 4곳)·주차장당 면수(80면)·요금(균일, 30분 500원)·이용자 구성(출퇴근·쇼핑·방문)·하루 도착 차량(900대)·도로 혼잡 반영(안 함)·기간(14일)·반복(30회)은 어떻게 할까요? 주차장 사이 이동시간은 말씀하신 10분으로 넣겠습니다.", "keys": ["guidanceMode", "maxSearchMinutes", "guidanceRefreshMinutes", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "dailyArrivals", "congestionMode", "days", "seeds"], "answer": "비교: 안내 없음과 실시간 앱 / 탐색 포기 시간: 15분 / 앱 갱신 주기: 5분 / 그 밖: 기본값으로 해줘"} ],
+  "rejections": ["build_scenario 1차: evidence GUARD — baseFeePer30Min 등 MODEL_DEFAULT 값에 동의 구절 evidence 가 없어 거절. '기본값으로 해줘' 를 기본값 키마다 evidence 로 넣어 재시도해 통과"],
+  "scenarioId": "scn-8612586e",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 사이 이동시간 10분은 요청에서 그대로 넣었고, 주차장 4곳·주차장당 80면·균일 요금 30분 500원·이용자 구성(출퇴근/쇼핑/방문)·하루 900대·도로 혼잡 미반영·14일·30회 반복은 기본값으로 넣었다고 알림(확인 화면에 승인하지 않은 기본값 9개로 표시됨). 확인 화면: http://localhost:8092/confirm.html?id=scn-8612586e",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 멈춤",
+  "difficulties": "build_scenario 설명은 '출처를 적지 않은 값은 MODEL_DEFAULT' 라고만 하고, 기본값도 동의 구절 evidence 가 필요하다는 점은 거절 사유를 받고서야 알았음. plan_subtasks 응답에 planId 가 없어 넘길 planId 가 없었음. build 응답의 guardUnverified 에 guidanceMode 가 남았는데(실험 변수라 evidence 검사 대상 밖으로 보임) 의미가 명확하지 않음. 첫 plan_subtasks 에서 lotSpacingMinutes 를 USER 로 줬는데 lotCount 미정으로 DEFERRED 로 표시됨"
+}

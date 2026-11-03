@@ -99,6 +99,9 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             return ToolFailure.of("confirmToken", "이미 실행한 시나리오입니다: " + scenarioId
                     + " — 다시 돌리려면 사용자가 확인 화면에서 다시 확인해야 합니다.");
         }
+        if (!store.validationCurrent(scenarioId)) {
+            return ToolFailure.of("scenarioId", "입력·데이터·목적 또는 요청 단계가 바뀌어 완료 판정이 무효입니다. build_scenario로 재검증하고 다시 승인하십시오.");
+        }
         Scenario scenario = found.get().scenario();
         if (scenario.confirmToken() == null) {
             return ToolFailure.of("confirmToken", "아직 확인되지 않은 시나리오입니다: " + scenarioId
@@ -151,7 +154,12 @@ public class RunScenarioByTokenTool implements McpToolProvider {
                 integrity.set("dataQualityFlags", mapper.valueToTree(List.of("DEMAND_ASSUMED", "SERVICE_TIME_ASSUMED")));
                 integrity.set("assumptionNotes", mapper.valueToTree(notes));
             }
-            store.markExecuted(scenarioId);
+            var requestedPurpose = store.validation(scenarioId).path("purposeCheck").path("specification");
+            var purposeResultErrors = com.wastesim.readiness.PurposeCheck.verifyResults(requestedPurpose, runs);
+            if (!purposeResultErrors.isEmpty())
+                return ToolFailure.of("purpose", String.join("; ", purposeResultErrors));
+            if (!store.completeExecution(scenarioId, found.get()))
+                return ToolFailure.of("scenarioId", "실행 중 입력·데이터 또는 요청이 변경됐습니다. 결과를 채택하지 않고 다시 검증해야 합니다.");
 
             var root = mapper.createObjectNode();
             root.put("scenarioId", scenario.scenarioId());
@@ -160,6 +168,7 @@ public class RunScenarioByTokenTool implements McpToolProvider {
             root.put("limitation", "이 결과는 설정 간 비교이며 운영 예측이 아니다. 시간대별 방문 분포 · "
                     + "처리 시간 분포 · 대기 한도는 가정값이다.");
             root.set("runs", runs);
+            root.put("purposeResultCheck", requestedPurpose.isObject() ? "VERIFIED" : "NOT_SPECIFIED");
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("scenario", "실행에 실패했습니다: " + e.getMessage());

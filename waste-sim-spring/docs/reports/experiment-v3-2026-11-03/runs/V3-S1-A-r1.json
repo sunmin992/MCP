@@ -1,0 +1,46 @@
+{
+  "id": "V3-S1-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "민원 창구 대기", "spatialScale": "주민센터 한 곳", "environmentConditions": ["점심 시간대"], "objective": "민원 대기 시간", "comparisonAxes": ["창구 수"]},
+      "verdict": "MATCH",
+      "matchId": "f4008db4-4250-46d8-970a-d2287460e855",
+      "round": 1,
+      "recommended": "pohang-counter-sim",
+      "candidates": ["pohang-counter-sim"],
+      "note": "단일 MATCH, mismatches/ambiguities 없음. 점심 시간대 → time-of-day-demand 로 대응됨"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-counter-sim",
+  "toolSequence": [
+    "pohang-counter-sim:tools/list",
+    "pohang-counter-sim:get_templates",
+    "pohang-counter-sim:plan_subtasks",
+    "pohang-counter-sim:get_capability",
+    "pohang-counter-sim:validate_answers",
+    "pohang-counter-sim:build_scenario"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "몇 가지 정해 주세요. (1) 창구 수를 몇 개와 몇 개로 비교할까요? (2) 민원인은 몇 분까지 기다리다 돌아가나요? (1~240분, 기본값이 없어 꼭 정해 주셔야 합니다) (3) 줄은 번호표 한 줄(기본)과 창구마다 줄 중 어떻게 서나요? (4) 하루 방문객 수(기본 180명) (5) 민원 한 건 평균 처리 시간(기본 8분) (6) 방문 예약제를 쓸까요?(기본 안 씀) (7) 며칠치를 볼까요?(기본 5일, 하루 09~18시) (8) 몇 번 반복할까요?(기본 30회)",
+      "keys": ["counterCount", "maxWaitMinutes", "queueDiscipline", "dailyVisitors", "serviceMinutes", "reservationMode", "days", "seeds"],
+      "answer": "비교할 창구 수: 2개와 3개 / 기간·반복: 기본값으로 / 그 밖: 기본값으로 해줘"
+    },
+    {
+      "text": "대기 한도(민원인이 몇 분까지 기다리다 돌아가는지)는 기본값이 없어서 제가 대신 정할 수 없습니다. 1~240분 사이로 몇 분으로 할까요?",
+      "keys": ["maxWaitMinutes"],
+      "answer": "기본값으로 해줘 (대본에 없음)"
+    }
+  ],
+  "rejections": [
+    "build_scenario(scn-61c34097): maxWaitMinutes 미지정 — 기본값이 없는 값이라 사용자가 정해야 함(counterCount=2, 3 두 실행 설정 모두 block). state=INVALID"
+  ],
+  "scenarioId": "scn-61c34097",
+  "scenarioState": "INVALID",
+  "toldUser": "줄 서는 방식 SINGLE_LINE, 하루 방문객 180명, 처리 시간 8분, 예약제 안 씀, 기간 5일, 반복 30회는 템플릿 기본값(MODEL_DEFAULT)으로 넣었다고 알림. 점심 시간대는 별도 설정이 아니라 가정된 시간대별 방문 가중치(12시 방문 적음)로 표현되고 결과의 hourlyMeanWait(도착 시간대별 대기)로 본다고 알림. 대기 한도는 기본값이 없어 사용자가 정해야 하며, 정하지 않으면 시나리오가 INVALID 로 막힌다고 알림.",
+  "stoppedBecause": "필수 값 maxWaitMinutes 에 기본값이 없고(neverDo: 대신 채우지 않음), 두 번 물었으나 사용자가 '기본값으로 해줘'만 답해 값을 받지 못함. build_scenario 가 INVALID 로 막혀 확인 화면 단계로 갈 수 없어 멈춤.",
+  "difficulties": "응답 어디에도 planId 가 나오지 않아 planIds 는 비어 있음. 사용자 요청의 '점심 시간대'는 조절 가능한 템플릿 값이 아니어서(시간대 가중치는 고정 가정값, 12시 적음) 요청 의도와 모델 가정이 어긋날 수 있음 — 브로커는 MATCH 로만 알려 줌. 대본의 '그 밖: 기본값으로'가 기본값 없는 필수 값과 부딪혀 진행 불가."
+}

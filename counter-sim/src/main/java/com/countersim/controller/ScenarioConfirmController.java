@@ -61,9 +61,9 @@ public class ScenarioConfirmController {
         List<Map<String, Object>> rows = store.all().stream()
                 .map(e -> Map.<String, Object>of(
                         "scenarioId", e.scenario().scenarioId(),
-                        "state", e.state(),
+                        "state", store.validationCurrent(e.scenario().scenarioId()) ? e.state() : "STALE",
                         "runCount", e.scenario().runs().size(),
-                        "unapprovedCount", e.pes().unapprovedDefaults().size()))
+                        "unapprovedCount", e.pes().reviewRequiredValues().size()))
                 .toList();
 
         // 노출 상태를 화면이 알 수 있게 함께 낸다. 이 서버에는 인증이 없어 루프백
@@ -95,17 +95,20 @@ public class ScenarioConfirmController {
                 .<ResponseEntity<Map<String, Object>>>map(e -> {
                     Map<String, Object> out = new LinkedHashMap<>();
                     out.put("scenarioId", e.scenario().scenarioId());
-                    out.put("state", e.state());
+                    out.put("state", store.validationCurrent(scenarioId) ? e.state() : "STALE");
+                    out.put("validation", store.validation(scenarioId));
                     out.put("sesId", e.pes().sesId());
                     out.put("sesVersion", e.pes().sesVersion());
                     out.put("values", e.pes().values());
                     out.put("origins", e.pes().origins());
-                    out.put("unapprovedDefaults", e.pes().unapprovedDefaults());
+                    out.put("unapprovedDefaults", e.pes().reviewRequiredValues());
+                    out.put("unverifiedValues", e.pes().unverifiedValues());
+                    out.put("evidenceChecks", e.pes().evidenceChecks());
                     out.put("blocks", e.scenario().blocks());
                     out.put("runs", e.scenario().runs());
                     // 발급된 토큰은 상태의 일부다. 확인 직후에만 띄우면 화면을 새로
                     // 그리는 순간 사라지고, 사용자는 무엇을 들고 실행해야 할지 모른다.
-                    out.put("confirmToken", e.scenario().confirmToken());
+                    out.put("confirmToken", store.validationCurrent(scenarioId) ? e.scenario().confirmToken() : null);
                     // 사용자는 자기 요청과 설정을 나란히 보고, 영문 키가 아니라 이름으로 읽어야 무엇을 승인하는지 안다.
                     out.put("request", store.request(scenarioId).orElse(null));
                     Map<String, String> labels = new LinkedHashMap<>();

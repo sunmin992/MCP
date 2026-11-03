@@ -1,0 +1,23 @@
+{
+  "id": "V3-P3-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "주차", "spatialScale": "한 동네", "environmentConditions": ["밤"], "objective": "밤에 동네 주민들이 차 댈 데가 없는 문제 해소", "comparisonAxes": ["공영주차장의 거주자 우선 구획 전환"]}, "verdict": "ADJUST_REQUEST", "matchId": "af27c773-59d5-410f-868a-5b8afe07d171", "round": 1, "recommended": null, "candidates": ["pohang-parking-sim"], "note": "pohang-parking-sim 하나가 후보. requestAdjustments: environmentConditions '밤' MISMATCH(빼면 됨), objective MISMATCH(답할 수 있는 질문 중 하나로 바꾸면 됨, 예: 거주자 우선 구획 효과). 둘 다 changesPurpose=false"},
+    {"profileSent": {"domain": "주차", "spatialScale": "한 동네", "objective": "거주자 우선 구획 효과", "comparisonAxes": ["공영주차장의 거주자 우선 구획 전환"], "matchId": "af27c773-59d5-410f-868a-5b8afe07d171", "targetServerId": "pohang-parking-sim"}, "verdict": "MATCH", "matchId": "af27c773-59d5-410f-868a-5b8afe07d171", "round": 2, "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "removedConditions: environmentConditions 밤, purposeChanged=true (1라운드 changesPurpose=false 와 어긋남)"}
+  ],
+  "userChoice": "pohang-parking-sim (공영주차장 쪽으로 볼게 — '밤' 조건 빼고 목적을 '거주자 우선 구획 효과'로 고침)",
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "pohang-parking-sim:tools/list", "pohang-parking-sim:get_templates", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:validate_answers", "pohang-parking-sim:plan_subtasks", "pohang-parking-sim:build_scenario", "pohang-parking-sim:get_scenario_status"],
+  "planIds": [],
+  "questions": [
+    {"text": "그대로 받을 수 있는 서버가 없습니다. 후보는 '포항 도심 공영주차장 탐색·혼잡 시뮬레이터'(pohang-parking-sim) 하나이며, 쓰려면 요청을 이렇게 고쳐야 합니다: ① '밤' 조건을 뺍니다(이 서버는 시간대별 수요는 다루지만 '밤'이라는 조건은 카드에 없습니다). ② 목적을 이 서버가 답할 수 있는 질문 가운데 하나로 바꿉니다 — 주차 탐색 시간, 주차 포기 차량, 주차장 혼잡도·점유율, 요금 정책 효과, 안내 방식 효과, 거주자 우선 구획 효과, 주차장 수·면수. 이 서버로 '거주자 우선 구획 효과'를 보는 것으로 고칠까요?", "keys": [], "answer": "공영주차장 쪽으로 볼게"},
+    {"text": "시뮬레이션 설정을 정해 주세요. ① 공영주차장은 몇 곳인가요(1~12)? ② 주차장 한 곳의 면수는(10~1000)? ③ 요금은 균일/시간대 차등/무료 중 무엇인가요? ④ 이용자 구성은(출퇴근·쇼핑·방문·거주자 중 비중)? ⑤ 거주자 우선 구획 비율은 어떤 값들을 비교할까요(0~90%)? ⑥ 하루 도착 차량 수는? ⑦ 주변 도로 혼잡을 반영할까요? ⑧ 운전자는 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? ⑨ 며칠치를(1~90일), ⑩ 몇 번 반복할까요(1~100회)?", "keys": ["lotCount", "spacesPerLot", "pricingPolicy", "userMix", "residentPriorityShare", "dailyArrivals", "congestionMode", "maxSearchMinutes", "days", "seeds"], "answer": "이용자 구성: 출퇴근 1 : 쇼핑 1 : 거주자 1 / 거주자 우선 비율: 20%와 40%를 비교해 줘 / 탐색 포기 시간: 15분 / 기간·반복: 14일, 10회 / 그 밖: 기본값으로 해줘"},
+    {"text": "몇 가지 더 정해 주세요. ① 30분당 기본 요금은 얼마인가요(원)? ② 주차 안내는 어떻게 하나요(없음/입구 안내판/실시간 앱)? ③ 이웃한 두 주차장 사이를 차로 옮겨 가는 데 몇 분 걸리나요(0.5~30분)?", "keys": ["baseFeePer30Min", "guidanceMode", "lotSpacingMinutes"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-867f53a7",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것: 주차장 4곳, 주차장당 80면, 균일 요금, 30분당 500원, 하루 도착 900대, 안내 없음(NONE), 도로 혼잡 미반영(IGNORE), 주차장 사이 3분 — 확인 화면에 승인하지 않은 기본값 8개로 따로 표시됨. 요청의 '밤' 조건은 빠졌고(거주자는 19시 도착·다음날 아침까지 머무는 유형으로만 반영), 목적은 '거주자 우선 구획 효과'로 바뀜. userMix 는 guardUnverified 로 표시됨. 확인 화면: http://localhost:8092/confirm.html?id=scn-867f53a7",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, runCount 2: 거주자 우선 20% / 40%). get_scenario_status 로 확인 화면 주소를 얻었고, 승인은 사람만 하므로 멈춤",
+  "difficulties": "1) 1라운드에서 두 조정 모두 changesPurpose=false 였는데 2라운드 round.purposeChanged=true 로 나와 어긋남. 2) 시뮬레이터 도구 어디에도 planId 인자·응답이 없어 planIds 는 비어 있음. 3) '밤' 이 MISMATCH 로 빠졌지만 time-of-day-demand · Resident(19시 도착) 로 사실상 다뤄지는 부분이라 빼는 게 맞는지 헷갈림. 4) build_scenario 응답의 guardUnverified: [\"userMix\"] 가 무슨 뜻인지(근거 구절 검사 실패인지) 설명이 없음. 5) 조건부 결정(baseFee·guidanceMode·lotSpacing)이 상위 답을 정한 뒤에야 드러나 질문이 한 번 더 필요했음"
+}

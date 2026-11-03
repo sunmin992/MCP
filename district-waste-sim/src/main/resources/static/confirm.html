@@ -105,7 +105,7 @@ function sweptKeys(runs) {
 }
 
 // 출처를 사람이 읽는 말로 — 영문 표기만 보이면 무엇이 내가 말한 값인지 가를 수 없다.
-const ORIGIN = { USER: '사용자가 말함', MODEL_DEFAULT: '기본값(사용자가 정하지 않음)', DERIVED: '요청에서 도출' };
+const ORIGIN = { UNVERIFIED: '발화 근거 미검증(확인 필요)', USER: '사용자가 말함', MODEL_DEFAULT: '기본값(사용자가 정하지 않음)', DERIVED: '요청에서 도출' };
 
 async function loadDetail(id) {
   current = id;
@@ -140,16 +140,16 @@ async function loadDetail(id) {
       <p>${d.request ? esc(d.request) : '<span style="color:#666">요청 원문이 함께 전달되지 않았습니다.</span>'}</p></div>
 
     ${unapproved.length ? (d.state === 'UNCONFIRMED'
-      ? `<div class="warn"><strong>사용자가 승인하지 않은 기본값 ${unapproved.length}개</strong>
+      ? `<div class="warn"><strong>확인이 필요한 기본값·근거 미검증 값 ${unapproved.length}개</strong>
       <table><tr><th>항목</th><th>값</th></tr>
       ${unapproved.map(([k, v]) => `<tr><td>${name(k)}</td><td>${esc(v)}</td></tr>`).join('')}
       </table>확인하면 이 값으로 돌아갑니다.</div>`
       // 확인은 시나리오 전체를 승인한다. 값의 출처(MODEL_DEFAULT)는 기록이라 바꾸지 않지만,
       // 확인한 뒤에도 "승인하지 않은" 이라고 쓰면 사람이 누른 확인이 없던 일처럼 읽힌다.
-      : `<div class="approved"><strong>확인 때 함께 승인된 기본값 ${unapproved.length}개</strong>
+      : `<div class="approved"><strong>확인 때 함께 승인된 값 ${unapproved.length}개</strong>
       <table><tr><th>항목</th><th>값</th></tr>
       ${unapproved.map(([k, v]) => `<tr><td>${name(k)}</td><td>${esc(v)}</td></tr>`).join('')}
-      </table>사용자가 말하지 않은 값이지만, 확인 화면에서 이 값으로 승인했습니다.</div>`) : ''}
+      </table>기본값 또는 발화 근거가 미검증인 값을 확인 화면에서 승인했습니다.</div>`) : ''}
 
     ${d.blocks.length ? `<div class="warn"><strong>막힌 사유</strong><ul>
       ${d.blocks.map(b => `<li>${esc(b)}</li>`).join('')}</ul></div>` : ''}
@@ -157,7 +157,7 @@ async function loadDetail(id) {
     <h3 style="font-size:14px;margin:16px 0 0">모든 항목과 정한 근거</h3>
     <table><tr><th>항목</th><th>값</th><th>정한 근거</th></tr>
     ${Object.entries(d.values).map(([k, v]) =>
-      `<tr><td>${name(k)}</td><td>${esc(v)}</td><td>${esc(ORIGIN[d.origins[k]] ?? d.origins[k] ?? '')}</td></tr>`).join('')}
+      `<tr><td>${name(k)}</td><td>${esc(v)}</td><td>${esc((d.evidenceChecks?.[k] ? '발화 근거 미검증 · ' : '') + (ORIGIN[d.origins[k]] ?? d.origins[k] ?? ''))}</td></tr>`).join('')}
     </table>
 
     <h3 style="font-size:14px;margin:0 0 0">조건마다 달라지는 것</h3>
@@ -165,8 +165,9 @@ async function loadDetail(id) {
       ${d.runs.map(r => `<tr>${swept.map(k => `<td>${typeof r[k] === 'boolean' ? (r[k] ? '적용' : '적용 안 함') : esc(r[k])}</td>`).join('')}</tr>`).join('')}
       </table></div>` : '<p style="color:#666">설정 한 벌뿐입니다.</p>'}
 
-    <button class="go" ${d.state !== 'CONFIRMED' && !d.blocks.length ? '' : 'disabled'}>
-      ${{ UNCONFIRMED: '이 설정으로 돌린다', EXECUTED: '다시 확인하고 돌린다' }[d.state] ?? '이미 확인됨'}
+    ${readinessPanel(d)}
+    <button class="go" ${d.state !== 'CONFIRMED' && d.state !== 'STALE' && !d.blocks.length ? '' : 'disabled'}>
+      ${{ UNCONFIRMED: '이 설정으로 돌린다', STALE: '재검증 필요', EXECUTED: '다시 확인하고 돌린다' }[d.state] ?? '이미 확인됨'}
     </button>
     ${d.confirmToken ? `<p style="color:#666;font-size:13px">확인 토큰
       <code>${esc(d.confirmToken)}</code> · 이 토큰으로만 실행됩니다.
@@ -175,6 +176,32 @@ async function loadDetail(id) {
 
   const $go = $detail.querySelector('button.go');
   if ($go && !$go.disabled) $go.onclick = () => confirmIt(id);
+}
+
+function readinessPanel(d) {
+  const v = d.validation;
+  if (!v || !v.taskReadiness) return '';
+  const purpose = v.purposeCheck || {};
+  const labels = Object.fromEntries((v.taskDefinitions || []).map(t => [t.id, t.label]));
+  const definitions = Object.fromEntries((v.taskDefinitions || []).map(t => [t.id, t]));
+  const status = {COMPLETE:'완료', BLOCKED:'선행 작업·입력 대기', INVALID:'검증 실패'};
+  const metricNames = {'meanComplaints':'평균 민원 수', 'avgRouteDurationMinutes':'평균 운행 소요 시간', 'judgement.meanSearchMinutesAll':'평균 주차 탐색 시간', 'judgement.meanWaitMinutesAll':'평균 대기 시간', 'judgement.leftoverKgPerCollectionDay':'수거일당 잔여 폐기물량'};
+  const pstatus = {SATISFIED:'목적 명세와 일치', MISMATCH:'목적과 불일치', NOT_SPECIFIED:'목적 명세 미제공 — 요청과 설정을 직접 확인하세요'};
+  return `<h3>작업 완료 판정</h3>
+    ${v.current === false ? '<div class="warn">입력·데이터 또는 요청 단계가 바뀌었습니다. 시나리오를 다시 생성하고 검증해야 합니다.</div>' : ''}
+    <table><tr><th>실행 조건·작업</th><th>판정</th><th>산출물·판정 근거</th></tr>
+    ${(v.taskReadiness.tasks || []).map(t => {
+      const parts = t.taskId.split('/'); const key = parts.slice(1).join('/'); const def = definitions[key] || {};
+      return `<tr><td>조건 ${esc(Number(parts[0].replace('run-','')) + 1)} · ${esc(labels[key] || key)}</td><td>${esc(status[t.status] || t.status)}</td>
+      <td>${esc((t.reasons?.length ? t.reasons : [{INPUTS:'필요한 입력 결정 완료', CONFIG:'실행 설정·데이터 검증 통과', ROUNDTRIP:'입력 결정의 실행 설정 반영 확인', SCENARIO:'전체 실행 준비 조건 충족'}[def.validator] || '완료 조건 충족']).join(' · '))}</td></tr>`;
+    }).join('')}</table>
+    <h3>사용자 목적과의 대조</h3><p>${esc(pstatus[purpose.status] || '확인 안 됨')}</p>
+    ${purpose.specification ? `<p>비교 변수: ${esc(d.labels?.[purpose.specification.comparisonKey] || purpose.specification.comparisonKey || '해당 없음')}<br>
+      비교 값: ${esc(JSON.stringify(purpose.specification.comparisonValues || []))}<br>
+      관측 지표: ${esc((purpose.specification.observations || []).map(k => metricNames[k] || k).join(', '))}</p>` : ''}
+    ${(purpose.reasons || []).length ? `<ul>${purpose.reasons.map(x => `<li>${esc(x)}</li>`).join('')}</ul>` : ''}
+    <details><summary>검증 기록</summary><p style="color:#666;font-size:12px">검증 시각: ${esc(v.validatedAt || '')} · 실행 설정 ${esc(v.runArtifactCount)}벌<br>
+    검증 식별값: ${esc((v.fingerprint || '').slice(0,20))}</p></details>`;
 }
 
 async function confirmIt(id) {

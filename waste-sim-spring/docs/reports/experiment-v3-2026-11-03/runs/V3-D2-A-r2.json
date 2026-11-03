@@ -1,0 +1,49 @@
+{
+  "id": "V3-D2-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "environmentConditions": ["추석 연휴가 낀 주"], "objective": "수거 요일을 바꾸면 쓰레기가 얼마나 쌓이는지", "comparisonAxes": ["수거 요일"]},
+      "verdict": "MATCH",
+      "matchId": "9bd58e96-9280-4ed5-b0bb-011e7247562c",
+      "round": 1,
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "bukgu 만 holidays 조건까지 일치. 나머지 둘은 '추석 연휴가 낀 주' 가 MISMATCH(카드에 holidays 가 있는데도 다루는지 적혀 있지 않다고 나옴). spatialScale 은 요청에 없어 비워 둠."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "어떤 수거 일정끼리 비교할까요? (포항 북구 현행 월·화·목·금 / 매일(일요일 제외) / 격일 월·수·금 / 요일 직접 지정) 추석 연휴 같은 공휴일에 수거일이 걸리면 건너뛸까요, 다음 날 대신 수거할까요? 며칠치(2026-09-21 월요일부터, 기본 28일)를 몇 번(기본 30회) 반복해 볼까요? 그 밖의 설정(구역 수 8, 구역당 600세대, 주거 구성 아파트·단독·원룸, 5톤 차량 2대, 06:00 시작, 근무 8시간, 적환장 사용 안 함)은 어떻게 할까요?",
+      "keys": ["scheduleMode", "holidayPolicy", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "collectionStartMinutes", "shiftMinutes", "transferMode"],
+      "answer": "지금 포항 북구 일정(월화목금)과 매일 수거 / 공휴일엔 건너뛰어 / 28일, 10회 / 기본값으로 해줘"
+    },
+    {
+      "text": "차량이 2대라 구역을 차량에 어떻게 나눌지 정해야 합니다. 같은 구역 수로 나눌까요, 예상 작업 시간이 같게 나눌까요?",
+      "keys": ["zoneAllocation"],
+      "answer": "기본값으로 해줘"
+    }
+  ],
+  "rejections": [
+    "build_scenario 1차: evidence GUARD — zoneAllocation 이 사용자에게 묻거나 동의받지 않은 기본값. 첫 질문 묶음에 zoneAllocation 을 넣지 않았음. plan_subtasks 가 UNFILLED 로 알려 줬는데 묻기 전에 build 를 시도함 → 질문 후 evidence '기본값으로 해줘' 를 넣어 재시도해 통과"
+  ],
+  "scenarioId": "scn-b9c31047",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값/가정으로 넣은 것: 구역 8개, 구역당 600세대, 주거 구성 Apartment·Detached·Studio, 5톤 차량 2대, 같은 구역 수로 배정(EQUAL_COUNT), 06:00 시작, 근무 480분, 적환장 미사용. 공휴일 반영(holidayMode=APPLY)은 요청의 '추석 연휴가 낀 주' 에서 정했다(DERIVED). 확인 화면 주소: http://localhost:8091/confirm.html?id=scn-b9c31047 — 승인은 사용자가 직접.",
+  "stoppedBecause": "build_scenario 가 통과해 UNCONFIRMED 가 됐고, get_scenario_status 로 확인 화면 주소를 얻었다. 확인과 실행은 사람만 한다.",
+  "difficulties": "1) plan_subtasks 스키마에 planId 매개변수가 없어 planIds 는 비어 있다. 2) zoneAllocation 은 생성 조건(차량 2대 이상)에 따라 생기는 결정이라 첫 질문 묶음에서 빠졌고, plan_subtasks 의 UNFILLED 를 보고도 기본값이 있으니 그냥 넣으면 된다고 판단했다가 GUARD 에 걸렸다 — 기본값이 있는 조건부 결정도 반드시 물어야 한다는 점이 plan_subtasks 응답(mustAskNoDefault 는 비어 있음)만으로는 분명하지 않았다. 3) build 응답의 guardUnverified 에 holidayPolicy·scheduleMode 가 나왔는데, evidence 를 넣었는데도 왜 미검증인지 설명이 없다(값이 영문 enum 이라 발화와 직접 대조가 안 된 듯). 4) 브로커가 다른 두 서버의 카드에 holidays 가 있다면서도 '추석 연휴가 낀 주' 를 MISMATCH 로 분류한 것이 헷갈렸다."
+}

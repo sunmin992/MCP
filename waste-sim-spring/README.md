@@ -10,6 +10,8 @@
 
 ## 문서
 
+- [시나리오 준비 상태·근거 검사 공통 규칙](docs/specifications/scenario-readiness.md) — Task 완료 판정, 미검증 값의 사용자 확인, 의존 깊이 지표, 독립 시뮬레이터 빌드 순서
+
 - [문서 인덱스](docs/README.md)
 - [통합 명세서 (파일 v1.15 · 문서 버전 2.3)](docs/specifications/waste-sim-spring_SRS_SDD_TDD_v1.15.md) — 기준 문서
 - [엣지 발열 명세서 (v1.0)](docs/specifications/raspberrypi_thermal_simulator_SRS_SDD_TDD_v1_0.md) — 분리된 도메인
@@ -35,7 +37,7 @@ MCP 서버는 **둘**이고 별개 프로세스로 뜬다(명세 §1). 모듈도
 |---|---|---|---|
 | `broker` | 브로커 MCP 서버 | `http://localhost:8089/mcp` | 등록된 시뮬레이터의 능력 카드로 후보를 찾고 매칭한다(3·4단계). `verdict` 가 `MATCH` 면 추천 서버와 연결 정보(`endpoint`)를, `ADJUST_REQUEST` 면 요청을 어떻게 고치면 어느 서버를 쓸 수 있는지(`requestAdjustments`)를 낸다. `MATCH` 뒤에는 그 대화에서 브로커를 다시 부르지 말라고 안내하고(`nextStep`), 같은 MCP 세션에서 다시 조회하면 알리고 로그에 남긴다 |
 | `simulator` | 장량동 시뮬레이터 MCP 서버 | `http://localhost:8090/mcp` | 템플릿 · 서브태스크 · 시나리오 · 실행(5~14단계). 확인 화면 `http://localhost:8090/` |
-| `mcp-common` | — | — | 두 서버가 함께 쓰는 도구 계약(`McpToolProvider` · `ToolResult`)뿐 |
+| `mcp-common` | — | — | 도구 계약(`McpToolProvider` · `ToolResult`)과 네 시뮬레이터가 공유하는 Task 완료 판정·단위별 숫자 근거 규칙 |
 | `template-generator` | — | — | 서버가 아니다. 시뮬레이터 소스를 읽어 서브태스크 템플릿 초안을 만들고, 손으로 쓴 템플릿과 칸별로 대조한다([기록](docs/reports/template-generator-2026-10-05/REPORT.md)) |
 
 시뮬레이터는 뜰 때 한 번 자기 능력 카드를 브로커의 `POST /api/simulators` 로

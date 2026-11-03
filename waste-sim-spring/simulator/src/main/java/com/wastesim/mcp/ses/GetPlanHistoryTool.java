@@ -25,7 +25,7 @@ public class GetPlanHistoryTool implements McpToolProvider {
 
     @Override
     public String description() {
-        return "planId 하나의 단계별 서브태스크 판정 기록을 낸다 — 단계마다 상태와 이유, 바뀐 것, 채움 근거, 최소 필요 단계, 그리고 생성·확인·실행 사건.";
+        return "planId 하나의 단계별 서브태스크 판정 기록을 낸다 — 상태와 이유, 바뀐 것, 채움 근거, 생성 조건 의존 계층 수(dependencyDepth), 생성·확인·실행 사건. round는 입력 변경 단계이며 실제 질문 횟수가 아니다.";
     }
 
     @Override

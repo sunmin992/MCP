@@ -1,0 +1,42 @@
+{
+  "id": "V3-J6-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 모두 지킴"], "comparisonAxes": ["수거 시각"]},
+      "verdict": "MATCH",
+      "matchId": "f12aa2a8-a09f-4dee-9607-442c2eb71309",
+      "round": 1,
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "장량동 서버만 배출 시간 조건(discharge-time)을 다룸. 나머지 둘은 배출 시간 조건 MISMATCH. spatialScale·objective·population 은 사용자가 말하지 않아 비움."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "planIds": ["plan-b9c18dcb-480"],
+  "questions": [
+    {
+      "text": "시나리오를 만들려면 다음을 정해야 합니다. 모르시면 기본값(괄호)으로 넣겠습니다. 1) 수거차량 크기 (5톤/2.5톤/1톤, 기본 5톤) 2) 수거차량 대수 (기본 1대) 3) 교통량 반영 여부 (기본 반영 안 함) 4) 이동시간 계산 방식 (구간 상수/교통구역 근사, 기본 구간 상수) 5) 건물 수 (1~26동, 기본 4동) 6) 동당 세대 수 (기본 25) 7) 거주민 직업 구성 (기본 생산직·학생·전업주부) 8) 며칠치 볼지 (기본 30일) 9) 반복 횟수 (기본 30회) 10) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫 kg (차 전체 용량이 아니라 이 블록 배정 몫, 모르면 차종 정격용량 5000kg — 그러면 가동률·미수거 비교 불가) 11) 건물당 쓰레기장 용량 (기본 30kg) 12) 민원 임계 적재율 (기본 0.8)",
+      "keys": ["truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds", "routeAvailableCapacityKg", "binCapacityKg", "complaintThreshold"],
+      "answer": "적재 몫(경로 가용 용량): 150kg / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-1fe573f8",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "배출 시간 모델은 요청의 '포항시 공식 배출 시간을 다들 지킨다'에서 POHANG_ACTUAL(20:00~06:00)로 정했고(DERIVED), 비교 수거 시각은 06:00(360)·09:00(540). 적재 몫 150kg 만 사용자 값이고 나머지 11개(5톤 1대, 교통 미반영, 구간 상수 이동시간, 4동×25세대, 생산직·학생·전업주부, 30일, 30회, 쓰레기장 30kg, 임계 0.8)는 기본값으로 넣었으며 확인 화면에 승인하지 않은 기본값으로 따로 표시된다고 알림. 확인 주소: http://localhost:8090/confirm.html?id=scn-1fe573f8",
+  "stoppedBecause": "build_scenario 성공으로 state=UNCONFIRMED. get_scenario_status 로 확인 화면 주소를 얻었고, 승인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "브로커 프로필에서 '포항시'를 spatialScale 로 넣을지 망설였으나 배출 규칙의 지역일 뿐 분석 규모가 아니어서 비웠다. 수거 시각(collectionTimeMinutes)의 출처를 USER 로 적어야 하는지, 실험 변수라 출처가 필요 없는지 도구 설명이 명시하지 않음. dischargeTimeMode 의 evidence 가 DERIVED 라 NOT_CHECKED 로 나온 점도 의도인지 불분명."
+}

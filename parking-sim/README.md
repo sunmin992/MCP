@@ -1,5 +1,9 @@
 # 공영주차장 시뮬레이터 · Parking_v1 연결
 
+공통 완료 판정 모듈을 사용한다. 최초 실행 전 `C:\Dev\MCP\waste-sim-spring`에서
+`.\mvnw.cmd -q -pl mcp-common -am install -DskipTests`를 실행한다.
+[Task 완료 판정·발화 근거 정책](../waste-sim-spring/docs/specifications/scenario-readiness.md)을 참고한다.
+
 Java 21 / Spring Boot MCP 서버. 기본 포트는 8092이며 `/mcp`와 `/confirm.html`을 제공한다.
 
 ## 전국주차장정보표준데이터 추가 연결

@@ -161,7 +161,8 @@ public class PlanRounds {
         ev.set("counts", mapper.valueToTree(plan.counts()));
         ev.put("complete", plan.complete());
         putCompletedAtRound(ev, e);
-        ev.put("minRounds", minRounds);
+        ev.put("dependencyDepth", minRounds);
+        ev.put("minRounds", minRounds); // deprecated compatibility alias
         add(e, ev);
         return new Step(planId, e.round, newRound, List.copyOf(changes), e.completedAtRound, minRounds, ev.deepCopy());
     }

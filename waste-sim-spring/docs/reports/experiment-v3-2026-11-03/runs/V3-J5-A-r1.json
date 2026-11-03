@@ -1,0 +1,22 @@
+{
+  "id": "V3-J5-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸 블록 6동(동당 40세대)", "objective": "아침 9시 하루 한 번 수거로 감당되는지", "population": ["원룸"]}, "verdict": "ADJUST_REQUEST", "matchId": "93c8ea83-985a-4687-9a59-50cd57a0ad71", "round": 1, "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "district-waste-sim"], "note": "장량동: population '원룸' MISMATCH(거주민 유형 아님), objective MISMATCH. 북구: spatialScale·objective MISMATCH. district-waste-sim 은 fictional."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸 블록 6동(동당 40세대)", "objective": "최대 적재량", "matchId": "93c8ea83-985a-4687-9a59-50cd57a0ad71", "targetServerId": "jangnyang-waste-sim"}, "verdict": "MATCH", "matchId": "93c8ea83-985a-4687-9a59-50cd57a0ad71", "round": 2, "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim"], "note": "population '원룸' 제거, 목적을 '최대 적재량'으로 바꿈. purposeChanged=true"}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 쪽으로, 제안대로 고침)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "planIds": ["plan-d238bd06-523"],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. 장량동(원룸촌 한 블록) 서버는 거주민 '원룸'을 모델 거주민(생산직·학생·주부·야간·직장인)으로 바꾸거나 빼고 목적을 '최대 적재량' 등 답할 수 있는 질문으로 바꿔야 하고, 포항 북구 서버는 공간 규모를 '행정동 전체(구역 집계)'로 바꾸고 목적을 '수거 못 하고 남는 양' 등으로 바꿔야 합니다. 어느 서버로, 어떻게 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 쪽으로, 그쪽 제안대로 고쳐 줘"},
+    {"text": "반복 횟수는 최대 100회라 200회는 안 됩니다. 몇 회로 할까요? 그리고 청소차가 이 블록에 쓸 적재 몫(kg), 기간(일), 차량 크기·대수, 교통 반영 여부, 이동시간 계산 방식, 거주민 직업 구성, 배출 시간 모델, 수거장 용량, 민원 임계를 정해 주세요.", "keys": ["seeds", "routeAvailableCapacityKg", "days", "truckType", "truckCount", "trafficMode", "travelTimeMode", "occupationMix", "dischargeTimeMode", "binCapacityKg", "complaintThreshold"], "answer": "반복: 그럼 되는 만큼 최대로 해줘 / 적재 몫: 200kg / 기간: 30일 / 그 밖: 기본값으로 해줘"}
+  ],
+  "rejections": ["seeds=200 — OUT_OF_RANGE: seeds 는 100 이하여야 함 (plan_subtasks 가 거절) → 사용자 답에 따라 100으로"],
+  "scenarioId": "scn-460e4c53",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "차량 5톤 1대, 교통 미반영, 이동시간 구간 상수, 직업 구성 BlueCollar/Student/Housewife, 배출 시간 논문 기준선, 수거장 용량 30kg, 민원 임계 0.8 은 기본값(MODEL_DEFAULT)으로 넣음. 반복은 200회 대신 상한 100회(DERIVED). '원룸' 거주민 조건은 빼고 목적은 '최대 적재량'으로 바꿈. 확인 화면: http://localhost:8090/confirm.html?id=scn-460e4c53",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED). get_scenario_status 로 확인 화면 주소를 얻었고, 확인은 사람만 하므로 멈춤.",
+  "difficulties": "'원룸'은 주거 형태인데 population 칸에 넣어 거주민 MISMATCH 가 났다 — 처음부터 빼는 게 맞았을 수 있음. '감당이 될까'를 답할 수 있는 질문 목록 중 무엇에 대응시킬지(최대 적재량 / 수거 완료 시각 / 차량 가동률) 애매했다. 실험 변수가 하나뿐인 요청이라 variableAnswerKey 를 collectionTimeMinutes, 값 [540] 하나로 넣었다. '되는 만큼 최대로'의 출처를 USER 와 DERIVED 중 무엇으로 볼지 헷갈려 DERIVED 로 함."
+}

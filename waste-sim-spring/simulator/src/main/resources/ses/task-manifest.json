@@ -1,0 +1,159 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "vehicle",
+      "label": "수거 차량 준비",
+      "dependencies": [],
+      "subtasks": [
+        "truckType",
+        "truckCount",
+        "dispatchIntervalMinutes",
+        "routeAvailableCapacityKg"
+      ],
+      "outputs": [
+        "decisions.vehicle"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "collection",
+      "label": "수거 정책 준비",
+      "dependencies": [],
+      "subtasks": [
+        "collectionTimeMinutes",
+        "collectionTimesMinutes"
+      ],
+      "outputs": [
+        "decisions.collection"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "travel",
+      "label": "이동·교통 조건 준비",
+      "dependencies": [],
+      "subtasks": [
+        "trafficMode",
+        "trafficProfileId",
+        "travelTimeMode",
+        "zoneAssignmentRule",
+        "intraZoneTravelMinutes"
+      ],
+      "outputs": [
+        "decisions.travel"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "population",
+      "label": "배출 대상·행태 준비",
+      "dependencies": [],
+      "subtasks": [
+        "numBuildings",
+        "residentsPerBuilding",
+        "occupationMix",
+        "dischargeTimeMode"
+      ],
+      "outputs": [
+        "decisions.population"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "site",
+      "label": "수거장·민원 기준 준비",
+      "dependencies": [],
+      "subtasks": [
+        "binCapacityKg",
+        "complaintThreshold"
+      ],
+      "outputs": [
+        "decisions.site"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "experiment",
+      "label": "실험 기간·반복 구성",
+      "dependencies": [],
+      "subtasks": [
+        "days",
+        "seeds"
+      ],
+      "outputs": [
+        "decisions.experiment"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "execution-settings",
+      "label": "실행 설정·입력 데이터 검증",
+      "dependencies": [
+        "vehicle",
+        "collection",
+        "travel",
+        "population",
+        "site",
+        "experiment"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "validated-run-configs"
+      ],
+      "validator": "CONFIG"
+    },
+    {
+      "id": "settings-roundtrip",
+      "label": "입력 결정의 실행 설정 반영 확인",
+      "dependencies": [
+        "execution-settings"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "verified-setting-mapping"
+      ],
+      "validator": "ROUNDTRIP"
+    },
+    {
+      "id": "scenario",
+      "label": "시나리오 통합 검증",
+      "dependencies": [
+        "settings-roundtrip"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "ready-scenario"
+      ],
+      "validator": "SCENARIO"
+    }
+  ],
+  "observations": [
+    "meanComplaints",
+    "stdComplaints",
+    "complaintsByOccupation",
+    "truckUtilizationPercent",
+    "uncollectedDemandKg",
+    "peakFillKg",
+    "peakFillRatio",
+    "siteCapacityKg",
+    "complaintThresholdRatio",
+    "residualWasteKg",
+    "avgRouteDurationMinutes"
+  ],
+  "resources": [
+    "/collection/empty-sites.json",
+    "/collection/jangnyang-collection-sites.json",
+    "/mcp/jangnyang-capability-card.json",
+    "/schedule/pohang-bukgu-collection-schedule.json",
+    "/ses/jangnyang-ses.json",
+    "/ses/jangnyang-templates.json",
+    "/traffic/empty-travel-times.json",
+    "/traffic/jangryang-tmap-measurements-24h.json",
+    "/traffic/jangryang-traffic-zones.json",
+    "/traffic/jangryang-travel-times.json",
+    "/traffic/jangryang-volume-weekday.json",
+    "/traffic/jangryang-weekday.json",
+    "/traffic/jangryang-zone-travel-times.json"
+  ]
+}

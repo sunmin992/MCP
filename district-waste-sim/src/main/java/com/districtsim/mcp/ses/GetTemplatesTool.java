@@ -28,7 +28,7 @@ public class GetTemplatesTool implements McpToolProvider {
 
     @Override
     public String description() {
-        return "서브태스크 템플릿을 낸다. 각 템플릿은 결정 대상·선택지·생성 조건·"
+        return "Task 명세(taskManifest)와 서브태스크 템플릿을 낸다. Task 명세는 선행 작업·필수 Subtask·산출물·완료 검증 방법을 정의한다. 각 템플릿은 결정 대상·선택지·생성 조건·"
                 + "기본값·실행 대응을 담은 규칙이며, 인스턴스는 요청마다 만들어야 한다.";
     }
 
@@ -44,6 +44,7 @@ public class GetTemplatesTool implements McpToolProvider {
             root.put("sesId", catalog.sesId());
             root.put("sesVersion", catalog.sesVersion());
             root.set("templates", mapper.valueToTree(catalog.all()));
+            root.set("taskManifest", mapper.valueToTree(com.wastesim.readiness.TaskManifest.load(GetTemplatesTool.class)));
             return ToolResult.ok(mapper.writeValueAsString(root));
         } catch (Exception e) {
             return ToolFailure.of("templates", "템플릿을 직렬화하지 못했습니다: " + e.getMessage());

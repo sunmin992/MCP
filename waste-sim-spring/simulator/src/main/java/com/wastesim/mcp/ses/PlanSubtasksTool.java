@@ -24,6 +24,9 @@ import java.util.Map;
  */
 @Component
 public class PlanSubtasksTool implements McpToolProvider {
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ScenarioStore revisionStore;
+
 
     private static final Logger callLog = LoggerFactory.getLogger("mcp.calls");
 
@@ -59,6 +62,7 @@ public class PlanSubtasksTool implements McpToolProvider {
                "planId":{"type":"string","description":"(선택) 이전 응답의 planId. 없으면 새 요청으로 보고 새로 발급한다"},
                "matchId":{"type":"string","description":"(선택) 브로커 매칭의 matchId. 기록에 함께 남긴다"},
                "previousPlanId":{"type":"string","description":"(선택) 거절된 옛 planId. planId 없이 새로 시작할 때 주면 기록에 남긴다"},
+               "requestId":{"type":"string","description":"build_scenario에서 받은 요청 ID. 입력이 변경되면 이전 완료 판정과 승인을 무효화한다"},
                "answers":{"type":"object",
                  "description":"답변키 → 확정값. 예: {\\"numBuildings\\":4,\\"truckCount\\":3}. 실험 변수는 여기에 넣지 않고 variableValues 로 준다"},
                "origins":{"type":"object",
@@ -73,6 +77,8 @@ public class PlanSubtasksTool implements McpToolProvider {
 
     @Override
     public ToolResult call(JsonNode args) {
+        String revisionId = args.path("requestId").asText(args.path("planId").asText(null));
+        if (revisionStore != null) revisionStore.revise(revisionId, com.wastesim.readiness.RevisionInput.of(args));
         try {
             Map<String, Object> answers = new LinkedHashMap<>();
             args.path("answers").fields().forEachRemaining(
@@ -109,7 +115,10 @@ public class PlanSubtasksTool implements McpToolProvider {
             root.set("changes", mapper.valueToTree(step.changes()));
             // 완료 단계의 minRounds 가 정본이다 — 초반에는 보류가 많아 작게 나오다 커질 수 있다.
             root.putPOJO("completedAtRound", step.completedAtRound());
-            root.put("minRounds", step.minRounds());
+            root.put("dependencyDepth", step.minRounds());
+            root.put("minRounds", step.minRounds()); // deprecated compatibility alias
+            root.put("roundMetric", "INPUT_REVISION_COUNT");
+            root.put("dependencyDepthNote", "생성 조건 의존 계층 수이며 최소 질문 횟수가 아닙니다. 초기 입력으로 여러 계층을 한 번에 채울 수 있습니다.");
             root.set("instances", mapper.valueToTree(plan.instances()));
             root.set("counts", mapper.valueToTree(plan.counts()));
             root.put("complete", plan.complete());

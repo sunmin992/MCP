@@ -1,0 +1,54 @@
+{
+  "id": "V3-S3-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "동네", "objective": "필요한 수거차 대수", "comparisonAxes": ["수거차 대수"]},
+      "verdict": "CHOOSE",
+      "matchId": "5687a299-9f28-4545-8903-457c74b123d0",
+      "round": 1,
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional) 도 있었으나 candidates 에서는 빠짐. differences(region/unit/calibration)를 보여 주고 사용자에게 고르게 함"
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록, 장량동)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "planIds": ["plan-9f4cc844-cfa"],
+  "questions": [
+    {
+      "text": "요청에 맞는 시뮬레이터가 두 개입니다. (1) 포항 북구 행정동 전체(구역 집계) — 행정안전부 배출정보로 보정, (2) 장량동 원룸촌 한 블록 — 교통 지체·실측 교통량·포항시 수거 일정으로 보정. 어느 쪽으로 할까요?",
+      "keys": [],
+      "answer": "원룸촌 한 블록(장량동) 쪽으로 할게"
+    },
+    {
+      "text": "시나리오에 필요한 것을 여쭙니다. 비교할 수거차 대수는 몇 대와 몇 대인가요? 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까(모르면 차종 정격용량 — 그러면 가동률·미수거 비교 불가)? 그 밖에 차량 크기(기본 5톤), 수거 시각(기본 12:00), 교통량 반영(기본 안 함), 이동시간 계산(기본 구간 상수), 건물 수(기본 4동), 동당 세대(기본 25), 직업 구성(기본 생산직·학생·주부), 배출 시간 모델(기본 논문 기준선), 기간(기본 30일), 반복(기본 30회), 수거장 용량(기본 30kg), 민원 임계(기본 0.8)는 어떻게 할까요?",
+      "keys": ["truckCount", "routeAvailableCapacityKg", "truckType", "collectionTimeMinutes", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "dischargeTimeMode", "days", "seeds", "binCapacityKg", "complaintThreshold"],
+      "answer": "1대와 2대 / 150kg / 기본값으로 해줘"
+    },
+    {
+      "text": "2대로 돌릴 때 차량 간 배차 간격을 몇 분으로 할까요? (기본 0분 — 동시 출발)",
+      "keys": ["dispatchIntervalMinutes"],
+      "answer": "기본값으로 해줘"
+    }
+  ],
+  "rejections": [
+    "plan_subtasks round 2: collectionTimeMinutes=720 (MODEL_DEFAULT) 이 NO_EVIDENCE 로 UNFILLED 처리 — '기본값으로' 동의 구절을 evidence 로 넣으라는 사유. evidence 에 '기본값으로 해줘' 를 넣어 해결"
+  ],
+  "scenarioId": "scn-c44e6212",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "truckCount(1대·2대)와 routeAvailableCapacityKg(150kg)만 사용자 값이고, 차량 크기 5톤·수거 시각 12:00·교통 미반영·구간 상수 이동시간·4동×25세대·직업 구성 기본·논문 기준선 배출·30일·30회 반복·수거장 30kg·민원 임계 0.8·배차 간격 0분은 모두 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 승인하지 않은 기본값 13개로 따로 표시된다고 알림. 배차 간격 0분은 1대 실행에서는 쓰이지 않음(droppedDefaults).",
+  "stoppedBecause": "build_scenario 가 통과해 state=UNCONFIRMED. get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html?id=scn-c44e6212 를 얻었고, 확인·실행은 사람만 하므로 멈춤",
+  "difficulties": "기본값을 받아들인 값들 중 collectionTimeMinutes 만 NO_EVIDENCE 로 막혀 evidence 가 필요했다 — 어떤 기본값이 evidence 를 요구하는지 템플릿/plan 응답에 미리 표시되지 않아 한 번 더 돌았다. dispatchIntervalMinutes 는 처음 DEFERRED 였다가 truckCount=2 에서만(onlyFor) 생겨 질문 한 번이 추가됨. get_templates 응답이 이중 JSON 문자열로 감싸여 있어 읽기 불편했다."
+}

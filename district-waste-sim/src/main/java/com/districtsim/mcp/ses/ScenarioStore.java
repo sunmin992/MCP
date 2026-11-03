@@ -28,6 +28,40 @@ import java.util.concurrent.ConcurrentHashMap;
 @Component
 public class ScenarioStore {
 
+    private final Map<String, com.wastesim.readiness.ValidationReceipt> validations = new ConcurrentHashMap<>();
+    private final Map<String, String> requestRevisions = new ConcurrentHashMap<>();
+
+    private final Map<String, String> revisionInputs = new ConcurrentHashMap<>();
+    public synchronized void revise(String requestId, com.fasterxml.jackson.databind.JsonNode inputs) {
+        if (requestId == null || requestId.isBlank()) return;
+        String hash = com.wastesim.readiness.ValidationReceipt.fingerprint(inputs);
+        if (!hash.equals(revisionInputs.put(requestId, hash)))
+            requestRevisions.put(requestId, java.util.UUID.randomUUID().toString());
+    }
+
+    /** A new build supersedes earlier proofs for the same user request. */
+    public synchronized void putValidated(Scenario scenario, Pes pes, String request, String requestId,
+            com.fasterxml.jackson.databind.node.ObjectNode proof, java.util.function.Supplier<String> fingerprint) {
+        // Compute the receipt before publishing anything; failed validation cannot leave an unguarded scenario.
+        String expected = fingerprint.get();
+        String revision = java.util.UUID.randomUUID().toString();
+        var receipt = new com.wastesim.readiness.ValidationReceipt(proof, expected + ":" + revision,
+                () -> fingerprint.get() + ":" + requestRevisions.get(requestId));
+        requestRevisions.put(requestId, revision);
+        put(scenario, pes, request);
+        validations.put(scenario.scenarioId(), receipt);
+    }
+
+    public synchronized boolean validationCurrent(String id) {
+        var receipt = validations.get(id);
+        return receipt == null || receipt.current(); // legacy in-process callers have no receipt
+    }
+
+    public synchronized com.fasterxml.jackson.databind.node.ObjectNode validation(String id) {
+        var receipt = validations.get(id);
+        return receipt == null ? new com.fasterxml.jackson.databind.ObjectMapper().createObjectNode() : receipt.view();
+    }
+
     /**
      * @param pes        이 시나리오를 만든 PES. 확인 화면이 "승인하지 않은 기본값" 을
      *                   보여주려면 필요하다 — 그것을 못 보여주면 확인이 확인이 아니다
@@ -46,7 +80,7 @@ public class ScenarioStore {
 
     /** 검증한 항목이 그대로일 때만 실행권을 얻는다. 확인 갱신과도 원자적으로 경쟁한다. */
     public synchronized boolean beginExecution(String scenarioId, Entry expected) {
-        if (byId.get(scenarioId) != expected || expected.executedAt() != null
+        if (!validationCurrent(scenarioId) || byId.get(scenarioId) != expected || expected.executedAt() != null
                 || expected.scenario().confirmToken() == null) return false;
         return executing.add(scenarioId);
     }
@@ -59,6 +93,7 @@ public class ScenarioStore {
     private final Map<String, String> requests = new ConcurrentHashMap<>();
 
     public String put(Scenario scenario, Pes pes) {
+        validations.remove(scenario.scenarioId());
         byId.put(scenario.scenarioId(), new Entry(scenario, pes, null));
         return scenario.scenarioId();
     }
@@ -98,10 +133,17 @@ public class ScenarioStore {
 
     /** 확인된 시나리오로 갈아 끼운다. 실행 이력은 지운다 — 다시 확인했으면 다시 돌릴 수 있다. */
     public synchronized boolean confirm(Scenario confirmed) {
-        if (executing.contains(confirmed.scenarioId())) return false;
+        if (!validationCurrent(confirmed.scenarioId()) || executing.contains(confirmed.scenarioId())) return false;
         byId.computeIfPresent(confirmed.scenarioId(),
                 (k, e) -> new Entry(confirmed, e.pes(), null));
         return byId.containsKey(confirmed.scenarioId());
+    }
+
+    /** Do not publish results for a revision replaced while the simulation was running. */
+    public synchronized boolean completeExecution(String scenarioId, Entry expected) {
+        if (byId.get(scenarioId) != expected || !validationCurrent(scenarioId)) return false;
+        markExecuted(scenarioId);
+        return true;
     }
 
     public void markExecuted(String scenarioId) {

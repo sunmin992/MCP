@@ -1,0 +1,139 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "population",
+      "label": "수거 구역·배출 대상 준비",
+      "dependencies": [],
+      "subtasks": [
+        "zoneCount",
+        "householdsPerZone",
+        "housingMix",
+        "commercialHandling"
+      ],
+      "outputs": [
+        "decisions.population"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "vehicle",
+      "label": "차량·구역 배정",
+      "dependencies": [],
+      "subtasks": [
+        "truckType",
+        "truckCount",
+        "zoneAllocation"
+      ],
+      "outputs": [
+        "decisions.vehicle"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "schedule",
+      "label": "수거 일정·공휴일 정책",
+      "dependencies": [],
+      "subtasks": [
+        "scheduleMode",
+        "collectionDays",
+        "holidayMode",
+        "holidayPolicy",
+        "collectionStartMinutes",
+        "shiftMinutes"
+      ],
+      "outputs": [
+        "decisions.schedule"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "transfer",
+      "label": "적환 운행 준비",
+      "dependencies": [],
+      "subtasks": [
+        "transferMode",
+        "transferRoundTripMinutes"
+      ],
+      "outputs": [
+        "decisions.transfer"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "experiment",
+      "label": "실험 기간·반복 구성",
+      "dependencies": [],
+      "subtasks": [
+        "days",
+        "seeds"
+      ],
+      "outputs": [
+        "decisions.experiment"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "execution-settings",
+      "label": "실행 설정·입력 데이터 검증",
+      "dependencies": [
+        "population",
+        "vehicle",
+        "schedule",
+        "transfer",
+        "experiment"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "validated-run-configs"
+      ],
+      "validator": "CONFIG"
+    },
+    {
+      "id": "settings-roundtrip",
+      "label": "입력 결정의 실행 설정 반영 확인",
+      "dependencies": [
+        "execution-settings"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "verified-setting-mapping"
+      ],
+      "validator": "ROUNDTRIP"
+    },
+    {
+      "id": "scenario",
+      "label": "시나리오 통합 검증",
+      "dependencies": [
+        "settings-roundtrip"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "ready-scenario"
+      ],
+      "validator": "SCENARIO"
+    }
+  ],
+  "observations": [
+    "judgement.leftoverKgPerCollectionDay",
+    "judgement.stdLeftoverKgPerCollectionDay",
+    "judgement.leftoverZoneDaysPerWeek",
+    "judgement.maxWaitDays",
+    "explanation.maxZoneBacklogKg",
+    "explanation.preCollectionKgPerCollectionDay",
+    "explanation.leftoverKgByHousingType",
+    "explanation.generatedKgByWeekday",
+    "explanation.collectedKgByWeekday",
+    "explanation.collectionDaysRun",
+    "explanation.skippedForHoliday",
+    "reference.truckUtilization",
+    "reference.workMinutesPerTruckDay",
+    "reference.tripsPerCollectionDay"
+  ],
+  "resources": [
+    "/mcp/district-capability-card.json",
+    "/schedule/kr-holidays-2026.json",
+    "/schedule/pohang-bukgu-collection-schedule.json",
+    "/ses/district-templates.json"
+  ]
+}

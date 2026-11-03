@@ -1,0 +1,22 @@
+{
+  "id": "V3-J6-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"], "objective": "새벽 6시 수거와 오전 9시 수거 중 어느 쪽이 나은지", "comparisonAxes": ["수거 시각"]}, "verdict": "ADJUST_REQUEST", "matchId": "a2cfbda8-ae54-4ec2-8008-61b2cb09294b", "round": 1, "recommended": null, "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "jangnyang 은 목적만 MISMATCH(답할 수 있는 질문 목록으로 바꾸라), bukgu·district(가상) 는 배출 시간 조건도 MISMATCH. spatialScale 은 요청에 없어 비워 둠"},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록(장량동)", "environmentConditions": ["포항시 공식 배출 시간(저녁 8시~새벽 6시)을 다들 지킴"], "objective": "수거 시각", "comparisonAxes": ["수거 시각"], "matchId": "a2cfbda8-ae54-4ec2-8008-61b2cb09294b", "targetServerId": "jangnyang-waste-sim"}, "verdict": "MATCH", "matchId": "a2cfbda8-ae54-4ec2-8008-61b2cb09294b", "round": 2, "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim"], "note": "목적을 카드의 질문 '수거 시각'으로 바꿔 MATCH. 배출 시간 조건은 discharge-time 으로 그대로 유지"}
+  ],
+  "userChoice": "원룸촌 한 블록(장량동) 단위로 볼게 → jangnyang-waste-sim, 목적을 '수거 시각'으로 고침",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "planIds": ["plan-beaca7e7-119"],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. (1) 장량동 생활쓰레기 수거 시뮬레이터(원룸촌 한 블록) — 배출 시간 조건은 반영 가능, 목적을 '수거 시각' 비교로 바꾸면 됩니다. (2) 포항 북구 행정동 시뮬레이터 — 배출 시간 조건을 빼고 목적을 '수거 시작 시각' 등으로 바꿔야 합니다. (3) 행정동 단위 시뮬레이터(가상 서버). 어느 쪽으로, 어떻게 고쳐서 볼까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 단위로 볼게"},
+    {"text": "아래 설정을 정해 주세요: 수거차량 크기(5톤/2.5톤/1톤), 차량 대수, 교통량 반영 여부, 이동시간 계산 방식, 건물 동 수(1~26), 동당 세대 수, 거주민 직업 구성, 기간(일), 반복 횟수, 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg), 건물당 수거장 용량(kg), 민원 임계 적재율(0~1)", "keys": ["truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "days", "seeds", "routeAvailableCapacityKg", "binCapacityKg", "complaintThreshold"], "answer": "적재 몫은 150kg, 나머지는 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-6767d592",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "배출 시간 모델은 요청 문장에서 POHANG_ACTUAL(20:00~06:00 배출)로 DERIVED 처리했고, 수거 시각은 06:00(360분)·09:00(540분) 두 값을 비교 변수로 넣었다. 적재 몫 150kg 외 11개 값(5톤 1대, 교통 미반영, 구간 상수 이동시간, 4동×25세대, 직업 BlueCollar/Student/Housewife, 30일, 30회, 수거장 30kg, 임계 0.8)은 기본값(MODEL_DEFAULT)으로 넣었고 확인 화면에 미승인 기본값으로 표시된다고 알림",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED). get_scenario_status 로 확인 화면 주소 http://localhost:8090/confirm.html?id=scn-6767d592 를 얻었고, 확인은 사람만 하므로 멈춤",
+  "difficulties": "1차 응답에서 목적 '새벽 6시 vs 오전 9시 중 어느 쪽이 나은지'가 MISMATCH 로 나왔는데, 실질적으로는 비교축 '수거 시각'과 같은 질문이라 목적을 '수거 시각'으로 바꾸는 것이 changesPurpose=false 인 사소한 고침이었음. plan_subtasks 1회차에서 실험 변수(collectionTimeMinutes)를 variableValues 로 넘겼는데도 UNFILLED·NO_EVIDENCE 로 나와, 출처 USER 와 evidence(요청 문장)를 함께 넣으니 FILLED/VERIFIED 가 됨 — 변수값도 evidence 가 필요하다는 점이 도구 설명에 분명하지 않았음."
+}

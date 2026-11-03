@@ -10,7 +10,7 @@
     </parent>
     <artifactId>mcp-common</artifactId>
     <name>mcp-common</name>
-    <description>두 MCP 서버가 함께 쓰는 도구 계약 — McpToolProvider · ToolResult</description>
+    <description>MCP 도구 계약과 시뮬레이터 공통 완료 판정·숫자 근거 규칙</description>
 
     <dependencies>
         <dependency>

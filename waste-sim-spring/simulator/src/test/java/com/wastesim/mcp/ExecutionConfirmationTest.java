@@ -35,6 +35,17 @@ class ExecutionConfirmationTest {
             new com.wastesim.template.SubtaskPlanner(catalog, new com.wastesim.template.AnswerNormalizer()));
     private final ExecutionConfirmation gate = new ExecutionConfirmation(store, builder);
 
+    @Test
+    void 기존_실행_도구도_무효화된_승인을_우회하지_못한다() throws Exception {
+        String token = 확인된_토큰();
+        var entry = store.byToken(token).orElseThrow();
+        String requestId = store.validation(entry.scenario().scenarioId()).path("requestId").asText();
+        store.revise(requestId, mapper.createObjectNode().put("changed", true));
+        var check = gate.check(확인한_설정(token));
+        assertFalse(check.allowed());
+        assertTrue(check.note().contains("무효"));
+    }
+
     /** 시나리오를 하나 만들고 확인까지 마친 뒤 토큰을 돌려준다. */
     private String 확인된_토큰() throws Exception {
         var build = new BuildScenarioTool(builder, store, catalog, mapper);

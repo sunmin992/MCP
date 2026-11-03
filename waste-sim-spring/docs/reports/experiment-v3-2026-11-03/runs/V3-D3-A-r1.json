@@ -1,0 +1,23 @@
+{
+  "id": "V3-D3-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거를 화·목·토 주 3회로 바꿨을 때 지금 일정과 비교", "comparisonAxes": ["수거 요일"]}, "verdict": "ADJUST_REQUEST", "matchId": "b4ae1618-ff01-4d6b-a6bf-d823fc658778", "round": 1, "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim", "district-waste-sim(fictional, matches 에만)"], "note": "bukgu: 목적 MISMATCH(답할 수 있는 질문으로 바꾸면 됨, 예: 수거 요일 · 주기). jangnyang: 공간 규모(원룸촌 한 블록으로) + 목적 MISMATCH."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "행정동", "objective": "수거 요일 · 주기", "comparisonAxes": ["수거 요일"], "matchId": "b4ae1618-ff01-4d6b-a6bf-d823fc658778", "targetServerId": "bukgu-district-waste-sim"}, "verdict": "MATCH", "matchId": "b4ae1618-ff01-4d6b-a6bf-d823fc658778", "round": 2, "recommended": "bukgu-district-waste-sim", "candidates": ["bukgu-district-waste-sim"], "note": "목적을 카드 질문 '수거 요일 · 주기' 로 고쳐 재조회, revisions 1, remainingRevisions 4"}
+  ],
+  "userChoice": "bukgu-district-waste-sim (행정동 전체(구역 단위)로 볼게)",
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "bukgu-district-waste-sim:tools/list", "bukgu-district-waste-sim:get_templates", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:validate_answers", "bukgu-district-waste-sim:plan_subtasks", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:build_scenario", "bukgu-district-waste-sim:get_scenario_status"],
+  "planIds": [],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체(구역 집계) 단위, 목적을 '수거 요일 · 주기' 같은 이 서버의 질문으로 바꾸면 사용 가능. (2) 장량동 생활쓰레기 수거 시뮬레이터 — 공간 규모를 '원룸촌 한 블록'으로 줄이고 목적도 바꿔야 함. 어느 쪽으로, 어떻게 고쳐 볼까요?", "keys": [], "answer": "행정동 전체(구역 단위)로 볼게"},
+    {"text": "현행(월·화·목·금)과 화·목·토 주 3회를 비교합니다. 다음을 정해 주세요: 구역 수(기본 8), 구역당 세대 수(기본 600), 주거 구성(기본 아파트·단독·원룸), 차량 크기(기본 5톤), 차량 대수(기본 2), 공휴일 반영(기본 안 함), 적환장 사용(기본 안 함), 수거 시작 시각(기본 06:00), 근무 시간(기본 480분), 기간(기본 28일), 반복 횟수(기본 30회)", "keys": ["zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "holidayMode", "transferMode", "collectionStartMinutes", "shiftMinutes", "days", "seeds"], "answer": "28일, 10회 / 나머지는 기본값으로 해줘"},
+    {"text": "차량이 2대라 구역을 차량에 어떻게 나눌지 정해야 합니다: 같은 구역 수(기본) / 예상 작업 시간이 같게?", "keys": ["zoneAllocation"], "answer": "기본값으로 해줘"}
+  ],
+  "rejections": ["build_scenario 1차: zoneAllocation 에 evidence 가 없어 GUARD 거절('사용자에게 묻거나 동의받지 않은 기본값') — 3번째 질문의 답 '기본값으로 해줘' 를 evidence 로 넣어 재시도 후 통과"],
+  "scenarioId": "scn-a9641e15",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기간 28일·반복 10회 외 10개 값은 템플릿 기본값(MODEL_DEFAULT): 구역 8, 구역당 600세대, 주거 아파트·단독·원룸, 5톤 2대, 같은 구역 수 배정, 공휴일 미반영, 적환장 미사용, 06:00 시작, 근무 480분. '지금 일정'은 포항 북구 현행 월·화·목·금(POHANG_BUKGU)으로 보았다. 확인 화면: http://localhost:8091/confirm.html?id=scn-a9641e15",
+  "stoppedBecause": "build_scenario 성공(UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 한다",
+  "difficulties": "목적 MISMATCH 는 '비교'라는 표현이 카드 질문 목록에 없어서 생긴 것으로, 요청 의미는 그대로인데 목적 문구만 '수거 요일 · 주기' 로 바꿔야 했다. zoneAllocation 은 처음 plan_subtasks 에서 DEFERRED 였다가 truckCount 가 정해진 뒤에야 UNFILLED 로 나와 질문이 한 번 더 늘었다. 시뮬레이터 도구 어디에도 planId 가 나오지 않아 planIds 는 비었다. build 응답의 guardUnverified 에 collectionDays·scheduleMode 가 올랐는데(evidence 구절이 발화와 정확히 대조되지 않은 듯) 무엇을 고쳐야 하는지 안내가 없었다."
+}

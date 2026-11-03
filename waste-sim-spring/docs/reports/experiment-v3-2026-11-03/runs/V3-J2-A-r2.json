@@ -1,0 +1,46 @@
+{
+  "id": "V3-J2-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "한 동네", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "matchId": "252c1997-9486-479e-8f4a-d1c1b01c0f02",
+      "round": 1,
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matches 에는 가상 서버 district-waste-sim(fictional=true)도 있었으나 candidates 에서는 빠짐. differences: 포항 북구 행정동 전체(구역 집계) vs 장량동 원룸촌 한 블록"
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 단위로 볼게)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "planIds": ["plan-5fe05fb1-b59"],
+  "questions": [
+    {
+      "text": "조건에 맞는 시뮬레이터가 둘입니다. (1) 포항 북구 행정동 전체(구역 집계) — 북구 수거 요일·배출 창 표준데이터로 보정 (2) 장량동 원룸촌 한 블록 — TMAP 교통 지체·장량동 실측 교통량·북구 수거 일정으로 보정. 어느 쪽으로 볼까요?",
+      "keys": [],
+      "answer": "원룸촌 한 블록(장량동) 단위로 볼게"
+    },
+    {
+      "text": "시나리오에 필요한 값을 여쭙니다. 비교할 수거 시각들은? 수거차량 크기(5톤/2.5톤/1톤)와 대수는? 교통량을 반영할까요? 이동시간 계산(구간 상수/교통구역 근사)은? 건물 수(1~26동), 동당 세대 수, 거주민 직업 구성, 배출 시간 모델(논문 기준선/포항 공식 20:00~06:00)은? 며칠치를 몇 번 반복할까요? 청소차가 이 블록에 쓸 수 있는 적재 몫(kg)은? 수거장 용량(kg)과 민원 임계 적재율은? 모르시면 기본값으로 넣겠습니다.",
+      "keys": ["collectionTimeMinutes", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "dischargeTimeMode", "days", "seeds", "routeAvailableCapacityKg", "binCapacityKg", "complaintThreshold"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 적재 몫: 150kg / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-461477cd",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값(MODEL_DEFAULT)으로 넣은 것: 차량 5톤 1대, 교통 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 건물 4동·동당 25세대, 직업 구성 BlueCollar/Student/Housewife, 배출 시각 논문 기준선(PAPER_BASELINE), 수거장 용량 30kg, 민원 임계 0.8. 이 10개는 확인 화면에 '승인하지 않은 기본값'으로 따로 표시됨. 확인 화면: http://localhost:8090/confirm.html?id=scn-461477cd",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 3벌: 06:00/12:00/18:00). get_scenario_status 로 확인 화면 주소를 얻었고, 확인은 사람만 하므로 멈춤",
+  "difficulties": "find_simulators 의 candidates(2개)와 matches(3개, 가상 서버 포함)가 달라 어느 쪽을 보여 줄지 잠깐 헷갈렸음 — fictional 서버는 제외. 수거 시각이 '시각'(HH)으로 들어와 collectionTimeMinutes(자정부터 분)로 360/720/1080 환산. 실험 변수의 출처(USER)를 origins 에 넣어도 되는지 설명이 명확하지 않았음(넣었고 오류 없음). 사용자 발화 원문이 대본에서 묶여 있어 userUtterances 를 구절별로 나눠 넣었음"
+}

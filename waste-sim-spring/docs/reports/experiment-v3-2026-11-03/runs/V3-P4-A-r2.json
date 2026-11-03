@@ -1,0 +1,38 @@
+{
+  "id": "V3-P4-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "주차", "spatialScale": "도심", "environmentConditions": ["주말에 길이 막힘"], "objective": "주차장 찾는 데 걸리는 시간"}, "verdict": "MATCH", "matchId": "894b24eb-1a2c-4767-853f-92be1e33de33", "round": 1, "recommended": "pohang-parking-sim", "candidates": ["pohang-parking-sim"], "note": "matchCount 1, mismatches/ambiguities/requestAdjustments 없음. endpoint http://localhost:8092/mcp"}
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {"text": "요청하신 15곳·하루 3만 대는 이 시뮬레이터 한도(주차장 최대 12곳, 하루 도착 최대 20000대)를 넘습니다. 어떻게 할까요? 또 운전자가 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 며칠치를 몇 번 반복할까요? 주차장당 면수·요금 정책·30분 요금·이용자 구성·주차 안내 방식·주차장 사이 이동시간은 어떻게 할까요?", "keys": ["lotCount", "dailyArrivals", "maxSearchMinutes", "days", "seeds", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "guidanceMode", "lotSpacingMinutes"], "answer": "그럼 되는 만큼 최대로 해줘 / 20분 / 14일, 10회 / 기본값으로 해줘"},
+    {"text": "하루 2만 대는 12곳×80면이 감당할 수 있는 양의 362%라 시뮬레이터가 실행을 막습니다. 도착 차량을 줄일까요, 면수를 늘릴까요?", "keys": ["dailyArrivals", "spacesPerLot"], "answer": "그럼 되는 만큼 최대로 해줘"}
+  ],
+  "rejections": [
+    "validate_answers: lotCount=15 OUT_OF_RANGE (12 이하)",
+    "validate_answers: dailyArrivals=30000 OUT_OF_RANGE (20000 이하)",
+    "build_scenario 1차: 근거 검사(GUARD) — baseFeePer30Min·guidanceMode·lotSpacingMinutes 기본값에 동의 evidence 없음 (질문 묶음 1의 '기본값으로 해줘'를 evidence 로 넣어 해결)",
+    "build_scenario 2차(scn-4d8da87a, INVALID): dailyArrivals=20000 은 면수 감당량의 362% — 거의 모든 차량이 포기하는 실험이라 막힘"
+  ],
+  "scenarioId": "scn-4d8d6fef",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 12곳(한도 최대)·하루 도착 5525대(12곳×80면 기준 감당량 100% 수준으로 잡음)로 줄였다. 주말 도로 혼잡 반영(congestionMode=APPLY, weekend-downtown)은 요청의 '주말에 길이 막힐 때'에서 정했다. 면수 80·균일 요금·30분 500원·이용자 Commuter/Shopper/Visitor·안내 없음·주차장 사이 3분은 기본값으로 넣었다(확인 화면에 승인하지 않은 기본값 6개로 표시됨).",
+  "stoppedBecause": "build_scenario 가 UNCONFIRMED 로 통과해 get_scenario_status 로 확인 화면 주소(http://localhost:8092/confirm.html?id=scn-4d8d6fef)를 얻었다. 승인은 사람만 한다.",
+  "difficulties": "1) 템플릿 dailyArrivals 최대는 20000 인데 build_scenario 는 면수 감당량 비율로 다시 막으며, 막히는 비율 기준(몇 %까지 허용)이 안내되지 않아 '되는 만큼 최대'의 정확한 값을 알 수 없어 감당량 100%(5525대)로 잡았다. 2) 실험 변수 비교가 없는 요청인데 variableAnswerKey·variableValues 가 필수라 dailyArrivals 한 값으로 넣었다. 3) plan_subtasks 가 complete 였는데도 build 의 근거 검사가 조건부 기본값(baseFee·guidance·lotSpacing)에 evidence 를 따로 요구했다. 4) 도구 설명에 planId 인자가 없어 planIds 는 비어 있다. 5) guardUnverified 에 lotCount·dailyArrivals 가 남음 — '되는 만큼 최대로'라는 근거 구절이 값 자체를 담지 않아서로 보인다."
+}

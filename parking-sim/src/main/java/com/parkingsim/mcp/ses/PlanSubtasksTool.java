@@ -20,6 +20,9 @@ import java.util.Map;
  */
 @Component
 public class PlanSubtasksTool implements McpToolProvider {
+    @org.springframework.beans.factory.annotation.Autowired(required = false)
+    private ScenarioStore revisionStore;
+
 
     private final SubtaskPlanner planner;
     private final ObjectMapper mapper;
@@ -50,6 +53,7 @@ public class PlanSubtasksTool implements McpToolProvider {
              "properties":{
                "parkingSnapshotId":{"type":"string"},
                "initialVehicleRemainingMinutes":{"type":"integer","minimum":1,"maximum":1440},
+               "requestId":{"type":"string","description":"build_scenario에서 받은 요청 ID. 입력이 변경되면 이전 완료 판정과 승인을 무효화한다"},
                "answers":{"type":"object",
                  "description":"답변키 → 확정값. 예: {\\"lotCount\\":4,\\"pricingPolicy\\":\\"FLAT\\"}. 실험 변수는 여기에 넣지 않고 variableValues 로 준다"},
                "origins":{"type":"object",
@@ -62,6 +66,8 @@ public class PlanSubtasksTool implements McpToolProvider {
 
     @Override
     public ToolResult call(JsonNode args) {
+        String revisionId = args.path("requestId").asText(args.path("planId").asText(null));
+        if (revisionStore != null) revisionStore.revise(revisionId, com.wastesim.readiness.RevisionInput.of(args));
         try {
             Map<String, Object> answers = new LinkedHashMap<>();
             args.path("answers").fields().forEachRemaining(

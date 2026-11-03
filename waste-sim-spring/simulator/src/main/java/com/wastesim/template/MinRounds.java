@@ -3,7 +3,7 @@ package com.wastesim.template;
 import java.util.HashMap;
 import java.util.Map;
 
-/** 생성 조건 의존 깊이로 센 최소 필요 단계. 순환은 카탈로그가 막으므로 메모 재귀로 충분하다. */
+/** 생성 조건 의존 계층 수(최소 대화 횟수가 아님). 순환은 카탈로그가 막으므로 메모 재귀로 충분하다. */
 public final class MinRounds {
 
     private MinRounds() {}

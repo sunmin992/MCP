@@ -1,0 +1,47 @@
+{
+  "id": "V3-J2-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "우리 동네", "comparisonAxes": ["수거 시각"]},
+      "verdict": "CHOOSE",
+      "matchId": "f53e6b77-0c33-433d-affd-afef9696f8d9",
+      "round": 1,
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"],
+      "note": "실제 후보 2개(행정동 집계 vs 원룸촌 한 블록). matches 에는 가상 서버 district-waste-sim(fictional=true)도 있었으나 candidates 에서 빠져 있어 제시하지 않음. 사용자 선택 후 브로커 재호출 없음."
+    }
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 단위로 볼게)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:get_plan_history",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "planIds": ["plan-23bbb6fa-0dc"],
+  "questions": [
+    {
+      "text": "그대로 맞는 서버가 둘 있습니다. (1) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체(구역 집계) 단위, 포항 북구 수거 요일·배출 창 표준데이터로 보정. (2) 장량동 생활쓰레기 수거 시뮬레이터 — 원룸촌 한 블록 단위, 장량동 실측 교통량·TMAP 지체·포항시 북구 수거 일정으로 보정. 어느 쪽으로 볼까요?",
+      "keys": [],
+      "answer": "원룸촌 한 블록(장량동) 단위로 볼게"
+    },
+    {
+      "text": "시나리오를 만들려면 다음을 정해야 합니다. 비교할 수거 시각들은? 수거차 크기(5톤/2.5톤/1톤)와 대수는? 교통량을 반영할까요? 이동시간 계산 방식(구간 상수/교통구역 근사)은? 건물 수(1~26동)와 동당 세대 수는? 거주민 직업 구성은? 배출 시간 모델(직업별 기준선/포항 공식 20:00~06:00)은? 며칠치(1~365일)를 몇 번(1~100회) 반복할까요? 청소차가 이 블록에 쓸 적재 몫은 몇 kg? 건물당 수거장 용량(kg)은? 민원 임계 적재율(0~1)은?",
+      "keys": ["collectionTimeMinutes", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "dischargeTimeMode", "days", "seeds", "routeAvailableCapacityKg", "binCapacityKg", "complaintThreshold"],
+      "answer": "비교할 수거 시각: 06시, 12시, 18시 / 적재 몫: 150kg / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": "scn-8d96d967",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 10개(MODEL_DEFAULT, 확인 화면에 미승인 기본값으로 표시됨): 차량 5톤 1대, 교통 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 4동 × 25세대, 직업 구성 BlueCollar/Student/Housewife, 배출 시간 논문 기준선(PAPER_BASELINE), 수거장 용량 30kg, 민원 임계 0.8. 사용자 값: 수거 시각 06:00/12:00/18:00(360/720/1080분), 10일, 5회, 적재 몫 150kg. 확인 화면: http://localhost:8090/confirm.html?id=scn-8d96d967",
+  "stoppedBecause": "build_scenario 성공(valid=true, runCount=3, state=UNCONFIRMED). get_scenario_status 로 확인 화면 주소를 얻음 — 확인(승인)은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "find_simulators 응답의 candidates(2개)와 matches(3개, 가상 서버 포함)가 달라 어느 목록을 사용자에게 보여야 할지 잠깐 헷갈림 — differences 에 실린 2개만 제시. 실험 변수 collectionTimeMinutes 는 answers 가 아닌 variableValues 로 넣는다는 점과, 그 출처(USER)를 origins 에 같이 적어도 되는지는 설명에 명시돼 있지 않았음(거절 없이 통과). 세부 응답이 이중 JSON 문자열로 감싸져 있어 읽기 불편함."
+}

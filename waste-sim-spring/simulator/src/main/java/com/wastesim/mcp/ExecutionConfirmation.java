@@ -55,6 +55,12 @@ public class ExecutionConfirmation {
                     "확인 토큰이 보관된 시나리오와 맞지 않습니다 — 서버가 다시 떴거나 다른 서버의 토큰입니다.");
         }
 
+        String id = found.get().scenario().scenarioId();
+        if (!store.validationCurrent(id))
+            return new Check(false, false, id, "입력·데이터·목적이 바뀌어 이전 완료 판정과 승인이 무효입니다. 시나리오를 다시 생성하십시오.");
+        if (store.validation(id).path("purposeCheck").path("specification").isObject())
+            return new Check(false, false, id, "목적과 비교 결과를 검증한 시나리오는 run_scenario_by_token으로 전체 실행해야 합니다.");
+
         // 확인 한 번에 실행 한 번이다. 여기서 보지 않으면 쓴 토큰을 기존 도구로 다시 쓸 수 있다.
         if (found.get().executedAt() != null) {
             return new Check(false, false, found.get().scenario().scenarioId(),

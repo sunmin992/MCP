@@ -1,0 +1,54 @@
+{
+  "id": "V3-P4-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "spatialScale": "도심", "environmentConditions": ["주말에 길이 막힘"], "objective": "주차장 찾는 데 걸리는 시간"},
+      "verdict": "MATCH",
+      "matchId": "a58a0b45-d388-4f83-9c08-7600293c5022",
+      "round": 1,
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "mismatches/ambiguities/requestAdjustments 모두 비어 있음. 주차장 수(1~12)·하루 도착 차량(최대 20000) 상한은 브로커 단계에서 드러나지 않고 시뮬레이터 템플릿에서 처음 드러남"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "이 시뮬레이터는 공영주차장을 최대 12곳, 하루 도착 차량을 최대 20,000대까지만 받습니다(요청은 15곳·3만 대). 어떻게 할까요? 그리고 운전자가 주차장을 몇 분까지 찾다가 포기하나요(1~60분, 기본값 없음)? 며칠치를 몇 번 반복해 볼까요? 나머지(주차장당 면수, 요금 정책·30분 요금, 이용자 구성, 주차 안내 방식, 주차장 사이 이동시간)는 기본값으로 둘까요?",
+      "keys": ["lotCount", "dailyArrivals", "maxSearchMinutes", "days", "seeds", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "guidanceMode", "lotSpacingMinutes"],
+      "answer": "그럼 되는 만큼 최대로 해줘 / 20분 / 14일, 10회 / 기본값으로 해줘"
+    },
+    {
+      "text": "12곳 × 80면에 하루 20,000대면 수요가 면수의 362%라 시뮬레이터가 실행을 막습니다. 차량 수를 줄여야 하는데 어떻게 할까요?",
+      "keys": ["dailyArrivals"],
+      "answer": "그럼 되는 만큼 최대로 해줘"
+    }
+  ],
+  "rejections": [
+    "validate_answers: lotCount=15 OUT_OF_RANGE (12 이하)",
+    "validate_answers: dailyArrivals=30000 OUT_OF_RANGE (20000 이하)",
+    "build_scenario: evidence GUARD — baseFeePer30Min·guidanceMode·lotSpacingMinutes 기본값에 동의 구절 evidence 가 없음 → '기본값으로 해줘' 를 evidence 로 넣어 해결",
+    "build_scenario scn-51c5e91a INVALID: dailyArrivals=20000 은 면수(12×80)로 감당할 양의 362% — 거의 모든 차량이 포기하는 실험이라 막힘 → dailyArrivals=11000 으로 낮춰 통과"
+  ],
+  "scenarioId": "scn-50699e52",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 15곳→12곳, 하루 3만 대→11,000대로 줄임(상한·수요 362% 차단 때문). 11,000대는 통과한 값이지 정확한 상한은 아님(20000은 막힘, 그 사이는 시험하지 않음). 기본값으로 넣은 것: 주차장당 80면, 균일 요금 30분 500원, 이용자 구성 Commuter·Shopper·Visitor, 안내 없음, 주차장 사이 3분. '주말에 길이 막힐 때'에서 도로 혼잡 반영(APPLY)·주말 도심 혼잡 프로파일을 정함(가정값 프로파일). 비교 변수가 없어 maxSearchMinutes=[20] 한 값을 실험 변수로 둠. 확인 화면: http://localhost:8092/confirm.html?id=scn-50699e52",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음 — 확인은 사람만 하므로 멈춤",
+  "difficulties": "build_scenario 가 variableAnswerKey·variableValues 를 필수로 요구하는데 요청에 비교 축이 없어 한 값짜리 변수로 넣어야 했음. 수요/면수 비율 차단 기준(몇 % 까지 허용인지)이 템플릿·도구 설명에 없어 '되는 만큼 최대' 값을 정확히 찾지 못함. 조건부 결정(baseFee·guidanceMode·lotSpacing)에도 기본값 동의 evidence 가 필요하다는 점은 build_scenario 설명에 있으나 처음엔 놓침. lotCount·dailyArrivals 를 '최대로' 로 정한 것의 origin 이 USER 인지 DERIVED 인지 헷갈려 DERIVED 로 둠. plan_subtasks 응답에 planId 가 없어 planIds 는 비어 있음."
+}

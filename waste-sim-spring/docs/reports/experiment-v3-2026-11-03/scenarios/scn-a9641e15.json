@@ -1,0 +1,155 @@
+{
+ "scenarioId": "scn-a9641e15",
+ "state": "UNCONFIRMED",
+ "sesId": "bukgu-district-ses",
+ "sesVersion": "1.0.0",
+ "values": {
+  "truckCount": 2,
+  "collectionStartMinutes": 360,
+  "seeds": 10,
+  "housingMix": [
+   "Apartment",
+   "Detached",
+   "Studio"
+  ],
+  "shiftMinutes": 480,
+  "truckType": "LARGE_5TON",
+  "scheduleMode": [
+   "POHANG_BUKGU",
+   "WEEKDAYS"
+  ],
+  "holidayMode": "IGNORE",
+  "zoneCount": 8,
+  "householdsPerZone": 600,
+  "zoneAllocation": "EQUAL_COUNT",
+  "transferMode": "IGNORE",
+  "collectionDays": [
+   "TUE",
+   "THU",
+   "SAT"
+  ],
+  "days": 28
+ },
+ "origins": {
+  "truckCount": "MODEL_DEFAULT",
+  "collectionStartMinutes": "MODEL_DEFAULT",
+  "shiftMinutes": "MODEL_DEFAULT",
+  "housingMix": "MODEL_DEFAULT",
+  "seeds": "USER",
+  "truckType": "MODEL_DEFAULT",
+  "scheduleMode": "DERIVED",
+  "holidayMode": "MODEL_DEFAULT",
+  "zoneCount": "MODEL_DEFAULT",
+  "householdsPerZone": "MODEL_DEFAULT",
+  "zoneAllocation": "MODEL_DEFAULT",
+  "transferMode": "MODEL_DEFAULT",
+  "collectionDays": "USER",
+  "days": "USER"
+ },
+ "unapprovedDefaults": {
+  "truckCount": 2,
+  "collectionStartMinutes": 360,
+  "housingMix": [
+   "Apartment",
+   "Detached",
+   "Studio"
+  ],
+  "shiftMinutes": 480,
+  "truckType": "LARGE_5TON",
+  "holidayMode": "IGNORE",
+  "zoneCount": 8,
+  "householdsPerZone": 600,
+  "zoneAllocation": "EQUAL_COUNT",
+  "transferMode": "IGNORE"
+ },
+ "blocks": [],
+ "runs": [
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Detached",
+    "Studio"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "LARGE_5TON",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "POHANG_BUKGU",
+   "collectionDays": [
+    "TUE",
+    "THU",
+    "SAT"
+   ],
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 10,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  },
+  {
+   "zoneCount": 8,
+   "householdsPerZone": 600,
+   "housingMix": [
+    "Apartment",
+    "Detached",
+    "Studio"
+   ],
+   "commercialHandling": "INCLUDED",
+   "truckType": "LARGE_5TON",
+   "truckCount": 2,
+   "zoneAllocation": "EQUAL_COUNT",
+   "scheduleMode": "WEEKDAYS",
+   "collectionDays": [
+    "TUE",
+    "THU",
+    "SAT"
+   ],
+   "holidayEnabled": false,
+   "holidayPolicy": null,
+   "transferEnabled": false,
+   "transferRoundTripMinutes": null,
+   "collectionStartMinutes": 360,
+   "days": 28,
+   "seeds": 10,
+   "startDate": "2026-09-21",
+   "shiftMinutes": 480,
+   "disposalRoundTripMinutes": 90,
+   "zoneTravelMinutes": 8.0,
+   "depotTravelMinutes": 15.0,
+   "generationCv": 0.15
+  }
+ ],
+ "confirmToken": null,
+ "request": "행정동 수거를 화·목·토 주 3회로 바꾸면 지금 일정이랑 비교해서 어때?",
+ "labels": {
+  "zoneCount": "구역 수",
+  "householdsPerZone": "구역당 세대 수",
+  "housingMix": "주거 구성",
+  "commercialHandling": "상가 쓰레기 처리",
+  "truckType": "차량 크기",
+  "truckCount": "차량 대수",
+  "zoneAllocation": "차량별 구역 배정",
+  "scheduleMode": "수거 일정",
+  "collectionDays": "수거 요일",
+  "holidayMode": "공휴일 반영",
+  "holidayPolicy": "공휴일 처리",
+  "transferMode": "적환장 사용",
+  "transferRoundTripMinutes": "적환장 왕복시간(분)",
+  "collectionStartMinutes": "수거 시작 시각(자정부터 분)",
+  "shiftMinutes": "근무 시간(분)",
+  "days": "기간(일)",
+  "seeds": "반복 횟수",
+  "holidayEnabled": "공휴일 반영",
+  "transferEnabled": "적환장 사용"
+ }
+}

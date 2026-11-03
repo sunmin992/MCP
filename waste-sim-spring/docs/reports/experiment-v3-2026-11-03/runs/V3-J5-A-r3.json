@@ -1,0 +1,22 @@
+{
+  "id": "V3-J5-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸 블록 (한 동에 40세대씩 6동)", "objective": "아침 9시 하루 한 번 수거로 감당이 되는지", "environmentConditions": ["아침 9시 한 번 수거"]}, "verdict": "ADJUST_REQUEST", "matchId": "e392d806-b5f8-49f3-8f48-88774cbf1c59", "round": 1, "recommended": null, "candidates": ["jangnyang-waste-sim", "bukgu-district-waste-sim", "district-waste-sim"], "note": "jangnyang: 환경조건 '아침 9시 한 번 수거' 빼기 + 목적을 답할 수 있는 질문으로 바꾸기(MISMATCH, changesPurpose=false). bukgu: 공간 규모도 행정동 전체로 바꿔야 함. district-waste-sim 은 가상(fictional)."},
+    {"profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸 블록 (한 동에 40세대씩 6동)", "objective": "최대 적재량", "matchId": "e392d806-b5f8-49f3-8f48-88774cbf1c59", "targetServerId": "jangnyang-waste-sim"}, "verdict": "MATCH", "matchId": "e392d806-b5f8-49f3-8f48-88774cbf1c59", "round": 2, "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim"], "note": "removedConditions: 환경조건 '아침 9시 한 번 수거'; purposeChanged=true (requestAdjustments 는 changesPurpose=false 였음)"}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 쪽으로, 제안대로 고침)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "planIds": ["plan-9c2cd854-6a3"],
+  "questions": [
+    {"text": "그대로 받는 서버가 없습니다. 장량동(원룸촌 한 블록) 서버는 '아침 9시 한 번 수거' 조건을 빼고 목적을 답할 수 있는 질문(예: 최대 적재량, 하루 수거 횟수 등)으로 바꾸면 되고, 북구 행정동 서버는 공간 규모를 행정동 전체로 바꿔야 합니다. 어느 쪽으로 어떻게 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 쪽으로, 그쪽 제안대로 고쳐 줘"},
+    {"text": "반복은 최대 100회라 200회는 안 됩니다 — 어떻게 할까요? 그리고 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫(kg), 며칠치를 볼지, 차량 크기·대수, 교통 반영, 이동시간 계산 방식, 직업 구성, 배출 시간 모델, 수거장 용량, 민원 임계를 정해 주세요.", "keys": ["seeds", "routeAvailableCapacityKg", "days", "truckType", "truckCount", "trafficMode", "travelTimeMode", "occupationMix", "dischargeTimeMode", "binCapacityKg", "complaintThreshold"], "answer": "반복: 그럼 되는 만큼 최대로 해줘 / 적재 몫: 200kg / 기간: 30일 / 나머지: 기본값으로 해줘"}
+  ],
+  "rejections": ["seeds=200: OUT_OF_RANGE (seeds 는 100 이하) → 100 으로 고침", "seeds=100 의 evidence 가 UNVERIFIED(origin USER, 근거 '그럼 되는 만큼 최대로 해줘') → build 에서는 origin DERIVED 로 넣음 (거절은 아님)"],
+  "scenarioId": "scn-8d90aded",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값(MODEL_DEFAULT)으로 넣음: truckType=LARGE_5TON, truckCount=1, trafficMode=IGNORE, travelTimeMode=LEGACY_CONSTANT, occupationMix=[BlueCollar,Student,Housewife], dischargeTimeMode=PAPER_BASELINE, binCapacityKg=30, complaintThreshold=0.8. 반복 200회는 상한 때문에 100회로 줄임. 9시 수거는 collectionTimeMinutes=540 단일값 실험 변수로 넣음. 확인 화면: http://localhost:8090/confirm.html?id=scn-8d90aded",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED), get_scenario_status 로 확인 화면 주소를 얻음 — 승인은 사람만 하므로 멈춤",
+  "difficulties": "브로커가 '아침 9시 한 번 수거'를 환경 조건 MISMATCH 로 보고 빼라 했지만, 시뮬레이터에서는 수거 시각(collectionTimeMinutes)으로 그대로 다룰 수 있어 실제로는 목적의 일부였다. 목적 '감당이 되는지'를 카드 질문 중 무엇으로 바꿀지(최대 적재량 선택)는 판단이 필요했고, requestAdjustments 는 changesPurpose=false 인데 재조회 응답은 purposeChanged=true 로 나와 엇갈렸다. 비교할 변수가 없는 단일 설정인데 build_scenario 가 variableAnswerKey/variableValues 를 필수로 요구해 수거 시각 [540] 단일값으로 넣었다. '최대로 해줘' 로 정한 seeds=100 의 출처를 USER 로 넣자 evidence UNVERIFIED 가 나와 DERIVED 로 바꿨다."
+}

@@ -43,6 +43,9 @@ public class ConfirmScenarioTool {
             return ToolFailure.of("scenarioId",
                     "보관된 시나리오가 없습니다: " + scenarioId + " — build_scenario 로 다시 만드십시오.");
         }
+        if (!store.validationCurrent(scenarioId)) {
+            return ToolFailure.of("scenarioId", "입력·데이터·목적 또는 요청 단계가 바뀌어 완료 판정이 무효입니다. build_scenario로 재검증하고 다시 승인하십시오.");
+        }
         Scenario scenario = found.get();
         if (!scenario.valid()) {
             return ToolFailure.of("scenarioId",

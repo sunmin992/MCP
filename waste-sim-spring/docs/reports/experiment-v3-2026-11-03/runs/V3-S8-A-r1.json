@@ -1,0 +1,43 @@
+{
+  "id": "V3-S8-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "음식물 쓰레기 수거", "spatialScale": "우리 동네", "comparisonAxes": ["수거 요일"]},
+      "verdict": "MATCH",
+      "matchId": "43d7d8bb-c8a7-469c-9771-b57043d88865",
+      "round": 1,
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "jangnyang 은 mismatch 없음, bukgu 는 음식물 미지원(MISMATCH, changesPurpose), district-waste-sim 은 가상(fictional). '수거 요일' 은 jangnyang 의 weekday-schedule 로 대응됐다."
+    }
+  ],
+  "userChoice": "원룸촌 한 블록(장량동) 단위로 볼게",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:get_capability",
+    "jangnyang-waste-sim:get_ses",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers"
+  ],
+  "planIds": ["plan-c5da9593-7eb"],
+  "questions": [
+    {
+      "text": "장량동 원룸촌 한 블록 시뮬레이터가 추천됐습니다. 다만 (1) 이 시뮬레이터는 음식물만 따로 다루지 않고 생활쓰레기 전체로 봅니다. (2) 시나리오를 만드는 도구에는 '수거 요일'을 바꾸는 결정 항목이 없어 요일 비교 시나리오는 만들 수 없습니다(템플릿에 없는 답변키로 거절됨). 요청을 고친다면 '수거 시각' 비교(예: 07:00 / 12:00 / 20:00)로 바꿔 진행할 수 있는데 이건 질문 자체가 바뀝니다. 어떻게 할까요 — 수거 시각 비교로 바꿀지, 그만둘지? 진행한다면 나머지 결정(차종·차량 대수·교통 반영·이동시간 방식·건물 수·동당 세대·직업 구성·배출 시간 모델·기간·반복·경로 적재 몫·수거장 용량·민원 임계)은 기본값으로 둘까요?",
+      "keys": ["variableAnswerKey", "truckType", "truckCount", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "dischargeTimeMode", "days", "seeds", "routeAvailableCapacityKg", "binCapacityKg", "complaintThreshold"],
+      "answer": "원룸촌 한 블록(장량동) 단위로 볼게"
+    }
+  ],
+  "rejections": [
+    "validate_answers: collectionDaysOfWeek=[0,2,4] → UNKNOWN_ANSWER_KEY (템플릿에 없는 답변키). plan_subtasks 는 variableAnswerKey=collectionDaysOfWeek 를 거절 없이 받았지만 경고도 없었다."
+  ],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "toldUser": "음식물이 아니라 생활쓰레기 전체로 다룬다는 것, 요일 비교는 시나리오 도구로 만들 수 없다는 것, 나머지 결정은 기본값으로 둘 수 있다는 것을 알렸다. 기본값을 실제로 넣은 시나리오는 만들지 않았다.",
+  "stoppedBecause": "사용자가 원한 비교 축(수거 요일)이 시나리오 템플릿에 없어 build_scenario 의 실험 변수로 쓸 수 없다(UNKNOWN_ANSWER_KEY). 사용자는 장량동 블록 단위를 골랐을 뿐 비교 축을 '수거 시각'으로 바꾸는 데(목적 변경)는 동의하지 않았으므로, 질문을 임의로 바꿔 시나리오를 만들지 않고 멈췄다.",
+  "difficulties": "브로커는 '수거 요일 → weekday-schedule' 로 MATCH 를 냈고 능력 카드도 answerableQuestions 에 collection-days 를 적지만, 시나리오 경로(get_templates/get_ses)에는 요일 결정이 없다. 요일은 run_waste_simulation 의 collectionDaysOfWeek 로만 있는데 그 도구는 부를 수 없다. plan_subtasks 는 없는 variableAnswerKey 를 조용히 받아 들여 validate_answers 에서야 드러났다. 또 '음식물' 은 jangnyang 카드 domainAliases 에 없는데도 mismatch 로 표시되지 않았다(bukgu 쪽만 음식물 미지원 MISMATCH). 대본 답('장량동 블록 단위')이 축 변경 여부에 답하지 않아 해석이 애매했다."
+}

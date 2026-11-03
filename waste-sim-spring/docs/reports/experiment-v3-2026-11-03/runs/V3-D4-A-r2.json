@@ -1,0 +1,45 @@
+{
+  "id": "V3-D4-A-r2",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지", "comparisonAxes": ["적환장 사용 여부"]},
+      "verdict": "MATCH",
+      "matchId": "2f183d14-f7da-4780-92f6-669200e3ce03",
+      "round": 1,
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3, 북구 행정동 서버만 적환장 비교 축과 목적에 맞음(나머지 둘은 MISMATCH). spatialScale·population·environmentConditions 는 요청에 없어 비워 둠"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "적환장 안 쓸 때(소각장 직행, 왕복 90분 가정)와 쓸 때를 비교하면 될까요? 적환장까지 다녀오는 데 몇 분 걸리나요(10~300분)? 며칠치를 몇 번 반복해 볼까요(기본 28일, 30회)? 그 밖의 설정(구역 8개 · 구역당 600세대 · 주거 구성 아파트/단독/원룸 · 5톤 차 2대 · 구역 같은 수로 배정 · 북구 현행 월화목금 수거 · 공휴일 미반영 · 06:00 시작 · 8시간 근무)은 기본값으로 둘까요?",
+      "keys": ["transferMode", "transferRoundTripMinutes", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "zoneAllocation", "scheduleMode", "holidayMode", "collectionStartMinutes", "shiftMinutes"],
+      "answer": "비교: 적환장 안 쓸 때와 쓸 때 / 적환장 왕복 시간: 40분 / 기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [
+    "build_scenario 1차: EXECUTION_ERROR evidence GUARD — zoneAllocation 이 사용자에게 묻거나 동의받지 않은 기본값으로 판정됨. evidence 에 zoneAllocation: '기본값으로 해줘' 를 넣어 재시도해 통과"
+  ],
+  "scenarioId": "scn-fd3268b2",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "구역 8개, 구역당 600세대, 주거 구성 Apartment/Detached/Studio, 5톤 차 2대, 구역 같은 수로 배정(EQUAL_COUNT), 북구 현행 월·화·목·금 수거, 공휴일 미반영, 06:00 시작, 8시간 근무는 기본값(MODEL_DEFAULT)으로 넣었다. 적환장 미사용 쪽은 소각장 왕복 90분 가정이다. 확인 화면 http://localhost:8091/confirm.html?id=scn-fd3268b2 에서 승인 안 된 기본값 10개를 따로 보여 준다",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 2벌), get_scenario_status 로 확인 화면 주소를 얻음 — 확인과 실행은 사람만 하므로 멈춤",
+  "difficulties": "plan_subtasks · build_scenario 어디에도 planId 인자나 응답 필드가 없어 planIds 는 빈 목록. build_scenario 응답의 guardUnverified 에 transferMode 가 남음(evidence 를 넣었는데도 근거 미검증으로 표시 — 실험 변수는 근거 검사 대상이 아닌 듯). zoneAllocation 처럼 조건부 결정은 기본값이어도 evidence 가 필요하다는 점이 도구 설명('조건부 결정에 기본값을 쓸 때 필요')에만 짧게 있어 첫 build 에서 거절됨"
+}

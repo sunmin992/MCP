@@ -55,7 +55,7 @@ final class EvidenceGuard {
                     List<Double> nums = numbers(quote);
                     if (nums.isEmpty()) unverified.add(key);
                     for (Object v : flat(vals)) {
-                        if (!nums.isEmpty() && v instanceof Number n && !explains(nums, n.doubleValue(), quote))
+                        if (!nums.isEmpty() && v instanceof Number n && !explains(nums, n.doubleValue(), quote, t.get()))
                             blocks.add(key + ": 사용자 발화 '" + quote + "' 와 값 " + v + " 이(가) 다릅니다 — 사용자가 말한 값으로 고치거나 다시 물으십시오");
                     }
                 } else {
@@ -77,15 +77,9 @@ final class EvidenceGuard {
     }
 
     /** 구절의 숫자 n 으로 값을 설명할 수 있는가. 단위 바꿈은 시각·시간(분), 퍼센트, 주(일)만 본다. */
-    private static boolean explains(List<Double> nums, double v, String quote) {
-        for (double n : nums) {
-            List<Double> c = new ArrayList<>(List.of(n, n * 60));
-            if (quote.contains("오후")) c.add((n + 12) * 60);
-            if (quote.contains("%") || quote.contains("퍼센트")) c.add(n / 100);
-            if (quote.contains("주")) c.add(n * 7);
-            for (double x : c) if (Math.abs(x - v) < 1e-9) return true;
-        }
-        return false;
+    private static boolean explains(List<Double> nums, double v, String quote, SubtaskTemplate t) {
+        return nums.stream().anyMatch(n -> com.wastesim.readiness.NumericEvidence.explains(
+                n, v, quote, t.answerKey(), t.unit()));
     }
 
     private static List<Double> numbers(String s) {

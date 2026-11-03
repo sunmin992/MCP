@@ -16,10 +16,12 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /**
  * PES + 실험 프레임 → 검증된 실행 설정 N벌 + 확인 토큰.
@@ -48,6 +50,90 @@ public class ScenarioBuilder {
         this.backVerifier = backVerifier;
         this.validator = validator;
         this.planner = planner;
+        java.util.Set<String> declaredKeys = new java.util.HashSet<>();
+        planner.plan(Map.of()).instances().forEach(i -> declaredKeys.add(i.answerKey()));
+        manifest().verifyCoverage(declaredKeys);
+    }
+
+    private final String loadedResources = manifest().resourceFingerprint(ScenarioBuilder.class);
+
+    public com.wastesim.readiness.TaskManifest manifest() {
+        return com.wastesim.readiness.TaskManifest.load(ScenarioBuilder.class);
+    }
+
+    public com.wastesim.readiness.TaskCompletion.Report readiness(Pes pes, ExperimentFrame frame, Scenario scenario) {
+        var manifest = manifest();
+        java.util.Set<String> keys = new java.util.HashSet<>();
+        planner.plan(Map.of()).instances().forEach(i -> keys.add(i.answerKey()));
+        manifest.verifyCoverage(keys);
+        List<com.wastesim.readiness.TaskCompletion.Task> tasks = new ArrayList<>();
+        Map<String, String> statuses = new LinkedHashMap<>();
+        int runIndex = 0;
+        for (Object value : frame.values()) {
+            Map<String, Object> values = new LinkedHashMap<>(pes.values());
+            values.put(frame.variableAnswerKey(), value);
+            String prefix = "run-" + runIndex + "/";
+            for (SubtaskInstance i : planner.plan(values).instances()) {
+                String status = i.status().name();
+                statuses.put(prefix + i.answerKey(), status);
+            }
+            Map<String, List<String>> errors = new LinkedHashMap<>();
+            errors.put("INPUTS", List.of());
+            List<String> configErrors = new ArrayList<>(scenario.blocks());
+            if (scenario.runs().size() != frame.values().size()) configErrors.add("실험 조건과 실행 설정 수가 다릅니다");
+            if (runIndex < scenario.runs().size()) {
+                var actualValidation = validator.validate(scenario.runs().get(runIndex));
+                actualValidation.errors().forEach(e -> configErrors.add(e.message()));
+            }
+            errors.put("CONFIG", configErrors);
+            errors.put("ROUNDTRIP", scenario.backVerificationBlocks());
+            errors.put("SCENARIO", scenario.valid() ? List.of() : List.of("시나리오 통합 검증 실패"));
+            tasks.addAll(manifest.instantiate(prefix, errors));
+            runIndex++;
+        }
+        return com.wastesim.readiness.TaskCompletion.evaluate(tasks, statuses);
+    }
+
+    /** Only indicators actually emitted under every run's settings can satisfy a purpose. */
+    public java.util.Set<String> availableObservations(Scenario scenario) {
+        var metrics = new java.util.LinkedHashSet<>(manifest().observations());
+        if (scenario.runs().stream().anyMatch(c -> c.resolveTravelTimeMode() == com.wastesim.model.TravelTimeMode.LEGACY_CONSTANT
+                && c.getRouteTravelMinutes() == 0)) metrics.remove("avgRouteDurationMinutes");
+        if (scenario.runs().stream().anyMatch(c -> c.getWasteTypes() != null && !c.getWasteTypes().isEmpty())) {
+            metrics.remove("peakFillRatio"); metrics.remove("siteCapacityKg"); metrics.remove("complaintThresholdRatio");
+        }
+        return metrics;
+    }
+
+    /** Freeze the proof to provider resources, requested purpose and the actual mutable run settings. */
+    public String validationFingerprint(Pes pes, ExperimentFrame frame, Scenario scenario,
+                                        com.fasterxml.jackson.databind.JsonNode purpose) {
+        String liveResources = manifest().resourceFingerprint(ScenarioBuilder.class);
+        if (!loadedResources.equals(liveResources))
+            throw new IllegalStateException("제공자 데이터·명세가 바뀌었습니다. 서버를 재시작하고 시나리오를 다시 생성하십시오");
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var proof = json.createObjectNode();
+        proof.put("resources", liveResources);
+        proof.set("inputs", json.valueToTree(pes));
+        proof.set("frame", json.valueToTree(frame));
+        proof.set("runs", json.valueToTree(scenario.runs()));
+        proof.set("purpose", purpose);
+        return com.wastesim.readiness.ValidationReceipt.fingerprint(proof);
+    }
+
+    public List<Object> comparisonValues(ExperimentFrame frame, Scenario scenario) {
+        String field = planner.template(frame.variableAnswerKey()).orElseThrow().configField();
+        String suffix = Character.toUpperCase(field.charAt(0)) + field.substring(1);
+        List<Object> values = new ArrayList<>();
+        for (var run : scenario.runs()) {
+            try {
+                java.lang.reflect.Method getter;
+                try { getter = run.getClass().getMethod("get" + suffix); }
+                catch (NoSuchMethodException e) { getter = run.getClass().getMethod("is" + suffix); }
+                values.add(getter.invoke(run));
+            } catch (ReflectiveOperationException e) { throw new IllegalArgumentException("비교 변수의 실행 설정을 읽을 수 없습니다: " + field, e); }
+        }
+        return values;
     }
 
     public Scenario build(Pes pes, ExperimentFrame frame) {
@@ -56,6 +142,17 @@ public class ScenarioBuilder {
         List<String> backBlocks = new ArrayList<>();
         List<String> branchBlocks = new ArrayList<>();
         Map<String, List<String>> droppedDefaults = new LinkedHashMap<>();
+
+        // 비교 값 가운데 하나에서라도 생기는 결정. values 는 모든 실행에 공통이라, 그 결정의 값은
+        // 다른 실행에서 가지친 쪽이 되어도 사용자 실수가 아니다 — 1대 대 3대 비교의 배차 간격처럼.
+        Set<String> generatedSomewhere = new HashSet<>();
+        for (Object value : frame.values()) {
+            Map<String, Object> values = new LinkedHashMap<>(pes.values());
+            values.put(frame.variableAnswerKey(), value);
+            for (SubtaskInstance i : planner.plan(values).instances()) {
+                if (i.status() != SubtaskStatus.NOT_GENERATED) generatedSomewhere.add(i.answerKey());
+            }
+        }
 
         for (Object value : frame.values()) {
             Map<String, Object> values = new LinkedHashMap<>(pes.values());
@@ -92,7 +189,8 @@ public class ScenarioBuilder {
             }
 
             // 가지친(생성 조건이 거짓인) 결정에 실린 값. 기본값으로 실린 것은 LLM 이 일괄로 넣은
-            // 것이라 평탄화 전에 조용히 뺀다. 사용자 · 파생 값은 무엇을 뜻했는지 알 수 없어 막는다.
+            // 것이라 평탄화 전에 조용히 뺀다. 다른 비교 값에서는 생기는 결정의 값도 이 실행에서만 뺀다.
+            // 어느 실행에서도 생기지 않는 사용자 · 파생 값은 무엇을 뜻했는지 알 수 없어 막는다.
             // 보류(DEFERRED)는 생길 수도 있는 결정이라 여기서 보지 않는다.
             // 실험 변수 자체가 가지친 쪽이면 출처와 무관하게 막는다 — 빼면 같은 설정 N벌이 통과한다.
             // 빼고 나서 다시 계획하지 않는다: 가지친 결정의 하위 결정은 생성 조건이 그 결정의 조건을
@@ -100,7 +198,7 @@ public class ScenarioBuilder {
             boolean dropped = false;
             for (SubtaskInstance i : instances) {
                 if (i.status() != SubtaskStatus.NOT_GENERATED || !values.containsKey(i.answerKey())) continue;
-                if ("MODEL_DEFAULT".equals(origins.get(i.answerKey()))
+                if (("MODEL_DEFAULT".equals(origins.get(i.answerKey())) || generatedSomewhere.contains(i.answerKey()))
                         && !i.answerKey().equals(frame.variableAnswerKey())) {
                     values.remove(i.answerKey());
                     origins.remove(i.answerKey());

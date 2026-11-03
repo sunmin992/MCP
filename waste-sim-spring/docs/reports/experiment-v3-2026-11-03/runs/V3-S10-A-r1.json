@@ -1,0 +1,32 @@
+{
+  "id": "V3-S10-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "주택가 한 동네", "environmentConditions": ["평일 교통량"], "objective": "민원이 가장 적은 수거 시각"},
+      "verdict": "NONE",
+      "matchId": "a9861c4b-ca77-48f8-9e89-3380dcf80ca7",
+      "round": 1,
+      "recommended": null,
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "noneReason=NO_CALLABLE_SERVER. 등록 서버 4개(jangnyang-waste-sim, bukgu-district-waste-sim, pohang-counter-sim, pohang-parking-sim)가 모두 응답하지 않음. jangnyang-waste-sim 은 불일치 없이 맞았지만 꺼져 있음, district-waste-sim 은 가상(fictional, example.invalid) 서버."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": null,
+  "toolSequence": ["broker:tools/list", "broker:find_simulators"],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "요청에 맞는 시뮬레이터(장량동 생활쓰레기 수거 시뮬레이터 등)가 등록돼 있지만 지금 모두 응답하지 않아 쓸 수 있는 서버가 없습니다. 서버가 다시 켜지면 같은 요청으로 다시 조회할 수 있습니다. 나중에 다시 시도할까요?",
+      "keys": [],
+      "answer": "알겠어, 나중에 다시 할게"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "toldUser": "없음 (기본값/가정으로 넣은 값 없음)",
+  "stoppedBecause": "브로커 verdict 가 NONE(NO_CALLABLE_SERVER) — 등록된 시뮬레이터가 모두 응답하지 않아 부를 서버가 없었고, 사용자가 나중에 다시 하겠다고 해 요청을 그만둠.",
+  "difficulties": "verdict 가 NONE 인데도 matches 에 후보와 requestAdjustments 가 함께 와서 잠시 헷갈렸으나, nextStep 이 명확해 그대로 따랐음. 가상 서버(district-waste-sim)가 matches 에 섞여 나옴."
+}

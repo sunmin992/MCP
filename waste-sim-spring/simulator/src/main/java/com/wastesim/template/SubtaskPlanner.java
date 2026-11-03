@@ -165,7 +165,7 @@ public class SubtaskPlanner {
      *                  실험 변수 자체는 비교할 값 목록으로 채워진 것으로 본다
      * @param onlyFor   어떤 비교 값에서만 물어야 하는 결정 → 그 값들. 모든 값에서 필요하면 싣지 않는다
      * @param waitingOn 보류된 결정 → 먼저 정해야 할 답변키(값마다의 합집합)
-     * @param minRounds 실행별 계획의 최소 필요 단계 가운데 가장 큰 값
+     * @param minRounds 실행별 생성 조건 의존 계층 수의 최댓값(호환 이름이며 최소 질문 횟수가 아님)
      */
     public record Across(SubtaskPlan plan, Map<String, List<Object>> onlyFor, Map<String, List<String>> waitingOn,
                          int minRounds) {}

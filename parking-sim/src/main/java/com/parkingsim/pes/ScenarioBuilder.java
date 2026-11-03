@@ -48,11 +48,92 @@ public class ScenarioBuilder {
         this.backVerifier = backVerifier;
         this.validator = validator;
         this.planner = planner;
+        java.util.Set<String> declaredKeys = new java.util.HashSet<>();
+        planner.plan(Map.of()).instances().forEach(i -> declaredKeys.add(i.answerKey()));
+        manifest().verifyCoverage(declaredKeys);
     }
 
     /** 비교 변수가 어느 실행에서도 쓰이지 않으면 그 조건, 아니면 null. 막지는 않고 알린다. */
     public String unusedVariable(Pes pes, ExperimentFrame frame) {
         return planner.unusedVariable(pes.values(), frame.variableAnswerKey(), frame.values());
+    }
+
+    private final String loadedResources = manifest().resourceFingerprint(ScenarioBuilder.class);
+
+    public com.wastesim.readiness.TaskManifest manifest() {
+        return com.wastesim.readiness.TaskManifest.load(ScenarioBuilder.class);
+    }
+
+    public com.wastesim.readiness.TaskCompletion.Report readiness(Pes pes, ExperimentFrame frame, Scenario scenario) {
+        var manifest = manifest();
+        java.util.Set<String> keys = new java.util.HashSet<>();
+        planner.plan(Map.of()).instances().forEach(i -> keys.add(i.answerKey()));
+        manifest.verifyCoverage(keys);
+        List<com.wastesim.readiness.TaskCompletion.Task> tasks = new ArrayList<>();
+        Map<String, String> statuses = new LinkedHashMap<>();
+        int runIndex = 0;
+        for (Object value : frame.values()) {
+            Map<String, Object> values = new LinkedHashMap<>(pes.values());
+            values.put(frame.variableAnswerKey(), value);
+            String prefix = "run-" + runIndex + "/";
+            for (SubtaskInstance i : planner.plan(values).instances()) {
+                String status = i.status().name();
+                if (i.answerKey().equals("spacesPerLot") && !scenario.runs().isEmpty()
+                        && scenario.runs().stream().allMatch(c -> c.getParkingSnapshot() != null)) status = "FILLED";
+                statuses.put(prefix + i.answerKey(), status);
+            }
+            Map<String, List<String>> errors = new LinkedHashMap<>();
+            errors.put("INPUTS", List.of());
+            List<String> configErrors = new ArrayList<>(scenario.blocks());
+            if (scenario.runs().size() != frame.values().size()) configErrors.add("실험 조건과 실행 설정 수가 다릅니다");
+            if (runIndex < scenario.runs().size()) {
+                var actualValidation = validator.validate(scenario.runs().get(runIndex));
+                actualValidation.errors().forEach(e -> configErrors.add(e.message()));
+            }
+            errors.put("CONFIG", configErrors);
+            errors.put("ROUNDTRIP", scenario.backVerificationBlocks());
+            errors.put("SCENARIO", scenario.valid() ? List.of() : List.of("시나리오 통합 검증 실패"));
+            tasks.addAll(manifest.instantiate(prefix, errors));
+            runIndex++;
+        }
+        return com.wastesim.readiness.TaskCompletion.evaluate(tasks, statuses);
+    }
+
+    /** Only indicators actually emitted under every run's settings can satisfy a purpose. */
+    public java.util.Set<String> availableObservations(Scenario scenario) {
+        var metrics = new java.util.LinkedHashSet<>(manifest().observations());
+        return metrics;
+    }
+
+    /** Freeze the proof to provider resources, requested purpose and the actual mutable run settings. */
+    public String validationFingerprint(Pes pes, ExperimentFrame frame, Scenario scenario,
+                                        com.fasterxml.jackson.databind.JsonNode purpose) {
+        String liveResources = manifest().resourceFingerprint(ScenarioBuilder.class);
+        if (!loadedResources.equals(liveResources))
+            throw new IllegalStateException("제공자 데이터·명세가 바뀌었습니다. 서버를 재시작하고 시나리오를 다시 생성하십시오");
+        var json = new com.fasterxml.jackson.databind.ObjectMapper();
+        var proof = json.createObjectNode();
+        proof.put("resources", liveResources);
+        proof.set("inputs", json.valueToTree(pes));
+        proof.set("frame", json.valueToTree(frame));
+        proof.set("runs", json.valueToTree(scenario.runs()));
+        proof.set("purpose", purpose);
+        return com.wastesim.readiness.ValidationReceipt.fingerprint(proof);
+    }
+
+    public List<Object> comparisonValues(ExperimentFrame frame, Scenario scenario) {
+        String field = planner.template(frame.variableAnswerKey()).orElseThrow().configField();
+        String suffix = Character.toUpperCase(field.charAt(0)) + field.substring(1);
+        List<Object> values = new ArrayList<>();
+        for (var run : scenario.runs()) {
+            try {
+                java.lang.reflect.Method getter;
+                try { getter = run.getClass().getMethod("get" + suffix); }
+                catch (NoSuchMethodException e) { getter = run.getClass().getMethod("is" + suffix); }
+                values.add(getter.invoke(run));
+            } catch (ReflectiveOperationException e) { throw new IllegalArgumentException("비교 변수의 실행 설정을 읽을 수 없습니다: " + field, e); }
+        }
+        return values;
     }
 
     public Scenario build(Pes pes, ExperimentFrame frame) {

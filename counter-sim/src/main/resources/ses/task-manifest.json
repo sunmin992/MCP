@@ -1,0 +1,115 @@
+{
+  "version": "1.0",
+  "tasks": [
+    {
+      "id": "service",
+      "label": "창구·서비스 구성",
+      "dependencies": [],
+      "subtasks": [
+        "counterCount",
+        "queueDiscipline",
+        "serviceMinutes"
+      ],
+      "outputs": [
+        "decisions.service"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "demand",
+      "label": "방문 수요 준비",
+      "dependencies": [],
+      "subtasks": [
+        "dailyVisitors"
+      ],
+      "outputs": [
+        "decisions.demand"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "policy",
+      "label": "예약·대기 정책 구성",
+      "dependencies": [],
+      "subtasks": [
+        "reservationMode",
+        "reservationShare",
+        "maxWaitMinutes"
+      ],
+      "outputs": [
+        "decisions.policy"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "experiment",
+      "label": "실험 기간·반복 구성",
+      "dependencies": [],
+      "subtasks": [
+        "days",
+        "seeds"
+      ],
+      "outputs": [
+        "decisions.experiment"
+      ],
+      "validator": "INPUTS"
+    },
+    {
+      "id": "execution-settings",
+      "label": "실행 설정·입력 데이터 검증",
+      "dependencies": [
+        "service",
+        "demand",
+        "policy",
+        "experiment"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "validated-run-configs"
+      ],
+      "validator": "CONFIG"
+    },
+    {
+      "id": "settings-roundtrip",
+      "label": "입력 결정의 실행 설정 반영 확인",
+      "dependencies": [
+        "execution-settings"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "verified-setting-mapping"
+      ],
+      "validator": "ROUNDTRIP"
+    },
+    {
+      "id": "scenario",
+      "label": "시나리오 통합 검증",
+      "dependencies": [
+        "settings-roundtrip"
+      ],
+      "subtasks": [],
+      "outputs": [
+        "ready-scenario"
+      ],
+      "validator": "SCENARIO"
+    }
+  ],
+  "observations": [
+    "judgement.meanWaitMinutesAll",
+    "judgement.stdWaitMinutesAll",
+    "judgement.meanWaitMinutesServed",
+    "judgement.renegesPerDay",
+    "judgement.stdRenegesPerDay",
+    "judgement.renegeRate",
+    "judgement.byVisitorType",
+    "explanation.utilization",
+    "explanation.hourlyMeanWait",
+    "explanation.peakQueueLength",
+    "explanation.overtimeMinutesPerDay",
+    "reference.servedPerCounterPerDay"
+  ],
+  "resources": [
+    "/mcp/counter-capability-card.json",
+    "/ses/counter-templates.json"
+  ]
+}

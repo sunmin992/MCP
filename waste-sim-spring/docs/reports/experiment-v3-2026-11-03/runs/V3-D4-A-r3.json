@@ -1,0 +1,45 @@
+{
+  "id": "V3-D4-A-r3",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지", "comparisonAxes": ["적환장 사용 여부"]},
+      "verdict": "MATCH",
+      "matchId": "9261d975-1cc6-414c-9d26-c2f0b7777312",
+      "round": 1,
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3. bukgu 만 목적·비교 축(적환장) 일치. district-waste-sim(가상)·jangnyang 은 목적·비교 축 MISMATCH. spatialScale 은 요청에 없어 비워 둠."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "적환장 안 쓸 때(IGNORE)와 쓸 때(APPLY)를 비교하겠습니다. (1) 적환장까지 다녀오는 데 몇 분 걸리나요? (10~300분, 기본값 없음) (2) 며칠치를 볼까요(기본 28일, 2026-09-21부터)? 몇 번 반복할까요(기본 30회)? (3) 나머지 — 구역 수(8), 구역당 세대 수(600), 주거 구성(아파트·단독·원룸), 차량 크기(5톤), 차량 대수(2), 수거 일정(포항 북구 월·화·목·금), 공휴일 반영(안 함), 수거 시작(06:00), 근무 시간(480분), 그리고 이 값들에 따라 생기는 결정(차량별 구역 배정: 같은 구역 수 등)은 괄호 안 기본값으로 할까요, 바꿀 것이 있나요?",
+      "keys": ["transferRoundTripMinutes", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "scheduleMode", "holidayMode", "collectionStartMinutes", "shiftMinutes", "zoneAllocation"],
+      "answer": "적환장 왕복 시간: 40분 / 기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [
+    "build_scenario 1차: zoneAllocation=EQUAL_COUNT — 근거 검사(GUARD): 묻거나 동의받지 않은 기본값이라 evidence 필요. 질문 묶음에 포함돼 있던 '기본값으로 해줘' 를 evidence 로 넣어 재시도해 통과."
+  ],
+  "scenarioId": "scn-fd3268b2",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "적환장 왕복 40분·28일·10회만 사용자 값(USER)이고, 구역 수 8·구역당 600세대·주거 구성 Apartment/Detached/Studio·5톤 2대·포항 북구 일정·공휴일 미반영·06:00 시작·근무 480분·차량별 구역 배정 EQUAL_COUNT 의 10개는 기본값(MODEL_DEFAULT)으로 넣었다. 확인 화면(http://localhost:8091/confirm.html?id=scn-fd3268b2)에서 승인하지 않은 기본값으로 따로 보인다. 적환장을 안 쓸 때는 소각장 왕복 90분 가정.",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED, 실행 설정 2벌), get_scenario_status 로 확인 화면 주소를 얻었다. 확인은 사람만 하므로 여기서 멈춤.",
+  "difficulties": "zoneAllocation 은 truckCount 에 따라 생기는 조건부 결정이라 첫 plan_subtasks 에서 DEFERRED 였는데, 기본값을 쓰려면 evidence 가 필요하다는 점이 build_scenario 거절로 처음 드러났다(도구 설명엔 '조건부 결정에 기본값을 쓸 때 필요하다' 고만 있음). 비교 축(transferMode)은 요청에서 분명해 따로 묻지 않았다. 브로커 nextStep 의 도구 목록에 planId 언급이 없어 planIds 는 비어 있다."
+}

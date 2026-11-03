@@ -1,0 +1,45 @@
+{
+  "id": "V3-D4-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "objective": "적환장을 쓰면 수거차가 소각장 오가는 시간이 줄어 수거가 빨리 끝나는지", "comparisonAxes": ["적환장 사용 여부"]},
+      "verdict": "MATCH",
+      "matchId": "eb426404-1043-437c-8ce7-ff525f506073",
+      "round": 1,
+      "recommended": "bukgu-district-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "matchCount 3. bukgu-district-waste-sim 만 목적·비교 축이 맞음(적환장결합). district-waste-sim(가상)과 jangnyang-waste-sim 은 목적·비교 축 MISMATCH. spatialScale 은 요청에 없어 비워 둠."
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "bukgu-district-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "bukgu-district-waste-sim:tools/list",
+    "bukgu-district-waste-sim:get_templates",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:validate_answers",
+    "bukgu-district-waste-sim:plan_subtasks",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:build_scenario",
+    "bukgu-district-waste-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "적환장 효과를 보려고 '적환장 안 씀(IGNORE)'과 '적환장 씀(APPLY)'을 비교하려 합니다. 1) 비교는 적환장을 안 쓸 때와 쓸 때, 이렇게 두 가지로 할까요? 2) 적환장까지 다녀오는 데 몇 분 걸리나요? (10~300분, 기본값 없음) 3) 며칠치를 볼까요(7~365일, 기본 28일), 몇 번 반복할까요(1~100회, 기본 30회)? 4) 그 밖의 설정 — 구역 수(기본 8), 구역당 세대 수(600), 주거 구성(아파트·단독·원룸), 차량 크기(5톤)·대수(2대), 차량별 구역 배정(같은 구역 수), 수거 일정(포항 북구 월·화·목·금), 공휴일 반영(안 함), 수거 시작 시각(06:00), 근무 시간(480분) — 은 어떻게 할까요?",
+      "keys": ["transferMode", "transferRoundTripMinutes", "days", "seeds", "zoneCount", "householdsPerZone", "housingMix", "truckType", "truckCount", "zoneAllocation", "scheduleMode", "holidayMode", "collectionStartMinutes", "shiftMinutes"],
+      "answer": "비교: 적환장 안 쓸 때와 쓸 때 / 적환장 왕복 시간: 40분 / 기간·반복: 28일, 10회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [
+    "build_scenario 1차: zoneAllocation=EQUAL_COUNT — 근거 검사(GUARD): 사용자에게 묻거나 동의받지 않은 기본값. evidence 에 zoneAllocation:'기본값으로 해줘' 를 넣어 재시도해 통과"
+  ],
+  "scenarioId": "scn-fd3268b2",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것(확인 화면에 승인 안 된 기본값 10개로 표시): 구역 8개, 구역당 600세대, 주거 구성 Apartment·Detached·Studio, 5톤 차량 2대, 구역 배정 EQUAL_COUNT, 수거 일정 포항 북구(월·화·목·금), 공휴일 미반영, 수거 시작 06:00, 근무 480분. 사용자 값: 적환장 안 씀/씀 비교, 적환장 왕복 40분(APPLY 설정에만 적용), 28일, 10회. 확인 화면: http://localhost:8091/confirm.html?id=scn-fd3268b2",
+  "stoppedBecause": "build_scenario 가 성공해 state 가 UNCONFIRMED 가 되었고, get_scenario_status 로 확인 화면 주소를 얻었다. 확인(승인)과 실행은 사람만 한다.",
+  "difficulties": "1) plan_subtasks/build_scenario 에 planId 인자가 없어 planIds 는 비어 있음. 2) zoneAllocation 은 첫 plan_subtasks 에서 DEFERRED 였다가 truckCount 기본값 2 로 생겨난 조건부 결정인데, 묶음 질문의 '그 밖: 기본값' 답을 evidence 로 넣지 않아 GUARD 에 한 번 걸렸다 — 조건부 결정에 기본값을 쓸 때 evidence 가 필요하다는 점이 build_scenario 설명에만 짧게 있다. 3) 응답의 guardUnverified 에 transferMode 가 남았는데(실험 변수라 evidence 검사 대상이 아닌 듯) 의미가 설명되어 있지 않다. 4) 적환장을 안 쓸 때 소각장 왕복 90분은 템플릿 defaultBasis 에만 있고 묻는 항목이 없다."
+}

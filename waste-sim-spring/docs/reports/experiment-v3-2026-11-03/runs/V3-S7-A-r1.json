@@ -1,0 +1,32 @@
+{
+  "id": "V3-S7-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "시내버스", "spatialScale": "포항 시내", "objective": "버스 대기 시간 감소", "comparisonAxes": ["배차 간격"]},
+      "verdict": "ADJUST_REQUEST",
+      "matchId": "2e5daa63-65d2-4ab8-9342-d303610f3cb5",
+      "round": 1,
+      "recommended": null,
+      "candidates": ["jangnyang-waste-sim", "pohang-parking-sim", "bukgu-district-waste-sim", "pohang-counter-sim"],
+      "note": "시내버스 도메인 서버 없음. 네 후보 모두 domain 조정이 MISMATCH·changesPurpose=true (쓰레기 수거 2, 공영주차장 1, 민원 창구 대기 1)."
+    }
+  ],
+  "userChoice": "없음 — 사용자가 다른 시뮬레이터를 거절하고 요청을 그만둠",
+  "serverCalled": null,
+  "toolSequence": ["broker:tools/list", "broker:find_simulators"],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "포항 시내버스를 다루는 시뮬레이터는 등록돼 있지 않습니다. 대신 쓸 수 있는 서버는 모두 질문 자체를 바꿔야 합니다: (1) 장량동 생활쓰레기 수거 시뮬레이터 — 쓰레기 수거 차량의 배차 간격·수거 시각 등을 볼 수 있고, 공간 규모는 '원룸촌 한 블록'이어야 합니다. (2) 포항 도심 공영주차장 탐색·혼잡 시뮬레이터 — 주차 탐색 시간·혼잡도를 보며, 배차 간격 대신 주차장 수·요금 정책 등을 바꿔 봐야 합니다. (3) 포항 북구 행정동 생활폐기물 수거 시뮬레이터 — 행정동 전체(구역 집계) 단위로 수거 주기·차량 수 등을 바꿔 봅니다. (4) 포항 행정복지센터 민원 창구 대기 시뮬레이터 — 민원 대기 시간을 보며, 창구 수·예약제 등을 바꿔 봅니다. 이 가운데 하나로 질문을 바꿔 진행할까요, 아니면 그만둘까요?",
+      "keys": ["targetServerId", "domain"],
+      "answer": "버스가 아니면 필요 없어. 그만할게"
+    }
+  ],
+  "rejections": [],
+  "scenarioId": null,
+  "scenarioState": "없음",
+  "toldUser": "시내버스 시뮬레이터가 없어 다른 서버를 쓰면 질문 자체(목적)가 바뀐다고 알림. 기본값/가정으로 넣은 값은 없음.",
+  "stoppedBecause": "브로커가 ADJUST_REQUEST 를 냈고 모든 후보가 도메인을 바꿔야 하는(changesPurpose=true) 서버였으며, 사용자가 버스가 아니면 필요 없다며 요청을 그만둠.",
+  "difficulties": "민원 창구 서버의 reasons 에 '목적: 버스 대기 시간 감소 → 민원 대기 시간' 이 일치 근거로 올라와 '대기 시간'이라는 단어만으로 엮인 것처럼 보였다. 장량동 서버도 '배차 간격' 비교 축이 맞는다고 나왔지만 버스 배차와 수거차 배차는 다른 뜻이다. 그 밖의 안내는 명확했다."
+}

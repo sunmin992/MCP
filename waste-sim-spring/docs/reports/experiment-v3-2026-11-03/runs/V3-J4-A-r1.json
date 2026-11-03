@@ -1,0 +1,22 @@
+{
+  "id": "V3-J4-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거가 다 안 끝나는 날이 생기는지", "comparisonAxes": ["수거차 종류"]}, "verdict": "ADJUST_REQUEST", "matchId": "29b1ec17-83f3-445b-9874-294b34436884", "round": 1, "recommended": null, "candidates": ["bukgu-district-waste-sim", "jangnyang-waste-sim"], "note": "목적·비교 축 모두 MISMATCH. suggestions 2개(북구 행정동, 장량동). matches 에는 가상 서버 district-waste-sim 도 있었으나 suggestions 에서 빠짐"},
+    {"profileSent": {"domain": "쓰레기수거", "objective": "수거 완료 시각", "comparisonAxes": ["차종"], "matchId": "29b1ec17-83f3-445b-9874-294b34436884", "targetServerId": "jangnyang-waste-sim"}, "verdict": "MATCH", "matchId": "29b1ec17-83f3-445b-9874-294b34436884", "round": 2, "recommended": "jangnyang-waste-sim", "candidates": ["jangnyang-waste-sim"], "note": "장량동 제안대로 목적을 '수거 완료 시각', 비교 축을 '차종'으로 고침. revisions 1, 남은 4"}
+  ],
+  "userChoice": "jangnyang-waste-sim (원룸촌 한 블록(장량동) 쪽, 그쪽 제안대로 요청 수정)",
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": ["broker:tools/list", "broker:find_simulators", "broker:find_simulators", "jangnyang-waste-sim:tools/list", "jangnyang-waste-sim:get_templates", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:validate_answers", "jangnyang-waste-sim:plan_subtasks", "jangnyang-waste-sim:build_scenario", "jangnyang-waste-sim:get_scenario_status"],
+  "planIds": ["plan-7042a65c-af3"],
+  "questions": [
+    {"text": "그대로 받을 서버가 없습니다. (1) 포항 북구 행정동 시뮬레이터: 목적을 '수거 못 하고 남는 양'·'근무 시간 안에 끝나는지' 등으로, 비교 축을 '차종'으로 바꾸면 됨. (2) 장량동 원룸촌 시뮬레이터: 목적을 '수거 완료 시각'·'최대 적재량'·'차량 가동률' 등으로, 비교 축을 '차종'으로 바꾸면 됨. 어느 서버로, 요청을 어떻게 고칠까요?", "keys": [], "answer": "원룸촌 한 블록(장량동) 쪽으로 볼게 — 그쪽 제안대로 고쳐 줘"},
+    {"text": "5톤 vs 1톤 비교 시나리오를 만들려면 다음 값이 필요합니다: 수거차 대수(기본 1), 수거 시각(기본 12:00), 교통량 반영(기본 안 함), 이동시간 계산 방식(기본 구간 상수), 건물 수(기본 4동), 동당 세대 수(기본 25), 직업 구성(기본 생산직/학생/전업주부), 배출 시간 모델(기본 논문 기준선), 기간(기본 30일), 반복 횟수(기본 30회), 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫 kg(모르면 차종 정격용량 — 그러면 미수거·가동률 비교 불가), 수거장 용량(기본 30kg), 민원 임계 적재율(기본 0.8). 각각 어떻게 할까요?", "keys": ["truckCount", "collectionTimeMinutes", "trafficMode", "travelTimeMode", "numBuildings", "residentsPerBuilding", "occupationMix", "dischargeTimeMode", "days", "seeds", "routeAvailableCapacityKg", "binCapacityKg", "complaintThreshold"], "answer": "적재 몫 120kg, 수거 시각 12시, 30일, 10회, 그 밖은 기본값으로 해줘"}
+  ],
+  "rejections": [],
+  "scenarioId": "scn-24221c78",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값으로 넣은 것(확인 화면에 미승인 기본값 9개로 표시됨): 수거차 1대, 교통 미반영(IGNORE), 이동시간 구간 상수(LEGACY_CONSTANT), 건물 4동, 동당 25세대, 직업 구성 BlueCollar/Student/Housewife, 배출 시간 논문 기준선, 수거장 용량 30kg, 민원 임계 0.8. 비교는 LARGE_5TON vs SMALL_1TON 두 실행이며, 적재 몫 120kg 은 두 차종에 공통 적용되므로 차종 정격용량 차이는 반영되지 않는다는 점도 알림. 원래 질문 '수거가 다 안 끝나는 날'은 브로커 제안에 따라 '수거 완료 시각' 비교로 바뀌었다. 확인 화면: http://localhost:8090/confirm.html?id=scn-24221c78",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED). get_scenario_status 로 확인 화면 주소를 얻었고, 확인·실행은 사람만 하므로 멈춤",
+  "difficulties": "(1) 브로커가 '수거가 다 안 끝나는 날'을 MISMATCH 로 봤지만 장량동 서버는 실제로 잔여량·routeAvailableCapacityKg(미수거) 를 다루고, 북구 서버 제안에는 '수거 못 하고 남는 양'이 있어 원래 질문에 더 가까웠다 — 대본대로 장량동을 골랐다. (2) routeAvailableCapacityKg 를 120kg 하나로 고정하면 5톤/1톤 모두 같은 몫이 적용돼 차종 비교가 미수거에 영향을 주지 않을 수 있다(차종별 몫을 따로 줄 방법이 안내에 없음). (3) build_scenario 응답의 guardUnverified: [\"truckType\"] 의 의미가 설명되지 않았다. (4) get_templates·plan_subtasks 응답이 이중 JSON 문자열로 감싸여 있다."
+}

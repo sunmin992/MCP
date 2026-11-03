@@ -1,0 +1,45 @@
+{
+  "id": "V3-P6-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "주차", "environmentConditions": ["주차장끼리 멀어서 옮겨 다니는 데 10분씩 걸림"], "objective": "실시간 안내 앱 효과", "comparisonAxes": ["실시간 안내 앱 사용 여부"]},
+      "verdict": "MATCH",
+      "matchId": "6a658cd2-d4ae-4410-82a8-eb0e289c755c",
+      "round": 1,
+      "recommended": "pohang-parking-sim",
+      "candidates": ["pohang-parking-sim"],
+      "note": "환경 조건이 lot-spacing 으로, 비교 축이 guidance 로 대응됨. mismatch·ambiguity 없음"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "pohang-parking-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "pohang-parking-sim:tools/list",
+    "pohang-parking-sim:get_templates",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:validate_answers",
+    "pohang-parking-sim:plan_subtasks",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:build_scenario",
+    "pohang-parking-sim:get_scenario_status"
+  ],
+  "planIds": [],
+  "questions": [
+    {
+      "text": "주차장 사이 이동시간 10분으로 포항 도심 공영주차장 시뮬레이터에서 볼게요. 몇 가지 정해 주세요. (1) 어떤 안내 방식끼리 비교할까요? (없음 / 입구 안내판 / 실시간 앱) (2) 운전자는 주차장을 몇 분까지 찾다가 포기하나요? (1~60분, 기본값 없음) (3) 실시간 앱은 빈자리 정보를 몇 분마다 갱신하나요? (1~60분, 기본 5분) (4) 나머지 — 주차장 수(기본 4곳), 주차장당 면수(80면), 요금(균일, 30분 500원), 이용자 구성(출퇴근·쇼핑·방문), 하루 도착 차량(900대), 도로 혼잡 반영(안 함), 기간(14일), 반복(30회) — 은 기본값으로 둘까요, 바꿀 것이 있나요?",
+      "keys": ["guidanceMode", "maxSearchMinutes", "guidanceRefreshMinutes", "lotCount", "spacesPerLot", "pricingPolicy", "baseFeePer30Min", "userMix", "dailyArrivals", "congestionMode", "days", "seeds"],
+      "answer": "(1) 안내 없음과 실시간 앱 (2) 15분 (3) 5분 (4) 기본값으로 해줘"
+    }
+  ],
+  "rejections": [
+    "build_scenario 1차: baseFeePer30Min 에 evidence 가 없어 근거 검사(GUARD) 실패 — '사용자에게 묻거나 동의받지 않은 기본값'. evidence 에 '기본값으로 해줘' 를 넣어 재시도해 통과"
+  ],
+  "scenarioId": "scn-8612586e",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "주차장 수 4곳, 면수 80면, 균일 요금 30분 500원, 이용자 구성 Commuter·Shopper·Visitor, 하루 도착 900대, 도로 혼잡 미반영, 14일, 30회 반복은 사용자가 '기본값으로 해줘' 라고 해서 템플릿 기본값(MODEL_DEFAULT)으로 넣었고, 확인 화면에 승인되지 않은 기본값 9개로 따로 표시된다고 알림. 이동시간 10분·포기 15분·갱신 5분·비교(NONE vs REALTIME_APP)는 사용자 값. 확인 주소: http://localhost:8092/confirm.html?id=scn-8612586e",
+  "stoppedBecause": "build_scenario 성공(state UNCONFIRMED) 후 get_scenario_status 로 확인 화면 주소를 얻음. 승인은 사람만 하므로 여기서 멈춤",
+  "difficulties": "plan_subtasks 응답에 planId 가 없어 planIds 는 비움. build_scenario 는 조건부 결정(baseFeePer30Min, NOT_FREE 조건)에 기본값을 쓸 때도 evidence 를 요구했는데, 이는 도구 설명의 '조건부 결정에 기본값을 쓸 때 필요' 문구로만 알 수 있어 첫 시도에서 놓침. 비교 변수 guidanceMode 는 guardUnverified 로 표시됨(evidence 를 넣었는데도) — 이유는 응답에 설명이 없음."
+}

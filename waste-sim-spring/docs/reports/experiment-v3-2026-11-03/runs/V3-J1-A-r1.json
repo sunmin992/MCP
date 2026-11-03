@@ -1,0 +1,45 @@
+{
+  "id": "V3-J1-A-r1",
+  "method": "A",
+  "brokerCalls": [
+    {
+      "profileSent": {"domain": "쓰레기수거", "spatialScale": "원룸촌 한 블록", "environmentConditions": ["평일 교통량"], "objective": "민원이 가장 적은 쓰레기 수거 시각", "comparisonAxes": ["수거 시각"], "population": ["학생이 많음"]},
+      "verdict": "MATCH",
+      "matchId": "778566ea-8c9f-4bb4-9a67-abed5e571bd6",
+      "round": 1,
+      "recommended": "jangnyang-waste-sim",
+      "candidates": ["bukgu-district-waste-sim", "district-waste-sim", "jangnyang-waste-sim"],
+      "note": "jangnyang-waste-sim 만 mismatch/ambiguity 없이 맞음. 나머지 둘은 공간 규모·교통·거주민 MISMATCH(district-waste-sim 은 가상 서버). nextStep 에 따라 브로커 재호출 없음"
+    }
+  ],
+  "userChoice": null,
+  "serverCalled": "jangnyang-waste-sim",
+  "toolSequence": [
+    "broker:tools/list",
+    "broker:find_simulators",
+    "jangnyang-waste-sim:tools/list",
+    "jangnyang-waste-sim:get_templates",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:validate_answers",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:plan_subtasks",
+    "jangnyang-waste-sim:build_scenario",
+    "jangnyang-waste-sim:get_scenario_status"
+  ],
+  "planIds": ["plan-ae60fe84-7b0"],
+  "questions": [
+    {
+      "text": "장량동 원룸촌 블록 시뮬레이터로 진행합니다(평일 교통량은 반영으로 둡니다). 아래를 알려 주세요. 1) 비교할 수거 시각은 몇 시들인가요? 2) 건물은 몇 동(1~26), 한 동에 몇 세대인가요? 3) 수거차량 크기(5톤/2.5톤/1톤)와 대수는? 4) 청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 인가요? (모르면 차종 정격용량 — 그러면 가동률·미수거 비교 불가) 5) 거주민 직업 구성은? (생산직/학생/전업주부/야간 교대/1인 직장인, 같은 직업을 여러 번 적으면 비중↑) 6) 며칠치를 몇 번 반복할까요? 7) 그 밖에 교통 프로파일(평일 실측/통행량 기반), 이동시간 계산(구간 상수/교통구역 근사), 배출 시간 모델(논문 기준선/포항 공식 20:00~06:00), 수거장 용량(기본 30kg), 민원 임계 적재율(기본 0.8)은 어떻게 할까요? 정하지 않으면 기본값을 씁니다.",
+      "keys": ["collectionTimeMinutes", "numBuildings", "residentsPerBuilding", "truckType", "truckCount", "routeAvailableCapacityKg", "occupationMix", "days", "seeds", "trafficProfileId", "travelTimeMode", "dischargeTimeMode", "binCapacityKg", "complaintThreshold"],
+      "answer": "비교할 수거 시각: 09시, 12시, 15시 / 건물·세대: 기본값으로 / 차량: 기본값으로 / 적재 몫: 150kg / 직업 구성: 학생 위주로 학생 2 : 주부 1 / 기간·반복: 10일, 5회 / 그 밖: 기본값으로 해줘"
+    }
+  ],
+  "rejections": [
+    "plan_subtasks round 2: trafficProfileId=jangryang-weekday 가 NO_EVIDENCE 로 UNFILLED — '기본값으로' 동의 구절을 evidence 에 넣지 않았기 때문. evidence 에 '기본값으로 해줘' 를 넣어 재계산하자 complete=true"
+  ],
+  "scenarioId": "scn-9b1f7746",
+  "scenarioState": "UNCONFIRMED",
+  "toldUser": "기본값/가정으로 넣은 것(확인 화면에 미승인 기본값 9개로 표시): 차량 LARGE_5TON 1대, 건물 4동 x 25세대, 교통 프로파일 jangryang-weekday(평일 실측), 이동시간 LEGACY_CONSTANT(구간 상수), 배출 시간 PAPER_BASELINE, 수거장 용량 30kg, 민원 임계 0.8. 교통 반영(trafficMode=APPLY)은 '평일 교통량을 반영해서'에서 DERIVED. 직업 구성 [Student, Student, Housewife] 는 occupationMix guardUnverified(근거 구절 검사 미확인)로 표시됨. 확인 화면: http://localhost:8090/confirm.html?id=scn-9b1f7746",
+  "stoppedBecause": "build_scenario 성공(state=UNCONFIRMED, 실행 설정 3벌: 09:00/12:00/15:00). get_scenario_status 로 확인 화면 주소를 얻었고, 승인은 사람만 할 수 있으므로 멈춤",
+  "difficulties": "1) '기본값으로 해줘'로 넘긴 MODEL_DEFAULT 값 중 trafficProfileId 만 조건부 결정이라 evidence(동의 구절)를 요구했는데, 이 규칙이 plan_subtasks 응답 전에는 드러나지 않음(build_scenario 설명에 '조건부 결정에 기본값을 쓸 때 필요'라고만 있음). 2) occupationMix 의 evidence 를 사용자 발화 그대로 넣었는데도 UNVERIFIED/guardUnverified — '학생 2 : 주부 1' 을 [Student,Student,Housewife] 로 옮긴 값과 구절의 대조 기준이 불명확. 3) 교통 프로파일 두 개가 모두 평일이라 '평일 교통량'에서 DERIVED 로 볼지 MODEL_DEFAULT 로 볼지 애매해 MODEL_DEFAULT 로 둠. 4) 응답 텍스트가 이중 JSON 문자열로 감싸져 읽기 번거로움."
+}
