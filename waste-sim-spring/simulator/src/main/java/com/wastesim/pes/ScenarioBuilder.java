@@ -223,6 +223,7 @@ public class ScenarioBuilder {
 
             SimulationConfig cfg = flattener.flatten(runPes);
             cfg.setRegionId(region.path("id").asText());
+            com.wastesim.region.RegionCatalog.applyOverrides(region, cfg);
             cfg.setRegionDataDigest(com.wastesim.region.RegionCatalog.digest(region));
             blocks.addAll(new com.wastesim.region.RegionCatalog().check(cfg));
             runs.add(cfg);

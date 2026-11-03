@@ -67,6 +67,8 @@
                 <configuration>
                     <systemPropertyVariables>
                         <broker.registration.enabled>false</broker.registration.enabled>
+                        <region.resolver.enabled>false</region.resolver.enabled>
+                        <wastesim.region-cache>${project.build.directory}/test-region-cache</wastesim.region-cache>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>

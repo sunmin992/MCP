@@ -212,13 +212,21 @@ public class FindSimulatorsTool implements McpToolProvider {
                         + fit.endpoint() + " 의 시뮬레이터 MCP 도구만 씁니다 — get_templates → "
                         + "plan_subtasks → validate_answers → build_scenario → get_scenario_status → "
                         + "run_scenario_by_token. 사용자가 전혀 다른 시뮬레이션을 새로 요청할 때만 다시 조회합니다.");
-                if (matcher.card(fit.serverId()).orElseThrow().path("capabilities").path("regionPolicy").path("mode")
-                        .asText().equals("ASSUMED_BLOCK_FOR_ANY_LABEL")) {
+                String regionPolicy = matcher.card(fit.serverId()).orElseThrow().path("capabilities").path("regionPolicy")
+                        .path("mode").asText();
+                if (regionPolicy.equals("ASSUMED_BLOCK_FOR_ANY_LABEL")) {
                     root.put("scenarioCreationTool", "create_neighborhood_scenario");
                     root.put("nextStep", root.path("nextStep").asText()
                             + " 지역명으로 기본 가상 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. "
                             + "공통 기본값의 가상 블록임을 알리고 반환된 confirmUrl에서 사용자 확인 후 실행합니다. "
                             + "실제 지역 자료나 동 전체 규모를 재현한다고 설명하지 마십시오.");
+                } else if (regionPolicy.equals("PUBLIC_MAP_BLOCK_FOR_ANY_LABEL")) {
+                    root.put("scenarioCreationTool", "create_neighborhood_scenario");
+                    root.put("nextStep", root.path("nextStep").asText()
+                            + " 지역명으로 실행을 요청했다면 create_neighborhood_scenario에 request·regionName과 selection을 전달하십시오. "
+                            + "시뮬레이터가 공개 지도에서 그 지역의 실제 주거 블록을 찾아 구성하고, 못 찾으면 가상 블록으로 구성합니다. "
+                            + "state=NEEDS_REGION이면 regionCandidates를 사용자에게 보여 주고 고른 regionName으로 다시 호출하십시오. "
+                            + "결과의 scenarioMode·provenance대로 지도 자료·추정값·가정값을 구분해 설명하고, 동 전체나 실측 민원을 재현한다고 말하지 마십시오.");
                 }
                 callLog.info("[4 매칭] {} — MATCH → {} ({}) · 근거 {}",
                         roundLog, fit.serverId(), fit.endpoint(), fit.reasons().size());

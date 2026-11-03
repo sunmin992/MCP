@@ -1,7 +1,7 @@
 {
   "_comment" : "0단계 broker.register_simulator 페이로드. 근거: docs/reports/2026-09-23-장량동-실행가능-기능과-범위.md, docs/superpowers/specs/2026-09-23-지원범위-계약.md. 값은 SimulationConfigValidator와 리소스 파일에서 확인한 것이다.",
   "serverId" : "jangnyang-waste-sim",
-  "name" : "생활폐기물 수거 블록 시뮬레이터 (임의 지역 가상 구성 지원)",
+  "name" : "생활폐기물 수거 블록 시뮬레이터 (임의 지역 공개 지도 블록 구성 지원)",
   "endpoint" : "http://localhost:8090/mcp",
   "domain" : [
     "waste-collection"
@@ -1105,7 +1105,7 @@
       }
     },
     "conditionalOutputs": ["peakFillRatio", "siteCapacityKg", "complaintThresholdRatio", "avgRouteDurationMinutes"],
-    "regionPolicy": {"mode":"ASSUMED_BLOCK_FOR_ANY_LABEL","scope":"block","requiresHumanConfirmation":true,"notMeasuredRegionData":true},
+    "regionPolicy": {"mode":"PUBLIC_MAP_BLOCK_FOR_ANY_LABEL","scope":"block","maxBuildings":26,"dataSource":"OpenStreetMap (Nominatim · Overpass · OSRM)","fallback":"ASSUMED_BLOCK","asksWhenAmbiguous":true,"requiresHumanConfirmation":true,"notMeasuredRegionData":false},
     "regions": [
       "jangnyang",
       "synthetic-block"

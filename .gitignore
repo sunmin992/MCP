@@ -87,3 +87,6 @@ waste-sim-spring/docs/research/s1-ses-extraction/**/__pycache__/
 
 # 브로커가 남기는 시뮬레이터 등록(실행 상태 — 저장소에 넣지 않는다)
 waste-sim-spring/broker/data/
+
+# 공개 지도에서 수집한 지역 묶음 캐시
+waste-sim-spring/**/data/regions/

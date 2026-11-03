@@ -76,13 +76,18 @@ public final class RequirementContract {
                 || !node.get("schemaVersion").asText().matches("1\\.\\d+\\.\\d+")))
             throw new IllegalArgumentException("Unsupported schemaVersion (supported major: 1)");
     }
+    /**
+     * 등록하지 않은 지역명을 받는 방식. 둘 다 구성 전에는 지역 조건을 확정할 수 없어 CONDITIONAL 이다.
+     * PUBLIC_MAP_BLOCK_FOR_ANY_LABEL 은 공개 지도에서 실제 블록을 찾아 보고, 못 찾으면 가상 블록으로 내린다.
+     */
+    public static final Set<String> REGION_POLICIES = Set.of("ASSUMED_BLOCK_FOR_ANY_LABEL", "PUBLIC_MAP_BLOCK_FOR_ANY_LABEL");
     public static void validateCard(JsonNode card) {
         version(card);
         JsonNode caps = card.path("capabilities");
         if (caps.isMissingNode()) return; // unversioned legacy cards may have no structured capabilities
         if (!caps.isObject()) throw new IllegalArgumentException("capabilities must be an object");
         if (caps.has("regions")) strings(caps.get("regions"));
-        if (caps.has("regionPolicy") && !caps.path("regionPolicy").path("mode").asText().equals("ASSUMED_BLOCK_FOR_ANY_LABEL"))
+        if (caps.has("regionPolicy") && !REGION_POLICIES.contains(caps.path("regionPolicy").path("mode").asText()))
             throw new IllegalArgumentException("Unsupported regionPolicy");
         if (caps.has("outputs")) strings(caps.get("outputs"));
         if (caps.has("conditionalOutputs")) strings(caps.get("conditionalOutputs"));
@@ -133,7 +138,7 @@ public final class RequirementContract {
         if (request.has("regionId")) {
             String id = request.get("regionId").asText();
             JsonNode regions = caps.path("regions");
-            boolean assumed = caps.path("regionPolicy").path("mode").asText().equals("ASSUMED_BLOCK_FOR_ANY_LABEL");
+            boolean assumed = REGION_POLICIES.contains(caps.path("regionPolicy").path("mode").asText());
             add(out, "regionId", request.get("regionId"), regions,
                     regions.isArray() && strings(regions).contains(id) ? "SATISFIED" : assumed ? "CONDITIONAL"
                             : regions.isMissingNode() ? "UNKNOWN" : "UNSATISFIED", true);

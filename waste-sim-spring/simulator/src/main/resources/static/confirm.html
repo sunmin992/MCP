@@ -105,7 +105,7 @@ function sweptKeys(runs) {
 }
 
 // 출처를 사람이 읽는 말로 — 영문 표기만 보이면 무엇이 내가 말한 값인지 가를 수 없다.
-const ORIGIN = { UNVERIFIED: '발화 근거 미검증(확인 필요)', USER: '사용자가 말함', MODEL_DEFAULT: '기본값(사용자가 정하지 않음)', DERIVED: '요청에서 도출' };
+const ORIGIN = { UNVERIFIED: '발화 근거 미검증(확인 필요)', USER: '사용자가 말함', MODEL_DEFAULT: '기본값(사용자가 정하지 않음)', DERIVED: '요청에서 도출', REGION_DATA: '지역 자료(위 출처 등급표 참조)' };
 
 async function loadDetail(id) {
   current = id;
@@ -142,6 +142,15 @@ async function loadDetail(id) {
     ${d.validation && d.validation.scenarioMode === 'ASSUMED_BLOCK'
       ? `<div class="warn"><strong>${esc((d.validation.region || {}).label || '가상 동네 블록')}</strong>
          <p>${esc(d.validation.dataNotice)}</p><p>아래 기본값과 지정한 조건을 확인한 뒤 실행을 승인해 주세요.</p></div>` : ''}
+
+    ${d.validation && d.validation.scenarioMode === 'PUBLIC_DATA_BLOCK'
+      ? `<div class="warn"><strong>${esc((d.validation.region || {}).label || '공개 지도 블록')}</strong>
+         <p>${esc(d.validation.dataNotice)}</p>
+         <p style="font-size:13px;color:#666">${esc(((d.validation.region || {}).osm || {}).displayName || '')} · 자료 등급 ${esc((d.validation.region || {}).dataGrade || '')}</p>
+         <table><tr><th>항목</th><th>등급</th><th>근거</th></tr>
+         ${Object.entries((d.validation.region || {}).provenance || {}).map(([k, p]) =>
+           `<tr><td>${esc(k)}</td><td>${esc(p.grade)}</td><td>${esc(p.basis)}</td></tr>`).join('')}
+         </table><p>지도 자료와 추정·가정값을 확인한 뒤 실행을 승인해 주세요.</p></div>` : ''}
 
     ${unapproved.length ? (d.state === 'UNCONFIRMED'
       ? `<div class="warn"><strong>확인이 필요한 기본값·근거 미검증 값 ${unapproved.length}개</strong>

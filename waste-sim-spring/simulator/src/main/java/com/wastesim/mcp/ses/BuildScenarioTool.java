@@ -79,7 +79,7 @@ public class BuildScenarioTool implements McpToolProvider {
             {"type":"object",
              "properties":{
                "regionId":{"type":"string","description":"지역 데이터 ID 또는 사용자 지역명. 미등록 지역은 공통 기본값의 가상 블록으로 구성"},
-               "scenarioMode":{"enum":["ASSUMED_BLOCK"],"description":"가상 블록 구성 시 지정"},
+               "scenarioMode":{"enum":["ASSUMED_BLOCK","PUBLIC_DATA_BLOCK"],"description":"가상 블록 또는 공개 지도 블록 구성 시 지정"},
                "selection":{"type":"object","description":"Forward broker selection unchanged; client assertion, not approval"},
                "requirements":{"type":"object","description":"Original broker requirements, schemaVersion 1.0.0"},
                "matchId":{"type":"string","description":"Broker round.matchId, for trace correlation; not an authenticated selection"},
@@ -232,8 +232,12 @@ public class BuildScenarioTool implements McpToolProvider {
             proof.put("requirementReady", requirementReady);
             proof.set("region", region);
             boolean assumed = region.path("synthetic").asBoolean() || args.path("scenarioMode").asText().equals("ASSUMED_BLOCK");
-            proof.put("scenarioMode", assumed ? "ASSUMED_BLOCK" : "CONFIGURED_MODEL");
-            proof.put("dataNotice", assumed ? "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다." : "제공자 모델과 지정한 입력을 사용합니다.");
+            boolean mapped = !assumed && region.path("basis").asText().equals("PUBLIC_MAP_DATA");
+            proof.put("scenarioMode", assumed ? "ASSUMED_BLOCK" : mapped ? "PUBLIC_DATA_BLOCK" : "CONFIGURED_MODEL");
+            proof.put("dataNotice", assumed ? "요청 지역명의 가상 블록입니다. 공통 기본값과 지정한 입력을 사용하며 실제 지역의 지리·인구·도로·교통을 재현하지 않습니다."
+                    : mapped ? "공개 지도(OpenStreetMap)에서 찾은 실제 주거 블록 " + region.path("defaults").path("numBuildings").asInt()
+                        + "동으로 구성했습니다. 건물 수와 도로 이동은 지도 자료, 세대 수는 건물 면적·층수로 추정, 정차시간과 배출 시간대는 가정값입니다. 동 전체나 실측 민원을 재현하지 않습니다."
+                    : "제공자 모델과 지정한 입력을 사용합니다.");
             var structural = proof.putArray("structureSelection");
             for (Object comparison : frame.values()) {
                 var selectedValues = new LinkedHashMap<String, Object>(values);
