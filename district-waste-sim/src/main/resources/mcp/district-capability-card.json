@@ -129,6 +129,174 @@
   ],
   "schemaVersion": "1.0.0",
   "capabilities": {
+    "terms": {
+      "outputs": {
+        "judgement.leftoverKgPerCollectionDay": [
+          "수거일당 남은 폐기물",
+          "수거일 잔여량",
+          "잔여량",
+          "남은 쓰레기"
+        ],
+        "judgement.stdLeftoverKgPerCollectionDay": [
+          "잔여량 편차"
+        ],
+        "judgement.leftoverZoneDaysPerWeek": [
+          "잔여 구역",
+          "못 치운 구역"
+        ],
+        "judgement.maxWaitDays": [
+          "최대 대기 일수",
+          "최대 대기일",
+          "가장 오래 기다린"
+        ],
+        "explanation.maxZoneBacklogKg": [
+          "구역 최대 적체",
+          "최대 누적량"
+        ],
+        "explanation.preCollectionKgPerCollectionDay": [
+          "수거 전 쌓인 양",
+          "수거 전 적재"
+        ],
+        "explanation.leftoverKgByHousingType": [
+          "주거 유형별 잔여",
+          "주거 유형별"
+        ],
+        "explanation.generatedKgByWeekday": [
+          "요일별 발생량",
+          "요일별 배출"
+        ],
+        "explanation.collectedKgByWeekday": [
+          "요일별 수거량"
+        ],
+        "explanation.collectionDaysRun": [
+          "수거 일수",
+          "수거한 날"
+        ],
+        "explanation.skippedForHoliday": [
+          "공휴일 건너뜀",
+          "휴일 건너뛴"
+        ],
+        "reference.truckUtilization": [
+          "차량 가동률",
+          "가동률"
+        ],
+        "reference.workMinutesPerTruckDay": [
+          "차량 작업 시간",
+          "작업 시간"
+        ],
+        "reference.tripsPerCollectionDay": [
+          "운행 횟수",
+          "왕복 횟수"
+        ]
+      },
+      "constraints": {
+        "zoneCount": {
+          "terms": [
+            "구역 수",
+            "구역"
+          ],
+          "unitWords": [
+            "개"
+          ]
+        },
+        "householdsPerZone": {
+          "terms": [
+            "구역당 세대",
+            "세대 수",
+            "세대"
+          ],
+          "unitWords": [
+            "세대",
+            "가구"
+          ]
+        },
+        "truckCount": {
+          "terms": [
+            "차량 수",
+            "수거차",
+            "차량",
+            "트럭"
+          ],
+          "unitWords": [
+            "대"
+          ]
+        },
+        "transferRoundTripMinutes": {
+          "terms": [
+            "적환장 왕복",
+            "환적 왕복"
+          ],
+          "unit": "minute"
+        },
+        "collectionStartMinutes": {
+          "terms": [
+            "수거 시작 시각",
+            "수거 시작"
+          ],
+          "unit": "minute"
+        },
+        "shiftMinutes": {
+          "terms": [
+            "근무 시간",
+            "교대 시간"
+          ],
+          "unit": "minute"
+        },
+        "days": {
+          "terms": [
+            "기간",
+            "일수",
+            "실행 기간"
+          ],
+          "unit": "day"
+        },
+        "seeds": {
+          "terms": [
+            "반복",
+            "반복 횟수",
+            "시드"
+          ],
+          "unitWords": [
+            "회",
+            "번"
+          ]
+        }
+      },
+      "examples": [
+        {
+          "output": "잔여량",
+          "expect": "judgement.leftoverKgPerCollectionDay"
+        },
+        {
+          "output": "차량 가동률",
+          "expect": "reference.truckUtilization"
+        },
+        {
+          "output": "평균 민원 수",
+          "expect": null
+        },
+        {
+          "constraint": {
+            "name": "차량",
+            "value": 3,
+            "unit": "대"
+          },
+          "expect": {
+            "truckCount": 3
+          }
+        },
+        {
+          "constraint": {
+            "name": "수거 시작",
+            "value": 6,
+            "unit": "시"
+          },
+          "expect": {
+            "collectionStartMinutes": 360
+          }
+        }
+      ]
+    },
     "simulationDuration": {
       "min": {
         "value": 7.0,

@@ -958,6 +958,180 @@
   ],
   "schemaVersion": "1.0.0",
   "capabilities": {
+    "terms": {
+      "outputs": {
+        "meanComplaints": [
+          "평균 민원 수",
+          "평균 민원",
+          "민원 수",
+          "민원 건수",
+          "민원"
+        ],
+        "stdComplaints": [
+          "민원 표준편차",
+          "민원 편차",
+          "민원 변동"
+        ],
+        "complaintsByOccupation": [
+          "직업별 민원",
+          "직업별"
+        ],
+        "truckUtilizationPercent": [
+          "차량 가동률",
+          "가동률",
+          "차량 이용률"
+        ],
+        "uncollectedDemandKg": [
+          "미수거량",
+          "미수거",
+          "수거 못 한 양",
+          "못 거둔 양"
+        ],
+        "peakFillKg": [
+          "최대 적재량",
+          "최대 적재"
+        ],
+        "peakFillRatio": [
+          "최대 적재율",
+          "적재율"
+        ],
+        "siteCapacityKg": [
+          "수거장 용량"
+        ],
+        "complaintThresholdRatio": [
+          "민원 기준",
+          "민원 임계"
+        ],
+        "residualWasteKg": [
+          "잔여 폐기물",
+          "남은 쓰레기",
+          "잔여량"
+        ],
+        "avgRouteDurationMinutes": [
+          "평균 운행 시간",
+          "운행 소요 시간",
+          "운행 시간",
+          "수거 소요 시간"
+        ]
+      },
+      "constraints": {
+        "dispatchIntervalMinutes": {
+          "terms": [
+            "배차 간격",
+            "출발 간격",
+            "배차"
+          ],
+          "unit": "minute"
+        },
+        "collectionTimeMinutes": {
+          "terms": [
+            "수거 시각",
+            "수거 시점"
+          ],
+          "unit": "minute"
+        },
+        "numBuildings": {
+          "terms": [
+            "건물 수",
+            "건물",
+            "동 수"
+          ],
+          "unitWords": [
+            "동",
+            "채",
+            "개"
+          ]
+        },
+        "days": {
+          "terms": [
+            "기간",
+            "일수",
+            "실행 기간"
+          ],
+          "unit": "day"
+        },
+        "seeds": {
+          "terms": [
+            "반복",
+            "반복 횟수",
+            "시드"
+          ],
+          "unitWords": [
+            "회",
+            "번"
+          ]
+        },
+        "threshold": {
+          "terms": [
+            "민원 기준",
+            "민원 임계",
+            "적재율 기준",
+            "임계"
+          ],
+          "unit": "ratio"
+        }
+      },
+      "examples": [
+        {
+          "output": "평균 민원 수",
+          "expect": "meanComplaints"
+        },
+        {
+          "output": "민원 표준편차",
+          "expect": "stdComplaints"
+        },
+        {
+          "output": "최대 적재율",
+          "expect": "peakFillRatio"
+        },
+        {
+          "output": "차량 가동률",
+          "expect": "truckUtilizationPercent"
+        },
+        {
+          "output": "예산",
+          "expect": null
+        },
+        {
+          "constraint": {
+            "name": "배차 간격",
+            "value": 1,
+            "unit": "시간"
+          },
+          "expect": {
+            "dispatchIntervalMinutes": 60
+          }
+        },
+        {
+          "constraint": {
+            "name": "건물",
+            "value": 8,
+            "unit": "동"
+          },
+          "expect": {
+            "numBuildings": 8
+          }
+        },
+        {
+          "constraint": {
+            "name": "민원 기준",
+            "value": 70,
+            "unit": "%"
+          },
+          "expect": {
+            "threshold": 0.7
+          }
+        },
+        {
+          "constraint": {
+            "name": "건물",
+            "value": 3,
+            "unit": "대"
+          },
+          "expect": null
+        }
+      ]
+    },
     "simulationDuration": {
       "min": {
         "value": 1,

@@ -59,6 +59,8 @@ public class CreateNeighborhoodScenarioTool implements McpToolProvider {
             if (args.path("request").asText().isBlank()) throw new IllegalArgumentException("사용자 요청 원문이 필요합니다");
             var card = new com.wastesim.capability.CapabilityCardLoader().rawJson();
             var requirements = SelectionContract.requirements(args, card);
+            // 사용자 표현(결과 · 수치 조건)을 이 시뮬레이터의 이름으로 대응시킨다. 원래 요구는 build_scenario 에 그대로 넘긴다.
+            var spoken = RequirementTerms.resolve(requirements, card).requirements();
             String regionName = args.path("regionName").asText(requirements.path("regionId").asText("가상 동네"));
             var catalogRegions = new com.wastesim.region.RegionCatalog();
             String fallbackReason = null;
@@ -88,7 +90,7 @@ public class CreateNeighborhoodScenarioTool implements McpToolProvider {
                 values.put(e.getKey(), JsonValues.plain(e.getValue()));
                 origins.put(e.getKey(), args.path("origins").path(e.getKey()).asText("USER"));
             });
-            requirements.path("constraints").fields().forEachRemaining(e -> {
+            spoken.path("constraints").fields().forEachRemaining(e -> {
                 var template = catalog.all().stream().filter(t -> t.configField().equals(e.getKey())).findFirst()
                         .orElseThrow(() -> new IllegalArgumentException("모델이 지원하지 않는 필수 조건: " + e.getKey()));
                 putRequirement(values, origins, template.answerKey(), JsonValues.plain(e.getValue()));
@@ -139,7 +141,7 @@ public class CreateNeighborhoodScenarioTool implements McpToolProvider {
             input.set("values", json.valueToTree(values)); input.set("origins", json.valueToTree(origins));
             var observations = new LinkedHashSet<String>();
             args.path("observations").forEach(m -> observations.add(m.asText()));
-            requirements.path("requiredOutputs").forEach(m -> observations.add(m.asText()));
+            spoken.path("requiredOutputs").forEach(m -> observations.add(m.asText()));
             if (observations.isEmpty()) observations.add("meanComplaints");
             input.set("observations", json.valueToTree(observations));
             var purpose = input.putObject("purpose").put("mode", "RUN");

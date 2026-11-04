@@ -126,4 +126,33 @@ class BrokerToolsTest {
         JsonNode unchecked = call(find, mapper.readTree("{\"domain\":\"쓰레기수거\"}"));
         assertEquals("NOT_CHECKED", unchecked.path("requirementEvidence").path("status").asText());
     }
+
+    @Test
+    void 결과와_조건을_사용자_말로_받아_카드의_이름으로_대응시킨다() throws Exception {
+        JsonNode r = call(find, mapper.readTree("""
+            {"domain":"쓰레기수거","requirements":{"requiredOutputs":["평균 민원 수","차량 가동률"],
+              "constraints":[{"name":"배차 간격","value":1,"unit":"시간"}]}}
+            """));
+        assertEquals("MATCH", r.path("verdict").asText(), r.toPrettyString());
+        var fields = new java.util.ArrayList<String>();
+        r.path("recommended").path("conditionChecks").forEach(c -> fields.add(c.path("field").asText() + "=" + c.path("status").asText()));
+        assertTrue(fields.contains("requiredOutputs.meanComplaints=SATISFIED"), fields.toString());
+        assertTrue(fields.contains("requiredOutputs.truckUtilizationPercent=SATISFIED"), fields.toString());
+        assertTrue(fields.contains("constraints.dispatchIntervalMinutes=SATISFIED"), fields.toString());
+
+        JsonNode unknown = call(find, mapper.readTree("""
+            {"domain":"쓰레기수거","requirements":{"requiredOutputs":["탄소 배출량"]}}
+            """));
+        assertNotEquals("MATCH", unknown.path("verdict").asText(), "대응되지 않는 표현을 버리고 MATCH 하면 안 된다");
+    }
+
+    @Test
+    void 예문이_어긋난_카드는_등록되지_않는다() throws Exception {
+        var card = (com.fasterxml.jackson.databind.node.ObjectNode) TestCards.jangnyang().deepCopy();
+        var examples = (com.fasterxml.jackson.databind.node.ArrayNode) card.path("capabilities").path("terms").path("examples");
+        examples.addObject().put("output", "평균 민원 수").put("expect", "stdComplaints");
+        card.put("serverId", "broken-terms-sim");
+        var e = assertThrows(IllegalArgumentException.class, () -> registry.register(card));
+        assertTrue(e.getMessage().contains("예문"), e.getMessage());
+    }
 }

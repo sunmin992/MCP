@@ -11,8 +11,9 @@ import urllib.request
 import urllib.error
 
 ROOT = Path(__file__).resolve().parents[1]
-SYSTEM = """시뮬레이션 사용자 발화를 브로커 요청으로 구조화하라. JSON만 반환한다.
-발화에 없는 지역, 기간, 시간 해상도, 규모, 수치, 지표를 추정하지 말고 null로 둔다.
+SYSTEM = """시뮬레이션 사용자 발화를 브로커 공통 요구로 구조화하라. JSON만 반환한다.
+시뮬레이터의 지표 이름이나 설정 필드 이름을 짐작하지 않는다. 사용자가 쓴 말을 그대로 옮긴다.
+발화에 없는 지역, 기간, 시간 해상도, 규모, 수치, 결과를 추정하지 말고 null로 둔다.
 도메인: 쓰레기/폐기물 수거=waste-collection, 공영주차=public-parking,
 민원 창구=civil-service-counter, 시내버스=public-bus.
 지역명은 발화 그대로 보존한다. '아무 동네'는 지역 미지정이므로 null이다.
@@ -21,11 +22,11 @@ SYSTEM = """시뮬레이션 사용자 발화를 브로커 요청으로 구조화
 지역 이름이나 도메인 이름만으로 규모를 추정하지 않는다.
 simulationDuration은 전체 실행 기간, timeResolution은 결과 시간 간격이다. 서로 바꾸지 마라.
 시간 단위는 second/minute/hour/day/week이고 원문 단위를 보존한다. 0일 같은 부적절한 요청도 임의 수정하지 않는다.
-가능하면/좋겠어는 preferences, 그 밖의 지정 수치는 constraints로 넣는다.
-반복 횟수=seeds, 블록 건물 수=numBuildings, 주차장 수=lotCount, 창구 수=counterCount.
-명시한 결과 지표만 넣는다: 평균 폐기물 민원 수=meanComplaints, 평균 수거 운행 소요 시간=avgRouteDurationMinutes,
-수거일당 잔여 폐기물량=judgement.leftoverKgPerCollectionDay,
-평균 주차 탐색 시간=judgement.meanSearchMinutesAll, 민원 창구 평균 대기 시간=judgement.meanWaitMinutesAll.
+requiredOutputs는 사용자가 보고 싶다고 말한 결과 구절을 발화 그대로 넣는다. 예: "평균 민원 수".
+수치 조건은 name(항목을 가리키는 사용자 말, 숫자와 단위 제외), value(수), unit(사용자가 숫자 뒤에 쓴 단위말, 없으면 null)로 넣는다.
+예: "배차 간격은 1시간" → {"name":"배차 간격","value":1,"unit":"시간"}. 가능하면/좋겠어는 preferences, 그 밖은 constraints.
+evidence에는 넣은 항목마다 근거가 된 발화 구절을 그대로 적는다. field는 regionId, simulationDuration, timeResolution,
+requiredOutputs, 또는 constraints.이름 / preferences.이름 이다.
 조건이 없는 필드는 null로 반환하고 임의 기본값을 추가하지 않는다.
 """
 
@@ -35,15 +36,19 @@ def schema():
                   'properties': {'value': {'type': 'number'}, 'unit': {'type': 'string', 'enum': ['second','minute','hour','day','week']}},
                   'required': ['value','unit']}
     entries = {'type': ['array','null'], 'items': {'type': 'object', 'additionalProperties': False,
-               'properties': {'field': {'type': 'string'}, 'value': {'type': 'number'}}, 'required': ['field','value']}}
+               'properties': {'name': {'type': 'string'}, 'value': {'type': 'number'}, 'unit': {'type': ['string','null']}},
+               'required': ['name','value','unit']}}
+    quotes = {'type': ['array','null'], 'items': {'type': 'object', 'additionalProperties': False,
+              'properties': {'field': {'type': 'string'}, 'quote': {'type': 'string'}}, 'required': ['field','quote']}}
     props = {'domain': {'type': 'string'}, 'spatialScale': {'type': ['string','null']},
              'regionId': {'type': ['string','null']}, 'simulationDuration': time_value, 'timeResolution': time_value,
              'requiredOutputs': {'type': ['array','null'], 'items': {'type': 'string'}},
-             'constraints': entries, 'preferences': entries}
+             'constraints': entries, 'preferences': entries, 'evidence': quotes}
     return {'type': 'object', 'additionalProperties': False, 'properties': props, 'required': list(props)}
 
 
 def profile(raw):
+    """모델 출력 → 브로커 공통 요구. 근거 구절은 requirements.evidence 로 옮긴다(채점에서는 빼고 본다)."""
     out = {'domain': raw['domain'], 'requirements': {}}
     if raw['spatialScale'] is not None:
         out['spatialScale'] = raw['spatialScale']
@@ -52,10 +57,9 @@ def profile(raw):
             out['requirements'][k] = raw[k]
     for k in ['constraints','preferences']:
         if raw[k]:
-            pairs = raw[k]
-            if len({p['field'] for p in pairs}) != len(pairs):
-                raise ValueError('duplicate_constraint')
-            out['requirements'][k] = {p['field']: p['value'] for p in pairs}
+            out['requirements'][k] = [{key: v for key, v in c.items() if not (key == 'unit' and v is None)} for c in raw[k]]
+    if raw.get('evidence'):
+        out['requirements']['evidence'] = {e['field']: e['quote'] for e in raw['evidence']}
     return out
 
 
@@ -66,7 +70,7 @@ def infer(case, repeat, model, output):
     # Only utterance and the frozen public extraction specification reach the model. Gold labels never do.
     started = time.monotonic()
     row = {'id':case['id'], 'run':repeat, 'requestedModel':model,
-           'promptVersion':'requirements-v1', 'promptSha256':hashlib.sha256(SYSTEM.encode()).hexdigest(),
+           'promptVersion':'requirements-v2-common', 'promptSha256':hashlib.sha256(SYSTEM.encode()).hexdigest(),
            'startedAt':datetime.now(timezone.utc).isoformat()}
     try:
         request = urllib.request.Request('https://api.openai.com/v1/responses', data=json.dumps(prompt).encode(),
@@ -104,10 +108,10 @@ def main():
     parser.add_argument('--output',type=Path,default=ROOT/'docs/reports/model-evaluation-2026-11-03')
     parser.add_argument('--model',default='gpt-4.1-mini')
     parser.add_argument('--repeats',type=int,default=3)
-    parser.add_argument('--limit',type=int,default=24)
+    parser.add_argument('--limit',type=int,default=28)
     args=parser.parse_args()
-    if not 1 <= args.repeats <= 3 or not 1 <= args.limit <= 24:
-        raise ValueError('Bounded evaluation: at most 24 cases x 3 repeats')
+    if not 1 <= args.repeats <= 3 or not 1 <= args.limit <= 28:
+        raise ValueError('Bounded evaluation: at most 28 cases x 3 repeats')
     cases=[json.loads(line) for line in args.gold.read_text(encoding='utf-8').splitlines() if line.strip()][:args.limit]
     (args.output/'runs').mkdir(parents=True,exist_ok=True)
     (args.output/'extraction-system-prompt.txt').write_text(SYSTEM,encoding='utf-8')

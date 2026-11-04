@@ -46,6 +46,8 @@ public final class SelectionContract {
                         "CONFIGURATION_VERIFIED", "NONE", c.required());
             return c;
         }).toList();
+        // 실행 설정과 대조할 때는 이 카드의 이름으로 대응시킨 요구를 쓴다.
+        requirements = RequirementTerms.resolve(requirements, card).requirements();
         List<String> errors = new ArrayList<>();
         for (var check : checks) if (check.required() && !check.status().equals("SATISFIED"))
             errors.add(check.field() + ": " + check.code());

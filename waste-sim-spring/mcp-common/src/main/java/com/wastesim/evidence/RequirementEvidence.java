@@ -1,6 +1,7 @@
 package com.wastesim.evidence;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
 import java.util.*;
 
 /**
@@ -51,6 +52,20 @@ public final class RequirementEvidence {
             });
         }
         for (String group : List.of("constraints", "preferences")) {
+            // 사용자 표현 형식 [{name, value, unit}] — 근거 키는 "constraints.이름" 또는 "이름"
+            for (JsonNode c : requirements.path(group).isArray() ? requirements.get(group) : JsonNodeFactory.instance.arrayNode()) {
+                String name = c.path("name").asText(), key = group + "." + name;
+                Optional<String> q = evidence.has(key) ? quote(evidence, key, utterances, blocks)
+                        : quote(evidence, name, utterances, blocks, key);
+                q.ifPresent(text -> {
+                    if (EvidenceGuard.numbers(text).isEmpty()) { unverified.add(key); return; }
+                    double value = c.path("value").asDouble();
+                    if (EvidenceGuard.numbers(text).stream().noneMatch(n -> n == value))
+                        blocks.add(key + ": 사용자 발화 '" + text + "' 와 값 " + c.path("value").asText() + " 이(가) 다릅니다 — 사용자가 말한 수 그대로 넣으십시오");
+                    else if (c.hasNonNull("unit") && !text.contains(c.get("unit").asText()))
+                        blocks.add(key + ": 사용자 발화 '" + text + "' 에 단위 '" + c.get("unit").asText() + "' 이(가) 없습니다 — 사용자가 말한 단위 그대로 넣으십시오");
+                });
+            }
             requirements.path(group).fields().forEachRemaining(e -> {
                 String key = group + "." + e.getKey();
                 Optional<String> q = evidence.has(key) ? quote(evidence, key, utterances, blocks)

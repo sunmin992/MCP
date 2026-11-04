@@ -134,6 +134,216 @@
   ],
   "schemaVersion": "1.0.0",
   "capabilities": {
+    "terms": {
+      "outputs": {
+        "judgement.meanSearchMinutesAll": [
+          "평균 탐색 시간",
+          "주차 탐색 시간",
+          "탐색 시간",
+          "주차 찾는 시간"
+        ],
+        "judgement.stdSearchMinutesAll": [
+          "탐색 시간 표준편차",
+          "탐색 시간 편차"
+        ],
+        "judgement.meanSearchMinutesParked": [
+          "주차 성공 탐색 시간",
+          "주차한 차량의 탐색 시간"
+        ],
+        "judgement.stdSearchMinutesParked": [
+          "주차 성공 탐색 시간 편차"
+        ],
+        "judgement.giveUpsPerDay": [
+          "포기 대수",
+          "주차 포기",
+          "하루 포기"
+        ],
+        "judgement.stdGiveUpsPerDay": [
+          "포기 대수 편차"
+        ],
+        "judgement.giveUpRate": [
+          "주차 포기율",
+          "포기율",
+          "포기 비율"
+        ],
+        "judgement.byUserType": [
+          "이용자 유형별",
+          "유형별"
+        ],
+        "explanation.peakOccupancyRatio": [
+          "최대 점유율",
+          "점유율"
+        ],
+        "explanation.lotPeakOccupancy": [
+          "주차장별 최대 점유",
+          "주차장별 점유"
+        ],
+        "explanation.hourlyOccupancy": [
+          "시간대별 점유",
+          "시간별 점유"
+        ],
+        "explanation.fullMinutesPerLotPerDay": [
+          "만차 시간",
+          "만차"
+        ],
+        "explanation.priceAvoidedPerDay": [
+          "요금 회피",
+          "요금 때문에 포기"
+        ],
+        "reference.revenuePerDay": [
+          "요금 수입",
+          "수입",
+          "매출"
+        ],
+        "reference.interLotMovesPerDay": [
+          "주차장 간 이동",
+          "다른 주차장으로 이동"
+        ]
+      },
+      "constraints": {
+        "lotCount": {
+          "terms": [
+            "주차장 수",
+            "주차장"
+          ],
+          "unitWords": [
+            "곳",
+            "개"
+          ]
+        },
+        "spacesPerLot": {
+          "terms": [
+            "주차면 수",
+            "주차면",
+            "면수"
+          ],
+          "unitWords": [
+            "면",
+            "칸",
+            "대"
+          ]
+        },
+        "baseFeePer30Min": {
+          "terms": [
+            "기본 요금",
+            "30분 요금",
+            "요금"
+          ],
+          "unit": "won"
+        },
+        "peakSurchargeRate": {
+          "terms": [
+            "피크 할증",
+            "할증률",
+            "할증"
+          ],
+          "unit": "ratio"
+        },
+        "residentPriorityShare": {
+          "terms": [
+            "거주자 우선",
+            "거주자 비율"
+          ],
+          "unit": "ratio"
+        },
+        "dailyArrivals": {
+          "terms": [
+            "하루 도착",
+            "도착 차량",
+            "하루 방문 차량"
+          ],
+          "unitWords": [
+            "대",
+            "명"
+          ]
+        },
+        "guidanceRefreshMinutes": {
+          "terms": [
+            "안내 갱신",
+            "갱신 주기"
+          ],
+          "unit": "minute"
+        },
+        "maxSearchMinutes": {
+          "terms": [
+            "최대 탐색",
+            "탐색 한도",
+            "포기 시간"
+          ],
+          "unit": "minute"
+        },
+        "lotSpacingMinutes": {
+          "terms": [
+            "주차장 간격",
+            "주차장 사이"
+          ],
+          "unit": "minute"
+        },
+        "days": {
+          "terms": [
+            "기간",
+            "일수",
+            "실행 기간"
+          ],
+          "unit": "day"
+        },
+        "seeds": {
+          "terms": [
+            "반복",
+            "반복 횟수",
+            "시드"
+          ],
+          "unitWords": [
+            "회",
+            "번"
+          ]
+        }
+      },
+      "examples": [
+        {
+          "output": "주차 포기율",
+          "expect": "judgement.giveUpRate"
+        },
+        {
+          "output": "평균 탐색 시간",
+          "expect": "judgement.meanSearchMinutesAll"
+        },
+        {
+          "output": "전기차 충전",
+          "expect": null
+        },
+        {
+          "constraint": {
+            "name": "요금",
+            "value": 1,
+            "unit": "천원"
+          },
+          "expect": {
+            "baseFeePer30Min": 1000
+          }
+        },
+        {
+          "constraint": {
+            "name": "주차장",
+            "value": 4,
+            "unit": "곳"
+          },
+          "expect": {
+            "lotCount": 4
+          }
+        },
+        {
+          "constraint": {
+            "name": "주차장 간격",
+            "value": 5,
+            "unit": "분"
+          },
+          "expect": {
+            "lotSpacingMinutes": 5
+          }
+        }
+      ]
+    },
     "simulationDuration": {
       "min": {
         "value": 1.0,

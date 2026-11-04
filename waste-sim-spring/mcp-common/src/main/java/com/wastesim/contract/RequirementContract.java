@@ -22,9 +22,15 @@ public final class RequirementContract {
                   "timeResolution":{"type":"object","required":["value","unit"],"properties":{
                     "value":{"type":"number","exclusiveMinimum":0},
                     "unit":{"enum":["second","minute","hour","day","week"]}}},
-                  "requiredOutputs":{"type":"array","items":{"type":"string","minLength":1}},
-                  "constraints":{"type":"object","additionalProperties":{"type":"number"},"description":"Required exact values in native config units"},
-                  "preferences":{"type":"object","additionalProperties":{"type":"number"},"description":"Nonblocking preferred values in native config units"},
+                  "requiredOutputs":{"type":"array","items":{"type":"string","minLength":1},"description":"사용자가 보고 싶다고 말한 결과를 사용자 말 그대로. 예: [\\"평균 민원 수\\"]. 시뮬레이터의 지표 이름을 짐작해 바꾸지 않는다"},
+                  "constraints":{"description":"사용자가 반드시 지키라고 말한 수치 조건. 항목 이름과 단위는 사용자 말 그대로. 예: [{\\"name\\":\\"배차 간격\\",\\"value\\":1,\\"unit\\":\\"시간\\"}]","oneOf":[
+                    {"type":"array","items":{"type":"object","required":["name","value"],"additionalProperties":false,"properties":{
+                      "name":{"type":"string","minLength":1},"value":{"type":"number"},"unit":{"type":"string"}}}},
+                    {"type":"object","additionalProperties":{"type":"number"}}]},
+                  "preferences":{"description":"가능하면 지키면 좋은 수치 조건. constraints 와 같은 형식","oneOf":[
+                    {"type":"array","items":{"type":"object","required":["name","value"],"additionalProperties":false,"properties":{
+                      "name":{"type":"string","minLength":1},"value":{"type":"number"},"unit":{"type":"string"}}}},
+                    {"type":"object","additionalProperties":{"type":"number"}}]},
                   "evidence":{"type":"object","additionalProperties":{"type":"string"},"description":"Original utterances indexed by requirement field"}
                 }}
                 """);
@@ -57,7 +63,19 @@ public final class RequirementContract {
         for (String k : List.of("simulationDuration", "timeResolution")) if (request.has(k)) seconds(request.get(k));
         if (request.has("requiredOutputs")) strings(request.get("requiredOutputs"));
         for (String k : List.of("constraints", "preferences")) if (request.has(k)) {
-            if (!request.get(k).isObject()) throw new IllegalArgumentException(k + " must be an object");
+            // 사용자 표현 [{name, value, unit}] 이 기본이고, 제공자 이름 {필드: 값} 은 옛 형식으로 받는다.
+            if (request.get(k).isArray()) {
+                for (JsonNode c : request.get(k)) {
+                    if (!c.isObject() || !c.path("name").isTextual() || c.path("name").asText().isBlank()
+                            || !c.path("value").isNumber() || !Double.isFinite(c.path("value").asDouble())
+                            || c.has("unit") && !c.get("unit").isTextual())
+                        throw new IllegalArgumentException(k + " entries need name (text), value (finite number), optional unit (text)");
+                    c.fieldNames().forEachRemaining(f -> { if (!Set.of("name", "value", "unit").contains(f))
+                        throw new IllegalArgumentException("Unknown " + k + " entry field: " + f); });
+                }
+                continue;
+            }
+            if (!request.get(k).isObject()) throw new IllegalArgumentException(k + " must be a list of {name, value, unit} or an object");
             request.get(k).fields().forEachRemaining(e -> {
                 if (e.getKey().isBlank() || !e.getValue().isNumber() || !Double.isFinite(e.getValue().asDouble()))
                     throw new IllegalArgumentException(k + " values must be finite numbers");
@@ -109,6 +127,7 @@ public final class RequirementContract {
                     throw new IllegalArgumentException("Invalid constraint range: " + e.getKey());
             });
         }
+        RequirementTerms.validate(caps);
     }
     public static double seconds(JsonNode q) {
         if (!q.isObject() || !q.path("value").isNumber()) throw new IllegalArgumentException("Time requires value and unit");
@@ -131,9 +150,11 @@ public final class RequirementContract {
         return out;
     }
     public static List<Check> evaluate(JsonNode request, JsonNode card) {
-        request = validate(request);
         validateCard(card);
-        List<Check> out = new ArrayList<>();
+        // 사용자 표현을 이 카드의 이름으로 대응시킨다. 대응되지 않은 표현은 판정 결과로 남는다.
+        var resolution = RequirementTerms.resolve(request, card);
+        request = resolution.requirements();
+        List<Check> out = new ArrayList<>(resolution.issues());
         JsonNode caps = card.path("capabilities");
         if (request.has("regionId")) {
             String id = request.get("regionId").asText();

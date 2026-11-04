@@ -112,6 +112,159 @@
   ],
   "schemaVersion": "1.0.0",
   "capabilities": {
+    "terms": {
+      "outputs": {
+        "judgement.meanWaitMinutesAll": [
+          "평균 대기 시간",
+          "대기 시간",
+          "기다리는 시간"
+        ],
+        "judgement.stdWaitMinutesAll": [
+          "대기 시간 표준편차",
+          "대기 시간 편차"
+        ],
+        "judgement.meanWaitMinutesServed": [
+          "업무 본 사람의 대기 시간",
+          "처리된 사람 대기 시간"
+        ],
+        "judgement.renegesPerDay": [
+          "이탈 인원",
+          "포기 인원",
+          "돌아간 사람"
+        ],
+        "judgement.stdRenegesPerDay": [
+          "이탈 인원 편차"
+        ],
+        "judgement.renegeRate": [
+          "이탈률",
+          "포기율"
+        ],
+        "judgement.byVisitorType": [
+          "방문자 유형별",
+          "유형별"
+        ],
+        "explanation.utilization": [
+          "창구 가동률",
+          "가동률",
+          "창구 이용률"
+        ],
+        "explanation.hourlyMeanWait": [
+          "시간대별 대기",
+          "시간별 대기"
+        ],
+        "explanation.peakQueueLength": [
+          "최대 대기열",
+          "최대 줄 길이",
+          "대기열 길이"
+        ],
+        "explanation.overtimeMinutesPerDay": [
+          "초과 근무",
+          "연장 근무"
+        ],
+        "reference.servedPerCounterPerDay": [
+          "창구당 처리",
+          "처리 건수"
+        ]
+      },
+      "constraints": {
+        "counterCount": {
+          "terms": [
+            "창구 수",
+            "창구"
+          ],
+          "unitWords": [
+            "개",
+            "곳"
+          ]
+        },
+        "dailyVisitors": {
+          "terms": [
+            "하루 방문자",
+            "방문자",
+            "방문 인원"
+          ],
+          "unitWords": [
+            "명"
+          ]
+        },
+        "serviceMinutes": {
+          "terms": [
+            "1인 처리 시간",
+            "처리 시간",
+            "업무 시간"
+          ],
+          "unit": "minute"
+        },
+        "reservationShare": {
+          "terms": [
+            "예약 비율",
+            "예약자 비율",
+            "예약"
+          ],
+          "unit": "ratio"
+        },
+        "maxWaitMinutes": {
+          "terms": [
+            "최대 대기",
+            "대기 한도"
+          ],
+          "unit": "minute"
+        },
+        "days": {
+          "terms": [
+            "기간",
+            "일수",
+            "실행 기간"
+          ],
+          "unit": "day"
+        },
+        "seeds": {
+          "terms": [
+            "반복",
+            "반복 횟수",
+            "시드"
+          ],
+          "unitWords": [
+            "회",
+            "번"
+          ]
+        }
+      },
+      "examples": [
+        {
+          "output": "평균 대기 시간",
+          "expect": "judgement.meanWaitMinutesAll"
+        },
+        {
+          "output": "이탈률",
+          "expect": "judgement.renegeRate"
+        },
+        {
+          "output": "인건비",
+          "expect": null
+        },
+        {
+          "constraint": {
+            "name": "창구",
+            "value": 3,
+            "unit": "개"
+          },
+          "expect": {
+            "counterCount": 3
+          }
+        },
+        {
+          "constraint": {
+            "name": "예약 비율",
+            "value": 30,
+            "unit": "%"
+          },
+          "expect": {
+            "reservationShare": 0.3
+          }
+        }
+      ]
+    },
     "simulationDuration": {
       "min": {
         "value": 1.0,
