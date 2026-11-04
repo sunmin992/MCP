@@ -127,7 +127,16 @@ public class ScenarioConfirmController {
 
     /** 사용자가 "이 설정으로 돌린다" 를 누른 자리. */
     @PostMapping(value = "/{scenarioId}/confirm", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> confirm(@PathVariable String scenarioId) throws Exception {
+    public ResponseEntity<String> confirm(@PathVariable String scenarioId,
+            @org.springframework.web.bind.annotation.RequestParam(name = "spokenAcknowledged", defaultValue = "false")
+            boolean spokenAcknowledged) throws Exception {
+        // 사용자가 했다는 말과 그 해석은 LLM 이 넘긴 것이다. 사람이 "내가 한 말이고 해석이 맞다"를 확인해야 승인한다.
+        boolean needsAck = store.validation(scenarioId).path("spoken").path("requiresAcknowledgement").asBoolean(false);
+        if (needsAck && !spokenAcknowledged) {
+            callLog.info("[12 확인] {} → 거절: 발화·해석 확인 없음", scenarioId);
+            return ResponseEntity.badRequest().body(mapper.writeValueAsString(Map.of("errors",
+                    List.of("확인 화면의 '내가 한 말이고 해석이 맞다'를 먼저 확인하십시오. 다르면 승인하지 말고 다시 요청하십시오."))));
+        }
         ToolResult result = confirmTool.call(
                 mapper.createObjectNode().put("scenarioId", scenarioId));
         rounds.attachOrWrite(store.planId(scenarioId).orElse(null), mapper.createObjectNode()
@@ -138,7 +147,7 @@ public class ScenarioConfirmController {
                     .body(mapper.writeValueAsString(Map.of("errors", result.errors())));
         }
         // 확인은 MCP 를 거치지 않는다 — 사람이 화면에서 누른 자리다. 로그에서도 그것이 보여야 한다.
-        callLog.info("[12 확인] {} → 사람이 확인 화면에서 승인 · 토큰 발급", scenarioId);
+        callLog.info("[12 확인] {} → 사람이 확인 화면에서 승인 · 토큰 발급 · 발화 확인 {}", scenarioId, needsAck);
         return ResponseEntity.ok(String.valueOf(result.result()));
     }
 }

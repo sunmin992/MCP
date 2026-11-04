@@ -233,7 +233,7 @@ class PlanHistoryFlowTest {
 
         var controller = new ScenarioConfirmController(store, new ConfirmScenarioTool(builder, store, m), m,
                 "127.0.0.1", catalog, rounds());
-        assertEquals(200, controller.confirm(scenarioId).getStatusCode().value());
+        assertEquals(200, controller.confirm(scenarioId, true).getStatusCode().value());
 
         ObjectNode run = m.createObjectNode().put("scenarioId", scenarioId)
                 .put("confirmToken", store.entry(scenarioId).orElseThrow().scenario().confirmToken());
@@ -298,7 +298,7 @@ class PlanHistoryFlowTest {
     void 모르는_시나리오의_확인은_planId_null_로_파일에만_남는다() throws Exception {
         var controller = new ScenarioConfirmController(store, new ConfirmScenarioTool(builder, store, m), m,
                 "127.0.0.1", catalog, rounds());
-        assertEquals(400, controller.confirm("sc-없음").getStatusCode().value());
+        assertEquals(400, controller.confirm("sc-없음", true).getStatusCode().value());
         JsonNode l = lines().get(0);
         assertEquals("confirm", l.get("event").asText());
         assertTrue(l.get("planId").isNull());

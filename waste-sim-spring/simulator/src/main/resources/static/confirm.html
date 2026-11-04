@@ -139,6 +139,23 @@ async function loadDetail(id) {
     <div class="ask"><strong>LLM 이 전달한 사용자 요청</strong>
       <p>${d.request ? esc(d.request) : '<span style="color:#666">요청 원문이 함께 전달되지 않았습니다.</span>'}</p></div>
 
+    ${(() => {
+      // 발화와 해석을 나란히 — 둘 다 LLM 이 넘긴 것이므로 사람이 보고 확인해야 한다.
+      const sp = (d.validation || {}).spoken;
+      if (!sp || !(sp.interpretation || []).length) return '';
+      const mark = f => f === true ? '발화에 있음' : f === false ? '<strong>발화에 없음</strong>' : '확인 불가';
+      return `<div class="${sp.utterancesProvided ? 'ask' : 'warn'}"><strong>당신이 했다는 말과 그 해석</strong>
+        ${sp.utterancesProvided
+          ? `<p>LLM 이 전달한 당신의 발화:</p><ul>${(sp.utterances || []).map(u => `<li>${esc(u)}</li>`).join('')}</ul>`
+          : '<p>LLM 이 발화 목록을 넘기지 않았습니다. 아래 해석이 당신이 한 말에서 나온 것인지 직접 확인해 주세요.</p>'}
+        <table><tr><th>항목</th><th>읽어 낸 값</th><th>근거 구절</th><th>근거 확인</th></tr>
+        ${sp.interpretation.map(i => `<tr><td>${esc(i.label)}</td><td>${esc(i.value)}</td>
+          <td>${i.quote ? esc(i.quote) : '<span style="color:#666">없음</span>'}</td><td>${mark(i.quoteFound)}</td></tr>`).join('')}
+        </table>
+        ${d.state === 'UNCONFIRMED' ? `<label style="display:block;margin-top:8px"><input type="checkbox" id="spokenAck">
+          위 발화는 내가 한 말이고, 읽어 낸 값이 내 뜻과 맞다</label>` : ''}</div>`;
+    })()}
+
     ${d.validation && d.validation.scenarioMode === 'ASSUMED_BLOCK'
       ? `<div class="warn"><strong>${esc((d.validation.region || {}).label || '가상 동네 블록')}</strong>
          <p>${esc(d.validation.dataNotice)}</p><p>아래 기본값과 지정한 조건을 확인한 뒤 실행을 승인해 주세요.</p></div>` : ''}
@@ -204,7 +221,11 @@ async function loadDetail(id) {
     <p id="out" style="color:#666;font-size:13px"></p>`;
 
   const $go = $detail.querySelector('button.go');
-  if ($go && !$go.disabled) $go.onclick = () => confirmIt(id);
+  const $ack = $detail.querySelector('#spokenAck');
+  if ($go && !$go.disabled) {
+    if ($ack) { $go.disabled = true; $ack.onchange = () => { $go.disabled = !$ack.checked; }; }
+    $go.onclick = () => confirmIt(id, !!($ack && $ack.checked));
+  }
 }
 
 function readinessPanel(d) {
@@ -233,8 +254,8 @@ function readinessPanel(d) {
     검증 식별값: ${esc((v.fingerprint || '').slice(0,20))}</p></details>`;
 }
 
-async function confirmIt(id) {
-  const res = await fetch(`/api/scenarios/${encodeURIComponent(id)}/confirm`, { method: 'POST' });
+async function confirmIt(id, spokenAcknowledged) {
+  const res = await fetch(`/api/scenarios/${encodeURIComponent(id)}/confirm?spokenAcknowledged=${spokenAcknowledged ? 'true' : 'false'}`, { method: 'POST' });
   const body = await res.json();
   if (!res.ok) {
     document.getElementById('out').textContent = '확인하지 못했습니다: ' + JSON.stringify(body);

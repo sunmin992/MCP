@@ -141,4 +141,27 @@ class NeighborhoodScenarioTest {
         for (String g : List.of("intentGiven","intentDefaults","dataFromRegion","dataGaps","assumptions"))
             roles.path(g).fieldNames().forEachRemaining(k -> assertFalse(k.isBlank()));
     }
+
+    @Test void confirmScreenShowsSpokenInterpretationAndRequiresAcknowledgement() throws Exception {
+        var a=args("덕명동");
+        a.putArray("userUtterances").add("덕명동 이틀 동안 1회만 돌려줘. 나머지는 기본값으로 해줘");
+        a.putObject("evidence").put("days","이틀 동안").put("seeds","1회만").put("collectionTimeMinutes","나머지는 기본값으로");
+        // 요구의 근거 구절은 시뮬레이터가 막지 않으므로, 발화에 없는 구절이면 확인 화면에 그대로 드러나야 한다
+        a.set("requirements", json.readTree("{\"regionId\":\"덕명동\",\"evidence\":{\"regionId\":\"합정동에서\"}}"));
+        var out=create(a); String id=out.path("scenarioId").asText();
+        var spoken=store.validation(id).path("spoken");
+        assertTrue(spoken.path("requiresAcknowledgement").asBoolean(), spoken.toPrettyString());
+        assertTrue(spoken.path("utterancesProvided").asBoolean());
+        var found=new java.util.HashMap<String,JsonNode>();
+        spoken.path("interpretation").forEach(i -> found.put(i.path("key").asText(), i));
+        assertTrue(found.get("days").path("quoteFound").asBoolean(), spoken.toPrettyString());
+        assertTrue(found.get("seeds").path("quoteFound").asBoolean());
+        assertFalse(found.get("regionId").path("quoteFound").asBoolean(true), "발화에 없는 근거 구절은 표시되어야 한다");
+
+        var controller=new com.wastesim.controller.ScenarioConfirmController(store,new ConfirmScenarioTool(builder,store,json),json,"",catalog,
+                new com.wastesim.plan.PlanRounds(catalog,new com.wastesim.capability.CapabilityCardLoader(),json));
+        assertEquals(400,controller.confirm(id,false).getStatusCode().value(),"발화·해석 확인 없이 승인하면 안 된다");
+        assertEquals("UNCONFIRMED",store.entry(id).orElseThrow().state());
+        assertEquals(200,controller.confirm(id,true).getStatusCode().value());
+    }
 }

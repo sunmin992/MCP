@@ -266,6 +266,7 @@ public class BuildScenarioTool implements McpToolProvider {
             proof.put("ready", ready);
             proof.put("requestId", requestId);
             proof.set("decisionRoles", roleGroups(pes));
+            proof.set("spoken", spoken(args, values, origins, variableValues));
             final Pes validatedPes = pes;
             java.util.function.Supplier<String> fingerprint = () -> builder.validationFingerprint(validatedPes, frame, scenario, purposeSpec)
                     + ":" + com.wastesim.readiness.ValidationReceipt.fingerprint(requirements);
@@ -367,6 +368,73 @@ public class BuildScenarioTool implements McpToolProvider {
             };
             ((com.fasterxml.jackson.databind.node.ObjectNode) out.get(group)).set(key, mapper.valueToTree(value));
         }));
+        return out;
+    }
+
+    /**
+     * 사용자가 했다는 말과, 그 말에서 읽어 낸 값을 나란히 담는다. 발화 목록도 LLM 이 넘긴 것이라 서버는 진위를 모른다 —
+     * 확인 화면이 이것을 보여 주고 사람이 "내가 한 말이고 해석이 맞다"를 확인해야 승인된다(ScenarioConfirmController).
+     * 근거 구절이 넘겨받은 발화에 있는지는 함께 표시한다(quoteFound). 발화 목록이 없으면 null.
+     */
+    private com.fasterxml.jackson.databind.node.ObjectNode spoken(JsonNode args, Map<String, Object> values,
+            Map<String, String> origins, List<Object> variableValues) {
+        var out = mapper.createObjectNode();
+        out.put("request", args.path("request").asText(null));
+        boolean provided = args.path("userUtterances").isArray();
+        out.put("utterancesProvided", provided);
+        List<String> said = new ArrayList<>();
+        if (provided) args.get("userUtterances").forEach(v -> said.add(v.asText()));
+        out.set("utterances", provided ? args.get("userUtterances") : null);
+        var items = out.putArray("interpretation");
+        java.util.function.BiConsumer<com.fasterxml.jackson.databind.node.ObjectNode, String> quote = (item, q) -> {
+            if (q == null || q.isBlank()) { item.putNull("quote"); item.putNull("quoteFound"); return; }
+            item.put("quote", q);
+            if (provided) item.put("quoteFound", com.wastesim.evidence.EvidenceGuard.found(q, said)); else item.putNull("quoteFound");
+        };
+        JsonNode req = args.path("requirements").isObject() ? args.get("requirements") : args.path("selection").path("requirements");
+        JsonNode reqEvidence = req.path("evidence");
+        Map<String, String> reqLabels = Map.of("regionId", "지역", "simulationDuration", "기간", "timeResolution", "결과 시간 간격");
+        reqLabels.forEach((field, label) -> {
+            if (!req.has(field)) return;
+            var item = items.addObject().put("key", field).put("label", label).put("origin", "REQUIREMENT");
+            JsonNode v = req.get(field);
+            Map<String, String> units = Map.of("second", "초", "minute", "분", "hour", "시간", "day", "일", "week", "주");
+            item.put("value", v.isObject() ? v.path("value").asText() + units.getOrDefault(v.path("unit").asText(), v.path("unit").asText()) : v.asText());
+            quote.accept(item, reqEvidence.path(field).asText(null));
+        });
+        for (JsonNode o : req.path("requiredOutputs")) {
+            var item = items.addObject().put("key", "requiredOutputs").put("label", "보고 싶은 결과").put("origin", "REQUIREMENT")
+                    .put("value", o.asText());
+            quote.accept(item, reqEvidence.path("requiredOutputs").asText(null));
+        }
+        for (String group : List.of("constraints", "preferences")) {
+            String label = group.equals("constraints") ? "지킬 조건" : "선호 조건";
+            if (req.path(group).isArray()) for (JsonNode c : req.get(group)) {
+                var item = items.addObject().put("key", group + "." + c.path("name").asText()).put("label", label).put("origin", "REQUIREMENT")
+                        .put("value", c.path("name").asText() + " " + c.path("value").asText() + (c.hasNonNull("unit") ? c.get("unit").asText() : ""));
+                String key = group + "." + c.path("name").asText();
+                quote.accept(item, reqEvidence.has(key) ? reqEvidence.get(key).asText() : reqEvidence.path(c.path("name").asText()).asText(null));
+            } else req.path(group).fields().forEachRemaining(e -> {
+                var item = items.addObject().put("key", group + "." + e.getKey()).put("label", label).put("origin", "REQUIREMENT")
+                        .put("value", e.getKey() + " " + e.getValue().asText());
+                quote.accept(item, reqEvidence.path(e.getKey()).asText(null));
+            });
+        }
+        Map<String, Object> attributed = new LinkedHashMap<>(values);
+        String variable = args.path("variableAnswerKey").asText(null);
+        if (variable != null && !variableValues.isEmpty()) attributed.put(variable, variableValues);
+        JsonNode evidence = args.path("evidence");
+        attributed.forEach((key, value) -> {
+            String origin = origins.getOrDefault(key, "MODEL_DEFAULT");
+            if (!"USER".equals(origin) && !"DERIVED".equals(origin)) return;
+            // 요구에서 끌어낸 값(기간 2일 → days)은 위의 요구 줄이 이미 보여 준다 — 근거 없는 줄로 한 번 더 내지 않는다.
+            if ("DERIVED".equals(origin) && req.isObject() && req.size() > 0 && evidence.path(key).asText("").isBlank()) return;
+            var item = items.addObject().put("key", key)
+                    .put("label", catalog.byAnswerKey(key).map(com.wastesim.template.SubtaskTemplate::label).orElse(key))
+                    .put("origin", origin).put("value", String.valueOf(value));
+            quote.accept(item, evidence.path(key).asText(null));
+        });
+        out.put("requiresAcknowledgement", !items.isEmpty());
         return out;
     }
 }
