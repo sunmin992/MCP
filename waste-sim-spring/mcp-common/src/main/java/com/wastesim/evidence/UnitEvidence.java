@@ -40,6 +40,7 @@ public final class UnitEvidence {
     }
 
     public static boolean explains(double number, double value, String quote, String unit) {
+        quote = KoreanNumbers.normalize(quote);
         switch (canonical(unit)) {
             case "minute" -> {
                 Matcher time = Pattern.compile("(\\d+(?:\\.\\d+)?)\\s*(시간|시|hours?)(?:\\s*(\\d+)\\s*분)?",
@@ -49,8 +50,11 @@ public final class UnitEvidence {
                     explicit = true;
                     double hours = Double.parseDouble(time.group(1));
                     boolean clock = time.group(2).equals("시");
-                    if (clock && quote.contains("오후") && hours >= 1 && hours <= 12) hours = hours % 12 + 12;
-                    if (clock && quote.contains("오전") && hours == 12) hours = 0;
+                    boolean pm = quote.contains("오후") || quote.contains("저녁") || quote.contains("밤");
+                    boolean am = quote.contains("오전") || quote.contains("새벽") || quote.contains("아침");
+                    if (clock && quote.contains("밤") && hours == 12) hours = 0;          // 밤 12시 · 자정
+                    else if (clock && pm && hours >= 1 && hours <= 12) hours = hours % 12 + 12;
+                    if (clock && am && hours == 12) hours = 0;
                     double extra = time.group(3) == null ? 0 : Double.parseDouble(time.group(3));
                     match |= equal(hours * 60 + extra, value);
                 }

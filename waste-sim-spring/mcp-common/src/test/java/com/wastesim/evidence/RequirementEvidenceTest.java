@@ -35,9 +35,17 @@ class RequirementEvidenceTest {
         // 구절에 없는 지역명
         assertFalse(RequirementEvidence.check(j("""
             {"regionId":"합정동","evidence":{"regionId":"망원동"}}"""), List.of(said)).blocks().isEmpty());
-        // 숫자 없는 표현은 판단 보류
-        var vague = RequirementEvidence.check(j("""
+        // 한국어 수 표현은 숫자로 바꿔 확인한다
+        var spoken = RequirementEvidence.check(j("""
             {"simulationDuration":{"value":2,"unit":"day"},"evidence":{"simulationDuration":"이틀 동안"}}"""), List.of(said));
+        assertTrue(spoken.blocks().isEmpty());
+        assertTrue(spoken.unverified().isEmpty(), spoken.unverified().toString());
+        assertFalse(RequirementEvidence.check(j("""
+            {"simulationDuration":{"value":3,"unit":"day"},"evidence":{"simulationDuration":"이틀 동안"}}"""), List.of(said)).blocks().isEmpty(),
+            "이틀을 3일로 옮기면 막는다");
+        // 숫자가 정말 없는 표현은 판단 보류
+        var vague = RequirementEvidence.check(j("""
+            {"simulationDuration":{"value":3,"unit":"day"},"evidence":{"simulationDuration":"며칠 동안"}}"""), List.of("며칠 동안 돌려줘"));
         assertTrue(vague.blocks().isEmpty());
         assertEquals(List.of("simulationDuration"), vague.unverified());
     }

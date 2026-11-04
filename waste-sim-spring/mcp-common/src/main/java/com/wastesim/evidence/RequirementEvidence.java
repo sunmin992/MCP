@@ -91,7 +91,7 @@ public final class RequirementEvidence {
     }
 
     private static Optional<String> quote(JsonNode evidence, String key, List<String> utterances, List<String> blocks, String label) {
-        String q = evidence.path(key).asText("").trim();
+        String q = KoreanNumbers.normalize(evidence.path(key).asText("").trim());
         if (q.isEmpty()) {
             blocks.add(label + ": 근거 구절(requirements.evidence." + key + ")이 없습니다 — 사용자가 말한 조건만 요구에 넣고, 말한 구절을 함께 넣으십시오. 말하지 않은 조건은 빼십시오");
             return Optional.empty();

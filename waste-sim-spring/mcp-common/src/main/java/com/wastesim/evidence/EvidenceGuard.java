@@ -45,11 +45,13 @@ public final class EvidenceGuard {
                                Function<String, Optional<EvidenceField>> fields) {
         List<String> blocks = new ArrayList<>();
         List<String> unverified = new ArrayList<>();
+        // "이틀" · "두 대" · "한 시간 반" 을 숫자로 바꾼 뒤 대조한다(KoreanNumbers). 발화와 구절을 같은 규칙으로 바꾼다.
+        List<String> said = utterances.stream().map(KoreanNumbers::normalize).toList();
         submitted.forEach((key, vals) -> {
             String origin = origins.getOrDefault(key, "MODEL_DEFAULT");
             Optional<EvidenceField> f = fields.apply(key);
-            String quote = evidence.getOrDefault(key, "").trim();
-            boolean quoted = !quote.isEmpty() && found(quote, utterances);
+            String quote = KoreanNumbers.normalize(evidence.getOrDefault(key, "").trim());
+            boolean quoted = !quote.isEmpty() && found(quote, said);
             if ("USER".equals(origin)) {
                 if (quote.isEmpty()) {
                     blocks.add(key + ": USER 값의 근거 구절(evidence)이 없습니다 — 사용자가 이 값을 말한 적이 없으면 제출을 멈추고 일반 메시지로 사용자에게 물으십시오. 같은 값을 다시 내도 같은 이유로 막힙니다");
@@ -88,6 +90,7 @@ public final class EvidenceGuard {
      * 다른 필드의 값으로 본다. 필드가 단위나 단위말을 선언하지 않으면 단위말은 보지 않는다.
      */
     static Optional<String> numericBlock(EvidenceField f, String quote, double value) {
+        quote = KoreanNumbers.normalize(quote);
         Set<String> accepted = new HashSet<>(f.unitWords());
         accepted.addAll(UnitEvidence.words(f.unit()));
         boolean explained = false, explainedWithForeignWord = false;
@@ -139,7 +142,7 @@ public final class EvidenceGuard {
 
     public static List<Double> numbers(String s) {
         List<Double> out = new ArrayList<>();
-        Matcher m = NUMBER.matcher(s);
+        Matcher m = NUMBER.matcher(KoreanNumbers.normalize(s));
         while (m.find()) out.add(Double.parseDouble(m.group().replace(",", "")));
         return out;
     }
@@ -164,9 +167,11 @@ public final class EvidenceGuard {
      */
     // ponytail: 글자쌍 겹침 휴리스틱. 사람 확인에서 잘못 통과가 늘면 정렬(alignment) 기반 대조로 바꾼다.
     public static boolean found(String quote, List<String> utterances) {
+        quote = KoreanNumbers.normalize(quote);
         String q = squash(quote);
         List<Double> nums = numbers(quote);
-        for (String u : utterances) {
+        for (String raw : utterances) {
+            String u = KoreanNumbers.normalize(raw);
             String s = squash(u);
             if (s.contains(q)) return true;
             // 짧은 구절은 글자 그대로만 — "30회" 가 "30분당 500원" 의 글자쌍 "30" 하나로 통과했다(예비 재실행 P-T4-01).
