@@ -16,7 +16,8 @@
         "label": "지점별 정차 시간(분)", "valueType": "INTEGER",
         "generateWhen": {"eq": ["travelTimeMode", "ZONE_PROXY_HYBRID"]},
         "min": 0, "max": 60, "unit": "minute", "defaultValue": 2, "defaultBasis": "정차·상차 가정",
-        "question": "수거 지점마다 정차·상차에 몇 분이 걸리나요?", "configField": "serviceMinutesPerSite"}}
+        "question": "수거 지점마다 정차·상차에 몇 분이 걸리나요?",
+        "decisionRole": "ASSUMPTION", "roleBasis": "정차 시간은 측정하지 않은 가정값이다", "configField": "serviceMinutesPerSite"}}
     ],
     "complete": [
       {"file": "ses", "op": "add", "path": "decision:serviceMinutesPerSite/card", "value": {}},

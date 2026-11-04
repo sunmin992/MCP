@@ -1,0 +1,1027 @@
+{
+  "decisionRoles" : {
+    "ASSUMPTION" : 6,
+    "DATA" : 4,
+    "INTENT" : 9
+  },
+  "requests" : 12,
+  "totals" : {
+    "ASK_ALL/지역자료있음" : {
+      "asked" : 155,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS/지역자료있음" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 71,
+      "dataWithoutData" : 12,
+      "unlabeledAssumptions" : 37
+    },
+    "ROLE_CONFIRM/지역자료있음" : {
+      "asked" : 0,
+      "confirmItems" : 83,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK/지역자료있음" : {
+      "asked" : 71,
+      "confirmItems" : 12,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ASK_ALL/지역자료없음" : {
+      "asked" : 155,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS/지역자료없음" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 71,
+      "dataWithoutData" : 47,
+      "unlabeledAssumptions" : 37
+    },
+    "ROLE_CONFIRM/지역자료없음" : {
+      "asked" : 0,
+      "confirmItems" : 118,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK/지역자료없음" : {
+      "asked" : 71,
+      "confirmItems" : 47,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  },
+  "rows" : [ {
+    "id" : "Q01",
+    "utterance" : "상계동에서 이틀 동안 돌려서 민원 수 보여줘",
+    "regionData" : true,
+    "said" : [ "days" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 7,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q02",
+    "utterance" : "차량 2대를 10분 간격으로 내보내고 이틀 동안 봐줘",
+    "regionData" : true,
+    "said" : [ "dispatchIntervalMinutes", "truckCount", "days" ],
+    "requiredDecisions" : 15,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 5
+    },
+    "ASK_ALL" : {
+      "asked" : 12,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 5,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "collectionTimeMinutes", "trafficMode", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 6,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 5,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q03",
+    "utterance" : "오후 6시에 수거하면 어떻게 돼?",
+    "regionData" : true,
+    "said" : [ "collectionTimeMinutes" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 7,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q04",
+    "utterance" : "교통을 반영해서 정오에 수거해 봐",
+    "regionData" : true,
+    "said" : [ "trafficMode", "collectionTimeMinutes" ],
+    "requiredDecisions" : 15,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 4,
+      "DATA" : 4,
+      "INTENT" : 5
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 5,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 4,
+      "silentIntentKeys" : [ "truckType", "truckCount", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 6,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 5,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q05",
+    "utterance" : "5톤 차량 1대로 한 달 돌려줘",
+    "regionData" : true,
+    "said" : [ "days", "truckCount", "truckType" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 4
+    },
+    "ASK_ALL" : {
+      "asked" : 11,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 4,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "collectionTimeMinutes", "trafficMode", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 5,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 4,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q06",
+    "utterance" : "구역 근사 이동으로 건물 8동을 해줘",
+    "regionData" : true,
+    "said" : [ "travelTimeMode", "numBuildings" ],
+    "requiredDecisions" : 16,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 4,
+      "DATA" : 3,
+      "INTENT" : 7
+    },
+    "ASK_ALL" : {
+      "asked" : 14,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 7,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 4,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 8,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 7,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q07",
+    "utterance" : "적재율 70% 넘으면 민원으로 보고 돌려줘",
+    "regionData" : true,
+    "said" : [ "complaintThreshold" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 7,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q08",
+    "utterance" : "정확하게 10회 반복해줘",
+    "regionData" : true,
+    "said" : [ "seeds" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 7,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q09",
+    "utterance" : "학생이 많은 동네로 해줘",
+    "regionData" : true,
+    "said" : [ "occupationMix" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 2,
+      "DATA" : 4,
+      "INTENT" : 7
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 7,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 2,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 8,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 7,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q10",
+    "utterance" : "아무 동네나 돌려줘",
+    "regionData" : true,
+    "said" : [ ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 7
+    },
+    "ASK_ALL" : {
+      "asked" : 14,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 7,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 8,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 7,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q11",
+    "utterance" : "하루 두 번, 11시와 23시에 수거해줘",
+    "regionData" : true,
+    "said" : [ "collectionTimesMinutes" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 7,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q12",
+    "utterance" : "차량 3대로 교통 반영하고 평일 실측 교통으로 해줘",
+    "regionData" : true,
+    "said" : [ "truckCount", "trafficMode", "trafficProfileId" ],
+    "requiredDecisions" : 16,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 1,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "dispatchIntervalMinutes", "collectionTimeMinutes", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 7,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 1,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q01",
+    "utterance" : "상계동에서 이틀 동안 돌려서 민원 수 보여줘",
+    "regionData" : false,
+    "said" : [ "days" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 10,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q02",
+    "utterance" : "차량 2대를 10분 간격으로 내보내고 이틀 동안 봐줘",
+    "regionData" : false,
+    "said" : [ "dispatchIntervalMinutes", "truckCount", "days" ],
+    "requiredDecisions" : 15,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 5
+    },
+    "ASK_ALL" : {
+      "asked" : 12,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 5,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "collectionTimeMinutes", "trafficMode", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 9,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 5,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q03",
+    "utterance" : "오후 6시에 수거하면 어떻게 돼?",
+    "regionData" : false,
+    "said" : [ "collectionTimeMinutes" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 10,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q04",
+    "utterance" : "교통을 반영해서 정오에 수거해 봐",
+    "regionData" : false,
+    "said" : [ "trafficMode", "collectionTimeMinutes" ],
+    "requiredDecisions" : 15,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 4,
+      "DATA" : 4,
+      "INTENT" : 5
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 5,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 4,
+      "silentIntentKeys" : [ "truckType", "truckCount", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 9,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 5,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q05",
+    "utterance" : "5톤 차량 1대로 한 달 돌려줘",
+    "regionData" : false,
+    "said" : [ "days", "truckCount", "truckType" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 4
+    },
+    "ASK_ALL" : {
+      "asked" : 11,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 4,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "collectionTimeMinutes", "trafficMode", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 8,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 4,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q06",
+    "utterance" : "구역 근사 이동으로 건물 8동을 해줘",
+    "regionData" : false,
+    "said" : [ "travelTimeMode", "numBuildings" ],
+    "requiredDecisions" : 16,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 4,
+      "DATA" : 3,
+      "INTENT" : 7
+    },
+    "ASK_ALL" : {
+      "asked" : 14,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 7,
+      "dataWithoutData" : 3,
+      "unlabeledAssumptions" : 4,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 10,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 7,
+      "confirmItems" : 3,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q07",
+    "utterance" : "적재율 70% 넘으면 민원으로 보고 돌려줘",
+    "regionData" : false,
+    "said" : [ "complaintThreshold" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 10,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q08",
+    "utterance" : "정확하게 10회 반복해줘",
+    "regionData" : false,
+    "said" : [ "seeds" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 10,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q09",
+    "utterance" : "학생이 많은 동네로 해줘",
+    "regionData" : false,
+    "said" : [ "occupationMix" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 2,
+      "DATA" : 4,
+      "INTENT" : 7
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 7,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 2,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 11,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 7,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q10",
+    "utterance" : "아무 동네나 돌려줘",
+    "regionData" : false,
+    "said" : [ ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 7
+    },
+    "ASK_ALL" : {
+      "asked" : 14,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 7,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "collectionTimeMinutes", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 11,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 7,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q11",
+    "utterance" : "하루 두 번, 11시와 23시에 수거해줘",
+    "regionData" : false,
+    "said" : [ "collectionTimesMinutes" ],
+    "requiredDecisions" : 14,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "truckCount", "trafficMode", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 10,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  }, {
+    "id" : "Q12",
+    "utterance" : "차량 3대로 교통 반영하고 평일 실측 교통으로 해줘",
+    "regionData" : false,
+    "said" : [ "truckCount", "trafficMode", "trafficProfileId" ],
+    "requiredDecisions" : 16,
+    "unsaidByRole" : {
+      "ASSUMPTION" : 3,
+      "DATA" : 4,
+      "INTENT" : 6
+    },
+    "ASK_ALL" : {
+      "asked" : 13,
+      "confirmItems" : 0,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "LLM_FILLS" : {
+      "asked" : 0,
+      "confirmItems" : 0,
+      "silentIntent" : 6,
+      "dataWithoutData" : 4,
+      "unlabeledAssumptions" : 3,
+      "silentIntentKeys" : [ "truckType", "dispatchIntervalMinutes", "collectionTimeMinutes", "days", "seeds", "complaintThreshold" ]
+    },
+    "ROLE_CONFIRM" : {
+      "asked" : 0,
+      "confirmItems" : 10,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    },
+    "ROLE_ASK" : {
+      "asked" : 6,
+      "confirmItems" : 4,
+      "silentIntent" : 0,
+      "dataWithoutData" : 0,
+      "unlabeledAssumptions" : 0
+    }
+  } ]
+}

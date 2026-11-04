@@ -102,6 +102,8 @@ class PublicMapRegionTest {
         assertEquals("REGION_DATA", pes.origins().get("residentsPerBuilding"));
         assertFalse(pes.unapprovedDefaults().containsKey("numBuildings"));
         assertEquals("REGION_DATA", pes.origins().get("binCapacityKg"));
+        assertTrue(out.path("decisionRoles").path("dataFromRegion").has("numBuildings"), out.path("decisionRoles").toString());
+        assertTrue(out.path("decisionRoles").path("dataGaps").has("routeAvailableCapacityKg"));
 
         String id = out.path("scenarioId").asText();
         var runner = new RunScenarioByTokenTool(builder, store,

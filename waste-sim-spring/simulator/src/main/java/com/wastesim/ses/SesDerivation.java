@@ -24,6 +24,10 @@ public final class SesDerivation {
         out.put("sesVersion", ses.sesVersion());
         ArrayNode templates = out.putArray("templates");
         for (SesTree.Decision d : ses.decisions()) {
+            // 값을 누가 정할 수 있는지는 결정마다 반드시 적는다 — 확인 화면 · 질문 정책이 이것으로 갈린다.
+            if (!com.wastesim.template.SubtaskTemplate.ROLES.contains(d.fields().path("decisionRole").asText())
+                    || d.fields().path("roleBasis").asText().isBlank())
+                throw new IllegalArgumentException("decisionRole(INTENT · DATA · ASSUMPTION)과 roleBasis 가 필요합니다: " + d.sesPath());
             ObjectNode t = d.fields().deepCopy();
             if (t.has("generateWhen")) t.set("generateWhen", conditions.get(t.path("answerKey").asText()));
             t.put("sesPath", d.sesPath());

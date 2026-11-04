@@ -39,6 +39,7 @@ v1.9부터 기준 명세서를 Markdown으로 관리한다. Word 원본은 바�
 - [요구·능력 계약 비교와 P1 호환 정책](specifications/request-capability-contract.md)
 - [역할 분리와 MCP 서버 분리 근거](specifications/roles-and-boundaries.md)
 - [공통 요구의 사용자 표현과 제공자 대응(두 층 해석)](specifications/common-requirements-terms.md)
+- [구성 결정의 역할 분류와 처리 방식 비교](reports/decision-roles-2026-11-04/REPORT.md)
 - [근거 검사(GUARD) — 제공자·클라이언트 안내](guides/EVIDENCE_GUARD.md)
 
 - [설계 결정 기록](reference/DESIGN_DECISIONS.md)

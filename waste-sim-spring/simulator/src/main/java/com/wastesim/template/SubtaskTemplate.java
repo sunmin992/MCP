@@ -33,13 +33,18 @@ public record SubtaskTemplate(
         String nodeKind,
         String label,
         java.util.Map<String, List<String>> valueTerms,
-        List<String> unitWords) {
+        List<String> unitWords,
+        String decisionRole,
+        String roleBasis) {
 
     public SubtaskTemplate {
         allowed = allowed == null ? List.of() : List.copyOf(allowed);
         valueTerms = valueTerms == null ? java.util.Map.of() : java.util.Map.copyOf(valueTerms);
         unitWords = unitWords == null ? List.of() : List.copyOf(unitWords);
     }
+
+    /** 값을 누가 정할 수 있는가: INTENT(사용자의 목적·정의) · DATA(외부 자료) · ASSUMPTION(모델링 가정). */
+    public static final java.util.Set<String> ROLES = java.util.Set.of("INTENT", "DATA", "ASSUMPTION");
 
     /** 기본값 제안 없이 반드시 물어야 하는 결정인가. */
     public boolean requiresExplicitAnswer() {

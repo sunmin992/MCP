@@ -16,6 +16,8 @@
       "defaultValue" : "LARGE_5TON",
       "defaultBasis" : "SimulationConfig 초기값",
       "question" : "수거차량 크기를 무엇으로 할까요? (5톤 / 2.5톤 / 1톤)",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "어떤 차량으로 운영할지는 비교하려는 운영 방안이다",
       "configField" : "truckType",
       "valueTerms" : {
         "LARGE_5TON" : [
@@ -44,6 +46,8 @@
       "defaultValue" : 1,
       "defaultBasis" : "numTrucks 초기값",
       "question" : "수거차량은 몇 대인가요? (1 이상)",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "차량 대수는 사용자가 시험하려는 운영 규모다",
       "configField" : "numTrucks",
       "unitWords" : [
         "대"
@@ -78,6 +82,8 @@
       "defaultValue" : 0,
       "defaultBasis" : "dispatchIntervalMinutes 초기값",
       "question" : "차량 간 배차 간격을 몇 분으로 할까요?",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "차량을 몇 분 간격으로 내보낼지는 운영 정책이다",
       "configField" : "dispatchIntervalMinutes",
       "sesPath" : "수거차량집합/배차간격",
       "nodeKind" : "ATTRIBUTE"
@@ -98,6 +104,8 @@
       "defaultValue" : 720,
       "defaultBasis" : "collectionTimeMinutes 초기값",
       "question" : "하루 중 몇 시에 수거할까요?",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "언제 수거할지는 사용자가 비교하려는 정책 자체다",
       "configField" : "collectionTimeMinutes",
       "sesPath" : "실험프레임/수거시각",
       "nodeKind" : "ATTRIBUTE"
@@ -116,6 +124,8 @@
       "defaultValue" : null,
       "defaultBasis" : "없음 — 하루 1회가 기본이고, 여러 번이면 시각을 사람이 확인한다",
       "question" : "하루에 몇 번, 몇 시마다 수거할까요? (예: 2회면 [660, 1380] = 11:00·23:00)",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "하루 여러 번 수거하는 시각은 사용자가 정하는 정책이다",
       "configField" : "collectionTimesMinutes",
       "sesPath" : "실험프레임/하루수거시각",
       "nodeKind" : "ATTRIBUTE"
@@ -133,6 +143,8 @@
       "defaultValue" : "IGNORE",
       "defaultBasis" : "trafficEnabled = false",
       "question" : "교통량을 반영할까요?",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "교통을 고려한 상황을 볼지는 사용자가 묻는 질문의 범위다",
       "configField" : "trafficEnabled",
       "valueTerms" : {
         "APPLY" : [
@@ -173,6 +185,8 @@
       "defaultValue" : "jangryang-weekday",
       "defaultBasis" : "TrafficDataService.DEFAULT_PROFILE_ID",
       "question" : "어떤 교통 프로파일을 쓸까요? (평일 실측 / 통행량 기반)",
+      "decisionRole" : "ASSUMPTION",
+      "roleBasis" : "어떤 교통 측정 자료를 대표로 쓸지는 모델링 선택이다",
       "configField" : "trafficProfileId",
       "sesPath" : "경로교통/교통구역집합/프로파일",
       "nodeKind" : "ATTRIBUTE"
@@ -190,6 +204,8 @@
       "defaultValue" : "LEGACY_CONSTANT",
       "defaultBasis" : "travelTimeMode 초기값",
       "question" : "이동시간을 어떻게 계산할까요? (구간 상수 / 교통구역 근사)",
+      "decisionRole" : "ASSUMPTION",
+      "roleBasis" : "이동시간을 어떤 방식으로 계산할지는 모델링 선택이다",
       "configField" : "travelTimeMode",
       "sesPath" : "경로교통/이동시간",
       "nodeKind" : "SPECIALIZATION"
@@ -222,6 +238,8 @@
       "defaultValue" : null,
       "defaultBasis" : null,
       "question" : "건물을 교통 구역에 어떻게 배정할까요? (덩어리 / 번갈아) — 조사값이 아니라 가정이므로 둘 다 돌려 범위로 보는 편이 좋습니다",
+      "decisionRole" : "ASSUMPTION",
+      "roleBasis" : "건물을 교통 구역에 배정하는 규칙은 조사값이 아니라 가정이다",
       "configField" : "zoneAssignmentRule",
       "valueTerms" : {
         "CONTIGUOUS" : [
@@ -269,6 +287,8 @@
       "defaultValue" : null,
       "defaultBasis" : null,
       "question" : "같은 교통 구역 안의 이동시간을 몇 분으로 볼까요? 0도 명시하면 받아들이고 결과에 가정으로 표시합니다",
+      "decisionRole" : "ASSUMPTION",
+      "roleBasis" : "구역 안 평균 이동시간은 측정하지 않은 가정값이다",
       "configField" : "intraZoneTravelMinutes",
       "sesPath" : "경로교통/구역내이동",
       "nodeKind" : "ATTRIBUTE"
@@ -284,6 +304,8 @@
       "defaultValue" : 4,
       "defaultBasis" : "numBuildings 초기값 (논문 기준선)",
       "question" : "건물은 몇 동인가요? (1~26동)",
+      "decisionRole" : "DATA",
+      "roleBasis" : "대상 지역의 실제 건물 수로 정해진다(공개 지도 자료)",
       "configField" : "numBuildings",
       "unitWords" : [
         "동",
@@ -303,6 +325,8 @@
       "defaultValue" : 25,
       "defaultBasis" : "residentsPerBuilding 초기값 (논문 기준선)",
       "question" : "한 동에 몇 세대인가요?",
+      "decisionRole" : "DATA",
+      "roleBasis" : "대상 지역의 실제 세대 수로 정해진다(건물 면적·층수 추정)",
       "configField" : "residentsPerBuilding",
       "unitWords" : [
         "세대",
@@ -331,6 +355,8 @@
       ],
       "defaultBasis" : "OccupationType.baseMix (논문 기준선) — 4동×25명이면 34/33/33",
       "question" : "거주민 직업 구성을 어떻게 할까요? 목록 순서대로 거주민에게 돌아가며 배정하고, 같은 직업을 여러 번 적으면 그만큼 비중이 커집니다. (BlueCollar 생산직 07:22 / Student 학생 08:58 / Housewife 전업주부 14:00 / NightShift 야간 교대 21:00 / OfficeWorker 1인 직장인 07:50 배출)",
+      "decisionRole" : "ASSUMPTION",
+      "roleBasis" : "거주민 직업 구성은 인구 자료가 없어 가정한다",
       "configField" : "occupationMix",
       "sesPath" : "건물/거주민집합/직업구성",
       "nodeKind" : "SPECIALIZATION"
@@ -348,6 +374,8 @@
       "defaultValue" : "PAPER_BASELINE",
       "defaultBasis" : "dischargeTimeMode 초기값 — 직업별 배출 시각(논문 기준선)",
       "question" : "거주민이 언제 쓰레기를 내놓는다고 볼까요? (직업별 배출 시각 — 논문 기준선 / 포항시 공식 배출 시간 20:00~06:00 안에서만 배출)",
+      "decisionRole" : "ASSUMPTION",
+      "roleBasis" : "언제 쓰레기를 내놓는지는 배출 행태 모델의 선택이다",
       "configField" : "dischargeTimeMode",
       "sesPath" : "건물/거주민집합/배출시간",
       "nodeKind" : "SPECIALIZATION"
@@ -363,6 +391,8 @@
       "defaultValue" : 30,
       "defaultBasis" : "days 초기값",
       "question" : "며칠치를 볼까요? (1~365일)",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "며칠치를 볼지는 사용자가 알고 싶은 기간이다",
       "configField" : "days",
       "unit" : "day",
       "sesPath" : "실험프레임/기간",
@@ -379,6 +409,8 @@
       "defaultValue" : 30,
       "defaultBasis" : "seeds 초기값",
       "question" : "몇 번 반복할까요? (1~100회)",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "몇 번 반복할지는 결과를 얼마나 믿고 싶은지에 달린 선택이다",
       "configField" : "seeds",
       "unitWords" : [
         "회",
@@ -400,6 +432,8 @@
       "defaultValue" : null,
       "defaultBasis" : "고정 기본값 없음 — 선택 차종의 정격용량(5톤 5000kg · 2.5톤 2500kg · 1톤 1000kg)을 기본값으로 제안한다(plan_subtasks 의 derivedDefaults). 정격 전체면 이 블록 규모에서 가동률·미수거 축이 작동하지 않는다",
       "question" : "청소차 한 대가 이 블록에 쓸 수 있는 적재 몫은 몇 kg 입니까? (차 한 대 전체 용량이 아니라 이 블록에 배정된 몫입니다. 90kg/일 블록이면 150kg 은 가동률 60%, 100kg 은 90% 입니다. 모르면 차종 정격용량을 그대로 씁니다 — 그러면 가동률·미수거는 비교할 수 없습니다)",
+      "decisionRole" : "DATA",
+      "roleBasis" : "청소차가 이 블록에 쓰는 적재 몫은 운영 기관의 자료다. 지금은 수집 출처가 없다",
       "configField" : "routeAvailableCapacityKg",
       "sesPath" : "수거차량집합/경로적재몫",
       "nodeKind" : "ATTRIBUTE"
@@ -415,6 +449,8 @@
       "defaultValue" : 30.0,
       "defaultBasis" : "capacity 초기값 — 원룸 건물 하나의 쓰레기장 용량",
       "question" : "건물 하나의 쓰레기장(수거장) 용량은 몇 kg 입니까? (0보다 커야 합니다. 기본 30kg 이면 동당 하루 22.5kg 이 임계 직전입니다)",
+      "decisionRole" : "DATA",
+      "roleBasis" : "건물 수거장의 실제 크기로 정해진다(세대 수 비례 추정)",
       "configField" : "capacity",
       "sesPath" : "수거장/용량",
       "nodeKind" : "ATTRIBUTE"
@@ -430,6 +466,8 @@
       "defaultValue" : 0.8,
       "defaultBasis" : "threshold 초기값",
       "question" : "배출할 때 수거장 적재율이 얼마 이상이면 민원으로 볼까요? (0~1 비율, 기본 0.8 = 80%)",
+      "decisionRole" : "INTENT",
+      "roleBasis" : "무엇을 민원으로 볼지는 사용자가 정하는 판정 기준이다",
       "configField" : "threshold",
       "unit" : "ratio",
       "sesPath" : "민원감시/임계",

@@ -152,6 +152,22 @@ async function loadDetail(id) {
            `<tr><td>${esc(k)}</td><td>${esc(p.grade)}</td><td>${esc(p.basis)}</td></tr>`).join('')}
          </table><p>지도 자료와 추정·가정값을 확인한 뒤 실행을 승인해 주세요.</p></div>` : ''}
 
+    ${(() => {
+      // 결정의 역할별로 묶는다 — 사용자가 정해야 하는데 기본값으로 채운 것을 맨 먼저 보여 준다.
+      const roles = (d.validation || {}).decisionRoles || {};
+      const rows = g => Object.entries(roles[g] || {});
+      const table = g => `<table><tr><th>항목</th><th>값</th></tr>${rows(g).map(([k, v]) =>
+        `<tr><td>${name(k)}</td><td>${esc(JSON.stringify(v))}</td></tr>`).join('')}</table>`;
+      let html = '';
+      if (rows('intentDefaults').length) html += `<div class="warn"><strong>당신이 정해야 하는 항목인데 기본값으로 채운 것 ${rows('intentDefaults').length}개</strong>
+        <p>비교하려는 정책 · 판정 기준 · 기간처럼 정답이 없는 결정입니다. 의도와 다르면 값을 말해 주세요.</p>${table('intentDefaults')}</div>`;
+      if (rows('dataGaps').length) html += `<div class="warn"><strong>자료가 없어 기본값을 쓴 항목 ${rows('dataGaps').length}개</strong>
+        <p>실제 자료로 정해야 하는 값인데 수집 출처가 없습니다. 알고 있다면 알려 주세요.</p>${table('dataGaps')}</div>`;
+      if (rows('assumptions').length) html += `<div class="ask"><strong>모델 가정 ${rows('assumptions').length}개</strong>
+        <p>사실로 정할 수 없는 모델링 선택입니다. 결과는 이 가정 위에서만 의미가 있습니다.</p>${table('assumptions')}</div>`;
+      return html;
+    })()}
+
     ${unapproved.length ? (d.state === 'UNCONFIRMED'
       ? `<div class="warn"><strong>확인이 필요한 기본값·근거 미검증 값 ${unapproved.length}개</strong>
       <table><tr><th>항목</th><th>값</th></tr>

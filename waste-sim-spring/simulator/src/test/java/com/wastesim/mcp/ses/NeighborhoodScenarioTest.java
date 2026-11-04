@@ -125,4 +125,20 @@ class NeighborhoodScenarioTest {
         assertEquals(60,cfg.getDispatchIntervalMinutes());
         assertTrue(out.path("purposeCheck").path("specification").path("observations").toString().contains("meanComplaints"));
     }
+
+    @Test void valuesAreGroupedByWhoCanDecideThem() throws Exception {
+        var a=args("덕명동"); ((ObjectNode)a.get("values")).put("truckCount",1);
+        a.putObject("origins").put("truckCount","USER").put("seeds","USER").put("days","USER");
+        var roles=create(a).path("decisionRoles");
+        assertTrue(roles.path("intentGiven").has("truckCount"), roles.toPrettyString());
+        // 사용자가 정해야 하는데 말하지 않은 것 — 수거 시각 · 민원 기준
+        assertTrue(roles.path("intentDefaults").has("collectionTimeMinutes"), roles.toPrettyString());
+        assertTrue(roles.path("intentDefaults").has("complaintThreshold"));
+        // 가상 블록이라 건물 수 · 세대 수는 자료가 아니라 기본값이다
+        assertTrue(roles.path("dataGaps").has("numBuildings"));
+        assertTrue(roles.path("dataGaps").has("routeAvailableCapacityKg"));
+        assertTrue(roles.path("assumptions").has("travelTimeMode"));
+        for (String g : List.of("intentGiven","intentDefaults","dataFromRegion","dataGaps","assumptions"))
+            roles.path(g).fieldNames().forEachRemaining(k -> assertFalse(k.isBlank()));
+    }
 }

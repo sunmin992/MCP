@@ -16,11 +16,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 2,
-      "sites" : [ "dispatchActive" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "dispatchActive" ],
+      "changedLines" : 2,
+      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 1
       }
@@ -37,11 +37,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 4,
-      "sites" : [ "dispatchActive", "card" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 2,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "dispatchActive", "card" ],
+      "changedLines" : 4,
+      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -50,7 +50,7 @@
     "mode" : "primary",
     "ses" : {
       "editOps" : 2,
-      "changedLines" : 18,
+      "changedLines" : 20,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json" ],
       "inconsistencies" : {
@@ -59,11 +59,11 @@
       }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 4,
-      "sites" : [ "serviceActive", "decisions" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 2,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "serviceActive", "decisions" ],
+      "changedLines" : 4,
+      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 2,
         "flatten" : 216,
@@ -77,17 +77,17 @@
     "mode" : "complete",
     "ses" : {
       "editOps" : 4,
-      "changedLines" : 21,
+      "changedLines" : 23,
       "javaRecompile" : false,
       "files" : [ "jangnyang-ses.json", "task-manifest.json" ],
       "inconsistencies" : { }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 15,
-      "sites" : [ "serviceActive", "decisions", "ranges", "questions", "card", "taskGroups", "flatten" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 7,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "serviceActive", "decisions", "ranges", "questions", "card", "taskGroups", "flatten" ],
+      "changedLines" : 15,
+      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -102,11 +102,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 2,
-      "sites" : [ "zoneActive" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "zoneActive" ],
+      "changedLines" : 2,
+      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -121,11 +121,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 2,
-      "sites" : [ "zoneActive" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "zoneActive" ],
+      "changedLines" : 2,
+      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -140,11 +140,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 2,
-      "sites" : [ "ranges" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 1,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "ranges" ],
+      "changedLines" : 2,
+      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 1
       }
@@ -161,11 +161,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
-      "javaRecompile" : true,
-      "changedLines" : 4,
-      "sites" : [ "ranges", "card" ],
-      "files" : [ "ManualConfigurator(Java)" ],
       "siteCount" : 2,
+      "files" : [ "ManualConfigurator(Java)" ],
+      "sites" : [ "ranges", "card" ],
+      "changedLines" : 4,
+      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   } ]

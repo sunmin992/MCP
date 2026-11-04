@@ -125,7 +125,7 @@ class TemplateCatalogTest {
     private static SubtaskTemplate withCondition(String key, String json) throws Exception {
         return new SubtaskTemplate("t." + key, key, "INTEGER",
                 GenerateCondition.of(new com.fasterxml.jackson.databind.ObjectMapper().readTree(json)),
-                null, null, null, null, 1, null, "?", key, null, null, key, null, null);
+                null, null, null, null, 1, null, "?", key, null, null, key, null, null, null, null);
     }
 
     @Test

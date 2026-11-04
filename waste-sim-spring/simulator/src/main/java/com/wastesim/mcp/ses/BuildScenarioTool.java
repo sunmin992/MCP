@@ -251,6 +251,7 @@ public class BuildScenarioTool implements McpToolProvider {
                     decision.put("sesPath", template.sesPath());
                     decision.put("nodeKind", template.nodeKind());
                     decision.put("configField", template.configField());
+                    decision.put("decisionRole", template.decisionRole());
                     decision.put("selected", instance.status() != com.wastesim.template.SubtaskStatus.NOT_GENERATED);
                     decision.set("input", mapper.valueToTree(instance));
                 }
@@ -264,6 +265,7 @@ public class BuildScenarioTool implements McpToolProvider {
             proof.put("providerResourceDigest", builder.manifest().resourceFingerprint(BuildScenarioTool.class));
             proof.put("ready", ready);
             proof.put("requestId", requestId);
+            proof.set("decisionRoles", roleGroups(pes));
             final Pes validatedPes = pes;
             java.util.function.Supplier<String> fingerprint = () -> builder.validationFingerprint(validatedPes, frame, scenario, purposeSpec)
                     + ":" + com.wastesim.readiness.ValidationReceipt.fingerprint(requirements);
@@ -320,6 +322,7 @@ public class BuildScenarioTool implements McpToolProvider {
                     mapper.valueToTree(scenario.backVerificationBlocks()));
             root.set("branchBlocks", mapper.valueToTree(scenario.branchBlocks()));
             root.set("unapprovedDefaults", mapper.valueToTree(pes.unapprovedDefaults()));
+            root.set("decisionRoles", proof.get("decisionRoles"));
             if (!dropped.isEmpty()) root.set("droppedDefaults", dropped);
             if (args.has("userUtterances")) root.set("guardUnverified", mapper.valueToTree(guardUnverified));
             if (planIdUnknown) root.put("planIdUnknown", true);
@@ -346,5 +349,24 @@ public class BuildScenarioTool implements McpToolProvider {
             rounds.tryAttach(planId, ev);
         }
         return failure;
+    }
+
+    /**
+     * 확정된 값을 결정의 역할로 묶는다. 확인 화면이 "사용자가 정해야 하는데 기본값으로 채운 것"(intentDefaults)을
+     * 따로 보여 주고, 지역 자료가 없어 기본값을 쓴 데이터 결정(dataGaps)과 모델 가정(assumptions)을 구분하게 한다.
+     */
+    private com.fasterxml.jackson.databind.node.ObjectNode roleGroups(Pes pes) {
+        var out = mapper.createObjectNode();
+        for (String g : List.of("intentGiven", "intentDefaults", "dataFromRegion", "dataGaps", "assumptions")) out.putObject(g);
+        pes.values().forEach((key, value) -> catalog.byAnswerKey(key).ifPresent(t -> {
+            String origin = pes.origins().getOrDefault(key, "MODEL_DEFAULT");
+            String group = switch (String.valueOf(t.decisionRole())) {
+                case "INTENT" -> "MODEL_DEFAULT".equals(origin) ? "intentDefaults" : "intentGiven";
+                case "DATA" -> "MODEL_DEFAULT".equals(origin) ? "dataGaps" : "dataFromRegion";
+                default -> "assumptions";
+            };
+            ((com.fasterxml.jackson.databind.node.ObjectNode) out.get(group)).set(key, mapper.valueToTree(value));
+        }));
+        return out;
     }
 }
