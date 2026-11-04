@@ -16,11 +16,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 1,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "dispatchActive" ],
       "changedLines" : 2,
-      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 1
       }
@@ -37,11 +37,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 2,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "dispatchActive", "card" ],
       "changedLines" : 4,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -59,11 +59,11 @@
       }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 2,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "serviceActive", "decisions" ],
       "changedLines" : 4,
-      "javaRecompile" : true,
       "inconsistencies" : {
         "card" : 2,
         "flatten" : 216,
@@ -83,11 +83,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 7,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "serviceActive", "decisions", "ranges", "questions", "card", "taskGroups", "flatten" ],
       "changedLines" : 15,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -102,11 +102,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 1,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "zoneActive" ],
       "changedLines" : 2,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -121,11 +121,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 1,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "zoneActive" ],
       "changedLines" : 2,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   }, {
@@ -140,13 +140,13 @@
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 1,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "ranges" ],
       "changedLines" : 2,
-      "javaRecompile" : true,
       "inconsistencies" : {
-        "card" : 1
+        "card" : 2
       }
     }
   }, {
@@ -161,11 +161,11 @@
       "inconsistencies" : { }
     },
     "manual" : {
+      "javaRecompile" : true,
       "siteCount" : 2,
       "files" : [ "ManualConfigurator(Java)" ],
       "sites" : [ "ranges", "card" ],
       "changedLines" : 4,
-      "javaRecompile" : true,
       "inconsistencies" : { }
     }
   } ]

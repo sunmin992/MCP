@@ -55,7 +55,7 @@ class SesDerivationTest {
 
     @Test
     void 카드_digest_는_원본에서_만든_것과_같다() throws Exception {
-        ObjectNode derived = SesDerivation.withDigest(
+        ObjectNode derived = SesDerivation.derivedCard(
                 (ObjectNode) read("/mcp/jangnyang-capability-card.json"), SesTree.load(SesTree.DEFAULT_RESOURCE));
         if (Boolean.getBoolean("ses.regenerate")) {
             DefaultIndenter lf = new DefaultIndenter("  ", "\n");
@@ -66,6 +66,34 @@ class SesDerivationTest {
         }
         assertEquals(read("/mcp/jangnyang-capability-card.json"), derived,
                 "jangnyang-ses.json 과 카드 sesDigest 가 어긋납니다 — ./mvnw -pl simulator test -Dtest=SesDerivationTest -Dses.regenerate=true 로 다시 만드십시오");
+    }
+
+    /** 브로커가 판정에 쓰는 조건 범위도 SES 에서 온다 — 규칙만 고치면 브로커 판정까지 바뀐다(R3 C4). */
+    @Test
+    void SES_범위를_고치면_브로커_판정이_따라_바뀐다() throws Exception {
+        ObjectNode card = (ObjectNode) read("/mcp/jangnyang-capability-card.json");
+        ObjectNode ses = (ObjectNode) read("/ses/jangnyang-ses.json");
+        JsonNode request = M.readTree("""
+            {"constraints":[{"name":"배차 간격","value":3,"unit":"시간"}]}""");
+        java.util.function.Function<ObjectNode, String> status = c ->
+                com.wastesim.contract.RequirementContract.evaluate(request, c).stream()
+                        .filter(x -> x.field().equals("constraints.dispatchIntervalMinutes")).findFirst().orElseThrow().status();
+        assertEquals("SATISFIED", status.apply(SesDerivation.derivedCard(card, SesTree.parse(ses))));
+        for (JsonNode d : ses.get("decisions"))
+            if (d.path("answerKey").asText().equals("dispatchIntervalMinutes")) ((ObjectNode) d).put("max", 120);
+        ObjectNode changed = SesDerivation.derivedCard(card, SesTree.parse(ses));
+        assertEquals(120, changed.at("/capabilities/constraints/dispatchIntervalMinutes/max").asInt());
+        assertEquals("UNSATISFIED", status.apply(changed), "180분은 새 최대 120분을 넘는다");
+    }
+
+    @Test
+    void 조건_표현이_비면_거절한다() throws Exception {
+        ObjectNode ses = (ObjectNode) read("/ses/jangnyang-ses.json");
+        for (JsonNode d : ses.get("decisions"))
+            if (d.path("answerKey").asText().equals("days")) ((ObjectNode) d).putObject("constraint").putArray("terms");
+        ObjectNode card = (ObjectNode) read("/mcp/jangnyang-capability-card.json");
+        org.junit.jupiter.api.Assertions.assertThrows(IllegalArgumentException.class,
+                () -> SesDerivation.derivedCard(card, SesTree.parse(ses)));
     }
 
     @Test

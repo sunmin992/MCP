@@ -29,6 +29,7 @@ public final class SesDerivation {
                     || d.fields().path("roleBasis").asText().isBlank())
                 throw new IllegalArgumentException("decisionRole(INTENT · DATA · ASSUMPTION)과 roleBasis 가 필요합니다: " + d.sesPath());
             ObjectNode t = d.fields().deepCopy();
+            t.remove("constraint");   // 브로커에 공개할 조건 표현 — 카드로만 간다(derivedCard)
             if (t.has("generateWhen")) t.set("generateWhen", conditions.get(t.path("answerKey").asText()));
             t.put("sesPath", d.sesPath());
             t.put("nodeKind", d.nodeKind());
@@ -78,10 +79,36 @@ public final class SesDerivation {
         return out;
     }
 
-    /** 카드 사본에서 sesDigest 칸만 바꾼다. 키 순서는 그대로. */
-    public static ObjectNode withDigest(ObjectNode card, SesTree ses) {
+    /**
+     * 카드 사본에서 SES 로 만드는 칸만 바꾼다 — sesDigest, 그리고 브로커가 판정에 쓰는 조건 범위
+     * {@code capabilities.constraints} 와 조건 표현 {@code capabilities.terms.constraints}. 키 순서는 그대로.
+     *
+     * <p>조건으로 공개할 결정은 SES 결정의 {@code constraint: {terms: [...]}} 로 고른다. 이름은 설정 필드,
+     * 범위는 결정의 min/max, 단위 · 단위말은 결정의 unit/unitWords 에서 온다. 이 칸을 손으로 적으면 SES 의
+     * 범위를 고쳐도 브로커는 예전 범위로 "맞음" 을 판정한다(R3 C4: 배차 간격 최대 1439 → 120).
+     */
+    public static ObjectNode derivedCard(ObjectNode card, SesTree ses) {
         ObjectNode copy = card.deepCopy();
         copy.set("sesDigest", digest(ses));
+        ObjectNode ranges = JsonNodeFactory.instance.objectNode();
+        ObjectNode terms = JsonNodeFactory.instance.objectNode();
+        for (SesTree.Decision d : ses.decisions()) {
+            ObjectNode f = d.fields();
+            JsonNode c = f.get("constraint");
+            if (c == null) continue;
+            if (!c.path("terms").isArray() || c.path("terms").isEmpty())
+                throw new IllegalArgumentException("constraint.terms 는 비지 않은 배열이어야 합니다: " + d.sesPath());
+            String name = f.path("configField").asText();
+            ObjectNode r = ranges.putObject(name);
+            for (String k : new String[]{"min", "max"}) if (f.hasNonNull(k)) r.set(k, f.get(k));
+            ObjectNode t = terms.putObject(name);
+            t.set("terms", c.get("terms"));
+            if (f.hasNonNull("unit")) t.set("unit", f.get("unit"));
+            if (f.has("unitWords")) t.set("unitWords", f.get("unitWords"));
+        }
+        ObjectNode caps = (ObjectNode) copy.path("capabilities");
+        caps.set("constraints", ranges);
+        ((ObjectNode) caps.path("terms")).set("constraints", terms);
         return copy;
     }
 

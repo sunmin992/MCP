@@ -336,6 +336,13 @@
         ],
         "generateWhenReason": "실제 운행 차량이 1대면 차량 간 시간차가 없어 결과에 영향을 주지 않는다",
         "evidence": "SimulationEngine: slot + k * dispatchIntervalMinutes"
+      },
+      "constraint": {
+        "terms": [
+          "배차 간격",
+          "출발 간격",
+          "배차"
+        ]
       }
     },
     {
@@ -366,6 +373,12 @@
         ],
         "multiValueField": "collectionTimesMinutes",
         "evidence": "tool/SimulationConfigValidator.java"
+      },
+      "constraint": {
+        "terms": [
+          "수거 시각",
+          "수거 시점"
+        ]
       }
     },
     {
@@ -628,7 +641,14 @@
         "동",
         "채",
         "개"
-      ]
+      ],
+      "constraint": {
+        "terms": [
+          "건물 수",
+          "건물",
+          "동 수"
+        ]
+      }
     },
     {
       "at": "건물/거주민집합",
@@ -788,7 +808,14 @@
       "decisionRole": "INTENT",
       "roleBasis": "며칠치를 볼지는 사용자가 알고 싶은 기간이다",
       "configField": "days",
-      "unit": "day"
+      "unit": "day",
+      "constraint": {
+        "terms": [
+          "기간",
+          "일수",
+          "실행 기간"
+        ]
+      }
     },
     {
       "at": "실험프레임/반복",
@@ -808,7 +835,14 @@
       "unitWords": [
         "회",
         "번"
-      ]
+      ],
+      "constraint": {
+        "terms": [
+          "반복",
+          "반복 횟수",
+          "시드"
+        ]
+      }
     },
     {
       "at": "수거차량집합/경로적재몫",
@@ -890,7 +924,15 @@
         ],
         "semantics": "배출 시점에 적재율이 이 값 이상이면 민원"
       },
-      "unit": "ratio"
+      "unit": "ratio",
+      "constraint": {
+        "terms": [
+          "민원 기준",
+          "민원 임계",
+          "적재율 기준",
+          "임계"
+        ]
+      }
     }
   ]
 }

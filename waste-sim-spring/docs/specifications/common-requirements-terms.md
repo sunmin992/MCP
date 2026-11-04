@@ -60,6 +60,13 @@
   아무 데도 맞지 않으면 UNKNOWN(TERM_UNMATCHED). 둘 다 브로커가 해당 후보를 그대로 고르지 않게 한다.
 - `examples`: 카드를 불러올 때와 브로커에 등록할 때(`RequirementContract.validateCard`) 모두 돌린다. 하나라도 어긋나면 서버가 뜨지 않거나 등록이 거부된다.
 
+### SES 가 있는 제공자: 조건 칸은 만든다
+
+장량동 제공자는 브로커가 판정에 쓰는 조건 범위(`capabilities.constraints`)와 조건 표현(`terms.constraints`)을 손으로 적지 않는다.
+SES 결정에 `"constraint": {"terms": [...]}` 를 달면 이름은 설정 필드, 범위는 결정의 min/max, 단위 · 단위말은 결정의 unit/unitWords 에서
+`SesDerivation.derivedCard` 가 만든다. SES 에서 범위를 고치면(예: 배차 간격 최대 1439 → 120분) 시뮬레이터의 범위 거절과 브로커의 match 판정이
+함께 바뀐다. 카드 파일이 SES 와 어긋나면 `SesDerivationTest` 가 실패한다. SES 가 없는 제공자(주차 · 민원 창구 · 구 단위)는 지금처럼 카드에 적는다.
+
 ## 현재 카드
 
 | 제공자 | 결과 표현 | 조건 표현 | 예문 |

@@ -44,7 +44,7 @@ class SesChangeCostExperiment {
         return switch (c) {
             case "C1" -> Map.of("dispatchIntervalMinutes", Map.of("generateWhen", "numBuildings >= 3 && truckCount >= 3"));
             case "C2" -> Map.of("serviceMinutesPerSite", Map.of("generateWhen", "travelTimeMode == ZONE_PROXY_HYBRID", "max", 60));
-            case "C4" -> Map.of("dispatchIntervalMinutes", Map.of("max", 120));
+            case "C4" -> Map.of("dispatchIntervalMinutes", Map.of("max", 120, "brokerMax", 120));
             default -> Map.of();
         };
     }
@@ -62,7 +62,7 @@ class SesChangeCostExperiment {
 
     class SesView implements View {
         final SubtaskPlanner planner; final PesFlattener flattener; final TemplateCatalog catalog;
-        final JsonNode digest; final JsonNode manifest;
+        final JsonNode digest; final JsonNode manifest; final JsonNode brokerRanges;
         SesView(ObjectNode ses, JsonNode manifest, String tag) throws Exception {
             var tree = SesTree.parse(ses);
             Path dir = Path.of(TemplateCatalog.class.getResource("/ses/jangnyang-templates.json").toURI()).getParent();
@@ -71,6 +71,10 @@ class SesChangeCostExperiment {
             planner = new SubtaskPlanner(catalog, new AnswerNormalizer());
             flattener = new PesFlattener(catalog);
             digest = SesDerivation.digest(tree);
+            // 브로커가 판정에 쓰는 조건 범위(capabilities.constraints)도 카드 선언의 일부로 본다.
+            brokerRanges = SesDerivation.derivedCard((ObjectNode) json.readTree(
+                    SesChangeCostExperiment.class.getResourceAsStream("/mcp/jangnyang-capability-card.json")), tree)
+                    .at("/capabilities/constraints");
             this.manifest = manifest;
         }
         SubtaskStatus status(String key, Map<String, Object> v) {
@@ -97,6 +101,7 @@ class SesChangeCostExperiment {
                     Map<String, Object> c = new LinkedHashMap<>();
                     if (p.has("generateWhen")) c.put("generateWhen", p.get("generateWhen").asText());
                     if (p.path("range").has("max")) c.put("max", p.path("range").get("max").asInt());
+                    if (brokerRanges.path(key).has("max")) c.put("brokerMax", brokerRanges.path(key).get("max").asInt());
                     return c;
                 }
             return Map.of();
@@ -122,7 +127,12 @@ class SesChangeCostExperiment {
         }
         public boolean rejectsStale(String key, Map<String, Object> v) { return v.containsKey(key) && Boolean.FALSE.equals(active(key, v)); }
         public boolean rejectsRange(String key, Map<String, Object> v) { return v.containsKey(key) && m.outOfRange(key, v.get(key)); }
-        public Map<String, Object> card(String key) { return m.card().getOrDefault(key, Map.of()); }
+        /** 수기 구성은 카드 선언을 한 함수에서 만든다고 본다 — 브로커 범위도 같은 max 를 쓴다(수기 쪽에 유리한 가정). */
+        public Map<String, Object> card(String key) {
+            Map<String, Object> c = new LinkedHashMap<>(m.card().getOrDefault(key, Map.of()));
+            if (c.containsKey("max")) c.put("brokerMax", c.get("max"));
+            return c;
+        }
         public boolean inTask(String key) { return m.taskGroups().values().stream().anyMatch(l -> l.contains(key)); }
         public Object flattened(String key, Map<String, Object> v) {
             var cfg = new SimulationConfig();
