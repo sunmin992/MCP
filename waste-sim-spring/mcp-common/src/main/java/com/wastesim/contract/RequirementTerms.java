@@ -68,7 +68,10 @@ public final class RequirementTerms {
                             "ASK_USER", required));
                     continue;
                 }
-                fields.put(m.key, convert(c.path("value").asDouble(), unit, spec.path("unit").asText(null)));
+                double v = convert(c.path("value").asDouble(), unit, spec.path("unit").asText(null));
+                // 정수 설정 필드에 그대로 들어가도록 정수 값은 정수로 둔다(1시간 → 60, 60.0 이 아니라).
+                if (v == Math.rint(v) && Math.abs(v) <= Integer.MAX_VALUE) fields.put(m.key, (int) v);
+                else fields.put(m.key, v);
             }
             out.set(group, fields);
         }

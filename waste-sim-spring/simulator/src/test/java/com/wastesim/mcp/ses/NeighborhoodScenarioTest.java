@@ -114,4 +114,15 @@ class NeighborhoodScenarioTest {
         a.put("regionName",""); assertFalse(tool.call(a).ready());
         assertFalse(store.validationCurrent(id));
     }
+
+    @Test void spokenRequirementsAreMappedToThisSimulatorsFields() throws Exception {
+        var a=args("덕명동");
+        a.set("requirements", json.readTree("""
+            {"requiredOutputs":["평균 민원 수"],"constraints":[{"name":"배차 간격","value":1,"unit":"시간"}]}"""));
+        ((ObjectNode)a.get("values")).put("truckCount",2);
+        var out=create(a); assertTrue(out.path("valid").asBoolean(),out.toPrettyString());
+        var cfg=store.entry(out.path("scenarioId").asText()).orElseThrow().scenario().runs().get(0);
+        assertEquals(60,cfg.getDispatchIntervalMinutes());
+        assertTrue(out.path("purposeCheck").path("specification").path("observations").toString().contains("meanComplaints"));
+    }
 }
