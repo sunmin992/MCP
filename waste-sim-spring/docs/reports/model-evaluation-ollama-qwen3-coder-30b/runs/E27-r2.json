@@ -1,0 +1,71 @@
+{
+  "id": "E27",
+  "run": 2,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:40:58.416065+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_337319",
+  "usage": {
+    "input_tokens": 570,
+    "output_tokens": 177,
+    "total_tokens": 747,
+    "input_tokens_details": {
+      "cached_tokens": 569
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "civil-service-counter",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "이탈률"
+    ],
+    "constraints": [
+      {
+        "name": "민원 창구 예약 비율",
+        "value": 30,
+        "unit": "%"
+      }
+    ],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "constraints.민원 창구 예약 비율",
+        "quote": "민원 창구 예약 비율을 30%로 해서"
+      },
+      {
+        "field": "requiredOutputs",
+        "quote": "이탈률을 보여줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "civil-service-counter",
+    "requirements": {
+      "requiredOutputs": [
+        "이탈률"
+      ],
+      "constraints": [
+        {
+          "name": "민원 창구 예약 비율",
+          "value": 30,
+          "unit": "%"
+        }
+      ],
+      "evidence": {
+        "constraints.민원 창구 예약 비율": "민원 창구 예약 비율을 30%로 해서",
+        "requiredOutputs": "이탈률을 보여줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 6.445
+}

@@ -1,0 +1,55 @@
+{
+  "id": "E15",
+  "run": 2,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:39:44.076636+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_112449",
+  "usage": {
+    "input_tokens": 564,
+    "output_tokens": 113,
+    "total_tokens": 677,
+    "input_tokens_details": {
+      "cached_tokens": 563
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "public-parking",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": {
+      "value": 100,
+      "unit": "day"
+    },
+    "timeResolution": null,
+    "requiredOutputs": null,
+    "constraints": [],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "simulationDuration",
+        "quote": "100일 동안 시뮬레이션해줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "public-parking",
+    "requirements": {
+      "simulationDuration": {
+        "value": 100,
+        "unit": "day"
+      },
+      "evidence": {
+        "simulationDuration": "100일 동안 시뮬레이션해줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 5.624
+}

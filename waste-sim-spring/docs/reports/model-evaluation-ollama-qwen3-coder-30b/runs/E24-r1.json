@@ -1,0 +1,72 @@
+{
+  "id": "E24",
+  "run": 1,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:40:37.847260+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_902141",
+  "usage": {
+    "input_tokens": 564,
+    "output_tokens": 163,
+    "total_tokens": 727,
+    "input_tokens_details": {
+      "cached_tokens": 541
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": {
+      "value": 3,
+      "unit": "week"
+    },
+    "timeResolution": null,
+    "requiredOutputs": null,
+    "constraints": [
+      {
+        "name": "반복 횟수",
+        "value": 3,
+        "unit": null
+      }
+    ],
+    "preferences": null,
+    "evidence": [
+      {
+        "field": "simulationDuration",
+        "quote": "3주 동안"
+      },
+      {
+        "field": "constraints.반복 횟수",
+        "quote": "3회 반복해줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "simulationDuration": {
+        "value": 3,
+        "unit": "week"
+      },
+      "constraints": [
+        {
+          "name": "반복 횟수",
+          "value": 3
+        }
+      ],
+      "evidence": {
+        "simulationDuration": "3주 동안",
+        "constraints.반복 횟수": "3회 반복해줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 5.665
+}

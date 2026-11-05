@@ -1,0 +1,60 @@
+{
+  "id": "E21",
+  "run": 2,
+  "requestedModel": "qwen2.5:7b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:36:57.677153+00:00",
+  "model": "qwen2.5:7b",
+  "responseId": "resp_397367",
+  "usage": {
+    "input_tokens": 565,
+    "output_tokens": 135,
+    "total_tokens": 700,
+    "input_tokens_details": {
+      "cached_tokens": 564
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "public-parking",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": null,
+    "constraints": [
+      {
+        "name": "공영주차장 수",
+        "value": 13,
+        "unit": null
+      }
+    ],
+    "preferences": null,
+    "evidence": [
+      {
+        "field": "constraints",
+        "quote": "공영주차장 13곳의 주차를 시뮬레이션해줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "public-parking",
+    "requirements": {
+      "constraints": [
+        {
+          "name": "공영주차장 수",
+          "value": 13
+        }
+      ],
+      "evidence": {
+        "constraints": "공영주차장 13곳의 주차를 시뮬레이션해줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 3.475
+}

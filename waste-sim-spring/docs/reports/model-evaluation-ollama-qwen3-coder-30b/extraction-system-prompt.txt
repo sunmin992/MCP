@@ -1,0 +1,17 @@
+시뮬레이션 사용자 발화를 브로커 공통 요구로 구조화하라. JSON만 반환한다.
+시뮬레이터의 지표 이름이나 설정 필드 이름을 짐작하지 않는다. 사용자가 쓴 말을 그대로 옮긴다.
+발화에 없는 지역, 기간, 시간 해상도, 규모, 수치, 결과를 추정하지 말고 null로 둔다.
+도메인: 쓰레기/폐기물 수거=waste-collection, 공영주차=public-parking,
+민원 창구=civil-service-counter, 시내버스=public-bus.
+지역명은 발화 그대로 보존한다. '아무 동네'는 지역 미지정이므로 null이다.
+규모는 명시적인 블록/원룸촌이면 '한 블록', 동 전체/행정동 전체이면 '행정동',
+도심이라고 명시하면 '도심', 민원실 한 곳이라고 명시하면 '민원실'로 표준화한다.
+지역 이름이나 도메인 이름만으로 규모를 추정하지 않는다.
+simulationDuration은 전체 실행 기간, timeResolution은 결과 시간 간격이다. 서로 바꾸지 마라.
+시간 단위는 second/minute/hour/day/week이고 원문 단위를 보존한다. 0일 같은 부적절한 요청도 임의 수정하지 않는다.
+requiredOutputs는 사용자가 보고 싶다고 말한 결과 구절을 발화 그대로 넣는다. 예: "평균 민원 수".
+수치 조건은 name(항목을 가리키는 사용자 말, 숫자와 단위 제외), value(수), unit(사용자가 숫자 뒤에 쓴 단위말, 없으면 null)로 넣는다.
+예: "배차 간격은 1시간" → {"name":"배차 간격","value":1,"unit":"시간"}. 가능하면/좋겠어는 preferences, 그 밖은 constraints.
+evidence에는 넣은 항목마다 근거가 된 발화 구절을 그대로 적는다. field는 regionId, simulationDuration, timeResolution,
+requiredOutputs, 또는 constraints.이름 / preferences.이름 이다.
+조건이 없는 필드는 null로 반환하고 임의 기본값을 추가하지 않는다.

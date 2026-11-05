@@ -1,0 +1,72 @@
+{
+  "id": "E01",
+  "run": 3,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:38:25.094334+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_418971",
+  "usage": {
+    "input_tokens": 574,
+    "output_tokens": 175,
+    "total_tokens": 749,
+    "input_tokens_details": {
+      "cached_tokens": 541
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": "행정동",
+    "regionId": "덕명동",
+    "simulationDuration": {
+      "value": 2,
+      "unit": "day"
+    },
+    "timeResolution": null,
+    "requiredOutputs": [
+      "평균 민원 수"
+    ],
+    "constraints": [],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "regionId",
+        "quote": "덕명동 쓰레기 수거"
+      },
+      {
+        "field": "simulationDuration",
+        "quote": "이틀 동안 실행"
+      },
+      {
+        "field": "requiredOutputs",
+        "quote": "평균 민원 수를 보여줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "regionId": "덕명동",
+      "simulationDuration": {
+        "value": 2,
+        "unit": "day"
+      },
+      "requiredOutputs": [
+        "평균 민원 수"
+      ],
+      "evidence": {
+        "regionId": "덕명동 쓰레기 수거",
+        "simulationDuration": "이틀 동안 실행",
+        "requiredOutputs": "평균 민원 수를 보여줘"
+      }
+    },
+    "spatialScale": "행정동"
+  },
+  "status": "OK",
+  "seconds": 9.069
+}

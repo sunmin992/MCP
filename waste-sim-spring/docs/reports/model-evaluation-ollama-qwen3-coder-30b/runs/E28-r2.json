@@ -1,0 +1,95 @@
+{
+  "id": "E28",
+  "run": 2,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:41:04.861942+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_497884",
+  "usage": {
+    "input_tokens": 577,
+    "output_tokens": 243,
+    "total_tokens": 820,
+    "input_tokens_details": {
+      "cached_tokens": 576
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "public-bus",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": {
+      "value": 2,
+      "unit": "week"
+    },
+    "timeResolution": {
+      "value": 15,
+      "unit": "minute"
+    },
+    "requiredOutputs": [
+      "평균 대기 시간"
+    ],
+    "constraints": [
+      {
+        "name": "배차 간격",
+        "value": 15,
+        "unit": "minute"
+      }
+    ],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "simulationDuration",
+        "quote": "2주 돌려서"
+      },
+      {
+        "field": "timeResolution",
+        "quote": "배차 간격 15분으로"
+      },
+      {
+        "field": "requiredOutputs",
+        "quote": "평균 대기 시간을 보여줘"
+      },
+      {
+        "field": "constraints",
+        "quote": "배차 간격은 15분"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "public-bus",
+    "requirements": {
+      "simulationDuration": {
+        "value": 2,
+        "unit": "week"
+      },
+      "timeResolution": {
+        "value": 15,
+        "unit": "minute"
+      },
+      "requiredOutputs": [
+        "평균 대기 시간"
+      ],
+      "constraints": [
+        {
+          "name": "배차 간격",
+          "value": 15,
+          "unit": "minute"
+        }
+      ],
+      "evidence": {
+        "simulationDuration": "2주 돌려서",
+        "timeResolution": "배차 간격 15분으로",
+        "requiredOutputs": "평균 대기 시간을 보여줘",
+        "constraints": "배차 간격은 15분"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 8.898
+}

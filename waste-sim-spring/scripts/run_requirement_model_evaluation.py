@@ -63,7 +63,7 @@ def profile(raw):
     return out
 
 
-def infer(case, repeat, model, output):
+def infer(case, repeat, model, output, base_url):
     prompt = {'model': model, 'store': False, 'temperature': 0, 'max_output_tokens': 900,
               'input': [{'role':'system','content':SYSTEM}, {'role':'user','content':case['utterance']}],
               'text': {'format': {'type':'json_schema','name':'request_profile','strict':True,'schema':schema()}}}
@@ -73,9 +73,12 @@ def infer(case, repeat, model, output):
            'promptVersion':'requirements-v2-common', 'promptSha256':hashlib.sha256(SYSTEM.encode()).hexdigest(),
            'startedAt':datetime.now(timezone.utc).isoformat()}
     try:
-        request = urllib.request.Request('https://api.openai.com/v1/responses', data=json.dumps(prompt).encode(),
-                    headers={'Authorization':'Bearer '+os.environ['OPENAI_API_KEY'], 'Content-Type':'application/json'})
-        with urllib.request.urlopen(request,timeout=60) as response:
+        headers = {'Content-Type':'application/json'}
+        if os.environ.get('OPENAI_API_KEY'):
+            headers['Authorization'] = 'Bearer '+os.environ['OPENAI_API_KEY']
+        request = urllib.request.Request(base_url.rstrip('/')+'/responses', data=json.dumps(prompt).encode(), headers=headers)
+        # Local models (Ollama) are much slower than the hosted API.
+        with urllib.request.urlopen(request,timeout=600) as response:
             result = json.load(response)
         text = ''.join(c['text'] for item in result.get('output',[]) if item.get('type')=='message'
                        for c in item.get('content',[]) if c.get('type')=='output_text')
@@ -107,6 +110,8 @@ def main():
     parser.add_argument('--gold',type=Path,default=ROOT/'docs/reports/model-evaluation-2026-11-03/extraction-gold.jsonl')
     parser.add_argument('--output',type=Path,default=ROOT/'docs/reports/model-evaluation-2026-11-03')
     parser.add_argument('--model',default='gpt-4.1-mini')
+    # Ollama: --base-url http://localhost:11434/v1 --model qwen2.5:7b (OpenAI-compatible Responses API)
+    parser.add_argument('--base-url',default='https://api.openai.com/v1')
     parser.add_argument('--repeats',type=int,default=3)
     parser.add_argument('--limit',type=int,default=28)
     args=parser.parse_args()
@@ -117,7 +122,7 @@ def main():
     (args.output/'extraction-system-prompt.txt').write_text(SYSTEM,encoding='utf-8')
     (args.output/'extraction-output-schema.json').write_text(json.dumps(schema(),indent=2)+'\n',encoding='utf-8')
     rows=[]
-    first=infer(cases[0],1,args.model,args.output)
+    first=infer(cases[0],1,args.model,args.output,args.base_url)
     rows.append(first)
     print(first['id'],first['run'],first['status'],flush=True)
     if first['status']!='OK':
@@ -126,7 +131,7 @@ def main():
                           'apiErrorCode':first.get('apiErrorCode')}))
         raise SystemExit(2)
     with ThreadPoolExecutor(max_workers=3) as executor:
-        futures=[executor.submit(infer,c,r,args.model,args.output) for c in cases for r in range(1,args.repeats+1)
+        futures=[executor.submit(infer,c,r,args.model,args.output,args.base_url) for c in cases for r in range(1,args.repeats+1)
                  if not (c['id']==cases[0]['id'] and r==1)]
         for future in as_completed(futures):
             row=future.result(); rows.append(row)

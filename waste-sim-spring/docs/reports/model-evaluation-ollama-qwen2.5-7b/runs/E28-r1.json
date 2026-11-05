@@ -1,0 +1,85 @@
+{
+  "id": "E28",
+  "run": 1,
+  "requestedModel": "qwen2.5:7b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:37:20.751555+00:00",
+  "model": "qwen2.5:7b",
+  "responseId": "resp_478052",
+  "usage": {
+    "input_tokens": 577,
+    "output_tokens": 159,
+    "total_tokens": 736,
+    "input_tokens_details": {
+      "cached_tokens": 541
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "시내버스",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": {
+      "value": 14,
+      "unit": "week"
+    },
+    "timeResolution": {
+      "value": 15,
+      "unit": "minute"
+    },
+    "requiredOutputs": [
+      "평균 대기 시간"
+    ],
+    "constraints": [
+      {
+        "name": "배차 간격",
+        "value": 15,
+        "unit": "분"
+      }
+    ],
+    "preferences": null,
+    "evidence": [
+      {
+        "field": "requiredOutputs",
+        "quote": "평균 대기 시간"
+      },
+      {
+        "field": "constraints",
+        "quote": "배차 간격은 15분"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "시내버스",
+    "requirements": {
+      "simulationDuration": {
+        "value": 14,
+        "unit": "week"
+      },
+      "timeResolution": {
+        "value": 15,
+        "unit": "minute"
+      },
+      "requiredOutputs": [
+        "평균 대기 시간"
+      ],
+      "constraints": [
+        {
+          "name": "배차 간격",
+          "value": 15,
+          "unit": "분"
+        }
+      ],
+      "evidence": {
+        "requiredOutputs": "평균 대기 시간",
+        "constraints": "배차 간격은 15분"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 4.252
+}

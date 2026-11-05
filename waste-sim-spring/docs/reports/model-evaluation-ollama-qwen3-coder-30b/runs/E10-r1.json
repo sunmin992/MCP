@@ -1,0 +1,72 @@
+{
+  "id": "E10",
+  "run": 1,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:39:11.755859+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_982854",
+  "usage": {
+    "input_tokens": 569,
+    "output_tokens": 167,
+    "total_tokens": 736,
+    "input_tokens_details": {
+      "cached_tokens": 545
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": "한 블록",
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "쓰레기 수거"
+    ],
+    "constraints": [
+      {
+        "name": "건물 개수",
+        "value": 27,
+        "unit": "개"
+      }
+    ],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "spatialScale",
+        "quote": "블록의 쓰레기 수거"
+      },
+      {
+        "field": "constraints.0.name",
+        "quote": "건물 27개인"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "requiredOutputs": [
+        "쓰레기 수거"
+      ],
+      "constraints": [
+        {
+          "name": "건물 개수",
+          "value": 27,
+          "unit": "개"
+        }
+      ],
+      "evidence": {
+        "spatialScale": "블록의 쓰레기 수거",
+        "constraints.0.name": "건물 27개인"
+      }
+    },
+    "spatialScale": "한 블록"
+  },
+  "status": "OK",
+  "seconds": 6.879
+}

@@ -1,0 +1,53 @@
+{
+  "id": "E13",
+  "run": 2,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:39:33.093598+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_113743",
+  "usage": {
+    "input_tokens": 565,
+    "output_tokens": 114,
+    "total_tokens": 679,
+    "input_tokens_details": {
+      "cached_tokens": 564
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "남은 폐기물량"
+    ],
+    "constraints": [],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "requiredOutputs",
+        "quote": "쓰레기 수거일당 남은 폐기물량을 알고 싶어"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "requiredOutputs": [
+        "남은 폐기물량"
+      ],
+      "evidence": {
+        "requiredOutputs": "쓰레기 수거일당 남은 폐기물량을 알고 싶어"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 4.625
+}

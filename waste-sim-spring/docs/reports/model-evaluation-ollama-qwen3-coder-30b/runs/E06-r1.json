@@ -1,0 +1,59 @@
+{
+  "id": "E06",
+  "run": 1,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:38:49.244903+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_860485",
+  "usage": {
+    "input_tokens": 563,
+    "output_tokens": 122,
+    "total_tokens": 685,
+    "input_tokens_details": {
+      "cached_tokens": 541
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": null,
+    "regionId": "덕명동",
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "쓰레기 수거"
+    ],
+    "constraints": [],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "regionId",
+        "quote": "덕명동"
+      },
+      {
+        "field": "requiredOutputs",
+        "quote": "쓰레기 수거"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "regionId": "덕명동",
+      "requiredOutputs": [
+        "쓰레기 수거"
+      ],
+      "evidence": {
+        "regionId": "덕명동",
+        "requiredOutputs": "쓰레기 수거"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 6.652
+}

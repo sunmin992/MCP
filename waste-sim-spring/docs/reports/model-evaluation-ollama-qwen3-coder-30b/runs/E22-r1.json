@@ -1,0 +1,53 @@
+{
+  "id": "E22",
+  "run": 1,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:40:26.638671+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_240481",
+  "usage": {
+    "input_tokens": 565,
+    "output_tokens": 123,
+    "total_tokens": 688,
+    "input_tokens_details": {
+      "cached_tokens": 541
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "civil-service-counter",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "민원 창구를 4개로 운영하는 시뮬레이션"
+    ],
+    "constraints": [],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "requiredOutputs",
+        "quote": "민원 창구를 4개로 운영하는 시뮬레이션을 해줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "civil-service-counter",
+    "requirements": {
+      "requiredOutputs": [
+        "민원 창구를 4개로 운영하는 시뮬레이션"
+      ],
+      "evidence": {
+        "requiredOutputs": "민원 창구를 4개로 운영하는 시뮬레이션을 해줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 5.817
+}

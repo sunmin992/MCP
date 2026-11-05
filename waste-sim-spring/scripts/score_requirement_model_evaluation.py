@@ -1,10 +1,13 @@
 """Score gold rule matching separately from actual model extraction and end-to-end selection."""
 import json
+import sys
 from pathlib import Path
 from demo_requirement_flow import tool
 
 ROOT=Path(__file__).resolve().parents[1]
-OUT=ROOT/'docs/reports/model-evaluation-2026-11-03'
+GOLD=ROOT/'docs/reports/model-evaluation-2026-11-03/extraction-gold.jsonl'
+# 다른 모델(예: Ollama) 결과 폴더를 인자로 받는다. 기본은 gpt-4.1-mini 평가 폴더.
+OUT=Path(sys.argv[1]) if len(sys.argv)>1 else GOLD.parent
 
 
 def candidates(reply):
@@ -114,7 +117,7 @@ def model_metrics(gold,predictions,broker):
 
 
 def main():
-    cases=[json.loads(line) for line in (OUT/'extraction-gold.jsonl').read_text(encoding='utf-8').splitlines() if line.strip()]
+    cases=[json.loads(line) for line in GOLD.read_text(encoding='utf-8').splitlines() if line.strip()]
     gold={c['id']:c for c in cases}
     oracle=[]
     for case in cases:

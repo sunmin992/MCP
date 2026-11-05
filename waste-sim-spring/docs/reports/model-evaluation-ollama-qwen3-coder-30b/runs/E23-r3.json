@@ -1,0 +1,58 @@
+{
+  "id": "E23",
+  "run": 3,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:40:36.009354+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_90163",
+  "usage": {
+    "input_tokens": 559,
+    "output_tokens": 130,
+    "total_tokens": 689,
+    "input_tokens_details": {
+      "cached_tokens": 558
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "public-bus",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "시내버스 운행"
+    ],
+    "constraints": [],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "domain",
+        "quote": "시내버스 운행 시뮬레이션을 해줘"
+      },
+      {
+        "field": "requiredOutputs",
+        "quote": "시내버스 운행"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "public-bus",
+    "requirements": {
+      "requiredOutputs": [
+        "시내버스 운행"
+      ],
+      "evidence": {
+        "domain": "시내버스 운행 시뮬레이션을 해줘",
+        "requiredOutputs": "시내버스 운행"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 5.263
+}

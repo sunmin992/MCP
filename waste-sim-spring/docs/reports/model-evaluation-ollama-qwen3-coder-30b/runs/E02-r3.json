@@ -1,0 +1,58 @@
+{
+  "id": "E02",
+  "run": 3,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:38:31.735149+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_642",
+  "usage": {
+    "input_tokens": 564,
+    "output_tokens": 127,
+    "total_tokens": 691,
+    "input_tokens_details": {
+      "cached_tokens": 563
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "쓰레기 수거"
+    ],
+    "constraints": [],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "regionId",
+        "quote": "아무 동네"
+      },
+      {
+        "field": "requiredOutputs",
+        "quote": "쓰레기 수거 시뮬레이션을 해줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "requiredOutputs": [
+        "쓰레기 수거"
+      ],
+      "evidence": {
+        "regionId": "아무 동네",
+        "requiredOutputs": "쓰레기 수거 시뮬레이션을 해줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 5.899
+}

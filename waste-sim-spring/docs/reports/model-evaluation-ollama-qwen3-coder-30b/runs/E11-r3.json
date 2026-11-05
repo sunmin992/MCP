@@ -1,0 +1,73 @@
+{
+  "id": "E11",
+  "run": 3,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:39:23.223677+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_611693",
+  "usage": {
+    "input_tokens": 560,
+    "output_tokens": 167,
+    "total_tokens": 727,
+    "input_tokens_details": {
+      "cached_tokens": 559
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": {
+      "value": 0,
+      "unit": "day"
+    },
+    "timeResolution": null,
+    "requiredOutputs": null,
+    "constraints": [
+      {
+        "name": "실행 기간",
+        "value": 0,
+        "unit": "일"
+      }
+    ],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "simulationDuration",
+        "quote": "0일 동안 실행해줘"
+      },
+      {
+        "field": "constraints.실행 기간",
+        "quote": "0일 동안 실행해줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "simulationDuration": {
+        "value": 0,
+        "unit": "day"
+      },
+      "constraints": [
+        {
+          "name": "실행 기간",
+          "value": 0,
+          "unit": "일"
+        }
+      ],
+      "evidence": {
+        "simulationDuration": "0일 동안 실행해줘",
+        "constraints.실행 기간": "0일 동안 실행해줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 6.858
+}

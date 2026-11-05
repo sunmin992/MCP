@@ -1,0 +1,55 @@
+{
+  "id": "E17",
+  "run": 1,
+  "requestedModel": "qwen2.5:7b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:36:42.990845+00:00",
+  "model": "qwen2.5:7b",
+  "responseId": "resp_473787",
+  "usage": {
+    "input_tokens": 564,
+    "output_tokens": 111,
+    "total_tokens": 675,
+    "input_tokens_details": {
+      "cached_tokens": 547
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "civil-service-counter",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": {
+      "value": 61,
+      "unit": "day"
+    },
+    "timeResolution": null,
+    "requiredOutputs": null,
+    "constraints": null,
+    "preferences": null,
+    "evidence": [
+      {
+        "field": "simulationDuration",
+        "quote": "민원 창구를 61일 동안 시뮬레이션해줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "civil-service-counter",
+    "requirements": {
+      "simulationDuration": {
+        "value": 61,
+        "unit": "day"
+      },
+      "evidence": {
+        "simulationDuration": "민원 창구를 61일 동안 시뮬레이션해줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 3.602
+}

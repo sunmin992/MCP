@@ -1,0 +1,60 @@
+{
+  "id": "E19",
+  "run": 3,
+  "requestedModel": "qwen2.5:7b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:36:52.016469+00:00",
+  "model": "qwen2.5:7b",
+  "responseId": "resp_562453",
+  "usage": {
+    "input_tokens": 566,
+    "output_tokens": 124,
+    "total_tokens": 690,
+    "input_tokens_details": {
+      "cached_tokens": 565
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "waste-collection",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": null,
+    "constraints": [
+      {
+        "name": "반복 횟수",
+        "value": 101,
+        "unit": null
+      }
+    ],
+    "preferences": null,
+    "evidence": [
+      {
+        "field": "constraints.name",
+        "quote": "101회 반복"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "waste-collection",
+    "requirements": {
+      "constraints": [
+        {
+          "name": "반복 횟수",
+          "value": 101
+        }
+      ],
+      "evidence": {
+        "constraints.name": "101회 반복"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 3.386
+}

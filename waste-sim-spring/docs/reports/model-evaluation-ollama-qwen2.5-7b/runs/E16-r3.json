@@ -1,0 +1,77 @@
+{
+  "id": "E16",
+  "run": 3,
+  "requestedModel": "qwen2.5:7b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:36:41.605945+00:00",
+  "model": "qwen2.5:7b",
+  "responseId": "resp_59414",
+  "usage": {
+    "input_tokens": 572,
+    "output_tokens": 156,
+    "total_tokens": 728,
+    "input_tokens_details": {
+      "cached_tokens": 571
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "civil-service-counter",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": {
+      "value": 7,
+      "unit": "day"
+    },
+    "timeResolution": {
+      "value": 1,
+      "unit": "day"
+    },
+    "requiredOutputs": [
+      "평균 대기 시간"
+    ],
+    "constraints": null,
+    "preferences": null,
+    "evidence": [
+      {
+        "field": "regionId",
+        "quote": "민원 창구"
+      },
+      {
+        "field": "simulationDuration",
+        "quote": "일주일 동안 시뮬레이션하고"
+      },
+      {
+        "field": "requiredOutputs",
+        "quote": "평균 대기 시간을 보여줘"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "civil-service-counter",
+    "requirements": {
+      "simulationDuration": {
+        "value": 7,
+        "unit": "day"
+      },
+      "timeResolution": {
+        "value": 1,
+        "unit": "day"
+      },
+      "requiredOutputs": [
+        "평균 대기 시간"
+      ],
+      "evidence": {
+        "regionId": "민원 창구",
+        "simulationDuration": "일주일 동안 시뮬레이션하고",
+        "requiredOutputs": "평균 대기 시간을 보여줘"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 3.997
+}

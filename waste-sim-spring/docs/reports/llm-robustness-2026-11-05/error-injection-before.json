@@ -1,0 +1,1552 @@
+{
+  "baseCases": 17,
+  "injections": 63,
+  "totals": {
+    "CAUGHT_EVIDENCE": 30,
+    "CAUGHT_NO_CANDIDATE": 5,
+    "MISSED_OTHER_CANDIDATES": 5,
+    "HARMLESS": 11,
+    "MISSED_CONFIG": 4,
+    "MISSED_ACCEPTED": 4,
+    "BUILD_NOT_CHECKED": 4
+  },
+  "byError": {
+    "unit_swap": {
+      "CAUGHT_EVIDENCE": 8
+    },
+    "value_shift": {
+      "CAUGHT_EVIDENCE": 14
+    },
+    "duration_to_resolution": {
+      "CAUGHT_NO_CANDIDATE": 5,
+      "CAUGHT_EVIDENCE": 1,
+      "HARMLESS": 2
+    },
+    "invent_output": {
+      "MISSED_OTHER_CANDIDATES": 3,
+      "HARMLESS": 6,
+      "CAUGHT_EVIDENCE": 1
+    },
+    "demote_constraint": {
+      "MISSED_CONFIG": 2,
+      "MISSED_ACCEPTED": 2,
+      "MISSED_OTHER_CANDIDATES": 1,
+      "BUILD_NOT_CHECKED": 1
+    },
+    "invent_duration": {
+      "CAUGHT_EVIDENCE": 6,
+      "MISSED_CONFIG": 1,
+      "HARMLESS": 2
+    },
+    "drop_output": {
+      "MISSED_OTHER_CANDIDATES": 1,
+      "MISSED_ACCEPTED": 2,
+      "BUILD_NOT_CHECKED": 3,
+      "HARMLESS": 1
+    },
+    "promote_preference": {
+      "MISSED_CONFIG": 1
+    }
+  },
+  "runs": [
+    {
+      "id": "E03",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 2주 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 2,
+          "unit": "day"
+        },
+        "evidence": {
+          "simulationDuration": "2주 동안 실행해줘"
+        }
+      }
+    },
+    {
+      "id": "E03",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 2주 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 3,
+          "unit": "week"
+        },
+        "evidence": {
+          "simulationDuration": "2주 동안 실행해줘"
+        }
+      }
+    },
+    {
+      "id": "E03",
+      "error": "duration_to_resolution",
+      "outcome": "CAUGHT_NO_CANDIDATE",
+      "utterance": "쓰레기 수거를 2주 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [],
+      "injected": {
+        "evidence": {
+          "timeResolution": "2주 동안 실행해줘"
+        },
+        "timeResolution": {
+          "value": 2,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E03",
+      "error": "invent_output",
+      "outcome": "MISSED_OTHER_CANDIDATES",
+      "utterance": "쓰레기 수거를 2주 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "simulationDuration": {
+          "value": 2,
+          "unit": "week"
+        },
+        "evidence": {
+          "simulationDuration": "2주 동안 실행해줘",
+          "requiredOutputs": "쓰레기 수거를 2주 동안 실행해줘"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ]
+      }
+    },
+    {
+      "id": "E04",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 사흘 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 3,
+          "unit": "week"
+        },
+        "evidence": {
+          "simulationDuration": "사흘 동안 실행해줘"
+        }
+      }
+    },
+    {
+      "id": "E04",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 사흘 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 4,
+          "unit": "day"
+        },
+        "evidence": {
+          "simulationDuration": "사흘 동안 실행해줘"
+        }
+      }
+    },
+    {
+      "id": "E04",
+      "error": "duration_to_resolution",
+      "outcome": "CAUGHT_NO_CANDIDATE",
+      "utterance": "쓰레기 수거를 사흘 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [],
+      "injected": {
+        "evidence": {
+          "timeResolution": "사흘 동안 실행해줘"
+        },
+        "timeResolution": {
+          "value": 3,
+          "unit": "day"
+        }
+      }
+    },
+    {
+      "id": "E04",
+      "error": "invent_output",
+      "outcome": "HARMLESS",
+      "utterance": "쓰레기 수거를 사흘 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "simulationDuration": {
+          "value": 3,
+          "unit": "day"
+        },
+        "evidence": {
+          "simulationDuration": "사흘 동안 실행해줘",
+          "requiredOutputs": "쓰레기 수거를 사흘 동안 실행해줘"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ]
+      }
+    },
+    {
+      "id": "E09",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "건물 26개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "constraints": [
+          {
+            "name": "건물 수",
+            "value": 27,
+            "unit": "개"
+          }
+        ],
+        "evidence": {
+          "constraints.건물 수": "건물 26개인 블록"
+        }
+      }
+    },
+    {
+      "id": "E09",
+      "error": "demote_constraint",
+      "outcome": "MISSED_CONFIG",
+      "utterance": "건물 26개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "evidence": {
+          "preferences.건물 수": "건물 26개인 블록"
+        },
+        "preferences": [
+          {
+            "name": "건물 수",
+            "value": 26,
+            "unit": "개"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E09",
+      "error": "invent_output",
+      "outcome": "HARMLESS",
+      "utterance": "건물 26개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "constraints": [
+          {
+            "name": "건물 수",
+            "value": 26,
+            "unit": "개"
+          }
+        ],
+        "evidence": {
+          "constraints.건물 수": "건물 26개인 블록",
+          "requiredOutputs": "건물 26개인 블록의 쓰레기 수거를 실행해줘"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ]
+      }
+    },
+    {
+      "id": "E09",
+      "error": "invent_duration",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "건물 26개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "constraints": [
+          {
+            "name": "건물 수",
+            "value": 26,
+            "unit": "개"
+          }
+        ],
+        "evidence": {
+          "constraints.건물 수": "건물 26개인 블록",
+          "simulationDuration": "건물 26개인 블록의 쓰레기 수거를 실행해줘"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E10",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "건물 27개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "constraints": [
+          {
+            "name": "건물 수",
+            "value": 28,
+            "unit": "개"
+          }
+        ],
+        "evidence": {
+          "spatialScale": "블록의 쓰레기 수거를 실행해줘",
+          "constraints.건물 수": "건물 27개인 블록"
+        }
+      }
+    },
+    {
+      "id": "E10",
+      "error": "demote_constraint",
+      "outcome": "MISSED_ACCEPTED",
+      "utterance": "건물 27개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "evidence": {
+          "spatialScale": "블록의 쓰레기 수거를 실행해줘",
+          "preferences.건물 수": "건물 27개인 블록"
+        },
+        "preferences": [
+          {
+            "name": "건물 수",
+            "value": 27,
+            "unit": "개"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E10",
+      "error": "invent_output",
+      "outcome": "HARMLESS",
+      "utterance": "건물 27개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "constraints": [
+          {
+            "name": "건물 수",
+            "value": 27,
+            "unit": "개"
+          }
+        ],
+        "evidence": {
+          "spatialScale": "블록의 쓰레기 수거를 실행해줘",
+          "constraints.건물 수": "건물 27개인 블록",
+          "requiredOutputs": "건물 27개인 블록의 쓰레기 수거를 실행해줘"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ]
+      }
+    },
+    {
+      "id": "E10",
+      "error": "invent_duration",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "건물 27개인 블록의 쓰레기 수거를 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "constraints": [
+          {
+            "name": "건물 수",
+            "value": 27,
+            "unit": "개"
+          }
+        ],
+        "evidence": {
+          "spatialScale": "블록의 쓰레기 수거를 실행해줘",
+          "constraints.건물 수": "건물 27개인 블록",
+          "simulationDuration": "건물 27개인 블록의 쓰레기 수거를 실행해줘"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E11",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 0일 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen2.5-7b",
+      "baseCandidates": null,
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 0,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E11",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 0일 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen2.5-7b",
+      "baseCandidates": null,
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 1,
+          "unit": "day"
+        }
+      }
+    },
+    {
+      "id": "E11",
+      "error": "duration_to_resolution",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 0일 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen2.5-7b",
+      "baseCandidates": null,
+      "candidates": null,
+      "injected": {
+        "timeResolution": {
+          "value": 0,
+          "unit": "day"
+        },
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E11",
+      "error": "invent_output",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 0일 동안 실행해줘",
+      "baseSource": "model-evaluation-ollama-qwen2.5-7b",
+      "baseCandidates": null,
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 0,
+          "unit": "day"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ],
+        "evidence": {
+          "requiredOutputs": "쓰레기 수거를 0일 동안 실행해줘"
+        }
+      }
+    },
+    {
+      "id": "E12",
+      "error": "drop_output",
+      "outcome": "MISSED_OTHER_CANDIDATES",
+      "utterance": "쓰레기 수거의 평균 운행 소요 시간을 보고 싶어",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E12",
+      "error": "invent_duration",
+      "outcome": "MISSED_CONFIG",
+      "utterance": "쓰레기 수거의 평균 운행 소요 시간을 보고 싶어",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "requiredOutputs": [
+          "평균 운행 소요 시간"
+        ],
+        "evidence": {
+          "requiredOutputs": "평균 운행 소요 시간을 보고 싶어",
+          "simulationDuration": "쓰레기 수거의 평균 운행 소요 시간을 보고 싶어"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E13",
+      "error": "drop_output",
+      "outcome": "MISSED_ACCEPTED",
+      "utterance": "쓰레기 수거일당 남은 폐기물량을 알고 싶어",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E13",
+      "error": "invent_duration",
+      "outcome": "HARMLESS",
+      "utterance": "쓰레기 수거일당 남은 폐기물량을 알고 싶어",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "requiredOutputs": [
+          "남은 폐기물량"
+        ],
+        "evidence": {
+          "requiredOutputs": "남은 폐기물량을 알고 싶어",
+          "simulationDuration": "쓰레기 수거일당 남은 폐기물량을 알고 싶어"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E14",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "도심 공영주차장을 열흘 동안 시뮬레이션하고 평균 주차 탐색 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-parking-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 10,
+          "unit": "week"
+        },
+        "requiredOutputs": [
+          "평균 주차 탐색 시간"
+        ],
+        "evidence": {
+          "spatialScale": "도심 공영주차장을",
+          "simulationDuration": "열흘 동안 시뮬레이션하고",
+          "requiredOutputs": "평균 주차 탐색 시간을 보여줘"
+        }
+      }
+    },
+    {
+      "id": "E14",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "도심 공영주차장을 열흘 동안 시뮬레이션하고 평균 주차 탐색 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-parking-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 11,
+          "unit": "day"
+        },
+        "requiredOutputs": [
+          "평균 주차 탐색 시간"
+        ],
+        "evidence": {
+          "spatialScale": "도심 공영주차장을",
+          "simulationDuration": "열흘 동안 시뮬레이션하고",
+          "requiredOutputs": "평균 주차 탐색 시간을 보여줘"
+        }
+      }
+    },
+    {
+      "id": "E14",
+      "error": "duration_to_resolution",
+      "outcome": "CAUGHT_NO_CANDIDATE",
+      "utterance": "도심 공영주차장을 열흘 동안 시뮬레이션하고 평균 주차 탐색 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-parking-sim"
+      ],
+      "candidates": [],
+      "injected": {
+        "requiredOutputs": [
+          "평균 주차 탐색 시간"
+        ],
+        "evidence": {
+          "spatialScale": "도심 공영주차장을",
+          "requiredOutputs": "평균 주차 탐색 시간을 보여줘",
+          "timeResolution": "열흘 동안 시뮬레이션하고"
+        },
+        "timeResolution": {
+          "value": 10,
+          "unit": "day"
+        }
+      }
+    },
+    {
+      "id": "E14",
+      "error": "drop_output",
+      "outcome": "BUILD_NOT_CHECKED",
+      "utterance": "도심 공영주차장을 열흘 동안 시뮬레이션하고 평균 주차 탐색 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-parking-sim"
+      ],
+      "candidates": [
+        "pohang-parking-sim"
+      ],
+      "injected": {
+        "simulationDuration": {
+          "value": 10,
+          "unit": "day"
+        },
+        "evidence": {
+          "spatialScale": "도심 공영주차장을",
+          "simulationDuration": "열흘 동안 시뮬레이션하고"
+        }
+      }
+    },
+    {
+      "id": "E15",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "공영주차장을 100일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 100,
+          "unit": "week"
+        },
+        "evidence": {
+          "simulationDuration": "100일 동안 시뮬레이션해줘"
+        }
+      }
+    },
+    {
+      "id": "E15",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "공영주차장을 100일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 101,
+          "unit": "day"
+        },
+        "evidence": {
+          "simulationDuration": "100일 동안 시뮬레이션해줘"
+        }
+      }
+    },
+    {
+      "id": "E15",
+      "error": "duration_to_resolution",
+      "outcome": "HARMLESS",
+      "utterance": "공영주차장을 100일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "evidence": {
+          "timeResolution": "100일 동안 시뮬레이션해줘"
+        },
+        "timeResolution": {
+          "value": 100,
+          "unit": "day"
+        }
+      }
+    },
+    {
+      "id": "E15",
+      "error": "invent_output",
+      "outcome": "HARMLESS",
+      "utterance": "공영주차장을 100일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "simulationDuration": {
+          "value": 100,
+          "unit": "day"
+        },
+        "evidence": {
+          "simulationDuration": "100일 동안 시뮬레이션해줘",
+          "requiredOutputs": "공영주차장을 100일 동안 시뮬레이션해줘"
+        },
+        "requiredOutputs": [
+          "평균 주차 탐색 시간"
+        ]
+      }
+    },
+    {
+      "id": "E16",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "민원 창구를 일주일 동안 시뮬레이션하고 평균 대기 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 1,
+          "unit": "day"
+        },
+        "requiredOutputs": [
+          "평균 대기 시간"
+        ],
+        "evidence": {
+          "domain": "민원 창구",
+          "simulationDuration": "일주일 동안",
+          "requiredOutputs": "평균 대기 시간을 보여줘"
+        }
+      }
+    },
+    {
+      "id": "E16",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "민원 창구를 일주일 동안 시뮬레이션하고 평균 대기 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 2,
+          "unit": "week"
+        },
+        "requiredOutputs": [
+          "평균 대기 시간"
+        ],
+        "evidence": {
+          "domain": "민원 창구",
+          "simulationDuration": "일주일 동안",
+          "requiredOutputs": "평균 대기 시간을 보여줘"
+        }
+      }
+    },
+    {
+      "id": "E16",
+      "error": "duration_to_resolution",
+      "outcome": "CAUGHT_NO_CANDIDATE",
+      "utterance": "민원 창구를 일주일 동안 시뮬레이션하고 평균 대기 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": [],
+      "injected": {
+        "requiredOutputs": [
+          "평균 대기 시간"
+        ],
+        "evidence": {
+          "domain": "민원 창구",
+          "requiredOutputs": "평균 대기 시간을 보여줘",
+          "timeResolution": "일주일 동안"
+        },
+        "timeResolution": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E16",
+      "error": "drop_output",
+      "outcome": "BUILD_NOT_CHECKED",
+      "utterance": "민원 창구를 일주일 동안 시뮬레이션하고 평균 대기 시간을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": [
+        "pohang-counter-sim"
+      ],
+      "injected": {
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        },
+        "evidence": {
+          "domain": "민원 창구",
+          "simulationDuration": "일주일 동안"
+        }
+      }
+    },
+    {
+      "id": "E17",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "민원 창구를 61일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 61,
+          "unit": "week"
+        },
+        "evidence": {
+          "simulationDuration": "민원 창구를 61일 동안 시뮬레이션해줘"
+        }
+      }
+    },
+    {
+      "id": "E17",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "민원 창구를 61일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 62,
+          "unit": "day"
+        },
+        "evidence": {
+          "simulationDuration": "민원 창구를 61일 동안 시뮬레이션해줘"
+        }
+      }
+    },
+    {
+      "id": "E17",
+      "error": "duration_to_resolution",
+      "outcome": "HARMLESS",
+      "utterance": "민원 창구를 61일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "evidence": {
+          "timeResolution": "민원 창구를 61일 동안 시뮬레이션해줘"
+        },
+        "timeResolution": {
+          "value": 61,
+          "unit": "day"
+        }
+      }
+    },
+    {
+      "id": "E17",
+      "error": "invent_output",
+      "outcome": "HARMLESS",
+      "utterance": "민원 창구를 61일 동안 시뮬레이션해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "simulationDuration": {
+          "value": 61,
+          "unit": "day"
+        },
+        "evidence": {
+          "simulationDuration": "민원 창구를 61일 동안 시뮬레이션해줘",
+          "requiredOutputs": "민원 창구를 61일 동안 시뮬레이션해줘"
+        },
+        "requiredOutputs": [
+          "평균 대기 시간"
+        ]
+      }
+    },
+    {
+      "id": "E18",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거 시뮬레이션은 가능하면 10회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "preferences": [
+          {
+            "name": "반복 횟수",
+            "value": 11,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "preferences.반복 횟수": "가능하면 10회 반복해줘"
+        }
+      }
+    },
+    {
+      "id": "E18",
+      "error": "promote_preference",
+      "outcome": "MISSED_CONFIG",
+      "utterance": "쓰레기 수거 시뮬레이션은 가능하면 10회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "evidence": {
+          "constraints.반복 횟수": "가능하면 10회 반복해줘"
+        },
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 10,
+            "unit": "회"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E18",
+      "error": "invent_output",
+      "outcome": "MISSED_OTHER_CANDIDATES",
+      "utterance": "쓰레기 수거 시뮬레이션은 가능하면 10회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "preferences": [
+          {
+            "name": "반복 횟수",
+            "value": 10,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "preferences.반복 횟수": "가능하면 10회 반복해줘",
+          "requiredOutputs": "쓰레기 수거 시뮬레이션은 가능하면 10회 반복해줘"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ]
+      }
+    },
+    {
+      "id": "E18",
+      "error": "invent_duration",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거 시뮬레이션은 가능하면 10회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "preferences": [
+          {
+            "name": "반복 횟수",
+            "value": 10,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "preferences.반복 횟수": "가능하면 10회 반복해줘",
+          "simulationDuration": "쓰레기 수거 시뮬레이션은 가능하면 10회 반복해줘"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E19",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 102,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "constraints.반복 횟수": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘"
+        }
+      }
+    },
+    {
+      "id": "E19",
+      "error": "demote_constraint",
+      "outcome": "MISSED_ACCEPTED",
+      "utterance": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "evidence": {
+          "preferences.반복 횟수": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘"
+        },
+        "preferences": [
+          {
+            "name": "반복 횟수",
+            "value": 101,
+            "unit": "회"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E19",
+      "error": "invent_output",
+      "outcome": "HARMLESS",
+      "utterance": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 101,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "constraints.반복 횟수": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘",
+          "requiredOutputs": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ]
+      }
+    },
+    {
+      "id": "E19",
+      "error": "invent_duration",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": null,
+      "injected": {
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 101,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "constraints.반복 횟수": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘",
+          "simulationDuration": "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E24",
+      "error": "unit_swap",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 3주 동안 3회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 3,
+          "unit": "day"
+        },
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 3,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "simulationDuration": "3주 동안",
+          "constraints.반복 횟수": "3회 반복해줘"
+        }
+      }
+    },
+    {
+      "id": "E24",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 3주 동안 3회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "simulationDuration": {
+          "value": 4,
+          "unit": "week"
+        },
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 3,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "simulationDuration": "3주 동안",
+          "constraints.반복 횟수": "3회 반복해줘"
+        }
+      }
+    },
+    {
+      "id": "E24",
+      "error": "duration_to_resolution",
+      "outcome": "CAUGHT_NO_CANDIDATE",
+      "utterance": "쓰레기 수거를 3주 동안 3회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [],
+      "injected": {
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 3,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "constraints.반복 횟수": "3회 반복해줘",
+          "timeResolution": "3주 동안"
+        },
+        "timeResolution": {
+          "value": 3,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E24",
+      "error": "demote_constraint",
+      "outcome": "MISSED_CONFIG",
+      "utterance": "쓰레기 수거를 3주 동안 3회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "simulationDuration": {
+          "value": 3,
+          "unit": "week"
+        },
+        "evidence": {
+          "simulationDuration": "3주 동안",
+          "preferences.반복 횟수": "3회 반복해줘"
+        },
+        "preferences": [
+          {
+            "name": "반복 횟수",
+            "value": 3,
+            "unit": "회"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E24",
+      "error": "invent_output",
+      "outcome": "MISSED_OTHER_CANDIDATES",
+      "utterance": "쓰레기 수거를 3주 동안 3회 반복해줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "simulationDuration": {
+          "value": 3,
+          "unit": "week"
+        },
+        "constraints": [
+          {
+            "name": "반복 횟수",
+            "value": 3,
+            "unit": "회"
+          }
+        ],
+        "evidence": {
+          "simulationDuration": "3주 동안",
+          "constraints.반복 횟수": "3회 반복해줘",
+          "requiredOutputs": "쓰레기 수거를 3주 동안 3회 반복해줘"
+        },
+        "requiredOutputs": [
+          "평균 민원 수"
+        ]
+      }
+    },
+    {
+      "id": "E25",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 하는데 배차 간격은 1시간으로 하고 차량 가동률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "requiredOutputs": [
+          "차량 가동률"
+        ],
+        "constraints": [
+          {
+            "name": "배차 간격",
+            "value": 2,
+            "unit": "시간"
+          }
+        ],
+        "evidence": {
+          "constraints.배차 간격": "배차 간격은 1시간으로 하고",
+          "requiredOutputs": "차량 가동률을 보여줘"
+        }
+      }
+    },
+    {
+      "id": "E25",
+      "error": "demote_constraint",
+      "outcome": "MISSED_OTHER_CANDIDATES",
+      "utterance": "쓰레기 수거를 하는데 배차 간격은 1시간으로 하고 차량 가동률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "requiredOutputs": [
+          "차량 가동률"
+        ],
+        "evidence": {
+          "requiredOutputs": "차량 가동률을 보여줘",
+          "preferences.배차 간격": "배차 간격은 1시간으로 하고"
+        },
+        "preferences": [
+          {
+            "name": "배차 간격",
+            "value": 1,
+            "unit": "시간"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E25",
+      "error": "drop_output",
+      "outcome": "HARMLESS",
+      "utterance": "쓰레기 수거를 하는데 배차 간격은 1시간으로 하고 차량 가동률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": [
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "constraints": [
+          {
+            "name": "배차 간격",
+            "value": 1,
+            "unit": "시간"
+          }
+        ],
+        "evidence": {
+          "constraints.배차 간격": "배차 간격은 1시간으로 하고"
+        }
+      }
+    },
+    {
+      "id": "E25",
+      "error": "invent_duration",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "쓰레기 수거를 하는데 배차 간격은 1시간으로 하고 차량 가동률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "jangnyang-waste-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "requiredOutputs": [
+          "차량 가동률"
+        ],
+        "constraints": [
+          {
+            "name": "배차 간격",
+            "value": 1,
+            "unit": "시간"
+          }
+        ],
+        "evidence": {
+          "constraints.배차 간격": "배차 간격은 1시간으로 하고",
+          "requiredOutputs": "차량 가동률을 보여줘",
+          "simulationDuration": "쓰레기 수거를 하는데 배차 간격은 1시간으로 하고 차량 가동률을 보여줘"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E26",
+      "error": "drop_output",
+      "outcome": "MISSED_ACCEPTED",
+      "utterance": "쓰레기 수거에서 탄소 배출량을 알고 싶어",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [
+        "bukgu-district-waste-sim",
+        "jangnyang-waste-sim"
+      ],
+      "injected": {
+        "evidence": {}
+      }
+    },
+    {
+      "id": "E26",
+      "error": "invent_duration",
+      "outcome": "HARMLESS",
+      "utterance": "쓰레기 수거에서 탄소 배출량을 알고 싶어",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [],
+      "candidates": [],
+      "injected": {
+        "requiredOutputs": [
+          "탄소 배출량"
+        ],
+        "evidence": {
+          "requiredOutputs": "탄소 배출량을 알고 싶어",
+          "simulationDuration": "쓰레기 수거에서 탄소 배출량을 알고 싶어"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    },
+    {
+      "id": "E27",
+      "error": "value_shift",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "민원 창구 예약 비율을 30%로 해서 이탈률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "requiredOutputs": [
+          "이탈률"
+        ],
+        "constraints": [
+          {
+            "name": "민원 창구 예약 비율",
+            "value": 31,
+            "unit": "%"
+          }
+        ],
+        "evidence": {
+          "constraints.민원 창구 예약 비율": "민원 창구 예약 비율을 30%로 해서",
+          "requiredOutputs": "이탈률을 보여줘"
+        }
+      }
+    },
+    {
+      "id": "E27",
+      "error": "demote_constraint",
+      "outcome": "BUILD_NOT_CHECKED",
+      "utterance": "민원 창구 예약 비율을 30%로 해서 이탈률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": [
+        "pohang-counter-sim"
+      ],
+      "injected": {
+        "requiredOutputs": [
+          "이탈률"
+        ],
+        "evidence": {
+          "requiredOutputs": "이탈률을 보여줘",
+          "preferences.민원 창구 예약 비율": "민원 창구 예약 비율을 30%로 해서"
+        },
+        "preferences": [
+          {
+            "name": "민원 창구 예약 비율",
+            "value": 30,
+            "unit": "%"
+          }
+        ]
+      }
+    },
+    {
+      "id": "E27",
+      "error": "drop_output",
+      "outcome": "BUILD_NOT_CHECKED",
+      "utterance": "민원 창구 예약 비율을 30%로 해서 이탈률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": [
+        "pohang-counter-sim"
+      ],
+      "injected": {
+        "constraints": [
+          {
+            "name": "민원 창구 예약 비율",
+            "value": 30,
+            "unit": "%"
+          }
+        ],
+        "evidence": {
+          "constraints.민원 창구 예약 비율": "민원 창구 예약 비율을 30%로 해서"
+        }
+      }
+    },
+    {
+      "id": "E27",
+      "error": "invent_duration",
+      "outcome": "CAUGHT_EVIDENCE",
+      "utterance": "민원 창구 예약 비율을 30%로 해서 이탈률을 보여줘",
+      "baseSource": "model-evaluation-ollama-qwen3-coder-30b",
+      "baseCandidates": [
+        "pohang-counter-sim"
+      ],
+      "candidates": null,
+      "injected": {
+        "requiredOutputs": [
+          "이탈률"
+        ],
+        "constraints": [
+          {
+            "name": "민원 창구 예약 비율",
+            "value": 30,
+            "unit": "%"
+          }
+        ],
+        "evidence": {
+          "constraints.민원 창구 예약 비율": "민원 창구 예약 비율을 30%로 해서",
+          "requiredOutputs": "이탈률을 보여줘",
+          "simulationDuration": "민원 창구 예약 비율을 30%로 해서 이탈률을 보여줘"
+        },
+        "simulationDuration": {
+          "value": 1,
+          "unit": "week"
+        }
+      }
+    }
+  ]
+}

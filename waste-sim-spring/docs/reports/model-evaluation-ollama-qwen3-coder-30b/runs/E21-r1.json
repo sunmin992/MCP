@@ -1,0 +1,71 @@
+{
+  "id": "E21",
+  "run": 1,
+  "requestedModel": "qwen3-coder:30b",
+  "promptVersion": "requirements-v2-common",
+  "promptSha256": "99e285ce976e84494d4e496a8be9431f01faa123cde4ff6ec8a5a75be1992f60",
+  "startedAt": "2026-11-04T05:40:19.123569+00:00",
+  "model": "qwen3-coder:30b",
+  "responseId": "resp_278178",
+  "usage": {
+    "input_tokens": 565,
+    "output_tokens": 154,
+    "total_tokens": 719,
+    "input_tokens_details": {
+      "cached_tokens": 541
+    },
+    "output_tokens_details": {
+      "reasoning_tokens": 0
+    }
+  },
+  "responseStatus": "completed",
+  "raw": {
+    "domain": "public-parking",
+    "spatialScale": null,
+    "regionId": null,
+    "simulationDuration": null,
+    "timeResolution": null,
+    "requiredOutputs": [
+      "주차"
+    ],
+    "constraints": [
+      {
+        "name": "주차장 수",
+        "value": 13,
+        "unit": "곳"
+      }
+    ],
+    "preferences": [],
+    "evidence": [
+      {
+        "field": "requiredOutputs",
+        "quote": "주차"
+      },
+      {
+        "field": "constraints.주차장 수",
+        "quote": "공영주차장 13곳"
+      }
+    ]
+  },
+  "profile": {
+    "domain": "public-parking",
+    "requirements": {
+      "requiredOutputs": [
+        "주차"
+      ],
+      "constraints": [
+        {
+          "name": "주차장 수",
+          "value": 13,
+          "unit": "곳"
+        }
+      ],
+      "evidence": {
+        "requiredOutputs": "주차",
+        "constraints.주차장 수": "공영주차장 13곳"
+      }
+    }
+  },
+  "status": "OK",
+  "seconds": 7.514
+}
