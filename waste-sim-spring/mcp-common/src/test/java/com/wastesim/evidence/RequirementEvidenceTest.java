@@ -43,11 +43,31 @@ class RequirementEvidenceTest {
         assertFalse(RequirementEvidence.check(j("""
             {"simulationDuration":{"value":3,"unit":"day"},"evidence":{"simulationDuration":"이틀 동안"}}"""), List.of(said)).blocks().isEmpty(),
             "이틀을 3일로 옮기면 막는다");
-        // 숫자가 정말 없는 표현은 판단 보류
-        var vague = RequirementEvidence.check(j("""
-            {"simulationDuration":{"value":3,"unit":"day"},"evidence":{"simulationDuration":"며칠 동안"}}"""), List.of("며칠 동안 돌려줘"));
-        assertTrue(vague.blocks().isEmpty());
-        assertEquals(List.of("simulationDuration"), vague.unverified());
+        // 수가 없는 구절로 수를 넣으면 막는다 — 오류 주입(2026-11-05)에서 발화 전체를 구절로 대고 기간을 지어낸 경우가 통과했다
+        assertFalse(RequirementEvidence.check(j("""
+            {"simulationDuration":{"value":3,"unit":"day"},"evidence":{"simulationDuration":"며칠 동안"}}"""), List.of("며칠 동안 돌려줘")).blocks().isEmpty());
+        assertFalse(RequirementEvidence.check(j("""
+            {"simulationDuration":{"value":1,"unit":"week"},"evidence":{"simulationDuration":"평균 운행 소요 시간을 보고 싶어"}}"""),
+                List.of("평균 운행 소요 시간을 보고 싶어")).blocks().isEmpty());
+        assertFalse(RequirementEvidence.check(j("""
+            {"constraints":[{"name":"차량","value":3,"unit":"대"}],"evidence":{"constraints.차량":"차량을 넉넉히"}}"""),
+                List.of("차량을 넉넉히 배치해줘")).blocks().isEmpty());
+    }
+
+    @Test void preferenceAndRequirementMustMatchTheWording() throws Exception {
+        String soft = "쓰레기 수거 시뮬레이션은 가능하면 10회 반복해줘", hard = "쓰레기 수거 시뮬레이션을 반드시 101회 반복해줘";
+        var keptSoft = RequirementEvidence.check(j("""
+            {"preferences":[{"name":"반복","value":10,"unit":"회"}],"evidence":{"preferences.반복":"가능하면 10회 반복해줘"}}"""), List.of(soft));
+        assertTrue(keptSoft.blocks().isEmpty(), keptSoft.blocks().toString());
+        assertFalse(RequirementEvidence.check(j("""
+            {"constraints":[{"name":"반복","value":10,"unit":"회"}],"evidence":{"constraints.반복":"가능하면 10회 반복해줘"}}"""), List.of(soft)).blocks().isEmpty(),
+            "선호를 필수로 올리면 막는다");
+        assertFalse(RequirementEvidence.check(j("""
+            {"preferences":[{"name":"반복","value":101,"unit":"회"}],"evidence":{"preferences.반복":"반드시 101회 반복해줘"}}"""), List.of(hard)).blocks().isEmpty(),
+            "필수를 선호로 내리면 카드 범위를 넘는 요청도 통과하므로 막는다");
+        assertFalse(RequirementEvidence.check(j("""
+            {"preferences":[{"name":"건물","value":27,"unit":"개"}],"evidence":{"preferences.건물":"건물 27개인 블록"}}"""),
+                List.of("건물 27개인 블록의 쓰레기 수거를 실행해줘")).blocks().isEmpty(), "표지 없는 조건은 필수다");
     }
 
     @Test void numericConstraintsAcceptKnownUnitConversions() throws Exception {
